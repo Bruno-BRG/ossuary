@@ -1,0 +1,15 @@
+# Unity — gerados, não versionar
+unity/Library/
+unity/Temp/
+unity/Logs/
+unity/UserSettings/
+unity/Builds/StandaloneWindows64/
+unity/Builds/StandaloneLinux64/
+*.csproj
+*.sln
+*.user
+obj/
+bin/
+
+# Logs locais dos scripts
+ossuary_test.stdout.txt

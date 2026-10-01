@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSSUARY — painel do desenvolvimento</title>
+<style>
+  :root { --bg:#0a0a0c; --panel:#121216; --fg:#d8d8d0; --dim:#8a8a80;
+          --green:#7fd67f; --yellow:#e0c060; --red:#e07060; --cyan:#6fc3df; }
+  * { box-sizing:border-box; }
+  body { background:var(--bg); color:var(--fg); font-family:Consolas,"Courier New",monospace;
+         max-width:960px; margin:0 auto; padding:24px 16px 64px; line-height:1.5; }
+  header { border:1px solid #333; padding:16px 20px; margin-bottom:20px; }
+  h1 { margin:0 0 4px; letter-spacing:4px; }
+  h2 { color:var(--cyan); border-bottom:1px solid #333; padding-bottom:4px; margin-top:32px; }
+  .card { background:var(--panel); border:1px solid #2a2a2e; padding:12px 16px; margin:10px 0; }
+  .ok { color:var(--green); } .warn { color:var(--yellow); } .bad { color:var(--red); }
+  .dim { color:var(--dim); } .cyan { color:var(--cyan); }
+  ul { margin:6px 0; padding-left:22px; }
+  li { margin:3px 0; }
+  code { background:#1c1c22; padding:1px 6px; }
+  .shots { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
+  .shots figure { margin:0; background:var(--panel); border:1px solid #2a2a2e; padding:8px; }
+  .shots img { width:100%; display:block; background:#000; }
+  .shots figcaption { font-size:12px; color:var(--dim); padding-top:6px; }
+  kbd { background:#222; border:1px solid #444; padding:0 5px; }
+  footer { margin-top:40px; color:var(--dim); font-size:13px; border-top:1px solid #333; padding-top:12px; }
+  a { color:var(--cyan); }
+</style>
+</head>
+<body>
+<header>
+  <h1>OSSUARY</h1>
+  <div class="dim">roguelike ASCII — dungeons de Rogue/NetHack · mundo de Fallout/Qud · visual Dwarf Fortress</div>
+  <div>Alpha v0.1 · testes <span class="ok">29/29 PASS</span> · build Windows <span class="ok">0 erros</span> (30/09/2026)</div>
+  <div class="ok">Renderer verificado: atlas com cobertura real, glifos na orientação certa, framing ok</div>
+</header>
+
+<h2>A Visão</h2>
+<div class="card">
+  <ul>
+    <li><span class="cyan">Dungeons: Rogue + NetHack</span> — procedural, escadas, armadilhas, fome, morte permanente.</li>
+    <li><span class="cyan">Mundo: Fallout 1/2 + Caves of Qud</span> — overworld com regiões, cidades-hub, viagem com custo de tempo, história emergente.</li>
+    <li><span class="cyan">Visual: Dwarf Fortress</span> — ASCII denso e colorido, painéis de informação, CRT por cima.</li>
+  </ul>
+</div>
+
+<h2>Feito (verificado)</h2>
+<div class="card"><ul>
+  <li><span class="ok">✔</span> Simulação completa: 5 branches (~54 níveis, 6 estilos), 25+ monstros, combate, FOV, fome, status</li>
+  <li><span class="ok">✔</span> Overworld 96×60 (dia/noite, estradas, encontros) + cidades com 8 lojas e economia</li>
+  <li><span class="ok">✔</span> HUD + 10 painéis, mira, viagem, minimap, seed como save</li>
+  <li><span class="ok">✔</span> Loja jogável (painel com cursor, <kbd>Enter</kbd>/<kbd>B</kbd> compra, <kbd>S</kbd> vende), papéis + level-ups, objetivo final com vitória</li>
+  <li><span class="ok">✔</span> Suite headless 29/29, dumps ASCII, soak 25 seeds — <code>headless.ps1 test</code></li>
+  <li><span class="ok">✔</span> <code>AGENTS.md</code> + pasta <code>docs/</code> com a arquitetura documentada</li>
+</ul></div>
+
+<h2>Fazendo agora</h2>
+<div class="card"><ul>
+  <li><span class="warn">◐</span> Bug do renderer (tela preta nos captures, sem glifos) — diagnóstico rodando</li>
+</ul></div>
+
+<h2>Próximo (roadmap)</h2>
+<div class="card"><ul>
+  <li>Declarar alpha jogável com screenshot legível</li>
+  <li>Save em arquivo (hoje só seed), som, balanceamento via soak</li>
+  <li>Facções/quests do mundo (Qud), mais branches e chefes</li>
+</ul></div>
+
+<h2>Como jogar o alpha</h2>
+<div class="card">
+  <div>Abra <code>unity/Builds/StandaloneWindows64/Ossuary.exe</code></div>
+  <div><kbd>h</kbd><kbd>j</kbd><kbd>k</kbd><kbd>l</kbd> andar · <kbd>&gt;</kbd><kbd>&lt;</kbd> escada ·
+  <kbd>g</kbd> pegar · <kbd>i</kbd> inventário · <kbd>?</kbd> ajuda · <kbd>Ctrl-Q</kbd> 2x sair</div>
+  <div class="dim">Controles completos em <code>docs/controles.md</code>. Morreu = qualquer tecla recomeça.</div>
+</div>
+
+<h2>Screenshots</h2>
+<div class="shots">
+  <figure><img src="../unity/Builds/shots/01-dungeon.png" alt="dungeon"><figcaption>01 — dungeon</figcaption></figure>
+  <figure><img src="../unity/Builds/shots/02-dungeon-explored.png" alt="dungeon explorada"><figcaption>02 — dungeon explorada</figcaption></figure>
+  <figure><img src="../unity/Builds/shots/03-inventory.png" alt="inventário"><figcaption>03 — inventário</figcaption></figure>
+  <figure><img src="../unity/Builds/shots/04-character.png" alt="ficha"><figcaption>04 — ficha do personagem</figcaption></figure>
+  <figure><img src="../unity/Builds/shots/05-overworld.png" alt="overworld"><figcaption>05 — overworld</figcaption></figure>
+</div>
+
+<h2>Pipeline</h2>
+<div class="card dim">
+  <code>fastcheck.ps1</code> (segundos, sem lock) ·
+  <code>headless.ps1 test|dump|soak</code> (lógica, sem Unity) ·
+  <code>check.ps1</code> (verdade de compilação) ·
+  <code>unity-run.ps1 -Method ...BuildWindows64</code> (build)<br>
+  Detalhes em <code>AGENTS.md</code> e <code>docs/build-teste.md</code>.
+</div>
+
+<footer>Atualizado em 01/10/2026 · gerado no repo, sem build — abra este arquivo no navegador ou sirva com <code>python -m http.server</code> na pasta <code>site/</code>.</footer>
+</body>
+</html>
