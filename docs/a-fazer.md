@@ -16,7 +16,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Controles e QoL
 
-- [ ] **Efeitos sonoros** curtos estilo bip de PC dos anos 80, opcional em DisplaySettings.
 
 ## Persistência e meta-progressão
 
@@ -38,6 +37,10 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Efeitos sonoros estilo bip de PC** (2026-10-02). O Core só **nomeia** o que aconteceu (`Game.Sound.cs`: cue por `MessageKind` em `Say`, mais `levelup` e `magic`; `DrainCues` entrega
+  no máximo 3, os mais fortes primeiro); `Frame.Sounds` leva os nomes e `desktop/src/audio.ts` toca ondas quadradas curtas (WebAudio), com volume de *Master × Effects* do menu.
+  Replays e título ficam em silêncio. Testes `SoundCues` (C#) e `audio.test.ts` (vitest). Música continua não escrita.
 
 - [x] **XP gasto em skills (modo Trained)** (2026-10-02). Novo valor de `Difficulty`: nele o uso **não** ensina mais (`Player.GainSkill` ignora), cada experiência ganha também vira `Player.TrainXp`
   e `Shift+N` abre a lista de skills (`Game.Training.cs`): +5 pontos por `20 + valor atual` de XP, respeitando o teto da classe. A ficha mostra "XP to spend". Teste `TrainedMode`.

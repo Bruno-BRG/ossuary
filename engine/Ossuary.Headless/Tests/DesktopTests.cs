@@ -602,6 +602,7 @@ namespace Ossuary.Desktop
             var s = new Session(); s.New(31337); s.Resize(110, 36);
             var f = s.Draw();
             Check(f.Glyphs.Length == 3960 && f.Fg.Length == 3960 && f.Bg.Length == 3960, "cell protocol");
+            Check(f.Sounds != null, "every frame says what to play, even if it is nothing");
             int turn = s.Game.Turn;
             s.Key("KeyI"); s.Draw();
             Check(s.Game.UiState.Active == Panel.Inventory, "inventory request drained");

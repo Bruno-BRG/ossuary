@@ -146,6 +146,7 @@ namespace Ossuary.Desktop
             if (Game.UiState.Active == Panel.Settings) Game.UiState.Active = Panel.None;
             _log = new List<string>(data.Keys);
             Game.LaidToRest.Clear();
+            Game.DrainCues();      // a replayed run is silent
             // Hardcore keeps a single save: resuming spends it.
             if (_difficulty == Difficulty.Hardcore) SaveStore.DeleteSave();
             Started = true; RefreshSave();
@@ -671,6 +672,7 @@ namespace Ossuary.Desktop
                 Master = a.Master, Music = a.Music, Effects = a.Effects,
                 Started = Started, ToTitle = ToTitle, HasSave = HasSave, SaveInfo = SaveInfo,
                 Lang = Loc.Code(s.Language), Intro = Intro ? Story.Intro() : null,
+                Sounds = _replaying || AtTitle || Intro ? new string[0] : Game.DrainCues(),
             };
         }
         static int Pack(Rgb c) => (c.R << 16) | (c.G << 8) | c.B;
@@ -711,5 +713,7 @@ namespace Ossuary.Desktop
         public string SaveInfo { get; set; }
         public string Lang { get; set; }
         public string[][] Intro { get; set; }
+        /// <summary>Sound cues that happened since the last frame (see Game.DrainCues), strongest first.</summary>
+        public string[] Sounds { get; set; }
     }
 }

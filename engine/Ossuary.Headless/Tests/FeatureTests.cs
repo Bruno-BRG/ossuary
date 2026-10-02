@@ -31,6 +31,7 @@ namespace Ossuary.Tests
             Test("Dive and Naked challenge runs start differently", Challenges);
             Test("travel finds altars and fountains", FeatureTravel);
             Test("Trained mode: skills are bought with XP", TrainedMode);
+            Test("what the game reports can also be heard", SoundCues);
             Test("crafting combines the pack and a molotov burns", CraftingFlow);
             Test("artifact sets add up and relics corrupt", SetsAndRelics);
             Test("new spells: ice, steam, oil, bone and purification", NewSpells);
@@ -1373,5 +1374,31 @@ namespace Ossuary.Tests
             Assert(plain.Turn == turn && !plain.PendingChoice.Active, "outside Trained mode the verb only explains itself");
         }
 
+        static void SoundCues()
+        {
+            var g = Game.NewHero(2400, "Ears", "human", "fighter");
+            g.DrainCues();
+            Assert(g.DrainCues().Length == 0, "silence at first");
+            g.Say("A rat bites you.", MessageKind.Combat);
+            g.Say("The rat dies.", MessageKind.Kill);
+            g.Say("Plain words.", MessageKind.Neutral);
+            var cues = g.DrainCues();
+            Assert(cues.Length == 2 && cues[0] == "kill" && cues[1] == "hit", "kills before hits, and plain words make no sound: " + string.Join(",", cues));
+            Assert(g.DrainCues().Length == 0, "draining empties the queue");
+            foreach (var kind in new[] { MessageKind.Bad, MessageKind.Good, MessageKind.Warn, MessageKind.Quest, MessageKind.Death }) g.Say("x", kind);
+            g.Cue("levelup");
+            var many = g.DrainCues();
+            Assert(many.Length == 3 && many[0] == "death" && many[1] == "levelup", "at most three cues, the strongest first: " + string.Join(",", many));
+            g.Say("again", MessageKind.Combat); g.Say("again", MessageKind.Combat);
+            Assert(g.DrainCues().Length == 1, "the same cue twice is heard once");
+
+            var mage = Archmage(2401);
+            mage.DrainCues();
+            SpellTarget(mage, out int x, out int y);
+            var ogre = new Monster(Bestiary.Find("ogre"), mage.Rng) { X = x, Y = y }; ogre.HP = ogre.MaxHP = 4000; mage.Monsters.Add(ogre);
+            mage.DrainCues();
+            Assert(Cast(mage, "magic-missile", x, y), "cast");
+            Assert(Array.IndexOf(mage.DrainCues(9), "magic") >= 0, "casting is heard");
+        }
     }
 }

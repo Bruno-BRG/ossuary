@@ -5,6 +5,7 @@ import { TerminalRenderer } from './renderer';
 import { overlayMenu, titleFrame } from './title';
 import { bodyOf, introFrame, introHold, introSpeed, pageLength } from './intro';
 import { t, type Lang } from './i18n';
+import { playCues, unlockAudio } from './audio';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#screen')!;
 const launch = document.querySelector<HTMLElement>('#launch')!;
@@ -55,6 +56,7 @@ function paint(next: Frame) {
   applyLabels(frame.lang);
   const scene = introActive ? introFrame(frame, frame.intro!, introPage, introTyped, titleTick, frame.lang, introAge) : onTitle ? titleFrame(frame, titleTick) : frame;
   renderer.draw(menuOnTitle() ? overlayMenu(scene, frame) : scene, size(), devicePixelRatio);
+  if (!onTitle && !introActive) playCues(frame.sounds, frame.master, frame.effects);
   const stored = JSON.stringify({ theme: frame.theme, crt: frame.crt, scale: frame.scale, lang: frame.lang });
   if (stored !== lastStored) {
     lastStored = stored;
@@ -159,6 +161,7 @@ resumeButton.addEventListener('click', () => void resume());
 document.querySelector('#retry')!.addEventListener('click', () => { failure.hidden = true; if (!ready) void initialize(); else void send({ op: 'frame' }); });
 
 window.addEventListener('keydown', async event => {
+  unlockAudio();
   if (event.code === 'F11') {
     event.preventDefault();
     if ('__TAURI_INTERNALS__' in window) {

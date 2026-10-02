@@ -86,6 +86,7 @@ namespace Ossuary.Core
 
             p.Mp -= spell.Cost;
             p.MpTimer = 0;
+            Cue("magic");
             ApplySpell(spell, target, tx, ty);
             GodsOnCast(spell);
             if (spell.School == School.Necromancy && spell.Level >= 4 && p.Corruption < 40) AddCorruption(1, null);   // the greater rites leave a mark, but only so far

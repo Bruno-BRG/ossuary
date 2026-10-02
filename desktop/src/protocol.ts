@@ -10,6 +10,7 @@ export interface Frame extends Display {
   master: number; music: number; effects: number;
   started: boolean; toTitle: boolean; hasSave: boolean; saveInfo: string;
   intro: string[][] | null;
+  sounds?: string[];
 }
 export interface Request {
   op: 'new' | 'load' | 'title' | 'play' | 'key' | 'resize' | 'display' | 'frame';

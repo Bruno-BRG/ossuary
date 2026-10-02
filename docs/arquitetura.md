@@ -63,6 +63,11 @@ O pacote usa IPC privado e funciona localmente. O modo web de desenvolvimento
 usa um endpoint Vite apenas em loopback, com o mesmo motor e uma cópia privada
 dos assemblies para manter o build disponível durante a prévia.
 
+## Som
+
+O Core não toca nada: `Game.Cue/DrainCues` guardam nomes (`hit`, `kill`, `hurt`, `death`, `levelup`, `quest`, `magic`, `warn`, `good`), o host põe em `Frame.Sounds`
+e `desktop/src/audio.ts` os transforma em bipes de onda quadrada. O áudio só destrava depois de uma tecla (política dos navegadores).
+
 ## Turnos e display
 
 Somente comandos da simulação avançam turnos. Redimensionar, renderizar,

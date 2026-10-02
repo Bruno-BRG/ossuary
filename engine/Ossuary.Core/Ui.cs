@@ -1650,7 +1650,8 @@ namespace Ossuary.Core
                 case MenuRow.Crt: return DisplaySettings.Current.Crt == CrtLevel.Off ? Loc.T("Flat pixels, no scanlines.") : Loc.T("Curvature, scanlines, phosphor glow.");
                 case MenuRow.Scale: return DisplaySettings.Current.Scale == 0 ? Loc.T("The largest that fits the window.") : (Loc.Current == Lang.Pt ? "Fixo: cada pixel da fonte vale " : "Fixed: each font pixel is ") + DisplaySettings.Current.Scale + "x" + DisplaySettings.Current.Scale + (Loc.Current == Lang.Pt ? " pixels de tela." : " screen pixels.");
                 case MenuRow.Language: return Loc.T("Portuguese (Brazil) or English.");
-                case MenuRow.Master: case MenuRow.Music: case MenuRow.Effects: return Loc.T("Saved now; takes effect when sound is added.");
+                case MenuRow.Master: case MenuRow.Effects: return Loc.T("Short square-wave bleeps: hits, kills, wounds, warnings.");
+                case MenuRow.Music: return Loc.T("Music is not written yet.");
                 case MenuRow.Controls: return Loc.T("Rebind any key.");
                 case MenuRow.Achievements: return Loc.T("What you have done across all your runs.");
                 case MenuRow.PastRuns: return Loc.T("Your finished expeditions, newest first.");

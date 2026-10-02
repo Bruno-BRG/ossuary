@@ -345,6 +345,8 @@ namespace Ossuary.Core
             ["Flat pixels, no scanlines."] = "Pixels chapados, sem linhas de varredura.",
             ["Curvature, scanlines, phosphor glow."] = "Curvatura, linhas de varredura e brilho de fósforo.",
             ["The largest that fits the window."] = "O maior que cabe na janela.",
+            ["Short square-wave bleeps: hits, kills, wounds, warnings."] = "Bipes curtos de onda quadrada: golpes, mortes, ferimentos, avisos.",
+            ["Music is not written yet."] = "A música ainda não foi escrita.",
             ["Saved now; takes effect when sound is added."] = "Salvo; vale quando o som for adicionado.",
             ["Rebind any key."] = "Remapeie qualquer tecla.",
             ["Saves the run and returns to the title."] = "Salva a expedição e volta ao título.",

@@ -111,6 +111,7 @@ namespace Ossuary.Core
             Log.Add(m);
             Transcript.Add(m);
             Said++;
+            CueFor(kind);
             while (Log.Count > 200) Log.RemoveAt(0);
             while (Transcript.Count > 2000) Transcript.RemoveAt(0);
         }
