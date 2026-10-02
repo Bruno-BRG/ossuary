@@ -51,6 +51,9 @@ O pacote distribui `ossuary.exe` e o motor `ossuary-engine.exe` lado a lado.
 - O frontend não avança turnos ao desenhar, redimensionar ou persistir preferências.
 - Uma ação em andamento por janela; não acumular autorepeat do teclado.
 - Semente uint64 passa no JSON como string decimal, sem conversão para Number.
+- Campo novo no protocolo JSON exige atualizar os três lados: `Request` em `engine/Ossuary.Desktop/Program.cs`,
+  `desktop/src/protocol.ts` e a struct `Request` em `desktop/src-tauri/src/main.rs` (usa `deny_unknown_fields`:
+  um campo esquecido faz o app empacotado recusar toda requisição).
 - Texto visível ao jogador nasce em inglês e ganha tradução PT em `Loc.cs`; `Say` e
   `TextBuilder` já traduzem (ver docs/idiomas.md). O Core nunca decide o idioma sozinho.
 - Erros de diagnóstico vão para stderr; stdout é exclusivo do protocolo.

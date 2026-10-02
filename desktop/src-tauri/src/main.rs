@@ -22,6 +22,7 @@ struct Request {
     key: Option<String>,
     shift: Option<bool>,
     ctrl: Option<bool>,
+    repeat: Option<bool>,
     cols: Option<u16>,
     rows: Option<u16>,
     theme: Option<u8>,
@@ -64,6 +65,7 @@ impl Request {
         field!(key);
         field!(shift);
         field!(ctrl);
+        field!(repeat);
         field!(cols);
         field!(rows);
         field!(theme);
@@ -256,6 +258,16 @@ mod tests {
             serde_json::json!({"op":"frame","path":"secret"})
         )
         .is_err());
+    }
+
+    #[test]
+    fn held_key_flag_reaches_the_engine() {
+        let request: Request = serde_json::from_value(
+            serde_json::json!({"op":"key","code":"ArrowRight","shift":false,"ctrl":false,"repeat":true}),
+        )
+        .unwrap();
+        assert!(request.validate().is_ok());
+        assert_eq!(request.json()["repeat"], true);
     }
 
     #[test]
