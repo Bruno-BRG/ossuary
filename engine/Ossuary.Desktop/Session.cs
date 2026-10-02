@@ -37,11 +37,21 @@ namespace Ossuary.Desktop
         /// <summary>Starts a fresh run. With <paramref name="create"/> the creation screen opens first.</summary>
         public void New(ulong? seed = null, bool create = false) => Start(seed, null, null, null, create, false);
 
-        void Start(ulong? seed, string name, string race, string role, bool create, bool overworld, List<Bones> bones = null, Difficulty difficulty = Difficulty.Normal)
+        /// <summary>Today's challenge: the date's seed and a hero fixed by it. Opens on the story like a created hero.</summary>
+        public void NewDaily(DateTime utc)
+        {
+            string label = Daily.Label(utc.Year, utc.Month, utc.Day);
+            ulong seed = Daily.SeedFor(label);
+            Daily.HeroFor(seed, out string race, out string role);
+            Start(seed, "Daily", race, role, false, true, null, Difficulty.Normal, label);
+            Intro = true;
+        }
+
+        void Start(ulong? seed, string name, string race, string role, bool create, bool overworld, List<Bones> bones = null, Difficulty difficulty = Difficulty.Normal, string daily = "")
         {
             ulong s = seed ?? BitConverter.ToUInt64(RandomNumberGenerator.GetBytes(8), 0);
             Game = role == null ? new Game(s) : Game.NewHero(s, name, race, role);
-            Game.Difficulty = difficulty; _difficulty = difficulty;
+            Game.Difficulty = difficulty; _difficulty = difficulty; _daily = daily ?? "";
             _seed = Game.Rng.Seed;
             _graveyard = bones ?? SaveStore.ReadBones();
             Game.Graveyard = _graveyard;
@@ -59,6 +69,7 @@ namespace Ossuary.Desktop
 
         bool _overworld;
         Difficulty _difficulty;
+        string _daily = "";
         List<Bones> _graveyard = new List<Bones>();
         string _name = Heroes.DefaultName, _race = "human", _role = "adventurer";
         // Hero (name, race, role) is a save field, not a logged key, so the creation form needs no replay.
@@ -98,7 +109,7 @@ namespace Ossuary.Desktop
             if (_difficulty == Difficulty.Hardcore && !forQuit) return Loc.T("Hardcore: the run is saved only when you quit.");
             try
             {
-                SaveStore.WriteSave(new SaveData { Seed = _seed.ToString(), Name = _name, Race = _race, Role = _role, Overworld = _overworld, Bones = _graveyard, Difficulty = _difficulty.ToString(), Keys = new List<string>(_log), Info = Describe() });
+                SaveStore.WriteSave(new SaveData { Seed = _seed.ToString(), Name = _name, Race = _race, Role = _role, Overworld = _overworld, Bones = _graveyard, Difficulty = _difficulty.ToString(), Daily = _daily, Keys = new List<string>(_log), Info = Describe() });
                 RefreshSave();
                 return null;
             }
@@ -110,7 +121,7 @@ namespace Ossuary.Desktop
         {
             var data = SaveStore.ReadSave() ?? throw new InvalidOperationException("No saved run.");
             int cols = Hud?.Ui.Width ?? 110, rows = Hud?.Ui.Height ?? 36;
-            Start(ulong.Parse(data.Seed), data.Name, data.Race, data.Role, false, data.Overworld, data.Bones ?? new List<Bones>(), Difficulties.Parse(data.Difficulty)); Resize(cols, rows);
+            Start(ulong.Parse(data.Seed), data.Name, data.Race, data.Role, false, data.Overworld, data.Bones ?? new List<Bones>(), Difficulties.Parse(data.Difficulty), data.Daily ?? ""); Resize(cols, rows);
             _replaying = true;
             try
             {
@@ -146,6 +157,7 @@ namespace Ossuary.Desktop
             _recorded = Game;
             if (!Started && Game.Turn == 0) return;   // nothing was played
             var record = Morgue.Summarize(Game);
+            record.Daily = _daily;
             record.Date = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss");
             string path = SaveStore.WriteRun(record, Morgue.Text(Game, record));
             if (path != null) LastMorgue = path;
@@ -533,7 +545,7 @@ namespace Ossuary.Desktop
                 case MenuRow.MainMenu when AtTitle: ui.MenuNote = Loc.T("You are already here."); break;
                 case MenuRow.Controls: ui.Active = Panel.Controls; ui.ControlsIndex = 0; ui.BindNote = ""; break;
                 case MenuRow.PastRuns:
-                    ui.Runs = SaveStore.ReadHistory(); ui.Runs.Reverse(); ui.RunsIndex = 0; ui.Active = Panel.Runs; break;
+                    ui.RunsDaily = false; LoadRuns(ui); ui.Active = Panel.Runs; break;
                 case MenuRow.MainMenu: Save(true); ui.Active = Panel.None; ToTitle = true; AtTitle = true; break;
                 case MenuRow.Quit: Save(true); ExitRequested = true; break;
                 default: ChangeMenu(row, 1); break;
@@ -542,9 +554,23 @@ namespace Ossuary.Desktop
 
         // --------------------------------------------------------------- controls
 
+        /// <summary>Newest first, or only the daily challenge runs with the best score first.</summary>
+        static void LoadRuns(UiState ui)
+        {
+            var all = SaveStore.ReadHistory();
+            all.Reverse();
+            if (ui.RunsDaily)
+            {
+                all = all.FindAll(r => r.Daily.Length > 0);
+                all.Sort((a, b) => b.Score.CompareTo(a.Score));
+            }
+            ui.Runs = all; ui.RunsIndex = 0;
+        }
+
         void RunsKey(string code)
         {
             var ui = Game.UiState;
+            if (code == "KeyD") { ui.RunsDaily = !ui.RunsDaily; LoadRuns(ui); return; }
             int n = ui.Runs.Count;
             if (code == "Escape" || code == "F2") { ui.Active = Panel.Settings; return; }
             if (n == 0) return;

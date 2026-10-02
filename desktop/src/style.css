@@ -14,7 +14,9 @@ input:focus, button:focus-visible { border-color: var(--title); outline: 1px sol
 button { cursor: pointer; padding: 14px 12px; font-size: 12px; letter-spacing: 1px; }
 #begin { width: 100%; margin-top: 12px; color: var(--void); background: var(--title); border-color: var(--title); font-weight: 700; box-shadow: 0 0 18px rgb(var(--title-rgb) / 0.35); transition: box-shadow .15s, transform .15s; }
 #begin:hover { box-shadow: 0 0 30px rgb(var(--title-rgb) / 0.6); transform: translateY(-1px); }
-#begin span, #continue span, #options span { float: right; }
+#begin span, #continue span, #options span, #daily span { float: right; }
+#daily { width: 100%; margin-top: 10px; padding: 10px 12px; color: var(--title); background: rgb(var(--void-rgb) / 0.82); border-color: var(--rule); }
+#daily:hover { border-color: var(--title); box-shadow: 0 0 14px rgb(var(--title-rgb) / 0.25); }
 #options { width: 100%; margin-top: 10px; padding: 10px 12px; color: var(--dim); background: rgb(var(--void-rgb) / 0.82); border-color: var(--rule); }
 #options:hover { color: var(--text); border-color: var(--dim); }
 #continue { width: 100%; margin-top: 12px; color: var(--void); background: var(--title); border-color: var(--title); box-shadow: 0 0 18px rgb(var(--title-rgb) / 0.35); transition: box-shadow .15s, transform .15s; text-align: left; }

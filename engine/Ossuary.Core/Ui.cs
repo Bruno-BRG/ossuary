@@ -1753,12 +1753,12 @@ namespace Ossuary.Core
         void DrawRunsPanel()
         {
             var theme = Theme.Current;
-            PanelRect(out int px, out int py, out int pw, out int ph, 84, 24, "Past runs", "Esc back");
+            PanelRect(out int px, out int py, out int pw, out int ph, 84, 24, State.RunsDaily ? "Daily board" : "Past runs", "D daily board   Esc back");
             int x = px + 3, iw = pw - 6;
             var list = State.Runs;
             if (list.Count == 0)
             {
-                _t.WriteClipped(x, py + 3, Loc.T("No finished runs yet."), theme.Dim, iw, false, theme.Panel);
+                _t.WriteClipped(x, py + 3, Loc.T(State.RunsDaily ? "No daily runs yet." : "No finished runs yet."), theme.Dim, iw, false, theme.Panel);
                 return;
             }
             int sel = Math.Max(0, Math.Min(State.RunsIndex, list.Count - 1));
@@ -1778,7 +1778,7 @@ namespace Ossuary.Core
                 if (on) RowBar(px + 1, y, pw - 2, theme);
                 _t.Put(px + 2, y, on ? '▶' : ' ', theme.Accent, true, bg);
                 Rgb end = run.Outcome == "won" ? theme.Good : run.Outcome == "abandoned" ? theme.Dim : theme.Danger;
-                _t.WriteClipped(x + 2, y, run.Name, on ? theme.Accent : theme.Text, 18, on, bg);
+                _t.WriteClipped(x + 2, y, (run.Daily.Length > 0 ? "◆ " : "") + run.Name, on ? theme.Accent : theme.Text, 18, on, bg);
                 _t.WriteClipped(x + 22, y, Loc.T(run.Role) + " " + run.Level, theme.Text, 17, false, bg);
                 _t.Write(x + 40, y, run.MaxDepth.ToString(), theme.Text, false, bg);
                 _t.WriteClipped(x + 46, y, Loc.T(run.Outcome), end, 15, false, bg);
@@ -1789,7 +1789,7 @@ namespace Ossuary.Core
             string how = sr.Outcome == "won" ? Loc.T("Escaped with the Amulet of Yendor.") : sr.Outcome == "abandoned" ? Loc.T("Abandoned the run.") : Loc.T("Killed by") + " " + Loc.T(sr.Cause);
             _t.WriteClipped(x, py + ph - 4, how, theme.Text, iw, true, theme.Panel);
             _t.WriteClipped(x, py + ph - 3, $"{sr.Race} {Loc.T(sr.Role)}, {sr.Title}   {sr.Branch} {sr.Depth}   {sr.Turns} {Loc.T("Turns")}   {sr.Kills} {Loc.T("Kills")}", theme.Dim, iw, false, theme.Panel);
-            _t.WriteClipped(x, py + ph - 2, $"{sr.Date}   {Loc.T("Seed")} {sr.Seed}", theme.Dim, iw, false, theme.Panel);
+            _t.WriteClipped(x, py + ph - 2, $"{sr.Date}   {Loc.T("Seed")} {sr.Seed}" + (sr.Daily.Length > 0 ? $"   {Loc.T("Daily")} {sr.Daily}" : "") + (sr.Mode != "Normal" ? $"   {Loc.T(sr.Mode)}" : ""), theme.Dim, iw, false, theme.Panel);
         }
 
         static bool SameKeys(KeyBindings binds, int action)

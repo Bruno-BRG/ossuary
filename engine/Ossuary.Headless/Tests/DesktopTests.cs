@@ -308,6 +308,34 @@ namespace Ossuary.Desktop
             Check(s.Game.UiState.Active == Panel.Settings, "Esc returns from Past runs to the menu");
         }
 
+        /// <summary>The daily challenge is the same dungeon and hero for a date, its runs are flagged, and the board lists them best first.</summary>
+        static void DailyFlow()
+        {
+            var day = new DateTime(2026, 10, 2, 12, 0, 0, DateTimeKind.Utc);
+            var a = new Session(); a.NewDaily(day); a.Resize(110, 36); a.Draw();
+            var b = new Session(); b.NewDaily(day.AddHours(5)); b.Resize(110, 36); b.Draw();
+            var other = new Session(); other.NewDaily(day.AddDays(1)); other.Resize(110, 36); other.Draw();
+            Check(a.Game.Rng.Seed == b.Game.Rng.Seed && a.Game.Player.RaceId == b.Game.Player.RaceId && a.Game.Player.RoleId == b.Game.Player.RoleId, "one day, one seed and one hero");
+            Check(a.Game.Rng.Seed != other.Game.Rng.Seed, "another day, another seed");
+            Check(a.Intro && a.Game.Player.CharName == "Daily", "the daily opens on the story");
+
+            a.Key("Enter"); a.Draw();
+            a.Key("Period", "."); a.Game.Player.HP = 0; a.Game.CheckDeath(); a.Draw();
+            var runs = SaveStore.ReadHistory();
+            Check(runs[runs.Count - 1].Daily == "2026-10-02", "the run is flagged with its date");
+
+            var s = new Session(); s.New(99); s.Resize(110, 36); s.Draw();
+            s.Key("F2"); s.Draw();
+            for (int i = 0; i < 20 && Ossuary.Core.MenuRows.All[s.Game.UiState.SettingsIndex] != Ossuary.Core.MenuRow.PastRuns; i++) s.Key("ArrowDown");
+            s.Key("Enter"); s.Draw();
+            int all = s.Game.UiState.Runs.Count;
+            s.Key("KeyD"); s.Draw();
+            Check(s.Game.UiState.RunsDaily && s.Game.UiState.Runs.Count >= 1 && s.Game.UiState.Runs.Count <= all, "D filters to daily runs");
+            Check(s.Game.UiState.Runs.TrueForAll(r => r.Daily.Length > 0), "the daily board has only daily runs");
+            s.Key("KeyD"); s.Draw();
+            Check(!s.Game.UiState.RunsDaily && s.Game.UiState.Runs.Count == all, "D again shows everything");
+        }
+
         /// <summary>Modes are picked on the confirm step, survive a save, and Hardcore keeps one save that resuming spends.</summary>
         static void DifficultyFlow()
         {
@@ -598,7 +626,7 @@ namespace Ossuary.Desktop
             s.Game.Mode = GameMode.GameOver; s.Draw(); s.Key("Enter"); s.Draw();
             Check(s.Game.Mode == GameMode.Dungeon && s.Game.Turn == 0 && s.Hud.Ui.Width == 110, "death restarts and keeps viewport");
             DisplaySettings.Current.Apply(ThemePreset.Ossuary, CrtLevel.Subtle);
-            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); HeldKeyWalking(); RunRecorded(); BonesFlow(); DifficultyFlow(); TownFlow();
+            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); HeldKeyWalking(); RunRecorded(); BonesFlow(); DifficultyFlow(); DailyFlow(); TownFlow();
             try { System.IO.Directory.Delete(data, true); } catch { /* temp dir only */ }
             Environment.SetEnvironmentVariable("OSSUARY_DATA", null);
             Console.WriteLine("==== desktop: input, choices, targeting, travel, shop, settings, restart and frame protocol PASS ====");

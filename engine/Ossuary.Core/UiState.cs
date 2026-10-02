@@ -78,6 +78,8 @@ namespace Ossuary.Core
         /// <summary>Finished runs, newest first, loaded by the host when the panel opens (the Core reads no files).</summary>
         public System.Collections.Generic.List<RunRecord> Runs = new System.Collections.Generic.List<RunRecord>();
         public int RunsIndex;
+        /// <summary>Show only daily-challenge runs, best score first.</summary>
+        public bool RunsDaily;
 
         /// <summary>One-line result of the last menu action ("Game saved.").</summary>
         public string MenuNote = "";

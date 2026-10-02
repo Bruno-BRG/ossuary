@@ -151,6 +151,8 @@ namespace Ossuary.Core
             ["One save: it is erased when you resume. No quicksave."] = "Um único save: some ao retomar. Sem save rápido.",
             ["Hardcore: the run is saved only when you quit."] = "Hardcore: a run só é salva ao sair.",
             ["◄► mode  Enter begin  Esc back"] = "◄► modo  Enter começa  Esc volta",
+            ["Daily board"] = "Placar diário", ["No daily runs yet."] = "Nenhuma run diária ainda.", ["Daily"] = "Diário",
+            ["D daily board   Esc back"] = "D placar diário   Esc volta",
             // ---- past runs
             ["Past runs"] = "Expedições passadas", ["history"] = "histórico", ["Your finished expeditions, newest first."] = "Suas expedições terminadas, as mais novas primeiro.",
             ["No finished runs yet."] = "Nenhuma expedição terminada ainda.", ["Hero"] = "Herói", ["Class"] = "Classe", ["End"] = "Fim",

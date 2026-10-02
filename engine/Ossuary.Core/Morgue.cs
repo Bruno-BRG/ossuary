@@ -29,6 +29,8 @@ namespace Ossuary.Core
         public string Date { get; set; } = "";
         public int Score { get; set; }
         public string Mode { get; set; } = "Normal";
+        /// <summary>The daily challenge date ("2026-10-02") when this was a daily run, else empty.</summary>
+        public string Daily { get; set; } = "";
     }
 
     /// <summary>The end-of-run summary and the morgue file text. Pure functions of the finished game.</summary>
@@ -84,6 +86,7 @@ namespace Ossuary.Core
             Line($"{Loc.T(r.Outcome == "won" ? "Ended in" : "Ended on")} {r.Branch} {r.Depth}");
             if (r.God.Length > 0) Line($"{Loc.T("Follower of")} {r.God} ({Loc.T("piety")} {p.Piety})");
             if (r.Mode != "Normal") Line(Loc.T("Mode") + ": " + Loc.T(r.Mode));
+            if (r.Daily.Length > 0) Line(Loc.T("Daily") + ": " + r.Daily);
             Line($"{Loc.T("Seed")} {r.Seed}" + (r.Date.Length > 0 ? "   " + r.Date : ""));
 
             Head("Attributes");

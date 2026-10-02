@@ -22,6 +22,8 @@ namespace Ossuary.Desktop
         public bool Overworld { get; set; }
         /// <summary>"Normal", "Classic" or "Hardcore". Absent in older saves, which are Normal.</summary>
         public string Difficulty { get; set; } = "Normal";
+        /// <summary>The daily challenge date when this is a daily run.</summary>
+        public string Daily { get; set; } = "";
         /// <summary>The dead heroes this run could meet, as they were when it began. A replay must see the same ones.</summary>
         public List<Bones> Bones { get; set; } = new List<Bones>();
     }

@@ -18,7 +18,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 - [ ] **Desafios** (modos extras além de Normal/Classic/Hardcore): pacifista, sem equipamento, mergulho (começa fundo). `Difficulty` já é dado salvo e passa pelo replay.
 - [ ] **Travel até altar/fonte/ponto marcado**: generalizar `Game.AutoStep` (já aceita qualquer objetivo) com um seletor.
-- [ ] **Seed diária** com placar local (a determinismo por seed já permite).
 - [ ] **Conquistas** locais (sem rede).
 - [ ] **Efeitos sonoros** curtos estilo bip de PC dos anos 80, opcional em DisplaySettings.
 
@@ -82,6 +81,10 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Seed diária com placar local** (2026-10-02). `Core/Daily.cs` (seed FNV-1a da data UTC + herói fixo pela seed), botão
+  *Desafio diário* no título (`op:new, daily:true`; campo novo nos três lados do protocolo), `Session.NewDaily`. A run grava
+  `RunRecord.Daily`; em *Past runs* a tecla `D` mostra o placar diário (melhor pontuação primeiro). Teste `DailyFlow`.
 
 - [x] **Modos de dificuldade + save-and-quit** (2026-10-02). `Core/Difficulty.cs`: Normal, **Classic** (sem fome) e **Hardcore**
   (um save só, gravado ao sair pelo menu e apagado ao retomar; sem quicksave). Escolhido na tela de criação (◄► no passo

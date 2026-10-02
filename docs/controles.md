@@ -39,6 +39,9 @@ em `morgue/` no diretório de dados do jogo.
 
 ## Criação e modos
 
+**Desafio diário** (botão no título): mesma semente e mesmo herói para todos no dia (UTC), começa direto na história.
+Em *Past runs*, `D` alterna para o placar diário.
+
 No último passo da criação, ◄► escolhe o modo: **Normal**, **Classic** (sem fome) ou **Hardcore** (um save só, gravado ao
 sair e apagado ao retomar; sem `F5`).
 

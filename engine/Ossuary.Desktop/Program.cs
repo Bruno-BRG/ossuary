@@ -21,6 +21,8 @@ namespace Ossuary.Desktop
         public int Crt { get; set; } = 1;
         public int Scale { get; set; }
         public bool Create { get; set; }
+        /// <summary>With op "new": start today's daily challenge (fixed seed and hero) instead of a normal run.</summary>
+        public bool Daily { get; set; }
         public string Lang { get; set; }
     }
 
@@ -52,7 +54,7 @@ namespace Ossuary.Desktop
                             ulong? seed = null;
                             if (r.Seed != null) seed = ulong.Parse(r.Seed);
                             ApplySettings(r);
-                            session.New(seed, r.Create); session.Resize(r.Cols, r.Rows); break;
+                            if (r.Daily) session.NewDaily(DateTime.UtcNow); else session.New(seed, r.Create); session.Resize(r.Cols, r.Rows); break;
                         case "load":
                             ApplySettings(r);
                             session.New(); session.Resize(r.Cols, r.Rows); session.Load(); break;

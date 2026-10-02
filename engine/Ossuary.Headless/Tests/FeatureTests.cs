@@ -20,6 +20,7 @@ namespace Ossuary.Tests
             Test("travel to stairs and rest until healed", StairsAndRest);
             Test("a death is recorded with its cause and a morgue text", MorgueContent);
             Test("dead heroes return as shades on their level", BonesShades);
+            Test("the daily challenge is stable per date", DailySeeds);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -147,6 +148,20 @@ namespace Ossuary.Tests
                 }
             }
             Assert(found >= 5 && found <= 22, "shades appear on most but not all levels, found " + found);
+        }
+
+        static void DailySeeds()
+        {
+            Assert(Daily.SeedFor("2026-10-02") == Daily.SeedFor("2026-10-02"), "same date, same seed");
+            var seen = new HashSet<ulong>();
+            for (int d = 1; d <= 60; d++) seen.Add(Daily.SeedFor(Daily.Label(2026, 1 + d / 31, 1 + d % 28)));
+            Assert(seen.Count >= 55, "different dates give different seeds, got " + seen.Count);
+            for (int d = 1; d <= 40; d++)
+            {
+                Daily.HeroFor(Daily.SeedFor(Daily.Label(2026, 11, d % 28 + 1)), out string race, out string role);
+                var hero = Game.NewHero(1, "Daily", race, role);
+                Assert(hero.Player.RaceId == race && hero.Player.RoleId == role, "the daily hero is a real race and class");
+            }
         }
     }
 }

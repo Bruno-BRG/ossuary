@@ -37,6 +37,7 @@ function applyLabels(lang: Lang) {
   seed.placeholder = t(lang, 'random');
   resumeButton.querySelector('b')!.textContent = t(lang, 'continue');
   document.querySelector('#begin')!.firstChild!.textContent = t(lang, 'begin') + ' ';
+  document.querySelector('#daily')!.firstChild!.textContent = t(lang, 'daily') + ' ';
   document.querySelector('#options')!.firstChild!.textContent = t(lang, 'options') + ' ';
   document.querySelector('#retry')!.textContent = t(lang, 'retry');
 }
@@ -142,7 +143,17 @@ async function begin() {
   canvas.focus();
 }
 
+async function beginDaily() {
+  if (!ready || busy) return;
+  onTitle = false;
+  // The daily challenge fixes the seed and the hero by the UTC date, so it skips creation.
+  const s = size();
+  await send({ op: 'new', daily: true, cols: s.cols, rows: s.rows, ...prefs() });
+  canvas.focus();
+}
+
 document.querySelector('#begin')!.addEventListener('click', () => void begin());
+document.querySelector('#daily')!.addEventListener('click', () => void beginDaily());
 document.querySelector('#options')!.addEventListener('click', () => { if (ready && !busy) void send({ op: 'key', code: 'Escape' }); });
 resumeButton.addEventListener('click', () => void resume());
 document.querySelector('#retry')!.addEventListener('click', () => { failure.hidden = true; if (!ready) void initialize(); else void send({ op: 'frame' }); });

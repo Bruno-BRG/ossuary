@@ -29,6 +29,7 @@ struct Request {
     crt: Option<u8>,
     scale: Option<u8>,
     create: Option<bool>,
+    daily: Option<bool>,
     lang: Option<String>,
 }
 
@@ -72,6 +73,7 @@ impl Request {
         field!(crt);
         field!(scale);
         field!(create);
+        field!(daily);
         field!(lang);
         value
     }

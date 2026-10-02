@@ -14,7 +14,7 @@ export interface Frame extends Display {
 export interface Request {
   op: 'new' | 'load' | 'title' | 'play' | 'key' | 'resize' | 'display' | 'frame';
   seed?: string; code?: string; key?: string; shift?: boolean; ctrl?: boolean; repeat?: boolean;
-  cols?: number; rows?: number; theme?: number; crt?: number; scale?: number; create?: boolean; lang?: Lang;
+  cols?: number; rows?: number; theme?: number; crt?: number; scale?: number; create?: boolean; daily?: boolean; lang?: Lang;
 }
 interface Response { ok: boolean; frame?: Frame; error?: string }
 
