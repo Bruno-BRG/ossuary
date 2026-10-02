@@ -85,7 +85,7 @@ namespace Ossuary.Core
                 case "settings": _g.PushSettings(); return true;
                 case "crt": DisplaySettings.Current.CycleCrt(1); return true;
                 case "theme": DisplaySettings.Current.CycleTheme(1); return true;
-                case "quit": _g.Mode = GameMode.GameOver; _g.Say("You abandon the run."); return true;
+                case "quit": _g.Mode = GameMode.GameOver; _g.Abandoned = true; _g.DeathCause = "abandoned the run"; _g.Say("You abandon the run."); return true;
                 case "shop-buy": return BuyShopCursor();
                 case "shop-sell": return BeginSellToShop();
                 default: Handled = false; return false;

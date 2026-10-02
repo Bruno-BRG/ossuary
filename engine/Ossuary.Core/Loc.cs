@@ -144,6 +144,18 @@ namespace Ossuary.Core
 
         static readonly Dictionary<string, string> Pt = new Dictionary<string, string>
         {
+            // ---- morgue and death
+            ["morgue"] = "necrotério", ["level"] = "nível", ["Killed by"] = "Morto por", ["Abandoned the run."] = "Abandonou a expedição.",
+            ["Escaped with the Amulet of Yendor."] = "Escapou com o Amuleto de Yendor.",
+            ["Deepest level"] = "Nível mais fundo", ["Turns"] = "Turnos", ["Kills"] = "Mortes", ["Score"] = "Pontos",
+            ["Ended on"] = "Terminou em", ["Ended in"] = "Terminou em", ["Follower of"] = "Devoto de", ["piety"] = "piedade", ["Seed"] = "Semente",
+            ["Attributes"] = "Atributos", ["Skills"] = "Habilidades", ["Perks"] = "Vantagens", ["Spells"] = "Magias", ["Equipment"] = "Equipamento",
+            ["Inventory"] = "Mochila", ["Last words"] = "Últimas palavras", ["Wielding"] = "Empunhando", ["Wearing"] = "Vestindo",
+            ["Ring"] = "Anel", ["Amulet"] = "Amuleto", ["(empty)"] = "(vazia)", ["gold"] = "ouro",
+            ["starvation"] = "fome", ["poison"] = "veneno", ["burning"] = "queimadura", ["a spike trap"] = "uma armadilha de espetos",
+            ["a poison dart trap"] = "uma armadilha de dardos", ["a fire trap"] = "uma armadilha de fogo", ["a trap"] = "uma armadilha",
+            ["an electric shock"] = "um choque elétrico", ["a potion of acid"] = "uma poção de ácido", ["unknown causes"] = "causas desconhecidas",
+            ["an amulet of strangulation"] = "um amuleto de estrangulamento", ["abandoned the run"] = "abandono",
             // ---- auto-explore, stairs travel, rest
             ["search for traps and doors / rest until healed"] = "procurar armadilhas e portas / descansar até curar",
             ["auto-explore / travel to the stairs"] = "explorar sozinho / ir até a escada",

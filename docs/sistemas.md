@@ -230,6 +230,13 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
   `Say` novo (`Game.Said`), item/escada sob os pés ou troca de nível. Sem RNG próprio: o replay reproduz.
 - **Tecla segurada** (`Game.CanKeepWalking`, `Session.KeyRepeat`): ver `arquitetura.md`.
 
+## Fim de run: causa, morgue e histórico (`Morgue.cs`, `Game.Death.cs`, `SaveStore`)
+
+- `Game.HurtBy(causa)` marca quem feriu o jogador por último (monstros, armadilhas, veneno, fogo, fome…);
+  `CheckDeath` grava `DeathCause`. `quit` marca `Abandoned`.
+- `Morgue.Summarize/Text` são funções puras do jogo terminado. `Session.RecordRun` (uma vez por run, nunca em
+  replay) grava `morgue/*.txt` e anexa a `history.json` no diretório de dados (`OSSUARY_DATA` nos testes).
+
 ## FOV / pathfinding (`Fov.cs`, `Pathfinder.cs`)
 
 - FOV com sombra (raio 10, +2 com ring of warning), simétrico, testado.

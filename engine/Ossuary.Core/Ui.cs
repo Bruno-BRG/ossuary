@@ -1770,6 +1770,8 @@ namespace Ossuary.Core
             CentreOn(px, pw, py + 6, p.Name ?? "Adventurer", theme.Text, true);
             CentreOn(px, pw, py + 7, $"Dlvl {p.MaxDepth}   {p.Kills} kills", theme.Dim, false);
 
+            string cause = _g.Abandoned ? Loc.T("Abandoned the run.") : _g.DeathCause != null ? Loc.T("Killed by") + " " + Loc.T(_g.DeathCause) : "";
+            if (cause.Length > 0) CentreOn(px, pw, py + 9, cause.Length > pw - 4 ? cause.Substring(0, pw - 4) : cause, theme.Warn, false);
             CentreOn(px, pw, py + 11, "You have died.", theme.Danger, true);
             CentreOn(px, pw, py + 13, "Any key begins again.", theme.Text, false);
             CentreOn(px, pw, py + 14, "Esc quits.", theme.Dim, false);

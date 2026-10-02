@@ -298,6 +298,7 @@ namespace Ossuary.Core
 
         void TriggerTrap(Traps kind, int level)
         {
+            HurtBy(kind == Traps.Spike ? "a spike trap" : kind == Traps.Dart ? "a poison dart trap" : kind == Traps.Fire ? "a fire trap" : "a trap");
             switch (kind)
             {
                 case Traps.Spike:
@@ -444,6 +445,7 @@ namespace Ossuary.Core
                 return;
             }
             Mode = GameMode.GameOver;
+            DeathCause = CauseOfDeath();
             Say("You die...", MessageKind.Death);
         }
 
@@ -480,7 +482,7 @@ namespace Ossuary.Core
             if (p.Nutrient == 0) Say("You are getting hungry.", MessageKind.Warn);
             else if (p.Nutrient <= -100 && p.Hunger % 20 == 0)
             {
-                p.HP -= 1;
+                p.HP -= 1; HurtBy("starvation");
                 Say("You are starving.", MessageKind.Bad);
             }
         }
@@ -532,7 +534,7 @@ namespace Ossuary.Core
             }
             if (Player.PoisonResist > 0)
             {
-                if (Rng.Chance(100 - Math.Max(0, Player.ResistPct(DamageType.Poison)))) Player.HP -= 1;
+                if (Rng.Chance(100 - Math.Max(0, Player.ResistPct(DamageType.Poison)))) { Player.HP -= 1; HurtBy("poison"); }
                 if (Player.PoisonResist <= 2 && Rng.Chance(30))
                 {
                     Player.PoisonResist--;
@@ -541,7 +543,7 @@ namespace Ossuary.Core
             }
             if (Player.Amulet != null && Player.Amulet.Name == "amulet of strangulation" && Turn % 15 == 0)
             {
-                Player.HP -= Rng.Range(1, 4);
+                Player.HP -= Rng.Range(1, 4); HurtBy("an amulet of strangulation");
                 Say("The amulet tightens around your throat!", MessageKind.Bad);
             }
         }
@@ -590,12 +592,14 @@ namespace Ossuary.Core
                 {
                     int dmg = Rng.Range(4, 12);
                     Player.HP -= dmg;
+                    HurtBy(Article(m));
                     Say($"The {m.Name} explodes for {dmg} damage!", MessageKind.Bad);
                     Monsters.Remove(m);
                     Map.Version++;
                     CheckDeath();
                     return;
                 }
+                HurtBy(Article(m));
                 var res = Battles.MeleeAttack(m, Player, Rng);
                 Say(res.Message, res.Killed ? MessageKind.Death : MessageKind.Combat);
                 Map.Version++;

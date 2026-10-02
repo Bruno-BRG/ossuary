@@ -283,6 +283,22 @@ namespace Ossuary.Desktop
             Check(f.Game.UiState.Active == Panel.None, "Esc closes abilities");
         }
 
+        /// <summary>A finished run leaves one history entry and one morgue file, however many frames are drawn.</summary>
+        static void RunRecorded()
+        {
+            var s = new Session(); s.New(1357); s.Resize(110, 36); s.Draw();
+            s.Key("Period", "."); s.Draw();
+            int before = SaveStore.ReadHistory().Count;
+            s.Game.Player.HP = 0; s.Game.CheckDeath();
+            s.Draw(); s.Draw();
+            var history = SaveStore.ReadHistory();
+            Check(history.Count == before + 1, "a death is recorded exactly once");
+            Check(s.LastMorgue != null && System.IO.File.Exists(s.LastMorgue), "the morgue file exists");
+            Check(System.IO.File.ReadAllText(s.LastMorgue).Contains("Last words"), "the morgue file has content");
+            Check(history[history.Count - 1].Outcome == "died", "outcome is died");
+            s.Key("Enter"); s.Draw();
+        }
+
         /// <summary>Holding a direction keeps walking, but only while the way is calm, and never queues turns.</summary>
         static void HeldKeyWalking()
         {
@@ -517,7 +533,7 @@ namespace Ossuary.Desktop
             s.Game.Mode = GameMode.GameOver; s.Draw(); s.Key("Enter"); s.Draw();
             Check(s.Game.Mode == GameMode.Dungeon && s.Game.Turn == 0 && s.Hud.Ui.Width == 110, "death restarts and keeps viewport");
             DisplaySettings.Current.Apply(ThemePreset.Ossuary, CrtLevel.Subtle);
-            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); HeldKeyWalking(); TownFlow();
+            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); HeldKeyWalking(); RunRecorded(); TownFlow();
             try { System.IO.Directory.Delete(data, true); } catch { /* temp dir only */ }
             Environment.SetEnvironmentVariable("OSSUARY_DATA", null);
             Console.WriteLine("==== desktop: input, choices, targeting, travel, shop, settings, restart and frame protocol PASS ====");

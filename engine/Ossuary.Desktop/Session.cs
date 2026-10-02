@@ -127,6 +127,24 @@ namespace Ossuary.Desktop
             Started = true; RefreshSave();
         }
 
+        // A run that ends (death, victory or abandoning it) leaves a morgue file and a history entry, once.
+        Game _recorded;
+
+        void RecordRun()
+        {
+            if (_replaying || Game == null || ReferenceEquals(_recorded, Game)) return;
+            if (Game.Mode != GameMode.GameOver && Game.Mode != GameMode.Won) return;
+            _recorded = Game;
+            if (!Started && Game.Turn == 0) return;   // nothing was played
+            var record = Morgue.Summarize(Game);
+            record.Date = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss");
+            string path = SaveStore.WriteRun(record, Morgue.Text(Game, record));
+            if (path != null) LastMorgue = path;
+        }
+
+        /// <summary>Where the last finished run's morgue file went (for the death screen); null if none.</summary>
+        public string LastMorgue;
+
         void DeleteSaveIfThisRun()
         {
             var data = SaveStore.ReadSave();
@@ -186,7 +204,7 @@ namespace Ossuary.Desktop
             KeyCore(code, key, shift, ctrl);
 
             bool dead = Game.Mode == GameMode.GameOver || Game.Mode == GameMode.Won;
-            if (dead) { DeleteSaveIfThisRun(); return; }
+            if (dead) { RecordRun(); DeleteSaveIfThisRun(); return; }
             if (generation != _generation) return;
             if ((log || _quitRan) && !ExitRequested)
             {
@@ -539,6 +557,7 @@ namespace Ossuary.Desktop
 
         public Frame Draw()
         {
+            RecordRun();
             Hud.Ui.TitleBackdrop = AtTitle;
             TextBuilder screen = Hud.Draw();
             int n = screen.Width * screen.Height;

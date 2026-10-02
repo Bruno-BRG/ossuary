@@ -33,7 +33,7 @@ namespace Ossuary.Core
             else if (n.Contains("acid"))
             {
                 int d = Rng.Range(2, 11);
-                p.HP -= d;
+                p.HP -= d; HurtBy("a potion of acid");
                 Say($"Acid burns your throat for {d} damage!", MessageKind.Bad);
             }
             else if (n.Contains("oil"))

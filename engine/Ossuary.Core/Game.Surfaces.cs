@@ -162,7 +162,7 @@ namespace Ossuary.Core
             if (hitPlayer)
             {
                 int d = Player.ResistDamage(dmg, DamageType.Lightning);
-                Player.HP -= d;
+                Player.HP -= d; HurtBy("an electric shock");
                 Say($"The current shocks you for {d}!", MessageKind.Bad);
             }
         }
@@ -222,7 +222,7 @@ namespace Ossuary.Core
                 else
                 {
                     int d = p.ResistDamage(Rng.Range(1, 4), DamageType.Fire);
-                    p.HP -= d;
+                    p.HP -= d; HurtBy("burning");
                     Say($"You burn! (-{d})", MessageKind.Bad);
                     if (--p.BurnTurns == 0) Say("The flames die down.", MessageKind.Info);
                 }

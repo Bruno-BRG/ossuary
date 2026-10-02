@@ -17,7 +17,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Controles e QoL
 
 - [ ] **Travel até altar/fonte/ponto marcado**: generalizar `Game.AutoStep` (já aceita qualquer objetivo) com um seletor.
-- [ ] **Morgue file**: ao morrer ou vencer, exportar `.txt` com o resumo da run (build, deuses, kills, inventário, log final).
 - [ ] **Seed diária** com placar local (a determinismo por seed já permite).
 - [ ] **Modos de dificuldade**: Clássico sem fome, Hardcore, desafios.
 - [ ] **Conquistas** locais (sem rede).
@@ -91,6 +90,10 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Morgue file** (2026-10-02). Ao morrer, vencer ou abandonar: `Core/Morgue.cs` (`RunRecord`, `Summarize`, `Text`) e
+  `Game.Death.cs` (`DeathCause`, `HurtBy`); o host grava `morgue/<data>-<nome>.txt` e acrescenta ao `history.json`
+  (`SaveStore.WriteRun`, máx. 200). A tela de morte mostra a causa. Base do histórico de runs e do Cemitério.
 
 - [x] **Auto-explore** (`t`), **travel até a escada** (`` ` ``) e **descanso até curar** (`Shift+S`) (2026-10-02).
   `Game.Explore.cs` (BFS sobre células vistas, `ExploreGoal`, `StairsStep`) e `Commands.DoAutoWalk`: laços de

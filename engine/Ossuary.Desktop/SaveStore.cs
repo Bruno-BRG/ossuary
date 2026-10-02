@@ -69,6 +69,39 @@ namespace Ossuary.Desktop
             catch (Exception ex) { Console.Error.WriteLine("Could not delete save: " + ex.Message); }
         }
 
+        // ----------------------------------------------------------------- history and morgue
+
+        const int HistoryCap = 200;
+        static string HistoryPath => Path.Combine(Dir, "history.json");
+        public static string MorgueDir => Path.Combine(Dir, "morgue");
+
+        public static List<RunRecord> ReadHistory()
+        {
+            try
+            {
+                if (!File.Exists(HistoryPath)) return new List<RunRecord>();
+                return JsonSerializer.Deserialize<List<RunRecord>>(File.ReadAllText(HistoryPath), Json) ?? new List<RunRecord>();
+            }
+            catch (Exception ex) { Console.Error.WriteLine("Unreadable history: " + ex.Message); return new List<RunRecord>(); }
+        }
+
+        /// <summary>Appends a finished run to the history (newest last, capped) and writes its morgue file. Never throws.</summary>
+        public static string WriteRun(RunRecord record, string morgueText)
+        {
+            try
+            {
+                var list = ReadHistory();
+                list.Add(record);
+                if (list.Count > HistoryCap) list.RemoveRange(0, list.Count - HistoryCap);
+                WriteAtomic(HistoryPath, JsonSerializer.Serialize(list, Json));
+                Directory.CreateDirectory(MorgueDir);
+                string path = Path.Combine(MorgueDir, Morgue.FileStem(record) + ".txt");
+                File.WriteAllText(path, morgueText);
+                return path;
+            }
+            catch (Exception ex) { Console.Error.WriteLine("Could not write the morgue: " + ex.Message); return null; }
+        }
+
         // ----------------------------------------------------------------- settings
 
         sealed class SettingsData

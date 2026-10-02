@@ -18,6 +18,7 @@ namespace Ossuary.Tests
             _pass = 0; _fail = 0;
             Test("auto-explore reveals the level and ends", AutoExplore);
             Test("travel to stairs and rest until healed", StairsAndRest);
+            Test("a death is recorded with its cause and a morgue text", MorgueContent);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -81,6 +82,32 @@ namespace Ossuary.Tests
             turn = g.Turn;
             cmd.Execute("rest"); cmd.Execute("explore"); cmd.Execute("stairs");
             Assert(g.Turn == turn, "enemies in sight refuse auto-walk without spending turns");
+        }
+
+        static void MorgueContent()
+        {
+            var g = Game.NewHero(55, "Mara", "dwarf", "fighter");
+            g.Monsters.Clear();
+            var rat = new Monster(Bestiary.Find("giant rat"), g.Rng);
+            foreach (var d in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) })
+                if (g.Map.Walkable(g.Player.X + d.Item1, g.Player.Y + d.Item2)) { rat.X = g.Player.X + d.Item1; rat.Y = g.Player.Y + d.Item2; break; }
+            g.Monsters.Add(rat);
+            g.Player.HP = 1; g.Player.AC = 30;
+            for (int i = 0; i < 400 && g.Mode == GameMode.Dungeon; i++)
+            {
+                g.Player.HP = Math.Min(g.Player.HP, 1); g.Player.AC = 30; rat.Dormant = false; rat.Alert = 1;
+                g.Player.Nutrient = 5000;
+                g.Wait();
+                if (g.Player.HP <= 0) break;
+            }
+            Assert(g.Mode == GameMode.GameOver, "the hero should have died");
+            Assert(g.DeathCause != null && g.DeathCause.Contains("rat"), "cause names the killer, got " + g.DeathCause);
+            var r = Morgue.Summarize(g);
+            Assert(r.Outcome == "died" && r.Name == "Mara" && r.Role == "Fighter", "record fields: " + r.Outcome + " " + r.Name + " " + r.Role);
+            string text = Morgue.Text(g, r);
+            Assert(text.Contains("Killed by a giant rat"), "morgue names the killer");
+            Assert(text.Contains("Mara") && text.Contains("Inventory") && text.Contains("Last words"), "morgue has the sections");
+            Assert(Morgue.FileStem(r).IndexOf('/') < 0, "file stem is safe");
         }
     }
 }
