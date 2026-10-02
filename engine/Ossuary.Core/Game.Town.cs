@@ -192,6 +192,8 @@ namespace Ossuary.Core
             if ((s & Service.Rest) != 0) Add("rest", "Rest until morning", RestPrice);
             if ((s & Service.Meal) != 0) Add("meal", "A hot meal", MealPrice);
             if ((s & Service.Ale) != 0) Add("ale", "A mug of ale", AlePrice);
+            if ((s & Service.Ale) != 0 && Companions.Count < MaxCompanions) Add("hire", "Hire a sellsword", HirePrice);
+            if ((s & Service.Ale) != 0 && Companions.Count > 0) Add("dismiss", "Send my sellsword home", 0);
             if ((s & Service.Heal) != 0) Add("heal", "Heal my wounds", HealPrice, Player.HP < Player.MaxHP);
             if ((s & Service.Cure) != 0) Add("cure", "Cure my ailments", CurePrice, NeedsCure());
             if ((s & Service.Cure) != 0) Add("purge", "Purge the Ossuary from me", PurgePrice, Player.Corruption > 0);
@@ -251,6 +253,17 @@ namespace Ossuary.Core
                     if (!Pay(AlePrice)) return false;
                     Player.HP = Math.Min(Player.MaxHP, Player.HP + Math.Max(2, Player.MaxHP / 10));
                     Tell("You drink a mug of ale. It is bad, and it warms you.", MessageKind.Good);
+                    return false;
+                case "hire":
+                    {
+                        if (Companions.Count >= MaxCompanions || !Pay(HirePrice)) return false;
+                        var hired = HireCompanion();
+                        Tell($"{hired.Name} takes your coin and your word. They will follow you down.", MessageKind.Good);
+                        return false;
+                    }
+                case "dismiss":
+                    DismissCompanion();
+                    Tell("Your sellsword shakes your hand and goes back to the bar.", MessageKind.Info);
                     return false;
                 case "heal":
                     if (!Pay(HealPrice)) return false;

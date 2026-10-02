@@ -1223,6 +1223,8 @@ namespace Ossuary.Core
                 string capText = cap < 100 ? $"  (max {cap})" : "";
                 _t.Write(x + 2, y++, $"{kv.Key,-10}{kv.Value,3}  {SkillRanks.Name(kv.Value),-8}{capText}", theme.Text, false, theme.Panel);
             }
+            foreach (var comp in _g.Companions)
+                _t.WriteClipped(x, y++, $"Companion: {comp.Name}, level {comp.Level}, {System.Math.Max(0, comp.HP)}/{comp.MaxHP} HP", theme.Good, iw, false, theme.Panel);
             if (p.Corruption > 0 || p.Mutated.Count > 0)
             {
                 _t.WriteClipped(x, y++, $"Corruption {p.Corruption}/{Game.CorruptionMax}", p.Corruption >= 60 ? theme.Bad : theme.Warn, iw, true, theme.Panel);

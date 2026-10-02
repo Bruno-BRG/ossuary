@@ -65,6 +65,9 @@ namespace Ossuary.Core.Entities
         public bool IsPriest;
         public bool IsGuard;
         public bool Unique;
+        /// <summary>A hired follower: an ally with no timer that travels with the hero between levels.</summary>
+        public bool Companion;
+        public string CompanionRole;
         /// <summary>Set on the shade of a dead hero: the bones key to lay to rest when it is destroyed.</summary>
         public string BonesKey;
         /// <summary>Fights for the player (summoned or charmed). SummonTurns counts down to its end.</summary>

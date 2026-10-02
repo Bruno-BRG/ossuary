@@ -142,6 +142,7 @@ namespace Ossuary.Core
 
             Player.InsideDungeon = true;
             Mode = GameMode.Dungeon;
+            PlaceCompanions();
             Dungeon.Remember(branchName, depth, sx, sy);
             if (spawns != null) RaiseBones(spawns, sx, sy);
             EnsureQuestAmulet(); // fallback: levels generated before the quest still get their amulet
@@ -472,6 +473,7 @@ namespace Ossuary.Core
             if (!(Player.BuffTurns("haste") > 0 && (Turn & 1) == 0)) RunMonsters();
             UpdateFov();
             CheckDeath();
+            ReapCompanions();
             CheckAchievements();
         }
 

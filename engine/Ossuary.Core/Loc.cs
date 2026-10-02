@@ -201,6 +201,9 @@ namespace Ossuary.Core
             ["◄► mode  Enter begin  Esc back"] = "◄► modo  Enter começa  Esc volta",
             ["Daily board"] = "Placar diário", ["No daily runs yet."] = "Nenhuma run diária ainda.", ["Daily"] = "Diário",
             ["D daily board   Esc back"] = "D placar diário   Esc volta",
+            // ---- companions
+            ["Hire a sellsword"] = "Contratar um mercenário", ["Send my sellsword home"] = "Mandar meu mercenário para casa",
+            ["Your sellsword shakes your hand and goes back to the bar."] = "Seu mercenário aperta sua mão e volta para o balcão.",
             // ---- corruption
             ["drink at a fountain (it may be tainted)"] = "beber numa fonte (pode estar contaminada)",
             ["There is nothing to drink from here."] = "Não há de onde beber aqui.",
@@ -328,6 +331,8 @@ namespace Ossuary.Core
         static readonly List<(Regex, string)> Rx = new List<(Regex, string)>
         {
             R(@"Seed (\d+)\. Press \? for help\.", "Semente $1. Aperte ? para ajuda."),
+            R(@"(.+) takes your coin and your word\. They will follow you down\.", "$1 pega seu dinheiro e sua palavra. Vai te seguir lá para baixo."),
+            R(@"The (.+) has fallen\.", "$1 tombou."),
             R(@"A cold draught\. Someone died here: (.+) the (.+)\.", "Uma corrente fria. Alguém morreu aqui: $1, $2."),
             R(@"A (.+) blocks your path!", "Algo barra seu caminho: $1!"),
             R(@"Attack it with k, or flee with <\. It is (.+)\.", "Ataque com k ou fuja com <. Parece $1."),

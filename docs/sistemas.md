@@ -250,6 +250,12 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
   **Classic**: `ProcessHunger` não faz nada. **Hardcore**: `Session.Save(forQuit)` só grava ao sair (Main menu/Quit),
   `QuickSave` e *Save game* recusam, e `Load` apaga o arquivo depois de reproduzir a run.
 
+## Companheiros (`Game.Companions.cs`)
+
+- Serviço *Hire a sellsword* (taverna): `HireCompanion` cria um `Monster` com `Companion=true`, `Ally=true`, `SummonTurns=0`; `RescaleCompanion`
+  deriva HP/CA/dano do nível do herói. `PlaceCompanions` (em `DescendTo`) põe todos ao lado do herói a cada nível de dungeon; `ReapCompanions`
+  tira da lista quem foi destruído. `RescaleCompanions` roda em `AnnounceLevelUp`. Usam o `AllyTurn` comum.
+
 ## Corrupção e mutações (`Mutations.cs`, `Game.Corruption.cs`)
 
 - `AddCorruption` sobe `Player.Corruption` (teto 100); cada múltiplo de 20 cruzado chama `GainMutation` (`MutationTable.Pick`: 50% boa,

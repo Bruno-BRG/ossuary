@@ -22,8 +22,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Persistência e meta-progressão
 
-- [ ] **Companheiros permanentes**: mercenário contratável na taverna, sobe de nível,
-  carrega itens, comandos simples. Hoje só há aliados invocados/temporários.
 - [ ] **XP gasto em skills** (opção estilo Sil), listada em `rpg.md`.
 
 ## Magia e deuses
@@ -74,6 +72,11 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Companheiros permanentes** (2026-10-02). `Game.Companions.cs`: a taverna contrata um mercenário (*sellsword / shield-bearer / cutthroat*,
+  `100 + 40×nível` de ouro); é um aliado sem timer que atravessa toda escada, sobe de nível com o herói (mantendo a fração de vida) e,
+  se cair, acabou (`ReapCompanions`). Aparece na ficha Character. Teste `Companions`. Pendente: inventário/ordens (ficar/seguir), mais de um
+  companheiro, arqueiros.
 
 - [x] **Mutações e Corrupção do Ossuário** (2026-10-02). `Entities/Mutations.cs` (16 mutações: boas, mistas e más; números em `ItemMods` somados
   em `Player.Gear` + visão/fome/ruído) e `Game.Corruption.cs`: `Player.Corruption` 0–100, **uma mutação a cada 20 pontos**. Fontes: **Shift+E**

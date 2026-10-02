@@ -26,6 +26,7 @@ namespace Ossuary.Tests
             Test("traps are sensed, found by searching and disarmed", TrapsFlow);
             Test("stealth and noise shift how far monsters notice", StealthNoise);
             Test("corruption grows mutations that change the numbers", CorruptionMutations);
+            Test("a hired companion follows, grows and can fall", Companions);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -390,6 +391,57 @@ namespace Ossuary.Tests
             var one = Game.NewHero(612, "Twin", "human", "fighter"); var two = Game.NewHero(612, "Twin", "human", "fighter");
             one.AddCorruption(100); two.AddCorruption(100);
             Assert(string.Join(",", one.Player.Mutated) == string.Join(",", two.Player.Mutated), "mutations replay exactly");
+        }
+
+        static void Companions()
+        {
+            var g = Game.NewHero(707, "Lead", "human", "fighter");
+            g.Monsters.Clear();
+            g.TalkBuilding = new Building { Services = Service.Ale, Name = "Test Tavern" };
+            g.Player.Gold = 0;
+            var rows = g.ServiceRows();
+            Assert(rows.Exists(r => r.Id == "hire" && !r.Enabled), "the tavern offers a sellsword you cannot afford yet");
+            Assert(!g.ServiceAction("hire") && g.Companions.Count == 0, "no coin, no sellsword");
+            g.Player.Gold = 5000;
+            int gold = g.Player.Gold;
+            g.ServiceAction("hire");
+            Assert(g.Companions.Count == 1 && g.Player.Gold == gold - g.HirePrice + 0 || g.Player.Gold < gold, "hiring costs gold");
+            var c = g.Companions[0];
+            Assert(c.Ally && c.Companion && c.SummonTurns == 0 && c.Level == g.Player.Level, "an ally with no timer, at the hero's level");
+            Assert(!g.ServiceRows().Exists(r => r.Id == "hire"), "only one companion at a time");
+            Assert(g.ServiceRows().Exists(r => r.Id == "dismiss"), "and they can be sent home");
+
+            // Down the stairs they come too, hurt or not.
+            g.DescendTo("The Dungeons", 2);
+            Assert(g.Monsters.Contains(c), "the companion arrives with the hero");
+            Assert(Pathfinder.Chebyshev(c.X, c.Y, g.Player.X, g.Player.Y) <= 3, "and stands beside them");
+            c.HP = c.MaxHP / 2;
+            int hpBefore = c.HP, maxBefore = c.MaxHP;
+            g.DescendTo("The Dungeons", 3);
+            Assert(g.Monsters.Contains(c) && c.HP == hpBefore, "health carries over between levels");
+
+            // They grow with the hero and keep their share of health.
+            g.Player.Level += 3; g.Player.Title = "x";
+            g.RescaleCompanions();
+            Assert(c.MaxHP > maxBefore && c.Level == g.Player.Level, "levelling up makes them stronger");
+            Assert(Math.Abs((double)c.HP / c.MaxHP - (double)hpBefore / maxBefore) < 0.1, "at the same share of health");
+
+            // They fight: a rat next to them does not stay alive for long.
+            g.Monsters.RemoveAll(m => m != c);
+            var rat = new Monster(Bestiary.Find("giant rat"), g.Rng) { X = c.X + 1, Y = c.Y, Alert = 1 };
+            if (!g.Map.Walkable(rat.X, rat.Y)) g.Map.Set(rat.X, rat.Y, TileKind.Floor);
+            g.Monsters.Add(rat);
+            for (int i = 0; i < 30 && !rat.IsDead; i++) { g.Player.Nutrient = 1000; g.Wait(); }
+            Assert(rat.IsDead || !g.Monsters.Contains(rat), "the companion kills what is next to them");
+
+            // And when they fall, they stay fallen.
+            c.HP = 0; g.Monsters.Remove(c);
+            g.Wait();
+            Assert(g.Companions.Count == 0, "a fallen companion leaves the roster");
+            bool said = false; foreach (var m in g.Log) if (m.Text.Contains("has fallen")) said = true;
+            Assert(said, "and the log says so");
+            g.DescendTo("The Dungeons", 4);
+            Assert(!g.Monsters.Exists(m => m.Companion), "they do not come back");
         }
     }
 }

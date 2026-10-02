@@ -127,6 +127,7 @@ namespace Ossuary.Core
 
         void AnnounceLevelUp()
         {
+            RescaleCompanions();
             Say($"You advance to level {Player.Level} ({Player.Title})! Choose from {Player.PendingAdvances} advancement(s) (Shift+C).", MessageKind.Good);
             UiRequests.Advance = true;
         }
