@@ -28,6 +28,7 @@ namespace Ossuary.Core
         Altar,
         Service,
         Runs,
+        Achievements,
     }
 
     /// <summary>
@@ -78,6 +79,9 @@ namespace Ossuary.Core
         /// <summary>Finished runs, newest first, loaded by the host when the panel opens (the Core reads no files).</summary>
         public System.Collections.Generic.List<RunRecord> Runs = new System.Collections.Generic.List<RunRecord>();
         public int RunsIndex;
+        /// <summary>Achievement id to the date it was unlocked, loaded by the host when the panel opens.</summary>
+        public System.Collections.Generic.Dictionary<string, string> Unlocked = new System.Collections.Generic.Dictionary<string, string>();
+        public int AchIndex;
         /// <summary>Show only daily-challenge runs, best score first.</summary>
         public bool RunsDaily;
 
@@ -148,7 +152,7 @@ namespace Ossuary.Core
 
 namespace Ossuary.Core
 {
-    public enum MenuRow { Resume, Save, Theme, Crt, Scale, Language, Master, Music, Effects, Controls, PastRuns, MainMenu, Quit }
+    public enum MenuRow { Resume, Save, Theme, Crt, Scale, Language, Master, Music, Effects, Controls, Achievements, PastRuns, MainMenu, Quit }
 
     /// <summary>Row order of the F2 menu, shared by the panel that draws it and the host that drives it.</summary>
     public static class MenuRows

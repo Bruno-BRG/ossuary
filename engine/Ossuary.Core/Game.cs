@@ -465,6 +465,7 @@ namespace Ossuary.Core
             if (!(Player.BuffTurns("haste") > 0 && (Turn & 1) == 0)) RunMonsters();
             UpdateFov();
             CheckDeath();
+            CheckAchievements();
         }
 
         /// <summary>

@@ -96,6 +96,7 @@ namespace Ossuary.Core
             Mode = GameMode.Won;
             UiState.Active = Panel.Win;
             Say("You emerge into the open air, the Amulet of Yendor blazing against your chest.", MessageKind.Quest);
+            CheckAchievements();
             Say($"Escaped after {Turn} turns, {Player.Kills} kills, depth {Player.MaxDepth}. The Ossuary remembers.", MessageKind.Good);
             return true;
         }

@@ -37,8 +37,8 @@ namespace Ossuary.Desktop
             s.Key("F2"); s.Draw();
             for (int i = 0; i < 10; i++) s.Key("ArrowDown");
             s.Key("ArrowUp"); s.Key("ArrowUp"); s.Key("ArrowUp"); s.Key("ArrowUp");
-            // Master -> Music -> Effects -> Controls -> Past runs -> Main menu
-            for (int i = 0; i < 5; i++) s.Key("ArrowDown");
+            // Master -> Music -> Effects -> Controls -> Achievements -> Past runs -> Main menu
+            for (int i = 0; i < 6; i++) s.Key("ArrowDown");
             s.Draw();
             s.Key("Enter"); var f = s.Draw();
             Check(f.ToTitle && s.Game != null, "main menu returns to the title");
@@ -306,6 +306,24 @@ namespace Ossuary.Desktop
             Check(s.Game.UiState.Active == Panel.Runs && s.Game.UiState.Runs.Count >= 1, "Past runs opens with the recorded runs");
             s.Key("Escape"); s.Draw();
             Check(s.Game.UiState.Active == Panel.Settings, "Esc returns from Past runs to the menu");
+        }
+
+        /// <summary>Achievements persist across runs and the menu lists them.</summary>
+        static void AchievementsFlow()
+        {
+            var s = new Session(); s.New(5151); s.Resize(110, 36); s.Draw();
+            s.Game.Monsters.Clear(); s.Game.Player.Kills = 1;
+            s.Key("Period", "."); s.Draw();
+            Check(SaveStore.ReadAchievements().ContainsKey("first-blood"), "an earned achievement is written to disk");
+            var s2 = new Session(); s2.New(5252); s2.Resize(110, 36); s2.Draw();
+            Check(s2.Game.AlreadyUnlocked.Contains("first-blood"), "the next run knows what is unlocked");
+            s2.Key("F2"); s2.Draw();
+            for (int i = 0; i < 20 && Ossuary.Core.MenuRows.All[s2.Game.UiState.SettingsIndex] != Ossuary.Core.MenuRow.Achievements; i++) s2.Key("ArrowDown");
+            s2.Key("Enter"); s2.Draw();
+            Check(s2.Game.UiState.Active == Panel.Achievements && s2.Game.UiState.Unlocked.ContainsKey("first-blood"), "the achievements panel opens with the unlocked ones");
+            s2.Key("ArrowDown"); s2.Key("End"); s2.Draw();
+            s2.Key("Escape"); s2.Draw();
+            Check(s2.Game.UiState.Active == Panel.Settings, "Esc returns to the menu");
         }
 
         /// <summary>The daily challenge is the same dungeon and hero for a date, its runs are flagged, and the board lists them best first.</summary>
@@ -626,7 +644,7 @@ namespace Ossuary.Desktop
             s.Game.Mode = GameMode.GameOver; s.Draw(); s.Key("Enter"); s.Draw();
             Check(s.Game.Mode == GameMode.Dungeon && s.Game.Turn == 0 && s.Hud.Ui.Width == 110, "death restarts and keeps viewport");
             DisplaySettings.Current.Apply(ThemePreset.Ossuary, CrtLevel.Subtle);
-            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); HeldKeyWalking(); RunRecorded(); BonesFlow(); DifficultyFlow(); DailyFlow(); TownFlow();
+            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); HeldKeyWalking(); RunRecorded(); BonesFlow(); DifficultyFlow(); DailyFlow(); AchievementsFlow(); TownFlow();
             try { System.IO.Directory.Delete(data, true); } catch { /* temp dir only */ }
             Environment.SetEnvironmentVariable("OSSUARY_DATA", null);
             Console.WriteLine("==== desktop: input, choices, targeting, travel, shop, settings, restart and frame protocol PASS ====");

@@ -21,6 +21,7 @@ namespace Ossuary.Tests
             Test("a death is recorded with its cause and a morgue text", MorgueContent);
             Test("dead heroes return as shades on their level", BonesShades);
             Test("the daily challenge is stable per date", DailySeeds);
+            Test("achievements are earned from state and never touch the simulation", AchievementsEarned);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -162,6 +163,36 @@ namespace Ossuary.Tests
                 var hero = Game.NewHero(1, "Daily", race, role);
                 Assert(hero.Player.RaceId == race && hero.Player.RoleId == role, "the daily hero is a real race and class");
             }
+        }
+
+        static void AchievementsEarned()
+        {
+            var ids = new HashSet<string>();
+            foreach (var a in Achievements.All) { Assert(ids.Add(a.Id), "duplicate achievement id " + a.Id); Assert(a.Name.Length > 0 && a.Blurb.Length > 0, "achievement text " + a.Id); }
+
+            var g = Game.NewHero(21, "Tester", "human", "fighter");
+            g.Monsters.Clear();
+            Assert(g.Earned.Count == 0, "nothing earned at the start");
+            long said = g.Said;
+            g.Player.Kills = 1; g.Player.MaxDepth = 5; g.Player.Gold = 1500;
+            g.Wait();
+            foreach (string id in new[] { "first-blood", "delver", "rich" }) Assert(g.Earned.Contains(id), id + " should be earned");
+            Assert(!g.Earned.Contains("slayer") && !g.Earned.Contains("escape"), "unearned ones stay unearned");
+            Assert(g.Said == said, "announcements never change the Said counter, so an auto-walk replays the same");
+            bool announced = false;
+            foreach (var m in g.Log) if (m.Text.StartsWith("Achievement: ")) announced = true;
+            Assert(announced, "an earned achievement is announced in the log");
+
+            var quiet = Game.NewHero(21, "Tester", "human", "fighter");
+            quiet.AlreadyUnlocked.Add("first-blood"); quiet.Monsters.Clear();
+            quiet.Player.Kills = 1; quiet.Wait();
+            Assert(quiet.Earned.Contains("first-blood"), "still earned in this run");
+            foreach (var m in quiet.Log) Assert(!m.Text.Contains("First Blood"), "but not announced again");
+
+            var won = Game.NewHero(22, "Tester", "human", "fighter");
+            won.Difficulty = Difficulty.Hardcore; won.DailyLabel = "2026-10-02";
+            won.Mode = GameMode.Won; won.CheckAchievements();
+            Assert(won.Earned.Contains("escape") && won.Earned.Contains("iron") && won.Earned.Contains("daily-victor"), "victory achievements follow mode and daily");
         }
     }
 }

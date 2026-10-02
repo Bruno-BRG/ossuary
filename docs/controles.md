@@ -33,7 +33,7 @@ usar chave — `a` aplicar ferramenta — `f`/`Q` atirar
 
 ## Menu
 
-`Esc` ou `F2` abre o menu (tema, CRT, tamanho, idioma, volume, **Controles**, **Past runs**). *Past runs* lista as
+`Esc` ou `F2` abre o menu (tema, CRT, tamanho, idioma, volume, **Controles**, **Achievements**, **Past runs**). *Past runs* lista as
 expedições terminadas (setas, PgUp/PgDn, Home/End; Esc volta). Ao fim de cada run grava-se um arquivo de necrotério
 em `morgue/` no diretório de dados do jogo.
 

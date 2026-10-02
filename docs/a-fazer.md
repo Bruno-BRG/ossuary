@@ -18,7 +18,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 - [ ] **Desafios** (modos extras além de Normal/Classic/Hardcore): pacifista, sem equipamento, mergulho (começa fundo). `Difficulty` já é dado salvo e passa pelo replay.
 - [ ] **Travel até altar/fonte/ponto marcado**: generalizar `Game.AutoStep` (já aceita qualquer objetivo) com um seletor.
-- [ ] **Conquistas** locais (sem rede).
 - [ ] **Efeitos sonoros** curtos estilo bip de PC dos anos 80, opcional em DisplaySettings.
 
 ## Persistência e meta-progressão
@@ -81,6 +80,11 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Conquistas locais** (2026-10-02). `Core/Achievements.cs`: 18 conquistas como funções puras do estado (`Game.CheckAchievements`,
+  a cada turno e na vitória); o anúncio vai direto ao log sem mexer em `Game.Said` (não altera auto-walk/replay). O host guarda
+  `achievements.json` (id → data) e o menu tem o painel *Achievements*. Testes `AchievementsEarned` e `AchievementsFlow`.
+  Ideia futura: mais conquistas (por classe, por deus, por branch).
 
 - [x] **Seed diária com placar local** (2026-10-02). `Core/Daily.cs` (seed FNV-1a da data UTC + herói fixo pela seed), botão
   *Desafio diário* no título (`op:new, daily:true`; campo novo nos três lados do protocolo), `Session.NewDaily`. A run grava

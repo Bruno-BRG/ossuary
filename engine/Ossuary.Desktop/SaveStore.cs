@@ -108,6 +108,27 @@ namespace Ossuary.Desktop
             catch (Exception ex) { Console.Error.WriteLine("Could not write the morgue: " + ex.Message); return null; }
         }
 
+        // ----------------------------------------------------------------- achievements
+
+        static string AchievementsPath => Path.Combine(Dir, "achievements.json");
+
+        /// <summary>Achievement id to the date it was first unlocked.</summary>
+        public static Dictionary<string, string> ReadAchievements()
+        {
+            try
+            {
+                if (!File.Exists(AchievementsPath)) return new Dictionary<string, string>();
+                return JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(AchievementsPath), Json) ?? new Dictionary<string, string>();
+            }
+            catch (Exception ex) { Console.Error.WriteLine("Unreadable achievements: " + ex.Message); return new Dictionary<string, string>(); }
+        }
+
+        public static void WriteAchievements(Dictionary<string, string> unlocked)
+        {
+            try { WriteAtomic(AchievementsPath, JsonSerializer.Serialize(unlocked, Json)); }
+            catch (Exception ex) { Console.Error.WriteLine("Could not write achievements: " + ex.Message); }
+        }
+
         // ----------------------------------------------------------------- bones
 
         const int BonesCap = 100;

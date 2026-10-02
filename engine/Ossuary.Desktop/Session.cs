@@ -51,7 +51,8 @@ namespace Ossuary.Desktop
         {
             ulong s = seed ?? BitConverter.ToUInt64(RandomNumberGenerator.GetBytes(8), 0);
             Game = role == null ? new Game(s) : Game.NewHero(s, name, race, role);
-            Game.Difficulty = difficulty; _difficulty = difficulty; _daily = daily ?? "";
+            Game.Difficulty = difficulty; _difficulty = difficulty; _daily = daily ?? ""; Game.DailyLabel = _daily;
+            _unlocked = SaveStore.ReadAchievements(); Game.AlreadyUnlocked = new HashSet<string>(_unlocked.Keys);
             _seed = Game.Rng.Seed;
             _graveyard = bones ?? SaveStore.ReadBones();
             Game.Graveyard = _graveyard;
@@ -70,6 +71,7 @@ namespace Ossuary.Desktop
         bool _overworld;
         Difficulty _difficulty;
         string _daily = "";
+        Dictionary<string, string> _unlocked = new Dictionary<string, string>();
         List<Bones> _graveyard = new List<Bones>();
         string _name = Heroes.DefaultName, _race = "human", _role = "adventurer";
         // Hero (name, race, role) is a save field, not a logged key, so the creation form needs no replay.
@@ -78,7 +80,7 @@ namespace Ossuary.Desktop
         {
             AtTitle = on;
             var ui = Game.UiState;
-            if (on && (ui.Active == Panel.Settings || ui.Active == Panel.Controls || ui.Active == Panel.Runs)) ui.Active = Panel.None;
+            if (on && (ui.Active == Panel.Settings || ui.Active == Panel.Controls || ui.Active == Panel.Runs || ui.Active == Panel.Achievements)) ui.Active = Panel.None;
             ui.Rebinding = false;
         }
 
@@ -214,6 +216,7 @@ namespace Ossuary.Desktop
             if (ui.Rebinding) { RebindKey(code, shift, ctrl); return; }
             if (ui.Active == Panel.Controls) { ControlsKey(code, shift); return; }
             if (ui.Active == Panel.Runs) { RunsKey(code); return; }
+            if (ui.Active == Panel.Achievements) { AchievementsKey(code); return; }
 
             if (!bindingsApplied) KeyBindings.Current.Resolve(ref code, ref key, ref shift, ref ctrl);
             if (code == "None") return;
@@ -544,6 +547,8 @@ namespace Ossuary.Desktop
                     { string error = Save(); ui.MenuNote = error == null ? Loc.T("Game saved.") : Loc.T("Could not save: " + error); break; }
                 case MenuRow.MainMenu when AtTitle: ui.MenuNote = Loc.T("You are already here."); break;
                 case MenuRow.Controls: ui.Active = Panel.Controls; ui.ControlsIndex = 0; ui.BindNote = ""; break;
+                case MenuRow.Achievements:
+                    FlushAchievements(); ui.Unlocked = new Dictionary<string, string>(SaveStore.ReadAchievements()); ui.AchIndex = 0; ui.Active = Panel.Achievements; break;
                 case MenuRow.PastRuns:
                     ui.RunsDaily = false; LoadRuns(ui); ui.Active = Panel.Runs; break;
                 case MenuRow.MainMenu: Save(true); ui.Active = Panel.None; ToTitle = true; AtTitle = true; break;
@@ -565,6 +570,18 @@ namespace Ossuary.Desktop
                 all.Sort((a, b) => b.Score.CompareTo(a.Score));
             }
             ui.Runs = all; ui.RunsIndex = 0;
+        }
+
+        void AchievementsKey(string code)
+        {
+            var ui = Game.UiState;
+            int n = Achievements.All.Length;
+            if (code == "Escape" || code == "F2") { ui.Active = Panel.Settings; return; }
+            if (code == "PageDown") ui.AchIndex = Math.Min(n - 1, ui.AchIndex + 8);
+            else if (code == "PageUp") ui.AchIndex = Math.Max(0, ui.AchIndex - 8);
+            else if (code == "Home") ui.AchIndex = 0;
+            else if (code == "End") ui.AchIndex = n - 1;
+            else if (code == "ArrowUp" || code == "ArrowDown") ui.AchIndex = Wrap(ui.AchIndex + (code == "ArrowUp" ? -1 : 1), n);
         }
 
         void RunsKey(string code)
@@ -615,8 +632,19 @@ namespace Ossuary.Desktop
 
         // ------------------------------------------------------------------ frame
 
+        /// <summary>Writes achievements earned in this run that were not unlocked before (never during a replay).</summary>
+        void FlushAchievements()
+        {
+            if (_replaying || Game == null) return;
+            bool changed = false;
+            foreach (string id in Game.Earned)
+                if (!_unlocked.ContainsKey(id)) { _unlocked[id] = DateTime.Now.ToString("yyyy-MM-dd"); changed = true; }
+            if (changed) SaveStore.WriteAchievements(_unlocked);
+        }
+
         public Frame Draw()
         {
+            FlushAchievements();
             RecordRun();
             Hud.Ui.TitleBackdrop = AtTitle;
             TextBuilder screen = Hud.Draw();

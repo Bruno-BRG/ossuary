@@ -933,6 +933,7 @@ namespace Ossuary.Core
                 case Panel.Settings: DrawSettingsPanel(); break;
                 case Panel.Controls: DrawControlsPanel(); break;
                 case Panel.Runs: DrawRunsPanel(); break;
+                case Panel.Achievements: DrawAchievementsPanel(); break;
                 case Panel.Create: DrawCreatePanel(); break;
                 case Panel.Spells: DrawSpellsPanel(); break;
                 case Panel.Abilities: DrawAbilitiesPanel(); break;
@@ -1615,6 +1616,7 @@ namespace Ossuary.Core
                 case MenuRow.Language: return Loc.T("Portuguese (Brazil) or English.");
                 case MenuRow.Master: case MenuRow.Music: case MenuRow.Effects: return Loc.T("Saved now; takes effect when sound is added.");
                 case MenuRow.Controls: return Loc.T("Rebind any key.");
+                case MenuRow.Achievements: return Loc.T("What you have done across all your runs.");
                 case MenuRow.PastRuns: return Loc.T("Your finished expeditions, newest first.");
                 case MenuRow.MainMenu: return Loc.T("Saves the run and returns to the title.");
                 default: return Loc.T("Saves the run and closes the game.");
@@ -1625,7 +1627,7 @@ namespace Ossuary.Core
         {
             var theme = Theme.Current;
             var set = DisplaySettings.Current;
-            PanelRect(out int px, out int py, out int pw, out int ph, 60, 25, Loc.T("Menu"), Loc.T("Esc resumes"));
+            PanelRect(out int px, out int py, out int pw, out int ph, 60, 26, Loc.T("Menu"), Loc.T("Esc resumes"));
             int x = px + 3, iw = pw - 6;
             int sel = State.SettingsIndex;
             int y = py + 2;
@@ -1678,6 +1680,7 @@ namespace Ossuary.Core
             Row(MenuRow.Effects, "Effects", null, true, audio.Effects);
             Header("Game");
             Row(MenuRow.Controls, "Controls", "rebind keys", false);
+            Row(MenuRow.Achievements, "Achievements", "local", false);
             Row(MenuRow.PastRuns, "Past runs", "history", false);
             Row(MenuRow.MainMenu, "Main menu", null, false, -1, off);
             Row(MenuRow.Quit, "Quit game", null, false, -1, theme.Bad);
@@ -1746,6 +1749,38 @@ namespace Ossuary.Core
             if (State.BindNote.Length > 0) _t.WriteClipped(x, py + ph - 3, State.BindNote, theme.Good, iw, true, theme.Panel);
             string hint = State.Rebinding ? "Press the new key.  Esc cancels." : "Enter rebind   Del clear   R reset   ⇧R reset all";
             _t.WriteClipped(x, py + ph - 2, hint, theme.Dim, iw, false, theme.Panel);
+        }
+
+        // ------------------------------------------------------------------ achievements
+
+        void DrawAchievementsPanel()
+        {
+            var theme = Theme.Current;
+            var all = Achievements.All;
+            int got = 0;
+            foreach (var a in all) if (State.Unlocked.ContainsKey(a.Id)) got++;
+            PanelRect(out int px, out int py, out int pw, out int ph, 76, 24, "Achievements", "Esc back");
+            int x = px + 3, iw = pw - 6;
+            _t.Write(x, py + 2, $"{got}/{all.Length}", got == all.Length ? theme.Gold : theme.Label, true, theme.Panel);
+            int sel = Math.Max(0, Math.Min(State.AchIndex, all.Length - 1));
+            int visible = Math.Max(3, ph - 8);
+            int start = Math.Max(0, Math.Min(sel - visible / 2, all.Length - visible));
+            for (int r = 0; r < visible && start + r < all.Length; r++)
+            {
+                var a = all[start + r];
+                bool has = State.Unlocked.TryGetValue(a.Id, out string when);
+                bool on = start + r == sel;
+                int y = py + 4 + r;
+                Rgb bg = on ? theme.PanelHi : theme.Panel;
+                if (on) RowBar(px + 1, y, pw - 2, theme);
+                _t.Put(px + 2, y, on ? '▶' : ' ', theme.Accent, true, bg);
+                _t.Put(x + 1, y, has ? '♦' : '·', has ? theme.Gold : theme.Dim, true, bg);
+                _t.WriteClipped(x + 3, y, Loc.T(a.Name), has ? (on ? theme.Accent : theme.Text) : theme.Dim, 22, on, bg);
+                _t.WriteClipped(x + 27, y, has ? when : "", theme.Dim, iw - 27, false, bg);
+            }
+            var s = all[sel];
+            _t.HLine(px + 2, py + ph - 4, pw - 4, theme.Rule);
+            _t.WriteClipped(x, py + ph - 3, Loc.T(s.Blurb), theme.Text, iw, false, theme.Panel);
         }
 
         // ------------------------------------------------------------------ past runs

@@ -250,6 +250,12 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
   **Classic**: `ProcessHunger` não faz nada. **Hardcore**: `Session.Save(forQuit)` só grava ao sair (Main menu/Quit),
   `QuickSave` e *Save game* recusam, e `Load` apaga o arquivo depois de reproduzir a run.
 
+## Conquistas (`Achievements.cs`)
+
+- Lista fixa de `AchievementDef` (id, nome, descrição, teste sobre `Game`). `Game.Earned` é recomputado pela simulação,
+  então o replay ganha as mesmas. `AlreadyUnlocked` (do host) só decide se o log anuncia. `Session.FlushAchievements`
+  grava `achievements.json` (nunca em replay).
+
 ## FOV / pathfinding (`Fov.cs`, `Pathfinder.cs`)
 
 - FOV com sombra (raio 10, +2 com ring of warning), simétrico, testado.
