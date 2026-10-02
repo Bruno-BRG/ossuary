@@ -24,6 +24,10 @@ namespace Ossuary.Core
             List<SpecialRoom> specials, List<int> startCells, out int startX, out int startY)
         {
             var points = new List<SpawnPoint>();
+            // Traps and floor items live in tables keyed by map number. A new game that draws the same number must not
+            // inherit what an earlier game left there, or two runs of one seed would not be the same run.
+            TrapTable.Clear(map.Number);
+            GroundItems.Clear(map.Number);
 
             startX = startCells.Count > 0 ? startCells[0] % map.W : 1;
             startY = startCells.Count > 0 ? startCells[0] / map.W : 1;
@@ -37,7 +41,7 @@ namespace Ossuary.Core
             map.Depth = depth;
             map.LevelName = NameFor(branchName, depth);
 
-            SpawnMonsters(map, rng, depth, startX, startY, points);
+            SpawnMonsters(map, rng, depth, startX, startY, points, branchName);
             PlaceLoot(map, rng, depth);
             PlaceTraps(map, rng, depth);
             PlaceSurfaces(map, rng, depth, branchName);
@@ -50,9 +54,9 @@ namespace Ossuary.Core
             return $"{b} : level {depth}";
         }
 
-        static void SpawnMonsters(GameMap map, Rng rng, int depth, int startX, int startY, List<SpawnPoint> points)
+        static void SpawnMonsters(GameMap map, Rng rng, int depth, int startX, int startY, List<SpawnPoint> points, string branchName = null)
         {
-            var table = Bestiary.SpawnTable(depth, rng);
+            var table = Bestiary.SpawnTable(depth, rng, branchName);
             if (table.Count == 0) return;
 
             int area = map.CountWalkable();

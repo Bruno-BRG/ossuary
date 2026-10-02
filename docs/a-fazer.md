@@ -38,7 +38,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Monstros e combate
 
-- [ ] **Bestiário expandido** com comportamentos próprios por branch (ver `lore.md`).
 - [ ] **Chefes com mecânicas** (fases, invocações, arena).
 - [ ] **Facções de monstros** que brigam entre si.
 
@@ -57,6 +56,13 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Bestiário por branch com hábitos próprios** (2026-10-02). `MonsterDef.Branch/Trait` e `Game.Traits.cs`: 9 monstros nativos — *gaol hound* (Dungeons, caça em
+  matilha: +4 de velocidade com companheiro), *cave bat* (Mines, voo errático), *ore golem* (Mines, pancada que atordoa), *plague rat* (Warrens, mordida
+  apodrece/envenena), *rat swarm* (Warrens, se multiplica até 8), *drowned dead* e *tide wraith* (Vaults, se curam na água), *ember wisp* (Spire, explode em fogo)
+  e *ash wraith* (Spire, incendeia). `SpawnTable(depth, rng, branch)` filtra por branch. Teste `BranchMonsters`.
+  **Correção de bug antigo:** `TrapTable`/`GroundItems` são estáticos por número de mapa e vazavam entre jogos da mesma seed (o 1º bot jogava diferente dos seguintes);
+  `LevelBuilder.Populate` agora os limpa ao gerar o nível.
 
 - [x] **Mourne, rivalidades, sacrifício e provações dos deuses** (2026-10-02). Sexto deus: **Mourne, a Costura Chorosa** (carne e mudança: gosta de mutações,
   odeia purgar; dádiva = mutação sempre boa; piedade 50 → mais boas, 100 → veneno 30%). Cada deus tem um **rival** (`GodDef.Rival`: Aurel↔Nhal,
@@ -91,7 +97,7 @@ _(mova para cá, com data, o que for concluído)_
 
 - [x] **Mutações e Corrupção do Ossuário** (2026-10-02). `Entities/Mutations.cs` (16 mutações: boas, mistas e más; números em `ItemMods` somados
   em `Player.Gear` + visão/fome/ruído) e `Game.Corruption.cs`: `Player.Corruption` 0–100, **uma mutação a cada 20 pontos**. Fontes: **Shift+E**
-  numa fonte do dungeon (limpa, amarga ou contaminada), o Amuleto na mochila (+1/40 turnos), necromancia (+1/cast até 60) e a nova
+  numa fonte do dungeon (limpa, amarga ou contaminada), o Amuleto na mochila (+1/40 turnos), necromancia de nível 4+ (+1/cast até 40) e a nova
   *potion of mutation*. O templo vende *Purge the Ossuary from me* (−30, remove a pior mutação mais nova). Aparece na ficha Character, no
   morgue e na conquista *Mutant*. Teste `CorruptionMutations`. Pendente: relíquias que dão mutação em troca de poder (Itens).
 

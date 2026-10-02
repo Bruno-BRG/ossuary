@@ -444,6 +444,7 @@ namespace Ossuary.Core
         /// <summary>Per-turn upkeep of spell timers on monsters: summons expire, fear and slow wear off.</summary>
         void TickMonsterEffects(Monster m)
         {
+            if (m.Def.Trait != null) TraitTick(m);
             if (m.SlowTurns > 0 && --m.SlowTurns == 0) m.Speed = m.Def.Speed;
             if (m.FearTurns > 0) m.FearTurns--;
             if (m.Ally && m.SummonTurns > 0 && --m.SummonTurns == 0)

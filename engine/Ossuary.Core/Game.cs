@@ -420,6 +420,7 @@ namespace Ossuary.Core
         {
             GodsOnKill(m);
             Monsters.Remove(m);
+            if (m.Def.Trait != null) TraitOnDeath(m);
             if (m.BonesKey != null) { LaidToRest.Add(m.BonesKey); Say("The restless shade is laid to rest at last.", MessageKind.Good); }
             Player.Kills++;
             bool leveled = Player.AddXp(m.XpKill);
@@ -599,6 +600,7 @@ namespace Ossuary.Core
             if (m.IsGuard && Mode != GameMode.TownMap && dist > 24) return;
             if (m.FearTurns > 0) { if (FleeStep(m)) return; }
             else if (dist > 1 && AttackAdjacentAlly(m)) return;
+            if (m.Def.Trait != null && TraitBeforeAct(m, dist)) return;
 
             if (dist == 1)
             {
@@ -616,6 +618,7 @@ namespace Ossuary.Core
                 HurtBy(Article(m));
                 var res = Battles.MeleeAttack(m, Player, Rng);
                 Say(res.Message, res.Killed ? MessageKind.Death : MessageKind.Combat);
+                if (m.Def.Trait != null) TraitAfterHit(m, res);
                 Map.Version++;
                 CheckDeath();
                 return;

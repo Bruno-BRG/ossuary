@@ -34,6 +34,7 @@ namespace Ossuary.Tests
             Test("artifact sets add up and relics corrupt", SetsAndRelics);
             Test("new spells: ice, steam, oil, bone and purification", NewSpells);
             Test("gods: Mourne, rivals, sacrifices and trials", GodsExpanded);
+            Test("branch monsters have habits of their own", BranchMonsters);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -788,6 +789,83 @@ namespace Ossuary.Tests
             Assert(MutationTable.Find(m2.Player.Mutated[m2.Player.Mutated.Count - 1]).Kind == MutationKind.Boon, "and always a gift");
             m2.Player.Piety = 120;
             Assert(m2.Player.ResistPct(DamageType.Poison) >= 30, "tier two: poison resistance");
+        }
+
+        static Game Duel(ulong seed, string kind, string branch = "The Dungeons")
+        {
+            var g = Game.NewHero(seed, "Test", "human", "fighter");
+            g.DescendTo(branch, 3);
+            g.Monsters.Clear();
+            int px = g.Player.X, py = g.Player.Y;
+            for (int y = py - 4; y <= py + 4; y++)
+                for (int x = px - 4; x <= px + 4; x++) { g.Map.Set(x, y, TileKind.Floor); g.Map.SetSurface(x, y, SurfaceKind.None); }
+            g.Player.AC = 30;
+            var m = new Monster(Bestiary.Find(kind), g.Rng) { X = px + 1, Y = py, HomeX = px + 1, HomeY = py, Alert = 1 };
+            g.Monsters.Add(m);
+            g.UpdateFov();
+            return g;
+        }
+
+        static void Pass(Game g, int turns)
+        {
+            for (int i = 0; i < turns && g.Mode == GameMode.Dungeon; i++) { g.Player.HP = g.Player.MaxHP; g.Player.Nutrient = 1000; g.Wait(); }
+        }
+
+        static void BranchMonsters()
+        {
+            var rng = new Rng(5);
+            bool Has(string branch, string name) { foreach (var d in Bestiary.SpawnTable(5, rng, branch)) if (d.Name == name) return true; return false; }
+            Assert(Has("The Warrens", "plague rat") && !Has("The Mines of Dwarfdeep", "plague rat") && !Has(null, "plague rat"), "plague rats are native to the Warrens");
+            Assert(Has("The Mines of Dwarfdeep", "cave bat") && Has("The Sunken Vaults", "drowned dead") && Has("The Ashen Spire", "ember wisp"), "each branch has its own");
+            Assert(Has(null, "orc") && Has("The Warrens", "orc"), "the common monsters live everywhere");
+
+            // Plague rats make you sick.
+            var g = Duel(1400, "plague rat", "The Warrens");
+            Pass(g, 120);
+            Assert(g.Player.PoisonResist > 0 || g.Log.Exists(m => m.Text.Contains("festers")), "a plague rat's bite festers");
+
+            // Swarms breed, up to a point.
+            var s = Duel(1401, "rat swarm", "The Warrens");
+            s.Player.AC = 30;
+            for (int i = 0; i < 400 && s.Monsters.Count < 4; i++) { s.Player.HP = s.Player.MaxHP; s.Player.Nutrient = 1000; s.Wait(); foreach (var m in s.Monsters) m.HP = m.MaxHP; }
+            Assert(s.Monsters.Count >= 2, "a rat swarm multiplies");
+            for (int i = 0; i < 800; i++) { s.Player.HP = s.Player.MaxHP; s.Player.Nutrient = 1000; s.Wait(); foreach (var m in s.Monsters) m.HP = m.MaxHP; }
+            Assert(s.Monsters.Count <= 8, "but not without limit, " + s.Monsters.Count);
+
+            // The drowned mend in water, and only in water.
+            var d = Duel(1402, "drowned dead", "The Sunken Vaults");
+            var dead = d.Monsters[0]; dead.Alert = 0; dead.HP = 5;
+            d.Map.SetSurface(dead.X, dead.Y, SurfaceKind.Water, 500);
+            d.Wait(); d.Wait();
+            Assert(dead.HP >= 7 || !d.Monsters.Contains(dead), "the drowned dead mends in water");
+            var dry = Duel(1403, "drowned dead", "The Sunken Vaults");
+            var dd = dry.Monsters[0]; dd.Alert = 0; dd.HP = 5; dd.Speed = 1;
+            dry.Wait(); dry.Wait();
+            Assert(dd.HP <= 5, "and not on dry floor");
+
+            // A wisp bursts into flame.
+            var w = Duel(1404, "ember wisp", "The Ashen Spire");
+            var wisp = w.Monsters[0];
+            int fx = wisp.X, fy = wisp.Y;
+            w.KillMonster(wisp);
+            Assert(w.Map.SurfaceAt(fx, fy) == SurfaceKind.Fire, "the dying wisp lights the floor");
+
+            // Hounds hunt faster together.
+            var h = Duel(1405, "gaol hound");
+            var a = h.Monsters[0]; a.Alert = 1;
+            var b2 = new Monster(Bestiary.Find("gaol hound"), h.Rng) { X = a.X + 1, Y = a.Y + 1, Alert = 1 };
+            h.Monsters.Add(b2);
+            h.Player.AC = 30;
+            h.Wait();
+            Assert(a.Speed == a.Def.Speed + 4, "a hound with a mate nearby is faster, speed " + a.Speed);
+
+            // Ash wraiths set you alight; golems stun.
+            var ash = Duel(1406, "ash wraith", "The Ashen Spire"); bool burned = false;
+            for (int i = 0; i < 200 && !burned; i++) { Pass(ash, 1); burned = ash.Player.BurnTurns > 0 || ash.Log.Exists(m => m.Text.Contains("catch fire")); }
+            Assert(burned, "an ash wraith sets you on fire");
+            var golem = Duel(1407, "ore golem", "The Mines of Dwarfdeep"); bool stunned = false;
+            for (int i = 0; i < 300 && !stunned; i++) { Pass(golem, 1); stunned = golem.Log.Exists(m => m.Text.Contains("rings through your skull")); }
+            Assert(stunned, "an ore golem's blow can stun");
         }
     }
 }

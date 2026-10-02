@@ -52,6 +52,8 @@ namespace Ossuary.Core.Entities
         public bool Explodes;
         public bool Flys;
         public int Difficulty;       // for spawn tables
+        /// <summary>A branch name this monster is native to (null = any), and a behaviour tag handled in Game.Traits.</summary>
+        public string Branch, Trait;
     }
 
     /// <summary>A living (or once-living) thing in the dungeon.</summary>

@@ -252,6 +252,11 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
   **Classic**: `ProcessHunger` não faz nada. **Hardcore**: `Session.Save(forQuit)` só grava ao sair (Main menu/Quit),
   `QuickSave` e *Save game* recusam, e `Load` apaga o arquivo depois de reproduzir a run.
 
+## Monstros por branch (`Game.Traits.cs`)
+
+- `MonsterDef.Branch` limita o spawn (`Bestiary.SpawnTable(depth, rng, branch)`); `MonsterDef.Trait` liga um hábito num ponto fixo do turno:
+  `TraitBeforeAct` (erratic, swarm, pack), `TraitAfterHit` (plague, slam, ashen), `TraitTick` (drowned) e `TraitOnDeath` (wisp).
+
 ## Conjuntos e relíquias (`Items/Affixes.cs`, `Game.Corruption.cs`)
 
 - `ArtifactDef.Set` liga uma peça a um `ArtifactSetDef` (bônus `Two`/`Three`, somados por `ArtifactSets.Bonus` em `Player.Gear`).

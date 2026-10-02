@@ -18,7 +18,8 @@ namespace Ossuary.Core.Entities
                   int depthMin, int depthMax, AiKind ai, Alignment align, AttackKind[] atk,
                   int[] dice, int[] sides, int[] tohit, int vision = 8, int diff = 2, int nut = 3,
                   bool undead = false, bool regen = false, bool mindless = false, bool skel = false,
-                  int corpse = 0, ItemDef[] carries = null, int[] carryW = null, bool flys = false)
+                  int corpse = 0, ItemDef[] carries = null, int[] carryW = null, bool flys = false,
+                  string branch = null, string trait = null)
             {
                 d.Add(new MonsterDef
                 {
@@ -27,7 +28,7 @@ namespace Ossuary.Core.Entities
                     Attacks = atk, DmgDice = dice, DmgSides = sides, ToHit = tohit, Vision = vision,
                     Difficulty = diff, Nutrient = nut, Undead = undead, Regenerates = regen,
                     Mindless = mindless, Skeleton = skel, CorpseValue = corpse, Carries = carries,
-                    CarryWeights = carryW, Flys = flys
+                    CarryWeights = carryW, Flys = flys, Branch = branch, Trait = trait
                 });
             }
 
@@ -134,11 +135,32 @@ namespace Ossuary.Core.Entities
             M("guardian of the deep", '@', 0x40E0D0, 20, 150, 6, 12, 2000, 18, 50, AiKind.Guard, Alignment.Neutral,
               new[] { AttackKind.Hit, AttackKind.Kick }, new[] { 1, 1 }, new[] { 6, 4 }, new[] { 6, 4 }, 10, 16, 14);
 
+            // --- native to one branch, each with a habit of its own ------------------------------
+            const string Dun = "The Dungeons", Min = "The Mines of Dwarfdeep", War = "The Warrens", Vau = "The Sunken Vaults", Spi = "The Ashen Spire";
+            M("gaol hound", 'd', 0x9A9A80, 4, 16, 7, 14, 400, 3, 10, AiKind.Hunt, Alignment.NeutralEvil,
+              new[] { AttackKind.Bite }, new[] { 1 }, new[] { 6 }, new[] { 4 }, 9, 4, 5, branch: Dun, trait: "pack");
+            M("cave bat", 'B', 0x8C6A8C, 2, 6, 8, 18, 40, 1, 8, AiKind.Walk, Alignment.Neutral,
+              new[] { AttackKind.Bite }, new[] { 1 }, new[] { 4 }, new[] { 3 }, 7, 2, 3, flys: true, branch: Min, trait: "erratic");
+            M("ore golem", 'g', 0x9C8F7A, 6, 44, 4, 8, 2500, 4, 8, AiKind.Guard, Alignment.Neutral,
+              new[] { AttackKind.Hit }, new[] { 1 }, new[] { 10 }, new[] { 5 }, 6, 6, 6, mindless: true, branch: Min, trait: "slam");
+            M("plague rat", 'r', 0x7A9A4A, 3, 9, 7, 14, 40, 1, 9, AiKind.Hunt, Alignment.NeutralEvil,
+              new[] { AttackKind.Bite }, new[] { 1 }, new[] { 4 }, new[] { 4 }, 7, 3, 4, branch: War, trait: "plague");
+            M("rat swarm", 'r', 0xA08A6A, 2, 6, 8, 14, 30, 2, 9, AiKind.Hunt, Alignment.Neutral,
+              new[] { AttackKind.Bite }, new[] { 1 }, new[] { 3 }, new[] { 3 }, 6, 3, 3, branch: War, trait: "swarm");
+            M("drowned dead", 'Z', 0x5A8AA0, 6, 36, 9, 8, 1400, 1, 12, AiKind.Hunt, Alignment.NeutralEvil,
+              new[] { AttackKind.Hit }, new[] { 1 }, new[] { 8 }, new[] { 4 }, 7, 6, 6, undead: true, mindless: true, branch: Vau, trait: "drowned");
+            M("tide wraith", 'W', 0x6AB0C0, 9, 40, 6, 12, 600, 4, 12, AiKind.Hunt, Alignment.ChaoticEvil,
+              new[] { AttackKind.Touch }, new[] { 1 }, new[] { 6 }, new[] { 5 }, 9, 8, 8, undead: true, branch: Vau, trait: "drowned");
+            M("ember wisp", '*', 0xFF8A30, 5, 8, 6, 14, 10, 1, 15, AiKind.Hunt, Alignment.Neutral,
+              new[] { AttackKind.Touch }, new[] { 1 }, new[] { 4 }, new[] { 4 }, 8, 5, 3, mindless: true, flys: true, branch: Spi, trait: "wisp");
+            M("ash wraith", 'W', 0xB0A090, 11, 50, 5, 12, 700, 6, 15, AiKind.Hunt, Alignment.ChaoticEvil,
+              new[] { AttackKind.Touch }, new[] { 1 }, new[] { 8 }, new[] { 6 }, 9, 10, 9, undead: true, branch: Spi, trait: "ashen");
+
             return d.ToArray();
         }
 
         /// <summary>Monsters that can appear at a given depth, weighted by how far from their comfort zone they are.</summary>
-        public static List<MonsterDef> SpawnTable(int depth, Rng rng)
+        public static List<MonsterDef> SpawnTable(int depth, Rng rng, string branch = null)
         {
             var table = new List<MonsterDef>();
             var weights = new List<int>();
@@ -146,6 +168,7 @@ namespace Ossuary.Core.Entities
             {
                 var def = All[i];
                 if (depth < def.DepthMin || depth > def.DepthMax) continue;
+                if (def.Branch != null && def.Branch != branch) continue;
                 int w = 100;
                 if (depth == def.DepthMin || depth == def.DepthMax) w = 45;
                 table.Add(def);
