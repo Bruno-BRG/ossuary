@@ -35,6 +35,7 @@ namespace Ossuary.Tests
             Test("new spells: ice, steam, oil, bone and purification", NewSpells);
             Test("gods: Mourne, rivals, sacrifices and trials", GodsExpanded);
             Test("branch monsters have habits of their own", BranchMonsters);
+            Test("each branch has a boss with mechanics", BossFights);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -866,6 +867,90 @@ namespace Ossuary.Tests
             var golem = Duel(1407, "ore golem", "The Mines of Dwarfdeep"); bool stunned = false;
             for (int i = 0; i < 300 && !stunned; i++) { Pass(golem, 1); stunned = golem.Log.Exists(m => m.Text.Contains("rings through your skull")); }
             Assert(stunned, "an ore golem's blow can stun");
+        }
+
+        static Game Arena(ulong seed, string bossId, int dist, bool hurt = false)
+        {
+            var b = Bosses.Find(bossId);
+            var g = Game.NewHero(seed, "Test", "human", "fighter");
+            g.DescendTo(b.Branch, 3);
+            g.Monsters.Clear();
+            int px = g.Player.X, py = g.Player.Y;
+            for (int y = py - 6; y <= py + 6; y++)
+                for (int x = px - 8; x <= px + 8; x++) { g.Map.Set(x, y, TileKind.Floor); g.Map.SetSurface(x, y, SurfaceKind.None); }
+            g.Player.MaxHP = 5000; g.Player.HP = 5000; g.Player.AC = 30;
+            var boss = g.CreateBoss(b, px + dist, py); boss.Alert = 1;
+            if (hurt) boss.HP = boss.MaxHP / 3;
+            g.Monsters.Add(boss); g.UpdateFov();
+            return g;
+        }
+
+        static bool Said(Game g, string part) => g.Log.Exists(m => m.Text.Contains(part));
+
+        static void BossFights()
+        {
+            var seen = new HashSet<string>();
+            foreach (var b in Bosses.All)
+            {
+                Assert(seen.Add(b.Branch + "@" + b.Depth), "one boss per level");
+                var dungeon = new Dungeon(new Rng(31));
+                Assert(b.Depth <= dungeon.Get(b.Branch).MaxDepth, b.Name + " lives inside its branch");
+                Assert(Bestiary.TryGet(b.Base, out _), b.Name + " has a real base monster");
+                Assert(b.Intro.Length > 0 && b.Phase2.Length > 0 && b.Fall.Length > 0, b.Name + " has its lines");
+            }
+
+            // Each waits on its level, far from the stairs, and the level itself is unchanged by it.
+            foreach (var b in Bosses.All)
+            {
+                var g = Game.NewHero(1500, "Delver", "human", "fighter");
+                g.DescendTo(b.Branch, b.Depth);
+                Monster boss = null; foreach (var m in g.Monsters) if (m.BossId == b.Id) boss = m;
+                Assert(boss != null && boss.Name == b.Name && boss.Unique && boss.MaxHP == b.HP, b.Name + " waits on " + b.Branch + " " + b.Depth);
+                Assert(Pathfinder.Chebyshev(boss.X, boss.Y, g.Player.X, g.Player.Y) >= 12, b.Name + " is far from the arrival");
+                Assert(Said(g, b.Intro), "the level announces " + b.Name);
+            }
+
+            // The Gaoler hooks you in, and calls hounds when hurt.
+            var gl = Arena(1501, "gaoler", 8);
+            int px = gl.Player.X; bool hooked = false;
+            for (int i = 0; i < 60 && !hooked; i++) { gl.Player.HP = gl.Player.MaxHP; gl.Wait(); hooked = Said(gl, "drags you in"); }
+            Assert(hooked, "the Gaoler's chain drags you in");
+            var gl2 = Arena(1502, "gaoler", 5, hurt: true);
+            for (int i = 0; i < 60 && !gl2.Monsters.Exists(m => m.Def.Name == "gaol hound"); i++) { gl2.Player.HP = gl2.Player.MaxHP; gl2.Wait(); }
+            Assert(gl2.Monsters.Exists(m => m.Def.Name == "gaol hound") && Said(gl2, "howls for his hounds"), "a hurt Gaoler calls his hounds");
+
+            // The Stone Warden slams.
+            var sw = Arena(1503, "stone-warden", 1);
+            for (int i = 0; i < 40 && !Said(sw, "slams the floor"); i++) { sw.Player.HP = sw.Player.MaxHP; sw.Wait(); }
+            Assert(Said(sw, "slams the floor") && Said(sw, "shockwave"), "the Stone Warden slams the floor");
+
+            // The Rat King fills the room with rats, but not without end.
+            var rk = Arena(1504, "rat-king", 4);
+            for (int i = 0; i < 80; i++) { rk.Player.HP = rk.Player.MaxHP; rk.Wait(); }
+            int rats = 0; foreach (var m in rk.Monsters) if (m.Def.Name.Contains("rat")) rats++;
+            Assert(rats >= 2 && rats <= 12, "the Rat King keeps a court of rats, got " + rats);
+
+            // The Drowned King floods the floor, then lights the water.
+            var dk = Arena(1505, "drowned-king", 5);
+            for (int i = 0; i < 40 && !Said(dk, "Lightning leaps"); i++) { dk.Player.HP = dk.Player.MaxHP; dk.Wait(); }
+            Assert(Said(dk, "Black water spreads"), "the Drowned King floods the floor");
+            Assert(Said(dk, "Lightning leaps"), "and shocks whoever stands in it");
+
+            // The Ashen Regent's nova.
+            var ar = Arena(1506, "ashen-regent", 3);
+            for (int i = 0; i < 30 && !Said(ar, "floor around it ignites"); i++) { ar.Player.HP = ar.Player.MaxHP; ar.Wait(); }
+            Assert(Said(ar, "floor around it ignites"), "the Ashen Regent sets the floor alight");
+
+            // Killing one pays out, once.
+            var rwd = Arena(1507, "rat-king", 3);
+            var king = rwd.Monsters[0]; int gold = rwd.Player.Gold;
+            rwd.KillMonster(king);
+            Assert(rwd.Player.Gold > gold && rwd.BossesSlain.Contains("rat-king"), "a dead boss pays gold");
+            Assert(Said(rwd, Bosses.Find("rat-king").Fall), "and has its last words");
+            var potions = GroundItems.At(rwd.Map.Number, king.X, king.Y);
+            Assert(potions != null && potions.Exists(i => i.Def.Name == "potion of full healing"), "and leaves what it guarded");
+            rwd.Earned.Clear(); rwd.CheckAchievements();
+            Assert(rwd.Earned.Contains("boss-slayer"), "the achievement follows");
         }
     }
 }

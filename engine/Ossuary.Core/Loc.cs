@@ -244,6 +244,8 @@ namespace Ossuary.Core
             ["There is no known trap to disarm there."] = "Não há armadilha conhecida para desarmar ali.",
             ["You cannot do that now."] = "Você não pode fazer isso agora.",
             ["You set it off!"] = "Você a disparou!",
+            ["Boss Slayer"] = "Matador de Chefes", ["Kill a branch boss."] = "Mate o chefe de um branch.",
+            ["Kingslayer"] = "Matador de Reis", ["Kill three branch bosses in one run."] = "Mate três chefes de branch em uma run.",
             // ---- achievements
             ["Achievements"] = "Conquistas", ["local"] = "locais", ["What you have done across all your runs."] = "O que você já fez em todas as suas runs.",
             ["Achievement: "] = "Conquista: ",

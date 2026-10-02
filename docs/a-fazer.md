@@ -38,7 +38,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Monstros e combate
 
-- [ ] **Chefes com mecânicas** (fases, invocações, arena).
 - [ ] **Facções de monstros** que brigam entre si.
 
 ## Interface e visual
@@ -56,6 +55,12 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Chefes com mecânicas** (2026-10-02). `Game.Bosses.cs`: um chefe no fundo de cada branch (`Bosses.All`; gerado na 1ª visita com Rng privado, longe da escada,
+  com a fala de entrada). **Gaoler** (Dungeons 10: corrente que puxa o herói; abaixo de 50% chama cães), **Stone Warden** (Mines 8: pancada no chão que atordoa;
+  mais rápido), **Rat King** (Warrens 9: corte de ratos, até 6; fase 2 com plague rats), **Drowned King** (Vaults 12: alaga o chão e dá choque em quem está na
+  água), **Ashen Regent** (Spire 15: explosão de fogo ao redor; fase 2 chama wisps). Fase 2 abaixo de 50% de vida, fala própria; ao morrer paga ouro + 2 poções;
+  conquistas *Boss Slayer* e *Kingslayer*. Teste `BossFights`.
 
 - [x] **Bestiário por branch com hábitos próprios** (2026-10-02). `MonsterDef.Branch/Trait` e `Game.Traits.cs`: 9 monstros nativos — *gaol hound* (Dungeons, caça em
   matilha: +4 de velocidade com companheiro), *cave bat* (Mines, voo errático), *ore golem* (Mines, pancada que atordoa), *plague rat* (Warrens, mordida

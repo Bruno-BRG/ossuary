@@ -252,6 +252,11 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
   **Classic**: `ProcessHunger` não faz nada. **Hardcore**: `Session.Save(forQuit)` só grava ao sair (Main menu/Quit),
   `QuickSave` e *Save game* recusam, e `Load` apaga o arquivo depois de reproduzir a run.
 
+## Chefes (`Game.Bosses.cs`)
+
+- `BossDef` (dados) + `Game.BossTurn` (hábitos, por `Monster.BossClock` e `BossPhase`). `RaiseBosses` põe o chefe na primeira geração do nível
+  (como `RaiseBones`, com Rng privado); `BossFalls` paga a recompensa; `BossesSlain` alimenta as conquistas.
+
 ## Monstros por branch (`Game.Traits.cs`)
 
 - `MonsterDef.Branch` limita o spawn (`Bestiary.SpawnTable(depth, rng, branch)`); `MonsterDef.Trait` liga um hábito num ponto fixo do turno:

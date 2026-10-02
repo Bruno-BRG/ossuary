@@ -145,6 +145,7 @@ namespace Ossuary.Core
             PlaceCompanions();
             Dungeon.Remember(branchName, depth, sx, sy);
             if (spawns != null) RaiseBones(spawns, sx, sy);
+            if (spawns != null) RaiseBosses(spawns, sx, sy);
             EnsureQuestAmulet(); // fallback: levels generated before the quest still get their amulet
 
             Say($"You arrive at {Map.LevelName}.", MessageKind.Narrative);
@@ -421,6 +422,7 @@ namespace Ossuary.Core
             GodsOnKill(m);
             Monsters.Remove(m);
             if (m.Def.Trait != null) TraitOnDeath(m);
+            if (m.BossId != null) BossFalls(m);
             if (m.BonesKey != null) { LaidToRest.Add(m.BonesKey); Say("The restless shade is laid to rest at last.", MessageKind.Good); }
             Player.Kills++;
             bool leveled = Player.AddXp(m.XpKill);
@@ -600,6 +602,7 @@ namespace Ossuary.Core
             if (m.IsGuard && Mode != GameMode.TownMap && dist > 24) return;
             if (m.FearTurns > 0) { if (FleeStep(m)) return; }
             else if (dist > 1 && AttackAdjacentAlly(m)) return;
+            if (m.BossId != null && BossTurn(m, dist)) return;
             if (m.Def.Trait != null && TraitBeforeAct(m, dist)) return;
 
             if (dist == 1)
