@@ -283,6 +283,51 @@ namespace Ossuary.Desktop
             Check(f.Game.UiState.Active == Panel.None, "Esc closes abilities");
         }
 
+        /// <summary>Holding a direction keeps walking, but only while the way is calm, and never queues turns.</summary>
+        static void HeldKeyWalking()
+        {
+            var s = new Session(); s.New(4242); s.Resize(110, 36); s.Draw();
+            var g = s.Game;
+            g.Monsters.Clear();
+            int y = g.Player.Y, x0 = g.Player.X;
+            // A straight, empty corridor of twelve floor cells with a wall at the end.
+            for (int x = x0; x <= x0 + 12; x++)
+            {
+                g.Map.Set(x, y, TileKind.Floor); g.Map.Set(x, y - 1, TileKind.Wall); g.Map.Set(x, y + 1, TileKind.Wall);
+                GroundItems.RemoveCell(g.Map.Number, x, y);
+            }
+            g.Map.Set(x0 + 13, y, TileKind.Wall);
+            g.UpdateFov(); s.Draw();
+
+            int turn = g.Turn;
+            s.KeyRepeat("ArrowRight");
+            Check(g.Player.X == x0, "a repeat does nothing before a first real step");
+            s.Key("ArrowRight");
+            for (int i = 0; i < 4; i++) s.KeyRepeat("ArrowRight");
+            Check(g.Player.X == x0 + 5, "held direction keeps walking");
+            Check(g.Turn - turn == 5, "each repeat is exactly one turn");
+
+            s.KeyRepeat("KeyI", "i");
+            Check(g.UiState.Active == Panel.None, "only movement repeats");
+
+            // Something hostile steps into view: the repeat stops by itself.
+            var rat = new Monster(Bestiary.Find("giant rat"), g.Rng) { X = g.Player.X + 4, Y = y };
+            g.Monsters.Add(rat); g.UpdateFov(); s.Key("ArrowRight"); int at = g.Player.X;
+            Check(g.Map.IsCurrentlyVisible(rat.X, rat.Y), "test setup: the rat is in sight");
+            s.KeyRepeat("ArrowRight"); s.KeyRepeat("ArrowRight");
+            Check(g.Player.X == at, "a hostile in view stops the held walk");
+            g.Monsters.Clear(); g.UpdateFov();
+
+            // A fresh press rearms it.
+            s.Key("ArrowLeft"); int x1 = g.Player.X; s.KeyRepeat("ArrowLeft");
+            Check(g.Player.X == x1 - 1, "a new press rearms the walk");
+            g.Player.HP = g.Player.MaxHP;
+            s.Key("ArrowRight"); int x2 = g.Player.X;
+            GroundItems.Add(g.Map.Number, x2 + 1, y, new Ossuary.Core.Items.Item(Ossuary.Core.Items.Catalogue.Weapons[0], g.Rng, g.NextUid()));
+            s.KeyRepeat("ArrowRight"); s.KeyRepeat("ArrowRight");
+            Check(g.Player.X == x2 + 1, "an item underfoot stops the held walk");
+        }
+
         /// <summary>
         /// A monster in the road is fought with Enter, Space or K and fled from with R or Shift+Comma.
         /// Plain K used to be "walk north" and was refused, so the player could only ever run.
@@ -462,7 +507,7 @@ namespace Ossuary.Desktop
             s.Game.Mode = GameMode.GameOver; s.Draw(); s.Key("Enter"); s.Draw();
             Check(s.Game.Mode == GameMode.Dungeon && s.Game.Turn == 0 && s.Hud.Ui.Width == 110, "death restarts and keeps viewport");
             DisplaySettings.Current.Apply(ThemePreset.Ossuary, CrtLevel.Subtle);
-            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); TownFlow();
+            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); HeldKeyWalking(); TownFlow();
             try { System.IO.Directory.Delete(data, true); } catch { /* temp dir only */ }
             Environment.SetEnvironmentVariable("OSSUARY_DATA", null);
             Console.WriteLine("==== desktop: input, choices, targeting, travel, shop, settings, restart and frame protocol PASS ====");

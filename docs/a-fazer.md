@@ -16,12 +16,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Controles e QoL
 
-- [ ] **Segurar tecla de direção repete o movimento** (como Caves of Qud). Hoje
-  `desktop/src/main.ts` descarta `event.repeat`. Plano: aceitar repeat só para teclas de
-  movimento e só quando não há ação em andamento (`busy`), mantendo a regra de uma ação
-  por vez, sem fila de turnos. A repetição deve parar sozinha ao surgir hostil à vista,
-  dano, item/escada sob os pés, porta ou mudança de painel. Atenção ao `Session.Key`
-  (modais, mira e painéis não repetem). Atualizar `arquitetura.md` (regra do autorepeat) e `controles.md`.
 - [ ] **Auto-explore** (`o`/tecla a definir): usa `Pathfinder`/`FlowField` para a fronteira
   não explorada mais próxima; para ao ver hostil, item ou ao ser ferido.
 - [ ] **Travel até escada/local** (`_` ou `` ` ``): ir até `<`/`>`, altar, fonte ou ponto marcado com A*.
@@ -100,3 +94,7 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Segurar tecla de direção repete o movimento** (2026-10-02). `Game.Repeat.cs` (`CanKeepWalking`,
+  `HostileInView`), `Session.KeyRepeat`, flag `repeat` no protocolo/`main.ts`. Para sozinho com hostil à vista,
+  item/escada/altar/fonte/porta sob os pés, dano, mensagem nova ou parede. Teste `HeldKeyWalking`.

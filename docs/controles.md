@@ -8,6 +8,10 @@ Movimento vi-keys vence verbo na tecla sem shift; shift recupera o verbo.
 
 `h j k l` / setas / numpad — `y u b n` diagonais — `.` esperar
 
+**Segurar a tecla** repete o passo (como em Caves of Qud) enquanto o caminho está calmo: para sozinho
+ao ver um hostil, pisar em item, escada, altar, fonte ou porta, levar dano ou aparecer mensagem nova.
+Soltar e apertar de novo rearma. Só movimento repete; nunca enfileira turnos.
+
 ## Dungeon
 
 `>` descer — `<` subir (também escadas de prédios nas cidades) — `g` ou `,`

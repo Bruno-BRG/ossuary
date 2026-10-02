@@ -181,11 +181,12 @@ window.addEventListener('keydown', async event => {
     }
     return;
   }
-  // Single outstanding action; holding a key never creates an unbounded turn queue.
+  // Single outstanding action; holding a key never creates an unbounded turn queue. Autorepeat is sent flagged,
+  // and the engine honours it only for calm walking (no hostile in view, nothing underfoot, no damage).
   if (event.code === 'Tab' || event.code.startsWith('Control') || event.code.startsWith('Shift')) return;
   event.preventDefault();
-  if (busy || event.repeat) return;
-  await send({ op: 'key', code: event.code, key: event.key, shift: event.shiftKey, ctrl: event.ctrlKey });
+  if (busy) return;
+  await send({ op: 'key', code: event.code, key: event.key, shift: event.shiftKey, ctrl: event.ctrlKey, repeat: event.repeat });
   await resize();
 });
 

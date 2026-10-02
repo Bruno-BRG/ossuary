@@ -40,6 +40,8 @@ namespace Ossuary.Core
 
         public readonly List<Message> Log = new List<Message>();
         public readonly List<Message> Transcript = new List<Message>();
+        /// <summary>Messages ever said; unlike the capped logs it only grows, so it detects "something was reported".</summary>
+        public long Said;
 
         public readonly UiState UiState = new UiState();
         public readonly UiRequests UiRequests = new UiRequests();
@@ -108,6 +110,7 @@ namespace Ossuary.Core
             var m = new Message(Loc.T(text), kind, Turn);
             Log.Add(m);
             Transcript.Add(m);
+            Said++;
             while (Log.Count > 200) Log.RemoveAt(0);
             while (Transcript.Count > 2000) Transcript.RemoveAt(0);
         }

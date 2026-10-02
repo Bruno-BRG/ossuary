@@ -67,7 +67,10 @@ dos assemblies para manter o build disponível durante a prévia.
 
 Somente comandos da simulação avançam turnos. Redimensionar, renderizar,
 persistir opções e verificar estado da janela não alteram o jogo. A interface
-aceita uma ação em andamento e ignora autorepeat para evitar filas de turnos.
+aceita uma ação em andamento por vez e nunca enfileira turnos. O autorepeat de uma tecla
+segurada é enviado com `repeat: true`; o motor (`Session.KeyRepeat`) só o honra para
+caminhada calma (`Game.CanKeepWalking`: sem hostil à vista, nada sob os pés, sem dano nem
+mensagem no passo anterior) e ignora o resto.
 Tema, CRT e escala são dados do usuário, persistidos em localStorage; começar
 uma run pela tela inicial ou reiniciar após morte conserva essas preferências.
 

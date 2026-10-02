@@ -13,6 +13,8 @@ namespace Ossuary.Desktop
         public string Key { get; set; }
         public bool Shift { get; set; }
         public bool Ctrl { get; set; }
+        /// <summary>The key is held down (OS autorepeat). Only calm walking honours it.</summary>
+        public bool Repeat { get; set; }
         public int Cols { get; set; } = 110;
         public int Rows { get; set; } = 36;
         public int Theme { get; set; }
@@ -56,7 +58,7 @@ namespace Ossuary.Desktop
                             session.New(); session.Resize(r.Cols, r.Rows); session.Load(); break;
                         case "title": RequireGame(session); session.SetTitle(true); break;
                         case "play": RequireGame(session); session.SetTitle(false); break;
-                        case "key": RequireGame(session); session.Key(r.Code, r.Key, r.Shift, r.Ctrl); break;
+                        case "key": RequireGame(session); if (r.Repeat) session.KeyRepeat(r.Code, r.Key, r.Shift, r.Ctrl); else session.Key(r.Code, r.Key, r.Shift, r.Ctrl); break;
                         case "resize": RequireGame(session); session.Resize(r.Cols, r.Rows); break;
                         case "display": RequireGame(session); ApplySettings(r); break;
                         case "frame": RequireGame(session); break;

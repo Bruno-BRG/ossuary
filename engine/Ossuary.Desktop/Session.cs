@@ -135,8 +135,29 @@ namespace Ossuary.Desktop
 
         // ------------------------------------------------------------------ input
 
-        public void Key(string code, string key = "", bool shift = false, bool ctrl = false)
+        // Held-key walking: a repeat is honoured only after a step that was calm (see Game.CanKeepWalking).
+        bool _walkCalm;
+
+        /// <summary>Autorepeat of a held key. Anything but a calm walking step is ignored, so holding a key never queues turns.</summary>
+        public void KeyRepeat(string code, string key = "", bool shift = false, bool ctrl = false)
         {
+            if (!_walkCalm || Intro || Game == null) return;
+            var ui = Game.UiState;
+            if (ui.Active != Panel.None || ui.Rebinding || ui.IsTargeting || ui.TravelMode || Game.PendingChoice.Active) return;
+            KeyBindings.Current.Resolve(ref code, ref key, ref shift, ref ctrl);
+            if (!IsWalk(code, key, shift, ctrl)) return;
+            Key(code, key, shift, ctrl, bindingsApplied: true);
+        }
+
+        static bool IsWalk(string code, string key, bool shift, bool ctrl)
+        {
+            string command = Input.Translate(code, key, shift, ctrl);
+            return command != null && command.StartsWith("move-");
+        }
+
+        public void Key(string code, string key = "", bool shift = false, bool ctrl = false, bool bindingsApplied = false)
+        {
+            _walkCalm = false;
             var ui = Game.UiState;
             ToTitle = false;
             if (Intro) { if (!_replaying) Started = true; Intro = false; return; }
@@ -152,9 +173,11 @@ namespace Ossuary.Desktop
             if (ui.Rebinding) { RebindKey(code, shift, ctrl); return; }
             if (ui.Active == Panel.Controls) { ControlsKey(code, shift); return; }
 
-            KeyBindings.Current.Resolve(ref code, ref key, ref shift, ref ctrl);
+            if (!bindingsApplied) KeyBindings.Current.Resolve(ref code, ref key, ref shift, ref ctrl);
             if (code == "None") return;
 
+            bool walk = IsWalk(code, key, shift, ctrl);
+            int hp = Game.Player.HP; long said = Game.Said; var from = Game.WalkPosition();
             bool log = ShouldLog(code, ctrl, ui);
             int generation = _generation;
             _quitRan = false;
@@ -170,6 +193,9 @@ namespace Ossuary.Desktop
                 _log.Add($"{code}|{key}|{(shift ? 1 : 0)}|{(ctrl ? 1 : 0)}");
                 Started = true;
             }
+            // The next repeat is allowed only if this step moved us, said nothing, cost no HP and the way is still calm.
+            _walkCalm = walk && Game.Said == said && Game.Player.HP >= hp
+                && Game.WalkPosition() != from && Game.CanKeepWalking();
         }
 
         // Keys that only drive the menu, the display or the host never enter the run log, so a
