@@ -16,6 +16,22 @@ namespace Ossuary.Core
         /// <summary>Live language. Core defaults to English so headless tests stay stable; the app sets it from DisplaySettings.</summary>
         public static Lang Current = Lang.En;
 
+        // Trap messages carry the trap's name, so every combination is registered up front.
+        static Loc()
+        {
+            var traps = new[] { ("spike trap", "armadilha de espetos", "uma"), ("hole", "buraco", "um"), ("dart trap", "armadilha de dardos", "uma"),
+                                ("teleport trap", "armadilha de teletransporte", "uma"), ("alarm trap", "armadilha de alarme", "uma"),
+                                ("fire trap", "armadilha de fogo", "uma"), ("web", "teia", "uma") };
+            foreach (var (en, pt, art) in traps)
+            {
+                string the = art == "uma" ? "a" : "o";
+                Pt[$"You spot a {en}."] = $"Você percebe {art} {pt}.";
+                Pt[$"You disarm the {en}."] = $"Você desarma {the} {pt}.";
+                Pt[$"You fail to disarm the {en}."] = $"Você não consegue desarmar {the} {pt}.";
+                Rx.Add(R($@"You find a {en} at \((\d+),(\d+)\)\.", $"Você acha {art} {pt} em ($1,$2)."));
+            }
+        }
+
         public static string Code(Lang l) => l == Lang.Pt ? "pt" : "en";
         public static string Name(Lang l) => l == Lang.Pt ? "Português" : "English";
 
@@ -153,6 +169,13 @@ namespace Ossuary.Core
             ["◄► mode  Enter begin  Esc back"] = "◄► modo  Enter começa  Esc volta",
             ["Daily board"] = "Placar diário", ["No daily runs yet."] = "Nenhuma run diária ainda.", ["Daily"] = "Diário",
             ["D daily board   Esc back"] = "D placar diário   Esc volta",
+            // ---- traps
+            ["disarm a trap you have found"] = "desarmar uma armadilha achada",
+            ["There is nothing to disarm here."] = "Não há o que desarmar aqui.",
+            ["There is no known trap to disarm nearby."] = "Não há armadilha conhecida para desarmar por perto.",
+            ["There is no known trap to disarm there."] = "Não há armadilha conhecida para desarmar ali.",
+            ["You cannot do that now."] = "Você não pode fazer isso agora.",
+            ["You set it off!"] = "Você a disparou!",
             // ---- achievements
             ["Achievements"] = "Conquistas", ["local"] = "locais", ["What you have done across all your runs."] = "O que você já fez em todas as suas runs.",
             ["Achievement: "] = "Conquista: ",

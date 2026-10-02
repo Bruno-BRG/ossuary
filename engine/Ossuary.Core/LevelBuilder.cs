@@ -261,7 +261,7 @@ namespace Ossuary.Core
         static readonly Dictionary<int, Dictionary<int, KeyValuePair<Traps, int>>> _traps
             = new Dictionary<int, Dictionary<int, KeyValuePair<Traps, int>>>();
 
-        public static void Clear(int mapNumber) => _traps.Remove(mapNumber);
+        public static void Clear(int mapNumber) { _traps.Remove(mapNumber); _revealed.Remove(mapNumber); }
 
         public static void Put(int mapNumber, int x, int y, Traps kind, int level)
         {
@@ -284,8 +284,36 @@ namespace Ossuary.Core
 
         public static bool Remove(int mapNumber, int x, int y)
         {
+            if (_revealed.TryGetValue(mapNumber, out var r)) r.Remove(x + y * 4096);
             if (!_traps.TryGetValue(mapNumber, out var d)) return false;
             return d.Remove(x + y * 4096);
+        }
+
+        // Traps the player has found. A found trap is drawn, avoided by auto-walk and can be disarmed.
+        static readonly Dictionary<int, HashSet<int>> _revealed = new Dictionary<int, HashSet<int>>();
+
+        public static bool Reveal(int mapNumber, int x, int y)
+        {
+            if (!TryGet(mapNumber, x, y, out _, out _)) return false;
+            if (!_revealed.TryGetValue(mapNumber, out var r)) { r = new HashSet<int>(); _revealed[mapNumber] = r; }
+            return r.Add(x + y * 4096);
+        }
+
+        public static bool IsRevealed(int mapNumber, int x, int y) =>
+            _revealed.TryGetValue(mapNumber, out var r) && r.Contains(x + y * 4096);
+
+        public static string Name(Traps kind)
+        {
+            switch (kind)
+            {
+                case Traps.Spike: return "spike trap";
+                case Traps.Hole: return "hole";
+                case Traps.Dart: return "dart trap";
+                case Traps.Teleport: return "teleport trap";
+                case Traps.Alarm: return "alarm trap";
+                case Traps.Fire: return "fire trap";
+                default: return "web";
+            }
         }
     }
 

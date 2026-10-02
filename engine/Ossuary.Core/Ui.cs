@@ -263,6 +263,11 @@ namespace Ossuary.Core
                         }
                     }
 
+                    if ((t == TileKind.Floor || t == TileKind.FloorAlt) && TrapTable.IsRevealed(map.Number, mx, my))
+                    {
+                        g = '^'; fg = theme.Warn; bold = true;
+                    }
+
                     if (vis)
                     {
                         var item = TopItemAt(mx, my);
@@ -1131,6 +1136,7 @@ namespace Ossuary.Core
                 { "k", "kick or attack ahead" },
                 { "u  D", "use a key / open a door" },
                 { "s  Shift+S", "search for traps and doors / rest until healed" },
+                { "Shift+A", "disarm a trap you have found" },
                 { "t  `", "auto-explore / travel to the stairs" },
                 { "l  x  X", "look / inspect / swap with" },
                 { "O", "travel on the overworld" },

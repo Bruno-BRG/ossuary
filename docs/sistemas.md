@@ -250,6 +250,11 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
   **Classic**: `ProcessHunger` não faz nada. **Hardcore**: `Session.Save(forQuit)` só grava ao sair (Main menu/Quit),
   `QuickSave` e *Save game* recusam, e `Load` apaga o arquivo depois de reproduzir a run.
 
+## Armadilhas achadas (`Game.Traps.cs`)
+
+- Armadilhas nascem ocultas (`TrapTable`). `Reveal` as marca (desenhadas como `^` em `theme.Warn`). Revelam-se por busca (`s`),
+  por percepção passiva ao passar (`SenseTraps`, determinística por hash da posição) ou ficam ocultas. `Shift+A` → `DisarmTrap`.
+
 ## Conquistas (`Achievements.cs`)
 
 - Lista fixa de `AchievementDef` (id, nome, descrição, teste sobre `Game`). `Game.Earned` é recomputado pela simulação,

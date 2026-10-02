@@ -67,6 +67,7 @@ namespace Ossuary.Core
                 case "u": return DoUseKey();
                 case "D": return DoOpenDoor();
                 case "s": return DoSearch();
+                case "disarm": return DoDisarm();
                 case "x": _g.PushTargeting(TargetingMode.Inspect); return true;
                 case "l": _g.PushTargeting(TargetingMode.Look); return true;
                 case "X": return DoSwapWith();
@@ -529,9 +530,9 @@ namespace Ossuary.Core
             {
                 for (int x = p.X - 1; x <= p.X + 1; x++)
                 {
-                    if (TrapTable.TryGet(_g.Map.Number, x, y, out _, out _))
+                    if (TrapTable.TryGet(_g.Map.Number, x, y, out var trapKind, out _))
                     {
-                        _g.Say($"You find a trap at ({x},{y}).", MessageKind.Good);
+                        if (TrapTable.Reveal(_g.Map.Number, x, y)) _g.Say($"You find a {TrapTable.Name(trapKind)} at ({x},{y}).", MessageKind.Good);
                         found = true;
                     }
                     if (_g.Map.InBounds(x, y) && _g.Map.Get(x, y) == TileKind.HiddenDoor)
@@ -546,6 +547,26 @@ namespace Ossuary.Core
             p.GainSkill(Skill.Search, 2);
             _g.Map.Version++;
             _g.EndPlayerTurn();
+            return true;
+        }
+
+        /// <summary>Disarms a found trap underfoot or beside you, preferring the one you face. Refusals cost no turn.</summary>
+        bool DoDisarm()
+        {
+            var p = _g.Player;
+            if (_g.Mode != GameMode.Dungeon || _g.Map == null) { _g.Say("There is nothing to disarm here."); return true; }
+            int bx = int.MinValue, by = int.MinValue;
+            for (int dy = -1; dy <= 1; dy++)
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    int x = p.X + dx, y = p.Y + dy;
+                    if (!TrapTable.TryGet(_g.Map.Number, x, y, out _, out _) || !TrapTable.IsRevealed(_g.Map.Number, x, y)) continue;
+                    bool facing = dx == _g.FacingX && dy == _g.FacingY;
+                    if (bx == int.MinValue || facing) { bx = x; by = y; }
+                }
+            if (bx == int.MinValue) { _g.Say("There is no known trap to disarm nearby.", MessageKind.Info); return true; }
+            if (p.Asleep || p.Stunned || p.Blinded) { _g.Say("You cannot do that now."); return true; }
+            _g.DisarmTrap(bx, by);
             return true;
         }
 

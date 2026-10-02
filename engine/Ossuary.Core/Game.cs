@@ -253,6 +253,7 @@ namespace Ossuary.Core
             }
 
             UpdateFov();
+            SenseTraps();
             bool slipped = Map.SurfaceAt(nx, ny) == SurfaceKind.Ice && Rng.Chance(30);
             if (slipped) Say("You slip on the ice!", MessageKind.Warn);
             EndPlayerTurn();

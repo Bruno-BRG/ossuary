@@ -40,7 +40,7 @@ namespace Ossuary.Desktop
                 case "KeyI": return "i";
                 case "KeyG": return "g";
                 case "KeyD": return shift ? "D" : "d";
-                case "KeyA": return "a";
+                case "KeyA": return shift ? "disarm" : "a";
                 case "KeyF": return "f";
                 case "KeyQ": return shift ? "q" : "f";
                 case "KeyE": return "e";

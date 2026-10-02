@@ -30,7 +30,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 - [ ] **Companheiros permanentes**: mercenário contratável na taverna, sobe de nível,
   carrega itens, comandos simples. Hoje só há aliados invocados/temporários.
 - [ ] **XP gasto em skills** (opção estilo Sil), listada em `rpg.md`.
-- [ ] **Desarmar armadilhas** (Ladino), prometido em `rpg.md`.
 
 ## Magia e deuses
 
@@ -80,6 +79,10 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Armadilhas achadas e desarmar** (2026-10-02). `Game.Traps.cs` + `TrapTable.Reveal`: antes uma armadilha "achada" não ficava marcada.
+  Agora `s` e a percepção passiva (`SenseTraps`: Search/2 + 25 do Ladino, por hash da posição, sem Rng) revelam; achadas aparecem como `^`,
+  o auto-explore as evita e `Shift+A` as desarma (35 + Dex×2 + Search/2, +30 Ladino; falha pode dispará-la). Teste `TrapsFlow`.
 
 - [x] **Conquistas locais** (2026-10-02). `Core/Achievements.cs`: 18 conquistas como funções puras do estado (`Game.CheckAchievements`,
   a cada turno e na vitória); o anúncio vai direto ao log sem mexer em `Game.Said` (não altera auto-walk/replay). O host guarda

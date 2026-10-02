@@ -69,6 +69,7 @@ namespace Ossuary.Core
                     int ni = nx + ny * w;
                     if (from[ni] != -2 || !Map.CanStep(cx, cy, nx, ny, true)) continue;
                     if (Map.SurfaceAt(nx, ny) == SurfaceKind.Fire) continue;
+                    if (TrapTable.IsRevealed(Map.Number, nx, ny)) continue;
                     from[ni] = cur;
                     queue.Enqueue(ni);
                 }

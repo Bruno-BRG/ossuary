@@ -22,6 +22,7 @@ namespace Ossuary.Tests
             Test("dead heroes return as shades on their level", BonesShades);
             Test("the daily challenge is stable per date", DailySeeds);
             Test("achievements are earned from state and never touch the simulation", AchievementsEarned);
+            Test("traps are sensed, found by searching and disarmed", TrapsFlow);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -193,6 +194,70 @@ namespace Ossuary.Tests
             won.Difficulty = Difficulty.Hardcore; won.DailyLabel = "2026-10-02";
             won.Mode = GameMode.Won; won.CheckAchievements();
             Assert(won.Earned.Contains("escape") && won.Earned.Contains("iron") && won.Earned.Contains("daily-victor"), "victory achievements follow mode and daily");
+        }
+
+        static void TrapsFlow()
+        {
+            var g = Game.NewHero(303, "Pick", "halfling", "rogue");
+            g.Monsters.Clear();
+            var cmd = new Commands(g);
+            int turn = g.Turn;
+            cmd.Execute("disarm");
+            Assert(g.Turn == turn, "disarming with nothing found costs no turn");
+
+            // A trap on a cell this hero would notice by walking past, and one searching must find.
+            g.Player.Skills[Skill.Search] = 100;
+            int pct = g.TrapSensePct();
+            Assert(pct >= 50, "a rogue with Search 100 senses most traps, got " + pct);
+            int px = g.Player.X, py = g.Player.Y;
+            for (int y = py - 1; y <= py + 1; y++)
+                for (int x = px - 1; x <= px + 1; x++)
+                    if (x != px || y != py) { g.Map.Set(x, y, TileKind.Floor); TrapTable.Remove(g.Map.Number, x, y); }
+            int tx = -1, ty = -1;
+            for (int y = py - 1; y <= py + 1 && tx < 0; y++)
+                for (int x = px - 1; x <= px + 1; x++)
+                    if ((x != px || y != py) && g.Map.Walkable(x, y) && Theme.Hash01(x * 31 + g.Map.Number, y * 17 + 5) * 100 < pct) { tx = x; ty = y; break; }
+            Assert(tx >= 0, "test setup: a cell the hero will notice");
+            TrapTable.Put(g.Map.Number, tx, ty, Traps.Spike, 2);
+            Assert(!TrapTable.IsRevealed(g.Map.Number, tx, ty), "the trap starts hidden");
+            g.SenseTraps();
+            Assert(TrapTable.IsRevealed(g.Map.Number, tx, ty), "a nearby trap is sensed without searching");
+
+            // Searching reveals what sensing missed.
+            int sx = -1, sy = -1;
+            for (int y = py - 1; y <= py + 1 && sx < 0; y++)
+                for (int x = px - 1; x <= px + 1; x++)
+                    if ((x != px || y != py) && (x != tx || y != ty) && g.Map.Walkable(x, y) && Theme.Hash01(x * 31 + g.Map.Number, y * 17 + 5) * 100 >= pct) { sx = x; sy = y; break; }
+            if (sx >= 0)
+            {
+                TrapTable.Put(g.Map.Number, sx, sy, Traps.Dart, 2);
+                g.SenseTraps();
+                Assert(!TrapTable.IsRevealed(g.Map.Number, sx, sy), "an unnoticed trap stays hidden");
+                cmd.Execute("s");
+                Assert(TrapTable.IsRevealed(g.Map.Number, sx, sy), "searching reveals it");
+            }
+
+            // Disarming ends with the trap gone, whether it was disarmed or set off, and never costs a free turn.
+            int guard = 0;
+            while (TrapTable.TryGet(g.Map.Number, tx, ty, out _, out _) && guard++ < 60)
+            {
+                g.Player.HP = g.Player.MaxHP;
+                g.FacingX = tx - px; g.FacingY = ty - py;
+                int before = g.Turn;
+                cmd.Execute("disarm");
+                Assert(g.Turn == before + 1, "each attempt takes a turn");
+                if (g.Mode != GameMode.Dungeon) break;
+            }
+            Assert(!TrapTable.TryGet(g.Map.Number, tx, ty, out _, out _), "the trap is gone after enough attempts");
+            Assert(!TrapTable.IsRevealed(g.Map.Number, tx, ty), "and no longer marked");
+
+            // Auto-explore keeps clear of found traps.
+            var h = Game.NewHero(304, "Pick", "human", "fighter");
+            h.Monsters.Clear();
+            for (int i = 0; i < h.Map.W * h.Map.H; i++) { int x = i % h.Map.W, y = i / h.Map.W; if (TrapTable.TryGet(h.Map.Number, x, y, out _, out _)) TrapTable.Remove(h.Map.Number, x, y); }
+            var hc = new Commands(h);
+            for (int i = 0; i < 200; i++) hc.Execute("explore");
+            Assert(h.Player.HP == h.Player.MaxHP, "an explorer on a trapless level is never hurt");
         }
     }
 }

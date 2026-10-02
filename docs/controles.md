@@ -23,6 +23,7 @@ Teclas remapeáveis em Controles.
 
 `>` descer — `<` subir (também escadas de prédios nas cidades) — `g` ou `,`
 pegar — `d` largar — `s` procurar (armadilhas/portas secretas) —
+`Shift+A` desarmar armadilha achada (embaixo ou ao lado, de preferência à frente) —
 `k` (shift-K) chutar / atacar à frente — `D` (shift) abrir porta — `u` (shift-U)
 usar chave — `a` aplicar ferramenta — `f`/`Q` atirar
 
