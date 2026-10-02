@@ -41,11 +41,15 @@ namespace Ossuary.Core
             map.Depth = depth;
             map.LevelName = NameFor(branchName, depth);
 
-            SpawnMonsters(map, rng, depth, startX, startY, points, branchName);
-            PlaceLoot(map, rng, depth);
+            // The Annex is only three floors deep and meant to be hard: its monsters and loot are those of six floors lower.
+            int eff = branchName == "The Annex" ? depth + 6 : depth;
+            SpawnMonsters(map, rng, eff, startX, startY, points, branchName);
+            PlaceLoot(map, rng, eff, depth);
             PlaceTraps(map, rng, depth);
             PlaceSurfaces(map, rng, depth, branchName);
-            PlaceVaults(map, rng, depth, points);
+            PlaceVaults(map, rng, eff, points);
+            if (branchName == "The Dungeons" && depth == 4 && TryFindOpenFloor(map, rng, out int px, out int py) && map.Get(px, py) != TileKind.StairsUp)
+                map.Set(px, py, TileKind.Portal);
             return points;
         }
 
@@ -121,7 +125,7 @@ namespace Ossuary.Core
         /// so terrain stays exactly one byte per cell and the renderer can layer
         /// "floor with something on it" without a second grid.
         /// </summary>
-        static void PlaceLoot(GameMap map, Rng rng, int depth)
+        static void PlaceLoot(GameMap map, Rng rng, int depth, int levelDepth)
         {
             int floor = map.CountWalkable();
             int stacks = Math.Max(2, floor / 140);
@@ -134,7 +138,7 @@ namespace Ossuary.Core
             }
 
             // Each branch hides one named artifact on a fixed level.
-            var art = Artifacts.ForLevel(map.BranchName, depth);
+            var art = Artifacts.ForLevel(map.BranchName, levelDepth);
             if (art != null && TryFindOpenFloor(map, rng, out int ax, out int ay))
                 GroundItems.Add(map.Number, ax, ay, Artifacts.Create(art, rng, GroundItems.NextUid()));
 

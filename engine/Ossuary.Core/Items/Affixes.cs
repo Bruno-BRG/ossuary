@@ -209,6 +209,10 @@ namespace Ossuary.Core.Items
             new ArtifactDef { Id = "cinder-plate", Name = "Cinder Plate", Base = "plate mail", Branch = "The Ashen Spire", Depth = 11, Enchant = 3, Set = "ashen-regalia",
                 Lore = "Black plate, glowing at the seams. The last owner is still inside, in a way.", Mods = new ItemMods { Con = 2, ResFire = 20 } },
 
+            // The Annex's prize: a cloak for those who paid every debt.
+            new ArtifactDef { Id = "tithe-mantle", Name = "Tithe-Collector's Mantle", Base = "cloak of elvenkind", Branch = "The Annex", Depth = 3, Enchant = 3,
+                Lore = "Woven from the receipts of everything the Annex ever took. It has no weight. It has a great deal of memory.", Mods = new ItemMods { Evasion = 3, ResNecrotic = 40, Hp = 12, Wis = 1 } },
+
             // Relics: strong, and they take something back.
             new ArtifactDef { Id = "hollow-ribs", Name = "Hollow Ribs", Base = "splint mail", Branch = "The Dungeons", Depth = 9, Enchant = 4, Corrupts = true,
                 Lore = "A cage of ribs, hollowed out to be worn. It holds you like it held something else.", Mods = new ItemMods { Hp = 20, Con = 2 } },

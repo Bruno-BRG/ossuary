@@ -35,6 +35,8 @@ namespace Ossuary.Core
             new AchievementDef("explorer", "Cartographer", "See six regions of the world.", g => g.World != null && g.RegionsSeen() >= 6),
             new AchievementDef("hired-hand", "Hired Hand", "Finish three Guild jobs.", g => g.ContractsDone >= 3),
             new AchievementDef("well-liked", "Well Liked", "Be revered by any house.", g => { foreach (var h in Houses.All) if (g.RepOf(h) >= 60) return true; return false; }),
+            new AchievementDef("annex-delver", "Past the Portal", "Step through the portal on Dungeons 4.", g => g.AnnexVisited),
+            new AchievementDef("annex-cleared", "Debts Paid", "Kill the Annex Warden.", g => g.BossesSlain.Contains("annex-warden")),
             new AchievementDef("boss-slayer", "Boss Slayer", "Kill a branch boss.", g => g.BossesSlain.Count >= 1),
             new AchievementDef("kingslayer", "Kingslayer", "Kill three branch bosses in one run.", g => g.BossesSlain.Count >= 3),
             new AchievementDef("mutant", "Mutant", "Carry three mutations at once.", g => g.Player.Mutated.Count >= 3),

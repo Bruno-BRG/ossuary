@@ -154,8 +154,35 @@ namespace Ossuary.Core
             UpdateFov();
         }
 
+        /// <summary>Steps through the portal under the player: into the side branch it leads to, or back out of one.</summary>
+        bool UsePortal()
+        {
+            var here = Dungeon.Get(Branch);
+            if (here.Parent != null && Depth == 1)
+            {
+                string parent = here.Parent; int pd = here.ParentDepth;
+                Say("You step back through the portal.", MessageKind.Narrative);
+                DescendTo(parent, pd);
+                Player.X = _portalX; Player.Y = _portalY;
+                Map.Version++; UpdateFov();
+                return true;
+            }
+            var side = Dungeon.SideBranchAt(Branch, Depth);
+            if (side == null) { Say("The portal is dead. Whatever it led to is gone."); return false; }
+            _portalX = Player.X; _portalY = Player.Y;
+            Say("The portal takes you, and the world folds.", MessageKind.Narrative);
+            AnnexVisited = true;
+            DescendTo(side.Name, 1);
+            return true;
+        }
+
+        int _portalX, _portalY;
+        /// <summary>The hero has been through the portal at least once.</summary>
+        public bool AnnexVisited;
+
         public bool Descend()
         {
+            if (Map.Get(Player.X, Player.Y) == TileKind.Portal) return UsePortal();
             if (Map.Get(Player.X, Player.Y) != TileKind.StairsDown) { Say("There is no staircase down here."); return false; }
             var b = Dungeon.Get(Branch);
             if (Depth + 1 > b.MaxDepth)
@@ -171,6 +198,7 @@ namespace Ossuary.Core
         public bool Ascend()
         {
             TileKind t = Map.Get(Player.X, Player.Y);
+            if (t == TileKind.Portal && Dungeon.Get(Branch).Parent != null) return UsePortal();
             if (t != TileKind.StairsUp && t != TileKind.LadderDown) { Say("There is no way up here."); return false; }
             if (Depth <= 1)
             {

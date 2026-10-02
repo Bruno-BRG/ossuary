@@ -267,6 +267,11 @@ namespace Ossuary.Core
             ["You set it off!"] = "Você a disparou!",
             ["Boss Slayer"] = "Matador de Chefes", ["Kill a branch boss."] = "Mate o chefe de um branch.",
             ["Kingslayer"] = "Matador de Reis", ["Kill three branch bosses in one run."] = "Mate três chefes de branch em uma run.",
+            ["Past the Portal"] = "Além do Portal", ["Step through the portal on Dungeons 4."] = "Atravesse o portal em Dungeons 4.",
+            ["Debts Paid"] = "Dívidas Pagas", ["Kill the Annex Warden."] = "Mate o Warden do Anexo.",
+            ["The portal takes you, and the world folds."] = "O portal leva você, e o mundo se dobra.", ["You step back through the portal."] = "Você volta pelo portal.",
+            ["A portal shimmers here. Press > to step through."] = "Um portal cintila aqui. Aperte > para atravessar.",
+            ["The portal is dead. Whatever it led to is gone."] = "O portal está morto. O que havia do outro lado se foi.",
             // ---- achievements
             ["Achievements"] = "Conquistas", ["local"] = "locais", ["What you have done across all your runs."] = "O que você já fez em todas as suas runs.",
             ["Achievement: "] = "Conquista: ",

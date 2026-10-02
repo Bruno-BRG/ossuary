@@ -42,6 +42,7 @@ namespace Ossuary.Tests
             Test("townsfolk keep hours and remember you", TownRoutine);
             Test("vaults are carved out of unused rock and need a key", VaultsAndKeys);
             Test("overworld entrances lead into every branch", EntrancesReachBranches);
+            Test("the Annex: a portal, hard floors, a warden and a mantle", AnnexFlow);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -1274,6 +1275,61 @@ namespace Ossuary.Tests
                     }
             }
             Assert(reached.Count == 5, "every branch can be reached from the overworld, reached " + string.Join(", ", reached));
+        }
+
+        static void AnnexFlow()
+        {
+            // The portal waits on Dungeons 4, and nowhere else.
+            int portals = 0, levels = 0;
+            for (ulong seed = 1; seed <= 10; seed++)
+            {
+                var d = new Dungeon(new Rng(seed * 15485863));
+                var four = d.Ensure("The Dungeons", 4, out _, out _, out _);
+                int n = 0; for (int i = 0; i < four.W * four.H; i++) if (four.GetRaw(i) == TileKind.Portal) n++;
+                levels++; if (n == 1) portals++;
+                var three = d.Ensure("The Dungeons", 3, out _, out _, out _);
+                for (int i = 0; i < three.W * three.H; i++) Assert(three.GetRaw(i) != TileKind.Portal, "no portal on other floors");
+            }
+            Assert(portals >= 9, $"Dungeons 4 carries one portal, {portals} of {levels}");
+
+            // In and out.
+            var g = Game.NewHero(2200, "Portal", "human", "fighter");
+            g.DescendTo("The Dungeons", 4);
+            int px = -1, py = -1;
+            for (int y = 0; y < g.Map.H; y++) for (int x = 0; x < g.Map.W; x++) if (g.Map.Get(x, y) == TileKind.Portal) { px = x; py = y; }
+            Assert(px >= 0, "test setup: the portal");
+            g.Player.X = px; g.Player.Y = py; g.UpdateFov();
+            var cmd = new Commands(g);
+            cmd.Execute(">");
+            Assert(g.Branch == "The Annex" && g.Depth == 1 && g.AnnexVisited, "> on the portal enters the Annex");
+            Assert(g.Map.Get(g.Player.X, g.Player.Y) == TileKind.Portal, "you arrive standing on the way out");
+            cmd.Execute("<");
+            Assert(g.Branch == "The Dungeons" && g.Depth == 4 && g.Player.X == px && g.Player.Y == py, "< on it goes back to the same spot");
+            cmd.Execute(">");
+            Assert(g.Branch == "The Annex", "and in again");
+            g.Monsters.Clear();
+            g.DescendTo("The Annex", 1);
+
+            // Hard: the Annex's first floor has monsters from six floors down.
+            var ordinary = Game.NewHero(2201, "Plain", "human", "fighter");
+            var annex = Game.NewHero(2201, "Hard", "human", "fighter");
+            annex.DescendTo("The Annex", 1);
+            double Avg(Game gg) { double s = 0; int n = 0; foreach (var m in gg.Monsters) { s += m.Def.Level; n++; } return n == 0 ? 0 : s / n; }
+            Assert(Avg(annex) > Avg(ordinary) + 1.5, $"the Annex is hard: average monster level {Avg(annex):0.0} vs {Avg(ordinary):0.0}");
+
+            // At the bottom: the Warden and the mantle.
+            var bottom = Game.NewHero(2202, "Deep", "human", "fighter");
+            bottom.DescendTo("The Annex", 3);
+            Assert(bottom.Monsters.Exists(m => m.BossId == "annex-warden"), "the Warden waits on the third floor");
+            bool mantle = false;
+            for (int y = 0; y < bottom.Map.H; y++) for (int x = 0; x < bottom.Map.W; x++) { var st = GroundItems.At(bottom.Map.Number, x, y); if (st != null && st.Exists(i => i.ArtifactId == "tithe-mantle")) mantle = true; }
+            Assert(mantle, "and the Tithe-Collector's Mantle lies on the same floor");
+
+            // The Warden collects.
+            var w = Arena(2203, "annex-warden", 5);
+            int corruption = w.Player.Corruption;
+            for (int i = 0; i < 40 && !Said(w, "reads out a debt"); i++) { w.Player.HP = w.Player.MaxHP; w.Wait(); }
+            Assert(Said(w, "reads out a debt") && w.Player.Corruption > corruption, "the Warden bleeds you and taints you");
         }
     }
 }

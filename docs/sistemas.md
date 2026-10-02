@@ -264,6 +264,11 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
 - `FactionOf(m)` por nome/flags; `AreRivals`: Greenskin↔Deepfolk, Dead↔Wild. Em `MonsterTurn`, com o herói a mais de 1 casa, `FightRival` ataca o
   rival adjacente ou se aproxima de um a ≤6 casas se ele estiver mais perto que o herói. Mortes entre monstros não dão XP.
 
+## Branch opcional: The Annex
+
+- `Branch.Parent`/`ParentDepth` marcam um branch lateral; `LevelBuilder.Populate` põe o portal em *Dungeons 4*. `Game.UsePortal` entra/sai (guarda `_portalX/_portalY`).
+  O nível 1 do Anexo é gerado com o portal de saída sob o ponto de chegada. Monstros/loot usam `depth+6`.
+
 ## Chefes (`Game.Bosses.cs`)
 
 - `BossDef` (dados) + `Game.BossTurn` (hábitos, por `Monster.BossClock` e `BossPhase`). `RaiseBosses` põe o chefe na primeira geração do nível

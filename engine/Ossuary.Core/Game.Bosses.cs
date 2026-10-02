@@ -33,6 +33,10 @@ namespace Ossuary.Core
                 Level = 15, HP = 180, AC = 3, Speed = 12, Sides = 8, ToHit = 7,
                 Intro = "Black water rises to your ankles. The Drowned King has been waiting under it.",
                 Phase2 = "The Drowned King lifts his trident. The water answers.", Fall = "The Drowned King sinks, finally, and the water goes still." },
+            new BossDef { Id = "annex-warden", Name = "Annex Warden", Branch = "The Annex", Depth = 3, Base = "lich", Glyph = 'E', Color = 0xD0A0F0,
+                Level = 20, HP = 230, AC = 2, Speed = 12, Sides = 10, ToHit = 9,
+                Intro = "The last room of the Annex is a ledger, and the Warden is reading it aloud: your name, your debts, your sins.",
+                Phase2 = "The Annex Warden closes the ledger. The dead in the walls stand up.", Fall = "The Annex Warden crumples, and every debt you owed is struck out at once." },
             new BossDef { Id = "ashen-regent", Name = "Ashen Regent", Branch = "The Ashen Spire", Depth = 15, Base = "fire giant", Glyph = 'H', Color = 0xFF7A30,
                 Level = 18, HP = 260, AC = 3, Speed = 12, Sides = 10, ToHit = 8,
                 Intro = "The air at the top of the Spire is thick enough to chew. The Ashen Regent is not hungry. It is angry.",
@@ -155,6 +159,19 @@ namespace Ossuary.Core
                         CheckDeath();
                         return true;
                     }
+                    break;
+                case "annex-warden":
+                    if (clock % 5 == 0 && dist <= 7 && seen && Fov.HasLine(Map, m.X, m.Y, Player.X, Player.Y))
+                    {
+                        int dmg = Player.ResistDamage(Rng.Roll(2, 6, 0), DamageType.Necrotic);
+                        Player.HP -= dmg; HurtBy("the Annex Warden");
+                        m.HP = Math.Min(m.MaxHP, m.HP + dmg);
+                        Say($"The Warden reads out a debt of yours, and takes it in blood. (-{dmg})", MessageKind.Bad);
+                        AddCorruption(1, null);
+                        CheckDeath();
+                        return true;
+                    }
+                    if (angry && clock % 8 == 0 && CountNamed("skeleton") < 4) { SummonHostile(m, "skeleton", 2); return true; }
                     break;
                 case "ashen-regent":
                     if (clock % 5 == 0 && dist <= 5 && seen)

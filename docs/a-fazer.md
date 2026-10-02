@@ -27,7 +27,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Geração de níveis
 
-- [ ] **Branches opcionais de desafio** (estilo DCSS) com recompensa própria.
 - [ ] Animação de água e tiles de mapa quadrados (já listados como evolução em `alpha.md`).
 
 ## Técnico e qualidade
@@ -40,6 +39,11 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **The Annex: branch opcional de desafio** (2026-10-02). Um **portal** (`^`, `TileKind.Portal`) em *Dungeons 4* leva (`>`) ao Anexo: 3 andares (Catacombs → Maze → Fort) com monstros e loot
+  de seis andares abaixo (`LevelBuilder` usa profundidade efetiva `depth+6`). Você chega em cima do portal de saída (`<` ou `>` volta ao mesmo ponto). No fundo: o chefe **Annex Warden**
+  (cobra dívidas em sangue + corrupção; fase 2 levanta esqueletos) e o artefato **Tithe-Collector's Mantle**. `Branch.Parent/ParentDepth`, `Dungeon.SideBranchAt`, `Game.UsePortal`.
+  Conquistas *Past the Portal* e *Debts Paid*. Teste `AnnexFlow`.
 
 - [x] **Todas as branches passam a ser alcançáveis** (2026-10-02). Antes toda entrada de dungeon do overworld levava a *The Dungeons*; Mines, Warrens, Vaults e Spire só existiam
   em testes. Agora `OverworldGen.BranchForRegion` liga cada região a uma branch (Ashen Marches/Emberdown → Spire, Sunken Vale → Vaults, Iron Hills/Craglands → Mines,

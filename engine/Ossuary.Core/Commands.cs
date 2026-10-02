@@ -253,7 +253,8 @@ namespace Ossuary.Core
         void HandleStairs(TileKind t)
         {
             if (t == TileKind.Fountain && _g.Mode == GameMode.Dungeon) { _g.Say("A fountain bubbles here. Press Shift+E to drink.", MessageKind.Info); return; }
-            if (t == TileKind.StairsDown) _g.Say("There is a staircase down here. Press > to descend.", MessageKind.Info);
+            if (t == TileKind.Portal) _g.Say("A portal shimmers here. Press > to step through.", MessageKind.Info);
+            else if (t == TileKind.StairsDown) _g.Say("There is a staircase down here. Press > to descend.", MessageKind.Info);
             else if (t == TileKind.StairsUp) _g.Say("There is a staircase up here. Press < to climb.", MessageKind.Info);
         }
 
