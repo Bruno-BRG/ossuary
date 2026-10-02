@@ -165,6 +165,7 @@ namespace Ossuary.Core.Items
                 M("potion of see invisible",'!', 200),
                 M("potion of gain ability", '!', 300),
                 M("potion of gain level",   '!', 500, ItemFlags.Special),
+                M("potion of mutation",     '!', 300, ItemFlags.Special),
             };
 
             // F(name, glyph, cost, nutrition, weight). The weights are per ration and are

@@ -209,6 +209,7 @@ namespace Ossuary.Core
             int radius = Player.Blinded ? 1 : Mode == GameMode.TownMap ? 16 : 10;
             for (int i = 0; i < 2; i++)
                 if (Player.Rings[i] != null && Player.RingKnown[i] && Player.Rings[i].Name == "ring of warning") radius += 2;
+            if (!Player.Blinded) radius += MutationSight();
             Fov.Compute(Map, Player.X, Player.Y, radius, null);
             Map.Version++;
         }
@@ -463,6 +464,7 @@ namespace Ossuary.Core
             Turn++;
             Player.Turns = Turn;
             ResolveNoise();
+            AmuletCorrupts();
             ProcessHunger();
             DecrementStatus();
             TickSurfaces();
@@ -485,6 +487,7 @@ namespace Ossuary.Core
             var p = Player;
             if (Difficulty == Difficulty.Classic) { p.Hunger = 0; return; }
             if (p.PerkRank("gourmand") == 0 || (Turn & 1) == 1) p.Nutrient--;
+            p.Nutrient -= MutationHunger();
             if (p.Nutrient > 0) { p.Hunger = 0; return; }
 
             p.Hunger++;

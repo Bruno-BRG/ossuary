@@ -1137,6 +1137,7 @@ namespace Ossuary.Core
                 { "u  D", "use a key / open a door" },
                 { "s  Shift+S", "search for traps and doors / rest until healed" },
                 { "Shift+A", "disarm a trap you have found" },
+                { "Shift+E", "drink at a fountain (it may be tainted)" },
                 { "t  `", "auto-explore / travel to the stairs" },
                 { "l  x  X", "look / inspect / swap with" },
                 { "O", "travel on the overworld" },
@@ -1221,6 +1222,13 @@ namespace Ossuary.Core
                 int cap = role.CapFor(kv.Key);
                 string capText = cap < 100 ? $"  (max {cap})" : "";
                 _t.Write(x + 2, y++, $"{kv.Key,-10}{kv.Value,3}  {SkillRanks.Name(kv.Value),-8}{capText}", theme.Text, false, theme.Panel);
+            }
+            if (p.Corruption > 0 || p.Mutated.Count > 0)
+            {
+                _t.WriteClipped(x, y++, $"Corruption {p.Corruption}/{Game.CorruptionMax}", p.Corruption >= 60 ? theme.Bad : theme.Warn, iw, true, theme.Panel);
+                var muts = new System.Collections.Generic.List<string>();
+                foreach (string id in p.Mutated) { var mu = MutationTable.Find(id); if (mu != null) muts.Add(Loc.T(mu.Name)); }
+                if (muts.Count > 0) _t.WriteClipped(x, y++, Loc.T("Mutations") + ": " + string.Join(", ", muts.ToArray()), theme.Info, iw, false, theme.Panel);
             }
             if (_g.StealthReduction() > 0 || _g.ArmourClatter() > 0)
                 _t.WriteClipped(x, y++, _g.ArmourClatter() > 0 ? $"Stealth: notice -{_g.StealthReduction()}, armour rattles +{_g.ArmourClatter()}" : $"Stealth: monsters notice you {_g.StealthReduction()} square(s) later", theme.Info, iw, false, theme.Panel);

@@ -56,6 +56,12 @@ namespace Ossuary.Core
                 }
                 p.RecomputeMaxHP(); p.RecomputeMaxMp();
             }
+            else if (n.Contains("mutation"))
+            {
+                Say("It tastes of bone dust and old graves.", MessageKind.Warn);
+                if (!GainMutation()) Say("Your body has nothing left to give.", MessageKind.Info);
+                AddCorruption(5, null);
+            }
             else if (n.Contains("gain level"))
             {
                 Say("You feel more experienced!", MessageKind.Good);

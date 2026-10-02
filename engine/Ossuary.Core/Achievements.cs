@@ -33,6 +33,7 @@ namespace Ossuary.Core
             new AchievementDef("relic", "Relic Hunter", "Hold an artifact.", HoldsArtifact),
             new AchievementDef("shade-breaker", "Shade Breaker", "Lay a dead hero's shade to rest.", g => g.LaidToRest.Count > 0),
             new AchievementDef("explorer", "Cartographer", "See six regions of the world.", g => g.World != null && g.RegionsSeen() >= 6),
+            new AchievementDef("mutant", "Mutant", "Carry three mutations at once.", g => g.Player.Mutated.Count >= 3),
             new AchievementDef("pacifist", "Light Footed", "Reach depth 3 without killing anything.", g => g.Player.MaxDepth >= 3 && g.Player.Kills == 0),
             new AchievementDef("escape", "Out of the Pit", "Escape with the Amulet.", g => g.Mode == GameMode.Won),
             new AchievementDef("iron", "Iron Will", "Escape with the Amulet in Hardcore.", g => g.Mode == GameMode.Won && g.Difficulty == Difficulty.Hardcore),

@@ -250,6 +250,13 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
   **Classic**: `ProcessHunger` não faz nada. **Hardcore**: `Session.Save(forQuit)` só grava ao sair (Main menu/Quit),
   `QuickSave` e *Save game* recusam, e `Load` apaga o arquivo depois de reproduzir a run.
 
+## Corrupção e mutações (`Mutations.cs`, `Game.Corruption.cs`)
+
+- `AddCorruption` sobe `Player.Corruption` (teto 100); cada múltiplo de 20 cruzado chama `GainMutation` (`MutationTable.Pick`: 50% boa,
+  20% mista, 30% má, sem repetir). Efeitos numéricos entram em `Player.Gear` (e na CA em `ArmorClass`); `Sight`, `Hunger` e `Noise` são
+  lidos por `UpdateFov`, `ProcessHunger` e `NoticeRadius`. Fontes: fonte do dungeon (`Shift+E`), Amuleto, necromancia, potion of mutation.
+  Purge no templo: `PurgeCorruption`.
+
 ## Furtividade e ruído (`Game.Stealth.cs`)
 
 - `NoticeRadius(m) = max(1, Vision − StealthReduction + NoticeShift)`. `StealthReduction` = Stealth/25 + 2×*light-feet* + Sylk tier 2.

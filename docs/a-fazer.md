@@ -22,9 +22,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Persistência e meta-progressão
 
-- [ ] **Mutações e Corrupção do Ossuário** (QD): fontes de corrupção (locais, itens, o Amuleto)
-  dão mutações permanentes, boas e ruins (ossos extras → AC, olhos múltiplos → FOV; fragilidade, fome).
-  Trade-off e builds estranhos. Compatível com Ashen/Necromancer.
 - [ ] **Companheiros permanentes**: mercenário contratável na taverna, sobe de nível,
   carrega itens, comandos simples. Hoje só há aliados invocados/temporários.
 - [ ] **XP gasto em skills** (opção estilo Sil), listada em `rpg.md`.
@@ -65,7 +62,7 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Interface e visual
 
 - [ ] Animação de água e tiles de mapa quadrados (já listados como evolução em `alpha.md`).
-- [ ] Painel de **mutações/corrupção** e de **reputação** na tela Character.
+- [ ] Painel de **reputação** na tela Character (quando as facções existirem).
 
 ## Técnico e qualidade
 
@@ -77,6 +74,12 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Mutações e Corrupção do Ossuário** (2026-10-02). `Entities/Mutations.cs` (16 mutações: boas, mistas e más; números em `ItemMods` somados
+  em `Player.Gear` + visão/fome/ruído) e `Game.Corruption.cs`: `Player.Corruption` 0–100, **uma mutação a cada 20 pontos**. Fontes: **Shift+E**
+  numa fonte do dungeon (limpa, amarga ou contaminada), o Amuleto na mochila (+1/40 turnos), necromancia (+1/cast até 60) e a nova
+  *potion of mutation*. O templo vende *Purge the Ossuary from me* (−30, remove a pior mutação mais nova). Aparece na ficha Character, no
+  morgue e na conquista *Mutant*. Teste `CorruptionMutations`. Pendente: relíquias que dão mutação em troca de poder (Itens).
 
 - [x] **Furtividade e ruído** (2026-10-02). `Game.Stealth.cs`: o raio em que um monstro percebe você é `Vision − Stealth/25 − light-feet×2 − Sylk + ruído`.
   Ruído da ação: luta +3, magia/varinha/tiro/porta +2, armadura pesada ao andar +1/+2 (chain/splint, plate), parado ou buscando −2.

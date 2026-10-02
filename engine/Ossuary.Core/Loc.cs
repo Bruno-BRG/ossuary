@@ -16,9 +16,41 @@ namespace Ossuary.Core
         /// <summary>Live language. Core defaults to English so headless tests stay stable; the app sets it from DisplaySettings.</summary>
         public static Lang Current = Lang.En;
 
+        // Mutations: every name, blurb and the messages that carry them.
+        static void AddMutationText()
+        {
+            var pt = new Dictionary<string, (string, string)>
+            {
+                ["bone-plating"] = ("Placas de Osso", "Placas de osso crescem sob a pele. CA +2."),
+                ["many-eyes"] = ("Muitos Olhos", "Mais dois pares de olhos se abrem. Visão +2."),
+                ["marrow-heart"] = ("Coração de Tutano", "Seu coração bate grosso e lento. PV +8."),
+                ["grave-whisper"] = ("Sussurro da Cova", "Os mortos murmuram para você. Mp +6, necrótico 20%."),
+                ["ashen-skin"] = ("Pele de Cinza", "Sua pele fica cinza e seca. Fogo 25%."),
+                ["hollow-step"] = ("Passo Oco", "Seus passos são leves como pó. Evasão +2."),
+                ["knuckle-spurs"] = ("Esporões nos Nós", "Esporões brotam dos seus nós dos dedos. Acerto +1, dano +1."),
+                ["iron-gut"] = ("Estômago de Ferro", "Nada que você engole o envenena por muito tempo. Veneno 30%."),
+                ["third-rib"] = ("Terceira Costela", "Uma costela extra protege, mas aperta. CA +3, Des -1."),
+                ["ember-marrow"] = ("Tutano em Brasa", "Seus ossos queimam. Dano +2, e você vive com fome."),
+                ["brittle-bones"] = ("Ossos Quebradiços", "Seus ossos são giz. CA -2."),
+                ["ravenous"] = ("Voraz", "Algo em você passa fome sempre. Você gasta comida em dobro."),
+                ["palsied-hands"] = ("Mãos Trêmulas", "Suas mãos não param quietas. Acerto -2."),
+                ["echoing-steps"] = ("Passos Ecoantes", "Seus passos ecoam no escuro. Monstros notam de uma casa mais longe."),
+                ["pallid-skin"] = ("Pele Pálida", "O frio morde fundo. Gelo -30%."),
+                ["thin-blood"] = ("Sangue Ralo", "Seu sangue corre ralo. PV -6."),
+            };
+            foreach (var m in Entities.MutationTable.All)
+            {
+                if (!pt.TryGetValue(m.Id, out var t)) continue;
+                Pt[m.Name] = t.Item1; Pt[m.Blurb] = t.Item2;
+                Pt[$"Your body twists: {m.Name}. {m.Blurb}"] = $"Seu corpo se retorce: {t.Item1}. {t.Item2}";
+                Pt[$"The priest draws out {m.Name} like a splinter."] = $"O padre arranca {t.Item1} como uma farpa.";
+            }
+        }
+
         // Trap messages carry the trap's name, so every combination is registered up front.
         static Loc()
         {
+            AddMutationText();
             var traps = new[] { ("spike trap", "armadilha de espetos", "uma"), ("hole", "buraco", "um"), ("dart trap", "armadilha de dardos", "uma"),
                                 ("teleport trap", "armadilha de teletransporte", "uma"), ("alarm trap", "armadilha de alarme", "uma"),
                                 ("fire trap", "armadilha de fogo", "uma"), ("web", "teia", "uma") };
@@ -169,6 +201,18 @@ namespace Ossuary.Core
             ["◄► mode  Enter begin  Esc back"] = "◄► modo  Enter começa  Esc volta",
             ["Daily board"] = "Placar diário", ["No daily runs yet."] = "Nenhuma run diária ainda.", ["Daily"] = "Diário",
             ["D daily board   Esc back"] = "D placar diário   Esc volta",
+            // ---- corruption
+            ["drink at a fountain (it may be tainted)"] = "beber numa fonte (pode estar contaminada)",
+            ["There is nothing to drink from here."] = "Não há de onde beber aqui.",
+            ["A fountain bubbles here. Press Shift+E to drink."] = "Uma fonte borbulha aqui. Aperte Shift+E para beber.",
+            ["Mutations"] = "Mutações", ["Corruption"] = "Corrupção", ["Mutant"] = "Mutante", ["Carry three mutations at once."] = "Carregue três mutações ao mesmo tempo.",
+            ["Purge the Ossuary from me"] = "Expulse o Ossuário de mim",
+            ["The water is dark with something that was not water. You swallow it anyway."] = "A água está escura com algo que não era água. Você engole mesmo assim.",
+            ["The water is thick and black. It burns going down, and it does not stop."] = "A água é grossa e negra. Queima ao descer e não para.",
+            ["The water tastes of rust and nothing else."] = "A água tem gosto de ferrugem e mais nada.",
+            ["It tastes of bone dust and old graves."] = "Tem gosto de pó de osso e de covas velhas.",
+            ["Your body has nothing left to give."] = "Seu corpo não tem mais nada a dar.",
+            ["The priest drains the worst of it. Nothing unwelcome is left in you."] = "O padre drena o pior. Nada indesejado resta em você.",
             // ---- stealth
             ["Stealth: notice -"] = "Furtividade: aviso -",
             // ---- traps

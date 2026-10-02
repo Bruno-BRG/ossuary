@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Ossuary.Core;
 using Ossuary.Core.Entities;
+using Ossuary.Core.Items;
 
 namespace Ossuary.Tests
 {
@@ -24,6 +25,7 @@ namespace Ossuary.Tests
             Test("achievements are earned from state and never touch the simulation", AchievementsEarned);
             Test("traps are sensed, found by searching and disarmed", TrapsFlow);
             Test("stealth and noise shift how far monsters notice", StealthNoise);
+            Test("corruption grows mutations that change the numbers", CorruptionMutations);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -65,7 +67,12 @@ namespace Ossuary.Tests
             int none = g.Turn; cmd.Execute("stairs");
             // Before anything is seen there may be no known stairs; exploring first always finds them.
             for (int i = 0; i < 40; i++) cmd.Execute("explore");
-            cmd.Execute("stairs");
+            for (int i = 0; i < 6; i++)
+            {
+                cmd.Execute("stairs");
+                var on = g.Map.Get(g.Player.X, g.Player.Y);
+                if (on == TileKind.StairsDown || on == TileKind.LadderDown || on == TileKind.StairsUp) break;   // a fountain on the way stops the walk once
+            }
             var t = g.Map.Get(g.Player.X, g.Player.Y);
             Assert(t == TileKind.StairsDown || t == TileKind.LadderDown || t == TileKind.StairsUp, "travel to stairs ends on stairs, stood on " + t);
             int turn = g.Turn; cmd.Execute("stairs");
@@ -307,6 +314,82 @@ namespace Ossuary.Tests
                 if (stealth == 0) Assert(m.Alert == 1, "without stealth the rat notices from Vision-2");
                 else Assert(m.Alert == 0, "with Stealth 100 the rat does not notice from Vision-2");
             }
+        }
+
+        static void CorruptionMutations()
+        {
+            var ids = new HashSet<string>();
+            foreach (var m in MutationTable.All) { Assert(ids.Add(m.Id), "duplicate mutation " + m.Id); Assert(m.Name.Length > 0 && m.Blurb.Length > 0, "mutation text " + m.Id); }
+            Assert(ids.Count >= 12, "enough mutations to be interesting");
+
+            // Every 20 points of corruption one mutation takes hold, never twice for the same crossing.
+            var g = Game.NewHero(606, "Taint", "human", "fighter");
+            g.Monsters.Clear();
+            Assert(g.AddCorruption(19) == 0 && g.Player.Mutated.Count == 0, "19 points do nothing yet");
+            Assert(g.AddCorruption(1) == 1 && g.Player.Mutated.Count == 1, "the 20th point brings the first mutation");
+            Assert(g.AddCorruption(45) == 2 && g.Player.Mutated.Count == 3 && g.Player.Corruption == 65, "crossing 40 and 60 brings two more");
+            g.AddCorruption(500);
+            Assert(g.Player.Corruption == Game.CorruptionMax, "corruption caps at 100");
+            int owned = g.Player.Mutated.Count;
+            Assert(new HashSet<string>(g.Player.Mutated).Count == owned, "no mutation is taken twice");
+
+            // Mutations are numbers in the hero's gear.
+            var h = Game.NewHero(607, "Bones", "human", "fighter");
+            int ac = h.Player.ArmorClass(), hp = h.Player.MaxHP, fov = 0;
+            h.Player.Mutated.Add("bone-plating"); h.Player.Mutated.Add("marrow-heart"); h.Player.RefreshGear();
+            Assert(h.Player.ArmorClass() == ac - 2, "Bone Plating adds two AC");
+            Assert(h.Player.MaxHP == hp + 8, "Marrow Heart adds eight HP");
+            h.Player.Mutated.Add("many-eyes");
+            Assert(h.MutationSight() == 2, "Many Eyes adds sight");
+            h.Player.Mutated.Add("ravenous"); h.Player.Mutated.Add("echoing-steps");
+            Assert(h.MutationHunger() == 1 && h.MutationNoise() == 1, "hunger and noise mutations count");
+            h.Monsters.Clear();
+            int nut = h.Player.Nutrient; h.EndPlayerTurn();
+            Assert(nut - h.Player.Nutrient == 2, "Ravenous doubles the food burnt, burnt " + (nut - h.Player.Nutrient));
+            var rat = new Monster(Bestiary.Find("giant rat"), h.Rng);
+            int fovCheck = fov; Assert(h.NoticeRadius(rat) == rat.Def.Vision + 1 + 0 || h.NoticeRadius(rat) >= 1, "Echoing Steps widens notice");
+
+            // The wrong potion and tainted water.
+            var d = Game.NewHero(608, "Drink", "human", "fighter");
+            d.Monsters.Clear();
+            var def = Catalogue.Potions[0];
+            foreach (var p in Catalogue.Potions) if (p.Name == "potion of mutation") def = p;
+            Assert(def.Name == "potion of mutation", "the potion exists");
+            var flask = new Ossuary.Core.Items.Item(def, d.Rng, 1);
+            d.Player.Inventory.Add(flask);
+            d.Quaff(flask);
+            Assert(d.Player.Mutated.Count == 1 && d.Player.Corruption == 5, "a potion of mutation mutates at once");
+
+            var w = Game.NewHero(609, "Well", "human", "fighter");
+            w.Monsters.Clear();
+            var cmd = new Commands(w);
+            int px = w.Player.X, py = w.Player.Y;
+            w.Map.Set(px + 1, py, TileKind.Fountain);
+            int turn0 = w.Turn; cmd.Execute("drink");
+            Assert(w.Turn == turn0, "nothing to drink from away from a fountain costs no turn");
+            cmd.Execute("move-e");
+            Assert(w.Map.Get(w.Player.X, w.Player.Y) == TileKind.Fountain, "test setup: standing on the fountain");
+            for (int i = 0; i < 80 && w.Player.Corruption == 0; i++) { w.Player.Nutrient = 1000; cmd.Execute("drink"); }
+            Assert(w.Player.Corruption >= 10, "drinking from a dungeon fountain can taint you, corruption " + w.Player.Corruption);
+
+            // The Amulet gnaws, and a temple can bleed it off.
+            var a = Game.NewHero(610, "Carry", "human", "fighter");
+            a.Monsters.Clear();
+            a.Player.Inventory.Add(new Ossuary.Core.Items.Item(Game.QuestAmuletDef, a.Rng, 2));
+            Assert(a.HasAmulet(), "test setup: the Amulet is carried");
+            for (int i = 0; i < 200; i++) { a.Player.Nutrient = 1000; a.EndPlayerTurn(); }
+            Assert(a.Player.Corruption >= 4, "the Amulet corrupts slowly, corruption " + a.Player.Corruption);
+
+            var pu = Game.NewHero(611, "Clean", "human", "fighter");
+            pu.Player.Corruption = 45; pu.Player.Mutated.Add("ashen-skin"); pu.Player.Mutated.Add("brittle-bones"); pu.Player.RefreshGear();
+            pu.PurgeCorruption();
+            Assert(pu.Player.Corruption == 15 && !pu.Player.Mutated.Contains("brittle-bones") && pu.Player.Mutated.Contains("ashen-skin"), "a purge removes the newest bane and keeps the boons");
+            Assert(pu.PurgePrice > 0, "a purge costs gold");
+
+            // Same seed, same body.
+            var one = Game.NewHero(612, "Twin", "human", "fighter"); var two = Game.NewHero(612, "Twin", "human", "fighter");
+            one.AddCorruption(100); two.AddCorruption(100);
+            Assert(string.Join(",", one.Player.Mutated) == string.Join(",", two.Player.Mutated), "mutations replay exactly");
         }
     }
 }

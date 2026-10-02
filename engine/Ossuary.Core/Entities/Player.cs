@@ -82,6 +82,10 @@ namespace Ossuary.Core.Entities
         /// curves and ring bonuses stay recomputable.</summary>
         public int BonusMaxHP;
         public int Kills;
+        /// <summary>How far the Ossuary has got into the hero, 0..100. Every 20 points a mutation takes hold.</summary>
+        public int Corruption;
+        /// <summary>Mutation ids, in the order they took hold.</summary>
+        public readonly List<string> Mutated = new List<string>();
         public int Turns;
         public bool InsideDungeon;
         public string CurrentBranch = "";
@@ -349,6 +353,7 @@ namespace Ossuary.Core.Entities
                 var g = new ItemMods();
                 if (Wielded != null) g.Add(Wielded.Mods);
                 foreach (var it in WornPieces()) g.Add(it.Mods);
+                foreach (string id in Mutated) { var mu = MutationTable.Find(id); if (mu != null) g.Add(mu.Mods); }
                 return g;
             }
         }
@@ -374,6 +379,7 @@ namespace Ossuary.Core.Entities
         {
             int ac = AC;
             foreach (var piece in WornPieces()) ac -= piece.TotalAc;
+            foreach (string id in Mutated) ac -= MutationTable.Find(id)?.Mods.Ac ?? 0;
             if (Rings[0] != null && RingKnown[0] && Rings[0].Name == "ring of protection") ac -= 3;
             if (Rings[1] != null && RingKnown[1] && Rings[1].Name == "ring of protection") ac -= 3;
             if (WardTurns > 0) ac -= 3;

@@ -88,6 +88,7 @@ namespace Ossuary.Core
             p.MpTimer = 0;
             ApplySpell(spell, target, tx, ty);
             GodsOnCast(spell);
+            if (spell.School == School.Necromancy && p.Corruption < 60) AddCorruption(1, null);   // the dead leave a mark, but only so far
             p.GainSkill(Skill.Magic, spell.Level >= 2 ? 2 : 1);
             if (target != null && !target.IsDead && !target.Ally) { target.Alert = 1; target.Dormant = false; }
             Map.Version++;

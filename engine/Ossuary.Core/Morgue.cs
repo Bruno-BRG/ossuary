@@ -108,6 +108,14 @@ namespace Ossuary.Core
                 Head("Spells"); Line(string.Join(", ", names));
             }
 
+            if (p.Corruption > 0 || p.Mutated.Count > 0)
+            {
+                var muts = new List<string>();
+                foreach (string id in p.Mutated) { var mu = MutationTable.Find(id); if (mu != null) muts.Add(Loc.T(mu.Name)); }
+                Head("Corruption");
+                Line($"{p.Corruption}/{Game.CorruptionMax}" + (muts.Count > 0 ? "  " + string.Join(", ", muts) : ""));
+            }
+
             Head("Equipment");
             if (p.Wielded != null) Line(Loc.T("Wielding") + ": " + p.Wielded.Name);
             foreach (var piece in p.WornPieces()) Line(Loc.T("Wearing") + ": " + piece.Name);

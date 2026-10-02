@@ -194,6 +194,7 @@ namespace Ossuary.Core
             if ((s & Service.Ale) != 0) Add("ale", "A mug of ale", AlePrice);
             if ((s & Service.Heal) != 0) Add("heal", "Heal my wounds", HealPrice, Player.HP < Player.MaxHP);
             if ((s & Service.Cure) != 0) Add("cure", "Cure my ailments", CurePrice, NeedsCure());
+            if ((s & Service.Cure) != 0) Add("purge", "Purge the Ossuary from me", PurgePrice, Player.Corruption > 0);
             if ((s & Service.Donate) != 0) Add("donate", "Make an offering", DonatePrice);
             if ((s & Service.Appraise) != 0) Add("appraise", "Appraise an item", AppraisePrice, UnidentifiedItems().Count > 0);
             if ((s & Service.Hone) != 0)
@@ -260,6 +261,10 @@ namespace Ossuary.Core
                     if (!Pay(CurePrice)) return false;
                     CureAilments();
                     Tell("A prayer, and the sickness leaves you.", MessageKind.Good);
+                    return false;
+                case "purge":
+                    if (Player.Corruption <= 0 || !Pay(PurgePrice)) return false;
+                    PurgeCorruption();
                     return false;
                 case "donate":
                     if (!Pay(DonatePrice)) return false;

@@ -69,6 +69,7 @@ namespace Ossuary.Core
                 case "D": return DoOpenDoor();
                 case "s": return DoSearch();
                 case "disarm": return DoDisarm();
+                case "drink": return DoDrinkFountain();
                 case "x": _g.PushTargeting(TargetingMode.Inspect); return true;
                 case "l": _g.PushTargeting(TargetingMode.Look); return true;
                 case "X": return DoSwapWith();
@@ -233,8 +234,18 @@ namespace Ossuary.Core
             return true;
         }
 
+        bool DoDrinkFountain()
+        {
+            if (_g.Mode != GameMode.Dungeon || _g.Map == null || _g.Map.Get(_g.Player.X, _g.Player.Y) != TileKind.Fountain)
+            { _g.Say("There is nothing to drink from here.", MessageKind.Info); return true; }
+            if (_g.Player.Asleep || _g.Player.Stunned) { _g.Say("You cannot do that now."); return true; }
+            _g.DrinkFromFountain();
+            return true;
+        }
+
         void HandleStairs(TileKind t)
         {
+            if (t == TileKind.Fountain && _g.Mode == GameMode.Dungeon) { _g.Say("A fountain bubbles here. Press Shift+E to drink.", MessageKind.Info); return; }
             if (t == TileKind.StairsDown) _g.Say("There is a staircase down here. Press > to descend.", MessageKind.Info);
             else if (t == TileKind.StairsUp) _g.Say("There is a staircase up here. Press < to climb.", MessageKind.Info);
         }

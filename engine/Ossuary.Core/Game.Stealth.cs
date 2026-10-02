@@ -37,7 +37,7 @@ namespace Ossuary.Core
         }
 
         /// <summary>How far away this monster would notice the player right now.</summary>
-        public int NoticeRadius(Monster m) => Math.Max(1, m.Def.Vision - StealthReduction() + _noticeShift);
+        public int NoticeRadius(Monster m) => Math.Max(1, m.Def.Vision - StealthReduction() + _noticeShift + MutationNoise());
 
         /// <summary>
         /// Stealth improves by getting away with it: now and then, when a monster stands inside its normal sight
