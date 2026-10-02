@@ -37,6 +37,9 @@ namespace Ossuary.Tests
             Test("branch monsters have habits of their own", BranchMonsters);
             Test("each branch has a boss with mechanics", BossFights);
             Test("monster factions fight each other", FactionWar);
+            Test("reputation, haggling and guild jobs", ReputationAndJobs);
+            Test("road events offer choices with prices", RoadEvents);
+            Test("townsfolk keep hours and remember you", TownRoutine);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -992,6 +995,190 @@ namespace Ossuary.Tests
             h.Monsters.Add(wolf); h.Monsters.Add(zombie);
             h.Player.AC = 30; h.Wait();
             Assert(Pathfinder.Chebyshev(wolf.X, wolf.Y, hx, hy) <= 2, "a monster next to the hero does not wander off to fight");
+        }
+
+        static void ReputationAndJobs()
+        {
+            var g = Game.NewHero(1700, "Local", "human", "fighter");
+            g.Monsters.Clear();
+            Assert(g.RepOf(Houses.Guild) == 0, "a stranger starts at zero");
+            Assert(g.Haggle(100, Houses.Guild) == 100, "no reputation, no discount");
+            g.AddRep(Houses.Guild, 500);
+            Assert(g.RepOf(Houses.Guild) == 100, "reputation caps at 100");
+            Assert(g.Haggle(100, Houses.Guild) == 80, "a revered customer pays 80%");
+            g.AddRep(Houses.Guild, -500);
+            Assert(g.RepOf(Houses.Guild) == -100 && g.Haggle(100, Houses.Guild) == 120, "a hated one pays 120%");
+            Assert(Houses.Standing(0) == "known" && Houses.Standing(30) == "trusted" && Houses.Standing(-30) == "distrusted", "standings by tier");
+
+            // The shop reads it.
+            var shop = new Shop { Kind = ShopKind.Weapon, Name = "T", Gold = 600 };
+            var item = new Item(Catalogue.Weapons[3], g.Rng, 1);
+            int hated = g.ShopPrice(shop, item);
+            g.Player.Rep[Houses.Guild] = 100;
+            int loved = g.ShopPrice(shop, item);
+            Assert(loved < hated && loved * 100 / hated <= 66, $"the Guild's friends pay far less: {loved} vs {hated}");
+
+            // The inn turns away someone the Watch hates.
+            g.TalkBuilding = new Building { Services = Service.Rest | Service.Ale, Name = "Inn" };
+            g.Player.Rep[Houses.Watch] = 0;
+            Assert(g.ServiceRows().Find(r => r.Id == "rest").Enabled == (g.Player.Gold >= g.RestPrice), "a stranger may rest");
+            g.Player.Rep[Houses.Watch] = -50; g.Player.Gold = 999;
+            Assert(!g.ServiceRows().Find(r => r.Id == "rest").Enabled, "the Watch's enemies may not");
+
+            // The Cult sells to its friends.
+            g.TalkBuilding = new Building { Services = Service.Cure, Name = "Temple" };
+            g.Player.Rep[Houses.Cult] = 0;
+            Assert(!g.ServiceRows().Exists(r => r.Id == "grave"), "nothing is sold to strangers");
+            g.Player.Rep[Houses.Cult] = 30; g.Player.Gold = 999;
+            Assert(g.ServiceRows().Exists(r => r.Id == "grave"), "a friend of the Cult is shown the back room");
+            g.ServiceAction("grave");
+            Assert(g.Player.Inventory.Exists(i => i.Def.Name == "potion of mutation"), "and buys a vial");
+
+            // Jobs: the same board every time, a hunt and a delve that count themselves, and a payday.
+            var j = Game.NewHero(1701, "Hand", "human", "fighter");
+            j.Monsters.Clear(); j.LeaveToOverworld();
+            var a = j.ContractOffers(); var b = j.ContractOffers();
+            Assert(a.Count == 3 && a[0].Key == b[0].Key && a[1].Key == b[1].Key && a[2].Key == b[2].Key, "the board is the same every time you read it");
+            j.World.Day += 14;
+            var later = j.ContractOffers();
+            Assert(later[0].Key != a[0].Key || later[1].Key != a[1].Key || later[2].Key != a[2].Key, "and changes with the weeks");
+            j.World.Day -= 14;
+            j.TalkBuilding = new Building { Services = Service.Quest, Name = "Guild" };
+            Assert(j.ServiceRows().FindAll(r => r.Id.StartsWith("offer:")).Count == 3, "the guild lists its jobs");
+            Contract hunt = null, delve = null;
+            foreach (var o in j.ContractOffers()) { if (o.Kind == "hunt" && hunt == null) hunt = o; if (o.Kind == "delve" && delve == null) delve = o; }
+            // Make sure both kinds exist for the test, whatever the board shows.
+            if (hunt == null) hunt = new Contract { Kind = "hunt", Branch = "The Dungeons", Target = "jackal", Count = 3, Reward = 90, Giver = Houses.Guild };
+            if (delve == null) delve = new Contract { Kind = "delve", Branch = "The Dungeons", Target = "", Count = 3, Reward = 180, Giver = Houses.Watch };
+            Assert(j.AcceptContract(hunt) && j.AcceptContract(delve), "two jobs taken");
+            Assert(j.Contracts.Count == 2, "they are carried");
+
+            j.DescendTo(hunt.Branch, 1);
+            for (int i = 0; i < hunt.Count; i++)
+            {
+                var m = new Monster(Bestiary.Find(hunt.Target), j.Rng) { X = j.Player.X + 1, Y = j.Player.Y };
+                j.Monsters.Add(m); j.KillMonster(m);
+            }
+            Assert(hunt.Complete, "killing the target counts toward the hunt");
+            var other = new Monster(Bestiary.Find(hunt.Target == "newt" ? "jackal" : "newt"), j.Rng) { X = j.Player.X + 1, Y = j.Player.Y };
+            j.Monsters.Add(other); int done = hunt.Done; j.KillMonster(other);
+            Assert(hunt.Done == done, "other kills do not");
+            Assert(!delve.Complete || delve.Branch == hunt.Branch, "a delve waits for its depth");
+            j.DescendTo(delve.Branch, Math.Min(delve.Count, j.Dungeon.Get(delve.Branch).MaxDepth));
+            if (delve.Count <= j.Dungeon.Get(delve.Branch).MaxDepth) Assert(delve.Complete, "reaching the depth completes the delve");
+
+            int gold = j.Player.Gold, rep = j.RepOf(hunt.Giver);
+            Assert(j.TurnInContract(hunt), "the hunt is handed in");
+            Assert(j.Player.Gold == gold + hunt.Reward && j.RepOf(hunt.Giver) == rep + 10 && j.ContractsDone == 1, "paid, and thought of better");
+            Assert(!j.TurnInContract(hunt), "but only once");
+            var full = Game.NewHero(1702, "Busy", "human", "fighter");
+            for (int i = 0; i < Game.MaxContracts; i++) full.AcceptContract(new Contract { Kind = "hunt", Branch = "The Dungeons", Target = "jackal" + i, Count = 1, Reward = 1, Giver = Houses.Guild });
+            Assert(!full.AcceptContract(new Contract { Kind = "hunt", Branch = "x", Target = "y", Count = 1 }), "only three jobs at once");
+        }
+
+        static void RoadEvents()
+        {
+            foreach (string id in new[] { "camp", "caravan", "ruin", "shrine", "toll", "corpse" })
+            {
+                var g = Game.NewHero(1800, "Road", "human", "fighter");
+                g.Monsters.Clear(); g.LeaveToOverworld();
+                g.Player.Gold = 500;
+                g.OpenEvent(id, "T", "text");
+                Assert(g.UiState.Active == Panel.Service && g.CurrentEvent != null && g.CurrentEvent.Id == id, id + " opens the choice panel");
+                var rows = g.ServiceRows();
+                Assert(rows.Count >= 2 && rows[rows.Count - 1].Id == "leave", id + " lists choices and a way out");
+                Assert(g.ServiceAction("leave") && g.CurrentEvent == null, id + " can be walked away from");
+            }
+
+            // Every choice of every event resolves without trouble, for many seeds.
+            for (ulong seed = 1; seed <= 12; seed++)
+                foreach (string id in new[] { "camp", "caravan", "ruin", "shrine", "toll", "corpse" })
+                {
+                    var probe = Game.NewHero(1900 + seed, "Probe", "human", "fighter");
+                    probe.Monsters.Clear(); probe.LeaveToOverworld(); probe.Player.Gold = 500;
+                    probe.OpenEvent(id, "T", "t");
+                    var ids = new List<string>(); foreach (var r in probe.CurrentEvent.Rows) ids.Add(r.Id);
+                    foreach (string choice in ids)
+                    {
+                        var g = Game.NewHero(1900 + seed, "Probe", "human", "fighter");
+                        g.Monsters.Clear(); g.LeaveToOverworld(); g.Player.Gold = 500; g.Player.HP = 5;
+                        g.OpenEvent(id, "T", "t");
+                        g.ServiceAction(choice);
+                        Assert(g.CurrentEvent == null || !g.ServiceAction("leave") == false, "the event ends: " + id + ":" + choice);
+                    }
+                }
+
+            // Specific outcomes.
+            var camp = Game.NewHero(1801, "Tired", "human", "fighter"); camp.LeaveToOverworld();
+            camp.Player.HP = 3; camp.OpenEvent("camp", "T", "t"); camp.ServiceAction("rest");
+            Assert(camp.Player.HP == camp.Player.MaxHP, "resting at the camp heals");
+
+            var car = Game.NewHero(1802, "Buyer", "human", "fighter"); car.LeaveToOverworld();
+            car.Player.Gold = 200; int rations = car.Player.Inventory.FindAll(i => i.Def.Name == "food ration").Count;
+            car.OpenEvent("caravan", "T", "t");
+            Assert(car.ServiceRows().Find(r => r.Id == "buy-potion").Price > 0, "the caravan has prices");
+            Assert(!car.ServiceRows().Exists(r => r.Id == "buy-grave"), "and nothing under the black cart for strangers");
+            car.ServiceAction("buy-potion");
+            Assert(car.Player.Gold < 200 && car.Player.Inventory.Exists(i => i.Def.Name == "potion of healing"), "buying costs gold and gives the potion");
+            car.Player.Rep[Houses.Cult] = 40; car.OpenEvent("caravan", "T", "t");
+            Assert(car.ServiceRows().Exists(r => r.Id == "buy-grave"), "but a friend of the Cult is offered the vial");
+
+            var toll = Game.NewHero(1803, "Walker", "human", "fighter"); toll.LeaveToOverworld();
+            toll.Player.Gold = 200; toll.OpenEvent("toll", "T", "t"); toll.ServiceAction("pay");
+            Assert(toll.Player.Gold < 200 && !toll.ActiveEncounter, "paying the toll ends it");
+            toll.OpenEvent("toll", "T", "t"); toll.ServiceAction("fight");
+            Assert(toll.ActiveEncounter && toll.RepOf(Houses.Watch) > 0, "refusing means a fight, and the Watch approves");
+
+            var dead = Game.NewHero(1804, "Digger", "human", "fighter"); dead.LeaveToOverworld();
+            dead.OpenEvent("corpse", "T", "t"); dead.ServiceAction("bury");
+            Assert(dead.RepOf(Houses.Temple) > 0, "burying the dead pleases the Temple");
+            int c0 = dead.Player.Corruption;
+            dead.OpenEvent("corpse", "T", "t"); dead.ServiceAction("loot");
+            Assert(dead.Player.Corruption > c0 && dead.RepOf(Houses.Temple) < 4, "robbing it taints you and costs standing");
+
+            // The road does throw these at the hero, now and then.
+            var walk = Game.NewHero(1805, "Pilgrim", "human", "fighter"); walk.LeaveToOverworld();
+            int seen = 0;
+            for (int i = 0; i < 1500 && seen < 3; i++)
+            {
+                if (walk.Mode != GameMode.Overworld) { walk.Mode = GameMode.Overworld; walk.World.PlayerX = Math.Max(3, walk.World.PlayerX); }
+                if (walk.ActiveEncounter) { walk.FleeEncounter(); continue; }
+                if (walk.CurrentEvent != null) { walk.ServiceAction("leave"); walk.UiState.Active = Panel.None; seen++; continue; }
+                walk.Player.HP = walk.Player.MaxHP;
+                walk.OverworldMove(i % 2 == 0 ? 1 : -1, 0);
+                if (walk.Mode == GameMode.TownMap || walk.Mode == GameMode.Dungeon) { walk.LeaveToOverworld(); }
+            }
+            Assert(seen >= 1, "walking the road eventually raises an event, saw " + seen);
+        }
+
+        static void TownRoutine()
+        {
+            Monster Person(TownRole role) { var m = new Monster(Bestiary.Find("dwarf"), new Rng(1)) { Townsperson = true, Role = role }; return m; }
+            var guard = Person(TownRole.Guard); var priest = Person(TownRole.Priest); var smith = Person(TownRole.Smith); var citizen = Person(TownRole.Citizen);
+            string R(Monster m, int w = 0, int t = 0, int gl = 0, int c = 0, int mu = 0, bool comp = false) => TownText.Reaction(m, w, t, gl, c, mu, comp);
+            Assert(R(guard) == null && R(priest) == null && R(smith) == null && R(citizen) == null, "strangers get the usual lines");
+            Assert(R(guard, w: 40) != null && R(guard, w: 40) != R(guard, w: -40), "the Watch greets friends and foes differently");
+            Assert(R(priest, t: 40) != null && R(priest, t: -40) != R(priest, t: 40), "so does the Temple");
+            Assert(R(priest, t: 40, c: 50) != R(priest, t: 40), "and a priest sees the corruption first");
+            Assert(R(smith, gl: 40) != null && R(smith, gl: -40) != null && R(smith, gl: 40) != R(smith, gl: -40), "traders answer to the Guild");
+            Assert(R(citizen, mu: 2) != null && R(citizen, comp: true) != null, "citizens notice your body and your company");
+            Assert(R(Person(TownRole.Pet), mu: 3) == null, "pets say nothing");
+
+            // After dark the residents go home.
+            var g = new Game(4242);
+            g.LeaveToOverworld();
+            g.EnterTown("Probeton");
+            var residents = new List<Monster>();
+            foreach (var m in g.Monsters)
+                if (m.Townsperson && m.Home != null && m.Home.Keeper != m && !m.IsGuard && !m.IsPriest && m.Floor == 0 && (m.Role == TownRole.Citizen || m.Role == TownRole.Child || m.Role == TownRole.Elder || m.Role == TownRole.Scholar)) residents.Add(m);
+            Assert(residents.Count >= 3, "test setup: a town with residents, found " + residents.Count);
+            int Inside() { int n = 0; foreach (var m in residents) if (m.Home.Contains(m.X, m.Y) && Pathfinder.Chebyshev(m.X, m.Y, m.Home.X + m.Home.W / 2, m.Home.Y + m.Home.H / 2) <= 1) n++; return n; }
+            g.World.Hour = 12;
+            for (int i = 0; i < 40; i++) g.Wait();
+            int noon = Inside();
+            for (int i = 0; i < 160; i++) { g.World.Hour = 22; g.Wait(); }
+            int night = Inside();
+            Assert(night >= noon && night * 100 >= residents.Count * 60, $"residents are tucked in at night: {noon} at noon, {night} of {residents.Count} at night");
         }
     }
 }

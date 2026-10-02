@@ -219,6 +219,12 @@ namespace Ossuary.Tools
             Console.WriteLine();
             Console.WriteLine("===== ALTAR: own god =====");
             Console.WriteLine(hud3.Draw().ToAscii());
+            knight.Player.Gold = 300; knight.Player.Rep[Houses.Cult] = 40;
+            knight.OpenEvent("caravan", "A caravan", "A line of carts has stopped on the road. The drivers watch you without hurry. They have rations and potions, and no wish to haggle long.");
+            Console.WriteLine();
+            Console.WriteLine("===== ROAD EVENT: caravan =====");
+            Console.WriteLine(hud3.Draw().ToAscii());
+            knight.ServiceAction("leave"); knight.UiState.Active = Panel.None;
             knight.UiState.Runs = new System.Collections.Generic.List<RunRecord>
             {
                 new RunRecord { Name = "Mara", Race = "Dwarf", Role = "Fighter", Title = "Warrior", Level = 7, Outcome = "died", Cause = "a giant rat", Branch = "The Mines", Depth = 4, MaxDepth = 4, Turns = 2210, Kills = 31, Seed = "123456789", Date = "2026-10-02 18-01-22", Score = 1010 },

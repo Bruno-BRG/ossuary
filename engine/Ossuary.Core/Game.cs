@@ -124,6 +124,7 @@ namespace Ossuary.Core
             Player.CurrentBranch = branchName;
             Player.CurrentDepth = depth;
             if (depth > Player.MaxDepth) Player.MaxDepth = depth;
+            ContractDepth();
 
             var map = Dungeon.Ensure(branchName, depth, out var spawns, out int sx, out int sy);
             Map = map;
@@ -422,6 +423,7 @@ namespace Ossuary.Core
             GodsOnKill(m);
             Monsters.Remove(m);
             if (m.Def.Trait != null) TraitOnDeath(m);
+            ContractKill(m);
             if (m.BossId != null) BossFalls(m);
             if (m.BonesKey != null) { LaidToRest.Add(m.BonesKey); Say("The restless shade is laid to rest at last.", MessageKind.Good); }
             Player.Kills++;

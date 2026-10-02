@@ -252,6 +252,13 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
   **Classic**: `ProcessHunger` não faz nada. **Hardcore**: `Session.Save(forQuit)` só grava ao sair (Main menu/Quit),
   `QuickSave` e *Save game* recusam, e `Load` apaga o arquivo depois de reproduzir a run.
 
+## Reputação, contratos, eventos e rotina (`Game.Reputation.cs`, `Game.Contracts.cs`, `Game.Events.cs`)
+
+- `Houses` (watch, temple, guild, cult), `Player.Rep`, `AddRep`, `Haggle(preço, casa)` (aplicado em `ShopPrice`, `RestPrice`, `HealPrice`, `CurePrice`, purga, caravana).
+- Contratos: `ContractOffers` (determinístico por cidade e semana), `AcceptContract`, `TurnInContract`; linhas `offer:N`/`turnin:N` no painel de serviços da Guilda.
+- Eventos: `MaybeRaiseEvent` (após `CheckOverworldEncounter`) → `OpenEvent`; `CurrentEvent` faz `ServiceRows/ServiceAction` responderem pelo evento.
+- `GoHomeAtNight` em `TownsfolkTurn`; `TownText.Reaction` para falas reativas.
+
 ## Facções de monstros (`Game.Factions.cs`)
 
 - `FactionOf(m)` por nome/flags; `AreRivals`: Greenskin↔Deepfolk, Dead↔Wild. Em `MonsterTurn`, com o herói a mais de 1 casa, `FightRival` ataca o

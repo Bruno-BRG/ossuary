@@ -16,6 +16,7 @@ namespace Ossuary.Core
                 Say("It blocks the way. Fight it (Enter or K) or flee (R or <).", MessageKind.Warn);
                 return;
             }
+            CurrentEvent = null;
             int nx = World.PlayerX + dx, ny = World.PlayerY + dy;
             if (!World.InBounds(nx, ny)) return;
 
@@ -28,7 +29,7 @@ namespace Ossuary.Core
             var t = World.Get(nx, ny);
             if (t.Feature == OverworldFeature.Town) EnterTown(t.Name ?? "a town");
             else if (t.Feature == OverworldFeature.Dungeon) EnterDungeonFromOverworld(nx, ny);
-            else CheckOverworldEncounter();
+            else { CheckOverworldEncounter(); MaybeRaiseEvent(); }
         }
 
         void CheckOverworldEncounter()
@@ -126,7 +127,7 @@ namespace Ossuary.Core
             var t = World.Get(x, y);
             if (t.Feature == OverworldFeature.Town) EnterTown(t.Name ?? "a town");
             else if (t.Feature == OverworldFeature.Dungeon) EnterDungeonFromOverworld(x, y);
-            else CheckOverworldEncounter();
+            else { CheckOverworldEncounter(); MaybeRaiseEvent(); }
         }
 
         // ------------------------------------------------------------- shops
@@ -151,7 +152,7 @@ namespace Ossuary.Core
             int basePrice = item.TradeValue;
             if (basePrice <= 0) basePrice = 5;
             int markup = 100 + shop.Gold / 60;
-            int price = basePrice * markup / 100;
+            int price = Haggle(basePrice * markup / 100, Houses.Guild);
             if (item.Def.Kind == ItemKind.Gold) price = 1;
             return Math.Max(1, price);
         }

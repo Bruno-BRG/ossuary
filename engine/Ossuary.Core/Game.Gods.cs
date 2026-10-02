@@ -169,6 +169,8 @@ namespace Ossuary.Core
                 case "khorr": if (level < Player.Level) gain = 1; break;
             }
             AddPiety(gain, gain < 0 ? "the desecration of the dead" : null);
+            AddRep(Houses.Cult, god.Id == "nhal" || god.Id == "mourne" ? 3 : 2, null);
+            if (god.Id == "aurel") AddRep(Houses.Temple, -2, null);
             Say(gain < 0 ? $"You lay {corpse.Name} on the altar. {god.Name} turns away." : $"{corpse.Name} burns on the altar. {god.Name} accepts it.", gain < 0 ? MessageKind.Warn : MessageKind.Info);
             EndPlayerTurn();
         }
@@ -213,6 +215,7 @@ namespace Ossuary.Core
 
         void SwearTo(GodDef god)
         {
+            if (god.Id == "nhal") AddRep(Houses.Cult, 10, null);
             Player.God = god.Id;
             Player.Piety = 20;
             Player.PrayerTimer = 0;

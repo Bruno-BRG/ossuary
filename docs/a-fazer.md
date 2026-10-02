@@ -24,11 +24,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Magia e deuses
 
-- [ ] **Facções e reputação**: templos, guilda, Guarda, culto de Nhal. Matar/roubar muda
-  preços, hostilidade e acesso a serviços.
-- [ ] **Contratos e missões secundárias** no quadro da Guilda ("mate X no branch Y", "traga Z").
-- [ ] **Eventos de overworld** além dos encontros de estrada (acampamentos, caravanas, ruínas com escolha).
-- [ ] **NPCs com rotina e diálogos** que reagem à reputação.
 
 ## Geração de níveis
 
@@ -42,7 +37,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Interface e visual
 
 - [ ] Animação de água e tiles de mapa quadrados (já listados como evolução em `alpha.md`).
-- [ ] Painel de **reputação** na tela Character (quando as facções existirem).
 
 ## Técnico e qualidade
 
@@ -54,6 +48,17 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Mundo vivo: reputação, contratos, eventos de estrada e rotina** (2026-10-02). Salvamento passa à **versão 10**.
+  - **Reputação** (`Game.Reputation.cs`): quatro casas — a Guarda, o Templo, a Guilda e o Culto dos Afogados — de −100 a 100 (*revered/trusted/known/distrusted/hated*).
+    Efeitos: preços de loja (Guilda, 80–120%), taxas do templo (Templo), estalagem (Guarda: ≥25 mais barata; ≤−25 recusa), e o Culto vende *grave-water* (poção de mutação)
+    a quem tem ≥25. Fontes: oferendas/cura/purga (Templo), serviços (Guilda/Guarda +10), enterrar/saquear corpos, sacrifícios (Culto), jurar a Nhal, vencer bandidos.
+  - **Contratos** (`Game.Contracts.cs`): o quadro da Guilda mostra 3 ofertas por cidade e semana (função de nome da cidade + `World.Day/7`): *Hunt N monstros num branch* ou *Reach depth N*.
+    Até 3 ativos; progresso conta sozinho (`ContractKill`, `ContractDepth`); entrega no quadro paga ouro e +10 de reputação. Conquista *Hired Hand*.
+  - **Eventos de estrada** (`Game.Events.cs`): 7% por passo livre — acampamento, caravana, ruína, santuário, pedágio, corpo — com escolhas e preços, reaproveitando o painel de serviços.
+  - **Rotina e reação**: à noite os moradores vão para casa e ficam lá (`GoHomeAtNight`, sem Rng); guardas, padres e comerciantes falam diferente conforme a reputação,
+    padres notam corrupção e todos notam mutações (`TownText.Reaction`). Ficha Character mostra reputação e serviços ativos.
+  - Testes `ReputationAndJobs`, `RoadEvents`, `TownRoutine`.
 
 - [x] **Facções de monstros** (2026-10-02). `Game.Factions.cs`: *Greenskin* (kobold, orc…) ↔ *Deepfolk* (dwarf, gnome, hobbit) e *Dead* (mortos-vivos) ↔ *Wild* (animais)
   brigam à vista (`FightRival`, até 6 casas, só quando o herói não é o alvo mais próximo). Aliados, cidadãos, companheiros e chefes não tomam lado.

@@ -121,6 +121,13 @@ namespace Ossuary.Core
                 Line($"{p.Corruption}/{Game.CorruptionMax}" + (muts.Count > 0 ? "  " + string.Join(", ", muts) : ""));
             }
 
+            if (p.Rep.Count > 0 || g.ContractsDone > 0)
+            {
+                Head("Standing");
+                foreach (string house in Houses.All) Line($"{Loc.T(Houses.Name(house))}: {g.RepOf(house)} ({Loc.T(Houses.Standing(g.RepOf(house)))})");
+                if (g.ContractsDone > 0) Line($"{Loc.T("Jobs done")}: {g.ContractsDone}");
+            }
+
             Head("Equipment");
             if (p.Wielded != null) Line(Loc.T("Wielding") + ": " + p.Wielded.Name);
             foreach (var piece in p.WornPieces()) Line(Loc.T("Wearing") + ": " + piece.Name);

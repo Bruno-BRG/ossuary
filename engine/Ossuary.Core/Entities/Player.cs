@@ -75,6 +75,8 @@ namespace Ossuary.Core.Entities
         public int Piety, PrayerTimer, Renounced;
         /// <summary>A god's trial: deeds the god likes still to do (0 = none) and how many are done.</summary>
         public int TrialGoal, TrialDone;
+        /// <summary>Reputation per house (see Houses), -100..100.</summary>
+        public readonly Dictionary<string, int> Rep = new Dictionary<string, int>();
         /// <summary>0 none, 1 from piety 50, 2 from piety 100.</summary>
         public int GodTier => God == null ? 0 : Piety >= Gods.Tier2At ? 2 : Piety >= Gods.Tier1At ? 1 : 0;
         public int GodMeleeHit => God == "khorr" && GodTier >= 1 ? 1 : 0;

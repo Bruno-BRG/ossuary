@@ -1224,6 +1224,13 @@ namespace Ossuary.Core
                 string capText = cap < 100 ? $"  (max {cap})" : "";
                 _t.Write(x + 2, y++, $"{kv.Key,-10}{kv.Value,3}  {SkillRanks.Name(kv.Value),-8}{capText}", theme.Text, false, theme.Panel);
             }
+            {
+                var houses = new System.Collections.Generic.List<string>();
+                foreach (string house in Houses.All) { int r = _g.RepOf(house); if (r != 0) houses.Add($"{Loc.T(Houses.Name(house))} {r:+#;-#;0}"); }
+                if (houses.Count > 0) _t.WriteClipped(x, y++, Loc.T("Standing") + ": " + string.Join(", ", houses.ToArray()), theme.Info, iw, false, theme.Panel);
+                foreach (var c in _g.Contracts)
+                    _t.WriteClipped(x, y++, $"{Loc.T("Job")}: {c.Describe()} ({System.Math.Min(c.Done, c.Count)}/{c.Count})" + (c.Complete ? " ✓" : ""), c.Complete ? theme.Good : theme.Dim, iw, false, theme.Panel);
+            }
             foreach (var comp in _g.Companions)
                 _t.WriteClipped(x, y++, $"Companion: {comp.Name}, level {comp.Level}, {System.Math.Max(0, comp.HP)}/{comp.MaxHP} HP", theme.Good, iw, false, theme.Panel);
             if (p.Corruption > 0 || p.Mutated.Count > 0)
