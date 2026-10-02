@@ -144,6 +144,20 @@ namespace Ossuary.Core
 
         static readonly Dictionary<string, string> Pt = new Dictionary<string, string>
         {
+            // ---- auto-explore, stairs travel, rest
+            ["search for traps and doors / rest until healed"] = "procurar armadilhas e portas / descansar até curar",
+            ["auto-explore / travel to the stairs"] = "explorar sozinho / ir até a escada",
+            ["There is nothing to explore here."] = "Não há o que explorar aqui.",
+            ["You cannot rest here."] = "Você não pode descansar aqui.",
+            ["Not with enemies in sight."] = "Não com inimigos à vista.",
+            ["You are already rested."] = "Você já está descansado.",
+            ["You are already on the stairs."] = "Você já está na escada.",
+            ["You feel rested."] = "Você se sente descansado.",
+            ["You stop at some items."] = "Você para diante de alguns itens.",
+            ["Nothing left to explore here."] = "Não há mais o que explorar aqui.",
+            ["You have seen all there is to see here."] = "Você já viu tudo o que há para ver aqui.",
+            ["You have not found any stairs yet."] = "Você ainda não achou nenhuma escada.",
+            ["Something is in the way."] = "Algo está no caminho.",
             // ---- menu / settings
             ["Menu"] = "Menu", ["Esc resumes"] = "Esc volta",
             ["Resume"] = "Continuar", ["Back"] = "Voltar", ["Save game"] = "Salvar jogo",

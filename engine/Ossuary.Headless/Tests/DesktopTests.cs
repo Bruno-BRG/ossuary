@@ -326,6 +326,16 @@ namespace Ossuary.Desktop
             GroundItems.Add(g.Map.Number, x2 + 1, y, new Ossuary.Core.Items.Item(Ossuary.Core.Items.Catalogue.Weapons[0], g.Rng, g.NextUid()));
             s.KeyRepeat("ArrowRight"); s.KeyRepeat("ArrowRight");
             Check(g.Player.X == x2 + 1, "an item underfoot stops the held walk");
+
+            // The auto-walk keys reach the engine: T explores, Shift+S rests, ` heads for the stairs.
+            var s2 = new Session(); s2.New(777); s2.Resize(110, 36); s2.Draw();
+            s2.Game.Monsters.Clear();
+            int t0 = s2.Game.Turn; s2.Key("KeyT", "t"); s2.Draw();
+            Check(s2.Game.Turn > t0, "T explores");
+            s2.Game.Player.HP = 1; s2.Game.Player.Nutrient = 5000; s2.Key("KeyS", "S", true); s2.Draw();
+            Check(s2.Game.Player.HP > 1, "Shift+S rests");
+            t0 = s2.Game.Turn; s2.Key("Backquote", "`"); s2.Draw();
+            Check(s2.Game.Turn >= t0, "` travels to the stairs");
         }
 
         /// <summary>

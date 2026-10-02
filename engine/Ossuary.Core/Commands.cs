@@ -71,6 +71,10 @@ namespace Ossuary.Core
                 case "l": _g.PushTargeting(TargetingMode.Look); return true;
                 case "X": return DoSwapWith();
 
+                case "explore": return DoAutoWalk(AutoWalk.Explore);
+                case "stairs": return DoAutoWalk(AutoWalk.Stairs);
+                case "rest": return DoAutoWalk(AutoWalk.Rest);
+
                 case "O": _g.PushTravelMode(); return true;
                 case "m": _g.ToggleMinimap(); return true;
                 case "c": _g.PushCharacter(); return true;
@@ -86,6 +90,75 @@ namespace Ossuary.Core
                 case "shop-sell": return BeginSellToShop();
                 default: Handled = false; return false;
             }
+        }
+
+        // ------------------------------------------------------------ auto-walk
+
+        enum AutoWalk { Explore, Stairs, Rest }
+        const int AutoWalkLimit = 600, RestLimit = 3000;
+
+        /// <summary>
+        /// Explore, travel to stairs and rest: each is a loop of ordinary turns that stops the moment anything
+        /// happens (an enemy in sight, damage, any message, stairs or items underfoot). Refusals cost no turn.
+        /// </summary>
+        bool DoAutoWalk(AutoWalk kind)
+        {
+            var p = _g.Player;
+            if (_g.Mode != GameMode.Dungeon || _g.Map == null)
+            {
+                _g.Say(kind == AutoWalk.Rest ? "You cannot rest here." : "There is nothing to explore here.", MessageKind.Info);
+                return true;
+            }
+            if (p.Asleep || p.Stunned) { _g.Say(p.Asleep ? "You are asleep." : "You are stunned."); return true; }
+            if (_g.HostileInView()) { _g.Say("Not with enemies in sight.", MessageKind.Warn); return true; }
+            if (kind == AutoWalk.Rest && !_g.NeedsRest()) { _g.Say("You are already rested.", MessageKind.Info); return true; }
+            if (kind == AutoWalk.Stairs)
+            {
+                var here = _g.Map.Get(p.X, p.Y);
+                if (here == TileKind.StairsDown || here == TileKind.StairsUp || here == TileKind.LadderDown)
+                { _g.Say("You are already on the stairs.", MessageKind.Info); return true; }
+            }
+
+            int map = _g.Map.Number, hp = p.HP, stuck = 0;
+            for (int n = 0; n < (kind == AutoWalk.Rest ? RestLimit : AutoWalkLimit); n++)
+            {
+                long said = _g.Said;
+                var from = _g.WalkPosition();
+                if (kind == AutoWalk.Rest)
+                {
+                    if (!_g.NeedsRest()) { _g.Say("You feel rested.", MessageKind.Good); break; }
+                    _g.Wait();
+                }
+                else
+                {
+                    int dx, dy;
+                    if (kind == AutoWalk.Explore)
+                    {
+                        _g.ExploreMarkHere();
+                        var pile = GroundItems.At(map, p.X, p.Y);
+                        if (n > 0 && pile != null && pile.Count > 0) { _g.Say("You stop at some items.", MessageKind.Info); break; }
+                        if (!_g.AutoStep(_g.ExploreGoal, out dx, out dy))
+                        { _g.Say(n == 0 ? "Nothing left to explore here." : "You have seen all there is to see here.", MessageKind.Info); break; }
+                    }
+                    else if (!_g.StairsStep(out dx, out dy, out _))
+                    { _g.Say("You have not found any stairs yet.", MessageKind.Info); break; }
+                    DoMove(dx, dy);
+                    stuck = _g.WalkPosition() == from ? stuck + 1 : 0;
+                    if (stuck >= 2) { _g.Say("Something is in the way.", MessageKind.Info); break; }
+                }
+                if (_g.Mode != GameMode.Dungeon || _g.Map == null || _g.Map.Number != map) break;
+                if (p.HP < hp || p.HP <= 0) break;
+                if (_g.Said != said || (kind == AutoWalk.Stairs && ArrivedAtStairs())) break;
+                if (_g.HostileInView()) break;
+                if (kind == AutoWalk.Rest) hp = p.HP;
+            }
+            return true;
+        }
+
+        bool ArrivedAtStairs()
+        {
+            var t = _g.Map.Get(_g.Player.X, _g.Player.Y);
+            return t == TileKind.StairsDown || t == TileKind.StairsUp || t == TileKind.LadderDown;
         }
 
         // ------------------------------------------------------------ movement

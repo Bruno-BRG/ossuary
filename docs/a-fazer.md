@@ -16,10 +16,7 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Controles e QoL
 
-- [ ] **Auto-explore** (`o`/tecla a definir): usa `Pathfinder`/`FlowField` para a fronteira
-  não explorada mais próxima; para ao ver hostil, item ou ao ser ferido.
-- [ ] **Travel até escada/local** (`_` ou `` ` ``): ir até `<`/`>`, altar, fonte ou ponto marcado com A*.
-- [ ] **Descanso até curar** (`Z`/`5`-longo estilo DCSS), interrompido por hostil ou fome.
+- [ ] **Travel até altar/fonte/ponto marcado**: generalizar `Game.AutoStep` (já aceita qualquer objetivo) com um seletor.
 - [ ] **Morgue file**: ao morrer ou vencer, exportar `.txt` com o resumo da run (build, deuses, kills, inventário, log final).
 - [ ] **Seed diária** com placar local (a determinismo por seed já permite).
 - [ ] **Modos de dificuldade**: Clássico sem fome, Hardcore, desafios.
@@ -94,6 +91,12 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Auto-explore** (`t`), **travel até a escada** (`` ` ``) e **descanso até curar** (`Shift+S`) (2026-10-02).
+  `Game.Explore.cs` (BFS sobre células vistas, `ExploreGoal`, `StairsStep`) e `Commands.DoAutoWalk`: laços de
+  turnos comuns, então o replay do log continua exato. Param ao ver hostil, levar dano, qualquer mensagem, itens
+  ou escada sob os pés; recusas não gastam turno. Testes em `Tests/FeatureTests.cs` e `DesktopTests`.
+  Pendente: travel até altar/fonte/ponto marcado (ficou em Controles e QoL).
 
 - [x] **Segurar tecla de direção repete o movimento** (2026-10-02). `Game.Repeat.cs` (`CanKeepWalking`,
   `HostileInView`), `Session.KeyRepeat`, flag `repeat` no protocolo/`main.ts`. Para sozinho com hostil à vista,

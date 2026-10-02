@@ -221,6 +221,15 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
 - Teclas do painel de magias passam **sem** o mapa de atalhos (letras viram
   seleção, não movimento) e entram no log do replay normalmente.
 
+## Andar sozinho (`Game.Explore.cs`, `Game.Repeat.cs`, `Commands.DoAutoWalk`)
+
+- **Explorar** (`t`): BFS sobre células já vistas até o objetivo mais próximo: pilha de itens não visitada ou
+  célula andável com vizinho nunca visto (`ExploreGoal`). Células servidas entram em `_exploreDone`, o que garante
+  término. **Escada** (`` ` ``): `StairsStep`. **Descanso** (`Shift+S`): `Wait` até HP/Mp cheios.
+- Cada um é um laço de turnos normais (limite 600; descanso 3000) que para com hostil à vista, dano, qualquer
+  `Say` novo (`Game.Said`), item/escada sob os pés ou troca de nível. Sem RNG próprio: o replay reproduz.
+- **Tecla segurada** (`Game.CanKeepWalking`, `Session.KeyRepeat`): ver `arquitetura.md`.
+
 ## FOV / pathfinding (`Fov.cs`, `Pathfinder.cs`)
 
 - FOV com sombra (raio 10, +2 com ring of warning), simétrico, testado.
