@@ -209,6 +209,12 @@ namespace Ossuary.Core
             ["The Drowned Court"] = "A Corte Afogada", ["The Ashen Regalia"] = "A Regalia de Cinza", ["Relics worn: "] = "Relíquias vestidas: ",
             ["Tidecaller's Gauntlets"] = "Manoplas do Chamador de Marés", ["Brinewalkers"] = "Andarilhos da Salmoura", ["Mantle of Ash"] = "Manto de Cinza",
             ["Cinder Plate"] = "Placa de Brasa", ["Hollow Ribs"] = "Costelas Ocas", ["Gravedigger's Spade"] = "Pá do Coveiro", ["Gnawed Cowl"] = "Capuz Roído",
+            // ---- training
+            ["Trained"] = "Treinado", ["Skills rise only when you buy them with XP (Shift+N)."] = "As habilidades só sobem quando você as compra com XP (Shift+N).",
+            ["train a skill with XP (Trained mode)"] = "treinar uma habilidade com XP (modo Treinado)",
+            ["Your skills grow with use. Training is for the Trained mode."] = "Suas habilidades crescem com o uso. Treinar é do modo Treinado.",
+            ["There is nothing left you can train."] = "Não há mais nada que você possa treinar.",
+            ["Train what?"] = "Treinar o quê?",
             // ---- crafting
             ["craft: combine what you carry"] = "criar: combinar o que você carrega",
             ["Make what?"] = "Fazer o quê?", ["molotov"] = "molotov", ["bone blade"] = "lâmina de osso", ["bone-studded armour"] = "armadura cravejada de osso",

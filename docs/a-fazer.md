@@ -20,7 +20,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Persistência e meta-progressão
 
-- [ ] **XP gasto em skills** (opção estilo Sil), listada em `rpg.md`.
 
 ## Magia e deuses
 
@@ -39,6 +38,9 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **XP gasto em skills (modo Trained)** (2026-10-02). Novo valor de `Difficulty`: nele o uso **não** ensina mais (`Player.GainSkill` ignora), cada experiência ganha também vira `Player.TrainXp`
+  e `Shift+N` abre a lista de skills (`Game.Training.cs`): +5 pontos por `20 + valor atual` de XP, respeitando o teto da classe. A ficha mostra "XP to spend". Teste `TrainedMode`.
 
 - [x] **The Annex: branch opcional de desafio** (2026-10-02). Um **portal** (`^`, `TileKind.Portal`) em *Dungeons 4* leva (`>`) ao Anexo: 3 andares (Catacombs → Maze → Fort) com monstros e loot
   de seis andares abaixo (`LevelBuilder` usa profundidade efetiva `depth+6`). Você chega em cima do portal de saída (`<` ou `>` volta ao mesmo ponto). No fundo: o chefe **Annex Warden**

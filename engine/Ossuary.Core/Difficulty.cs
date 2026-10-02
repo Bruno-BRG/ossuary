@@ -16,11 +16,13 @@ namespace Ossuary.Core
         Dive,
         /// <summary>Challenge: no weapon, no armour, no shield. One extra advancement to make up for it.</summary>
         Naked,
+        /// <summary>Skills do not rise by use: every point is bought with experience (Shift+N), Sil style.</summary>
+        Trained,
     }
 
     public static class Difficulties
     {
-        public static readonly Difficulty[] All = { Difficulty.Normal, Difficulty.Classic, Difficulty.Hardcore, Difficulty.Dive, Difficulty.Naked };
+        public static readonly Difficulty[] All = { Difficulty.Normal, Difficulty.Classic, Difficulty.Hardcore, Difficulty.Dive, Difficulty.Naked, Difficulty.Trained };
 
         public static string Name(Difficulty d) => d.ToString();
 
@@ -32,6 +34,7 @@ namespace Ossuary.Core
                 case Difficulty.Hardcore: return "One save: it is erased when you resume. No quicksave.";
                 case Difficulty.Dive: return "Start on depth 5, a few levels up. Score x2.";
                 case Difficulty.Naked: return "No weapon, armour or shield. One more advancement. Score x2.";
+                case Difficulty.Trained: return "Skills rise only when you buy them with XP (Shift+N).";
                 default: return "The standard game.";
             }
         }
@@ -62,6 +65,10 @@ namespace Ossuary.Core
                 p.Wielded = null; p.WornArmor = null; p.WornShield = null;
                 p.PendingAdvances++;
                 p.RefreshGear();
+            }
+            else if (Difficulty == Difficulty.Trained)
+            {
+                p.Trained = true; p.TrainXp = 60;
             }
             else if (Difficulty == Difficulty.Dive)
             {

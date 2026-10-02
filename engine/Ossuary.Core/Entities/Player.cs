@@ -419,6 +419,7 @@ namespace Ossuary.Core.Entities
         {
             amount += amount * 15 * PerkRank("quick-learner") / 100;
             Xp += amount;
+            if (Trained) TrainXp += amount;
             bool leveled = false;
             while (Xp >= XpNext)
             {
@@ -470,8 +471,13 @@ namespace Ossuary.Core.Entities
 
         public string AlignmentString => Align.ToString();
 
-        public int GainSkill(Skill s, int amount)
+        /// <summary>Trained mode: skills are bought, not earned by use. TrainXp is what has not been spent yet.</summary>
+        public bool Trained;
+        public int TrainXp;
+
+        public int GainSkill(Skill s, int amount, bool bought = false)
         {
+            if (Trained && !bought) return Skills[s];
             Skills[s] = Math.Min(Roles.Find(RoleId).CapFor(s), Skills[s] + amount);
             return Skills[s];
         }

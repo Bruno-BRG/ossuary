@@ -30,6 +30,7 @@ namespace Ossuary.Tests
             Test("a hired companion follows, grows and can fall", Companions);
             Test("Dive and Naked challenge runs start differently", Challenges);
             Test("travel finds altars and fountains", FeatureTravel);
+            Test("Trained mode: skills are bought with XP", TrainedMode);
             Test("crafting combines the pack and a molotov burns", CraftingFlow);
             Test("artifact sets add up and relics corrupt", SetsAndRelics);
             Test("new spells: ice, steam, oil, bone and purification", NewSpells);
@@ -1331,5 +1332,46 @@ namespace Ossuary.Tests
             for (int i = 0; i < 40 && !Said(w, "reads out a debt"); i++) { w.Player.HP = w.Player.MaxHP; w.Wait(); }
             Assert(Said(w, "reads out a debt") && w.Player.Corruption > corruption, "the Warden bleeds you and taints you");
         }
+
+        static void TrainedMode()
+        {
+            var normal = Game.NewHero(2300, "Used", "human", "fighter");
+            int c0 = normal.Player.Skills[Skill.Combat];
+            normal.Player.GainSkill(Skill.Combat, 5);
+            Assert(normal.Player.Skills[Skill.Combat] == c0 + 5, "skills rise with use normally");
+
+            var g = Game.NewHero(2301, "Student", "human", "fighter");
+            g.Difficulty = Difficulty.Trained; g.ApplyChallenge();
+            g.Monsters.Clear();
+            Assert(g.Player.Trained && g.Player.TrainXp == 60, "Trained starts with some XP to spend");
+            int c1 = g.Player.Skills[Skill.Combat];
+            g.Player.GainSkill(Skill.Combat, 5);
+            Assert(g.Player.Skills[Skill.Combat] == c1, "use no longer teaches");
+            int xp = g.Player.TrainXp;
+            g.Player.AddXp(30);
+            Assert(g.Player.TrainXp == xp + 30, "experience is also spending money");
+
+            var cmd = new Commands(g);
+            cmd.Execute("train");
+            Assert(g.PendingChoice.Active && g.PendingChoice.Prompt == Game.TrainPrompt && g.PendingChoice.Items.Count >= 3, "the training list opens");
+            var combat = g.PendingChoice.Items.Find(i => i.Def.Name == "Combat");
+            int cost = g.TrainCost(Skill.Combat);
+            g.Player.TrainXp = cost + 7;
+            cmd.CommitChoice(combat);
+            Assert(g.Player.Skills[Skill.Combat] == c1 + 5 && g.Player.TrainXp == 7, "five points bought for their price");
+            cmd.Execute("train");
+            var again = g.PendingChoice.Items.Find(i => i.Def.Name == "Combat");
+            cmd.CommitChoice(again);
+            Assert(g.Player.Skills[Skill.Combat] == c1 + 5 && g.Player.TrainXp == 7, "not enough XP, nothing bought");
+            // Caps hold.
+            g.Player.Skills[Skill.Magic] = Roles.Find("fighter").CapFor(Skill.Magic);
+            g.Player.TrainXp = 999; cmd.Execute("train");
+            Assert(!g.PendingChoice.Items.Exists(i => i.Def.Name == "Magic"), "a skill at its class cap cannot be trained");
+
+            var plain = Game.NewHero(2302, "Plain", "human", "fighter");
+            int turn = plain.Turn; new Commands(plain).Execute("train");
+            Assert(plain.Turn == turn && !plain.PendingChoice.Active, "outside Trained mode the verb only explains itself");
+        }
+
     }
 }

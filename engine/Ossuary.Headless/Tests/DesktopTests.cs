@@ -364,9 +364,11 @@ namespace Ossuary.Desktop
             Check(c.Step == CreateStep.Confirm && c.Difficulty == Difficulty.Normal, "confirm starts on Normal");
             s.Key("ArrowRight"); s.Key("ArrowRight"); s.Draw();
             Check(c.Difficulty == Difficulty.Hardcore, "arrows pick the mode");
-            s.Key("ArrowRight"); s.Key("ArrowRight"); s.Key("ArrowRight"); Check(c.Difficulty == Difficulty.Normal, "the mode wraps");
-            s.Key("ArrowLeft"); Check(c.Difficulty == Difficulty.Naked, "and goes back");
-            s.Key("ArrowLeft"); s.Key("ArrowLeft"); Check(c.Difficulty == Difficulty.Hardcore, "to Hardcore");
+            for (int i = 0; i < Difficulties.All.Length - 2; i++) s.Key("ArrowRight");
+            Check(c.Difficulty == Difficulty.Normal, "the mode wraps");
+            s.Key("ArrowLeft"); Check(c.Difficulty == Difficulty.Trained, "and goes back");
+            for (int i = 0; i < Difficulties.All.Length - 3; i++) s.Key("ArrowLeft");
+            Check(c.Difficulty == Difficulty.Hardcore, "to Hardcore");
             s.Key("Enter"); s.Draw(); s.Key("Enter"); s.Draw();   // begin, then skip the opening story
             Check(s.Game.Difficulty == Difficulty.Hardcore, "the run is Hardcore");
             s.Key("Period", "."); s.Draw();

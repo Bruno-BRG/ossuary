@@ -1139,6 +1139,7 @@ namespace Ossuary.Core
                 { "Shift+A", "disarm a trap you have found" },
                 { "Shift+E", "drink at a fountain (it may be tainted)" },
                 { "Shift+B", "craft: combine what you carry" },
+                { "Shift+N", "train a skill with XP (Trained mode)" },
                 { "t  `  ~", "auto-explore / travel to the stairs / to an altar or fountain" },
                 { "l  x  X", "look / inspect / swap with" },
                 { "O", "travel on the overworld" },
@@ -1218,6 +1219,7 @@ namespace Ossuary.Core
             }
             y++;
             _t.Write(x, y++, "Skills", theme.Label, false, theme.Panel);
+            if (p.Trained) _t.WriteClipped(x + 20, y - 1, $"XP to spend: {p.TrainXp}", theme.Gold, iw - 20, true, theme.Panel);
             foreach (var kv in p.Skills)
             {
                 int cap = role.CapFor(kv.Key);

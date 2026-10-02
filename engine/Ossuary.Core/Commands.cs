@@ -70,6 +70,7 @@ namespace Ossuary.Core
                 case "s": return DoSearch();
                 case "disarm": return DoDisarm();
                 case "craft": return DoCraft();
+                case "train": return DoTrain();
                 case "drink": return DoDrinkFountain();
                 case "x": _g.PushTargeting(TargetingMode.Inspect); return true;
                 case "l": _g.PushTargeting(TargetingMode.Look); return true;
@@ -324,6 +325,16 @@ namespace Ossuary.Core
             var choices = _g.CraftChoices();
             if (choices.Count == 0) { _g.Say("You have nothing you can combine into something better.", MessageKind.Info); return true; }
             _g.PushChoice(Game.CraftPrompt, choices);
+            return true;
+        }
+
+        bool DoTrain()
+        {
+            if (!_g.Player.Trained) { _g.Say("Your skills grow with use. Training is for the Trained mode.", MessageKind.Info); return true; }
+            var choices = _g.TrainChoices();
+            if (choices.Count == 0) { _g.Say("There is nothing left you can train.", MessageKind.Info); return true; }
+            _g.Say($"You have {_g.Player.TrainXp} experience to spend.", MessageKind.Info);
+            _g.PushChoice(Game.TrainPrompt, choices);
             return true;
         }
 
@@ -680,6 +691,7 @@ namespace Ossuary.Core
             if (prompt == Game.OfferPrompt) { _g.OfferItem(chosen); return true; }
             if (prompt == Game.SacrificePrompt) { _g.SacrificeCorpse(chosen); return true; }
             if (prompt == Game.CraftPrompt) { _g.Craft(chosen); return true; }
+            if (prompt == Game.TrainPrompt) { _g.Train(chosen); return true; }
             if (prompt == Game.AppraisePrompt)
             {
                 _g.AppraiseItem(chosen);
