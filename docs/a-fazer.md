@@ -14,17 +14,16 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ---
 
-## Controles e QoL
+## Ideias futuras (nada pendente do backlog original)
 
+Tudo o que estava listado foi implementado (ver *Feito*). O que sobrou são extensões anotadas durante o trabalho:
 
-## Persistência e meta-progressão
-
-
-## Magia e deuses
-
-
-## Geração de níveis
-
+- [ ] **Música**: o menu já tem o volume; falta compor/sintetizar algo (hoje só há efeitos).
+- [ ] **Pontos de viagem marcados pelo jogador** (hoje o `~` vai a altar/fonte lembrados e o `` ` `` à escada).
+- [ ] **Companheiros**: ordens (ficar/seguir), inventário compartilhado, mais de um, arqueiros.
+- [ ] **Desafio Pacifista** e mais conquistas (por classe, por deus, por branch).
+- [ ] **Magia**: uma sétima escola; interação gelo × raio; tradução PT dos nomes/descrições de magias e dos textos de altar (hoje em inglês).
+- [ ] **Novos conjuntos de artefatos** e mais relíquias; segundo portal opcional em outra branch.
 
 ## Técnico e qualidade
 
