@@ -5,7 +5,7 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
 ## Dungeon (`Dungeon.cs`, `Gen/`, `GameMap.cs`, `Tile.cs`)
 
 - 5 branches, ~54 níveis no total (teste `AllBranchDepths` garante).
-- Estilos: Rooms, Cave, Maze, Barracks, Warrens, Fort (`DungeonGen` +
+- Estilos: Rooms, Cave, Maze, Barracks, Warrens, Fort, **Ruins** (salas desabadas), **Catacombs** (criptas em grade); cofres e caches em `Gen/Vaults.cs` (`DungeonGen` +
   `LevelBuilder.Populate` p/ monstros/loot). Todo nível: 1 escada sobe + 1
   desce, tudo alcançável (testes por estilo, 12 seeds cada).
 - Tiles: parede, chão, portas (fechada/aberta/trancada/secreta), escadas,
@@ -82,7 +82,9 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
 
 ## Deuses, piedade e altares (`Entities/Gods.cs`, `Game.Gods.cs`)
 
-- **5 deuses** (`Gods.All`): **Aurel**, a Última Lamparina (luz, misericórdia), **Khorr**, o Martelo Abaixo
+- **Mourne, a Costura Chorosa** (6º deus; ver *Corrupção e mutações*), **rivais** (`GodDef.Rival`), linhas de altar *Sacrifice a corpse*, *Trial*
+  (`Player.TrialGoal/TrialDone`, `ScoreDeed` conta os feitos que dão piedade) e *Defile* (`DefileAltar`, altar morto em `_defiled`) — ver `a-fazer.md`.
+- **5 deuses originais** (`Gods.All`): **Aurel**, a Última Lamparina (luz, misericórdia), **Khorr**, o Martelo Abaixo
   (guerra), **Veyra**, Mãe das Cinzas (fogo), **Nhal**, o Rei Afogado (morte), **Sylk**, o Quieto (sombra).
   Cada um tem gostos, desgostos, uma **dádiva** de oração e dois bônus permanentes (piedade 50 e 100).
 - **Altar**: andar contra um `_` abre o menu (grátis, não gasta turno; `Panel.Altar`). O deus do altar sai de
@@ -187,7 +189,7 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
 ## Magia (`Magic/Spells.cs`, `Game.Magic.cs`)
 
 - `SpellDef` é dado (id, nível 1–5, escola, custo Mp, alvo, alcance, raio, invocações);
-  efeitos em `Game.Magic.Effects.cs` por id (`ApplySpell`). **32 magias em 6 escolas**:
+  efeitos em `Game.Magic.Effects.cs` por id (`ApplySpell`). **39 magias em 6 escolas** (as 7 mais novas — Ice Lance, Steam Burst, Create Oil, Ossify, Reshape Flesh, Marrow Bolt, Purify — ligam magia, superfícies e corrupção):
   - **Evocation**: Magic Missile, Shocking Grasp (adjacente), Frost Ray, Fireball
     (área r2), Lightning Bolt (perfura a linha), Chain Lightning (salta até 3), Meteor (área r3).
   - **Conjuration**: Familiar, Summon Beast (escala com nível), Blink, Teleport.
@@ -220,6 +222,103 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
   *a book of wards*, *a book of illusions*, *a grimoire of the dead*, *a book of mercy*.
 - Teclas do painel de magias passam **sem** o mapa de atalhos (letras viram
   seleção, não movimento) e entram no log do replay normalmente.
+
+## Andar sozinho (`Game.Explore.cs`, `Game.Repeat.cs`, `Commands.DoAutoWalk`)
+
+- **Explorar** (`t`): BFS sobre células já vistas até o objetivo mais próximo: pilha de itens não visitada ou
+  célula andável com vizinho nunca visto (`ExploreGoal`). Células servidas entram em `_exploreDone`, o que garante
+  término. **Escada** (`` ` ``): `StairsStep`. **Descanso** (`Shift+S`): `Wait` até HP/Mp cheios.
+- Cada um é um laço de turnos normais (limite 600; descanso 3000) que para com hostil à vista, dano, qualquer
+  `Say` novo (`Game.Said`), item/escada sob os pés ou troca de nível. Sem RNG próprio: o replay reproduz.
+- **Tecla segurada** (`Game.CanKeepWalking`, `Session.KeyRepeat`): ver `arquitetura.md`.
+
+## Fim de run: causa, morgue e histórico (`Morgue.cs`, `Game.Death.cs`, `SaveStore`)
+
+- `Game.HurtBy(causa)` marca quem feriu o jogador por último (monstros, armadilhas, veneno, fogo, fome…);
+  `CheckDeath` grava `DeathCause`. `quit` marca `Abandoned`.
+- `Morgue.Summarize/Text` são funções puras do jogo terminado. `Session.RecordRun` (uma vez por run, nunca em
+  replay) grava `morgue/*.txt` e anexa a `history.json` no diretório de dados (`OSSUARY_DATA` nos testes).
+
+## Cemitério (`Bones.cs`)
+
+- Morrer em dungeon, nível ≥ 2 (`Game.LeaveBones`), grava `Bones` via `SaveStore.WriteBones`. `Game.Graveyard` é fixado
+  no início da run (e vai no save), então o replay encontra as mesmas sombras. `RaiseBones` roda só na primeira geração
+  do nível, com Rng privado (`seed ^ hash(branch, depth)`): 60% de chance, longe da entrada. A sombra é um
+  `wandering wraith` reescalado (`BonesKey` marca quem é); destruí-la entra em `Game.LaidToRest` e o host remove o arquivo.
+
+## Modos (`Difficulty.cs`)
+
+- `Game.Difficulty` é fixado pelo host antes da primeira tecla (`Session.Start`) e salvo em `SaveData.Difficulty`.
+  **Classic**: `ProcessHunger` não faz nada. **Hardcore**: `Session.Save(forQuit)` só grava ao sair (Main menu/Quit),
+  `QuickSave` e *Save game* recusam, e `Load` apaga o arquivo depois de reproduzir a run.
+
+## Reputação, contratos, eventos e rotina (`Game.Reputation.cs`, `Game.Contracts.cs`, `Game.Events.cs`)
+
+- `Houses` (watch, temple, guild, cult), `Player.Rep`, `AddRep`, `Haggle(preço, casa)` (aplicado em `ShopPrice`, `RestPrice`, `HealPrice`, `CurePrice`, purga, caravana).
+- Contratos: `ContractOffers` (determinístico por cidade e semana), `AcceptContract`, `TurnInContract`; linhas `offer:N`/`turnin:N` no painel de serviços da Guilda.
+- Eventos: `MaybeRaiseEvent` (após `CheckOverworldEncounter`) → `OpenEvent`; `CurrentEvent` faz `ServiceRows/ServiceAction` responderem pelo evento.
+- `GoHomeAtNight` em `TownsfolkTurn`; `TownText.Reaction` para falas reativas.
+
+## Facções de monstros (`Game.Factions.cs`)
+
+- `FactionOf(m)` por nome/flags; `AreRivals`: Greenskin↔Deepfolk, Dead↔Wild. Em `MonsterTurn`, com o herói a mais de 1 casa, `FightRival` ataca o
+  rival adjacente ou se aproxima de um a ≤6 casas se ele estiver mais perto que o herói. Mortes entre monstros não dão XP.
+
+## Branch opcional: The Annex
+
+- `Branch.Parent`/`ParentDepth` marcam um branch lateral; `LevelBuilder.Populate` põe o portal em *Dungeons 4*. `Game.UsePortal` entra/sai (guarda `_portalX/_portalY`).
+  O nível 1 do Anexo é gerado com o portal de saída sob o ponto de chegada. Monstros/loot usam `depth+6`.
+
+## Chefes (`Game.Bosses.cs`)
+
+- `BossDef` (dados) + `Game.BossTurn` (hábitos, por `Monster.BossClock` e `BossPhase`). `RaiseBosses` põe o chefe na primeira geração do nível
+  (como `RaiseBones`, com Rng privado); `BossFalls` paga a recompensa; `BossesSlain` alimenta as conquistas.
+
+## Monstros por branch (`Game.Traits.cs`)
+
+- `MonsterDef.Branch` limita o spawn (`Bestiary.SpawnTable(depth, rng, branch)`); `MonsterDef.Trait` liga um hábito num ponto fixo do turno:
+  `TraitBeforeAct` (erratic, swarm, pack), `TraitAfterHit` (plague, slam, ashen), `TraitTick` (drowned) e `TraitOnDeath` (wisp).
+
+## Conjuntos e relíquias (`Items/Affixes.cs`, `Game.Corruption.cs`)
+
+- `ArtifactDef.Set` liga uma peça a um `ArtifactSetDef` (bônus `Two`/`Three`, somados por `ArtifactSets.Bonus` em `Player.Gear`).
+  `ArtifactDef.Corrupts` marca relíquias: `AmuletCorrupts` soma `WornRelics()` a cada 25 turnos. Um artefato por (branch, profundidade).
+
+## Crafting (`Game.Crafting.cs`)
+
+- `Recipe` = (Id, Needs, Gather, Make). `CraftChoices` lista o que a mochila permite, como itens-prévia (`Uid = −1 − índice`);
+  `CommitChoice` com `CraftPrompt` chama `Craft`, que gasta os ingredientes e custa um turno. O **molotov** (`Crafted.Molotov`, ferramenta) usa
+  `TargetingMode.Throw` → `ThrowAt`: fogo (`PutSurface`) no alvo e nas quatro vizinhas andáveis, `SetAlight` + dano de fogo no monstro.
+
+## Companheiros (`Game.Companions.cs`)
+
+- Serviço *Hire a sellsword* (taverna): `HireCompanion` cria um `Monster` com `Companion=true`, `Ally=true`, `SummonTurns=0`; `RescaleCompanion`
+  deriva HP/CA/dano do nível do herói. `PlaceCompanions` (em `DescendTo`) põe todos ao lado do herói a cada nível de dungeon; `ReapCompanions`
+  tira da lista quem foi destruído. `RescaleCompanions` roda em `AnnounceLevelUp`. Usam o `AllyTurn` comum.
+
+## Corrupção e mutações (`Mutations.cs`, `Game.Corruption.cs`)
+
+- `AddCorruption` sobe `Player.Corruption` (teto 100); cada múltiplo de 20 cruzado chama `GainMutation` (`MutationTable.Pick`: 50% boa,
+  20% mista, 30% má, sem repetir). Efeitos numéricos entram em `Player.Gear` (e na CA em `ArmorClass`); `Sight`, `Hunger` e `Noise` são
+  lidos por `UpdateFov`, `ProcessHunger` e `NoticeRadius`. Fontes: fonte do dungeon (`Shift+E`), Amuleto, necromancia, potion of mutation.
+  Purge no templo: `PurgeCorruption`.
+
+## Furtividade e ruído (`Game.Stealth.cs`)
+
+- `NoticeRadius(m) = max(1, Vision − StealthReduction + NoticeShift)`. `StealthReduction` = Stealth/25 + 2×*light-feet* + Sylk tier 2.
+  `NoticeShift` vem da ação do turno (`MakeNoise`: luta 3, magia/zap/tiro/porta/kick 2, armadura pesada ao andar; `BeQuiet`: esperar/buscar −2).
+  `Commands.Execute` zera o ruído a cada verbo, então uma ação recusada não deixa barulho. O Stealth treina em `LearnFromHiding`.
+
+## Armadilhas achadas (`Game.Traps.cs`)
+
+- Armadilhas nascem ocultas (`TrapTable`). `Reveal` as marca (desenhadas como `^` em `theme.Warn`). Revelam-se por busca (`s`),
+  por percepção passiva ao passar (`SenseTraps`, determinística por hash da posição) ou ficam ocultas. `Shift+A` → `DisarmTrap`.
+
+## Conquistas (`Achievements.cs`)
+
+- Lista fixa de `AchievementDef` (id, nome, descrição, teste sobre `Game`). `Game.Earned` é recomputado pela simulação,
+  então o replay ganha as mesmas. `AlreadyUnlocked` (do host) só decide se o log anuncia. `Session.FlushAchievements`
+  grava `achievements.json` (nunca em replay).
 
 ## FOV / pathfinding (`Fov.cs`, `Pathfinder.cs`)
 

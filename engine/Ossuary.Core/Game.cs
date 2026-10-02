@@ -40,6 +40,8 @@ namespace Ossuary.Core
 
         public readonly List<Message> Log = new List<Message>();
         public readonly List<Message> Transcript = new List<Message>();
+        /// <summary>Messages ever said; unlike the capped logs it only grows, so it detects "something was reported".</summary>
+        public long Said;
 
         public readonly UiState UiState = new UiState();
         public readonly UiRequests UiRequests = new UiRequests();
@@ -108,6 +110,8 @@ namespace Ossuary.Core
             var m = new Message(Loc.T(text), kind, Turn);
             Log.Add(m);
             Transcript.Add(m);
+            Said++;
+            CueFor(kind);
             while (Log.Count > 200) Log.RemoveAt(0);
             while (Transcript.Count > 2000) Transcript.RemoveAt(0);
         }
@@ -121,6 +125,7 @@ namespace Ossuary.Core
             Player.CurrentBranch = branchName;
             Player.CurrentDepth = depth;
             if (depth > Player.MaxDepth) Player.MaxDepth = depth;
+            ContractDepth();
 
             var map = Dungeon.Ensure(branchName, depth, out var spawns, out int sx, out int sy);
             Map = map;
@@ -139,7 +144,10 @@ namespace Ossuary.Core
 
             Player.InsideDungeon = true;
             Mode = GameMode.Dungeon;
+            PlaceCompanions();
             Dungeon.Remember(branchName, depth, sx, sy);
+            if (spawns != null) RaiseBones(spawns, sx, sy);
+            if (spawns != null) RaiseBosses(spawns, sx, sy);
             EnsureQuestAmulet(); // fallback: levels generated before the quest still get their amulet
 
             Say($"You arrive at {Map.LevelName}.", MessageKind.Narrative);
@@ -147,8 +155,35 @@ namespace Ossuary.Core
             UpdateFov();
         }
 
+        /// <summary>Steps through the portal under the player: into the side branch it leads to, or back out of one.</summary>
+        bool UsePortal()
+        {
+            var here = Dungeon.Get(Branch);
+            if (here.Parent != null && Depth == 1)
+            {
+                string parent = here.Parent; int pd = here.ParentDepth;
+                Say("You step back through the portal.", MessageKind.Narrative);
+                DescendTo(parent, pd);
+                Player.X = _portalX; Player.Y = _portalY;
+                Map.Version++; UpdateFov();
+                return true;
+            }
+            var side = Dungeon.SideBranchAt(Branch, Depth);
+            if (side == null) { Say("The portal is dead. Whatever it led to is gone."); return false; }
+            _portalX = Player.X; _portalY = Player.Y;
+            Say("The portal takes you, and the world folds.", MessageKind.Narrative);
+            AnnexVisited = true;
+            DescendTo(side.Name, 1);
+            return true;
+        }
+
+        int _portalX, _portalY;
+        /// <summary>The hero has been through the portal at least once.</summary>
+        public bool AnnexVisited;
+
         public bool Descend()
         {
+            if (Map.Get(Player.X, Player.Y) == TileKind.Portal) return UsePortal();
             if (Map.Get(Player.X, Player.Y) != TileKind.StairsDown) { Say("There is no staircase down here."); return false; }
             var b = Dungeon.Get(Branch);
             if (Depth + 1 > b.MaxDepth)
@@ -164,6 +199,7 @@ namespace Ossuary.Core
         public bool Ascend()
         {
             TileKind t = Map.Get(Player.X, Player.Y);
+            if (t == TileKind.Portal && Dungeon.Get(Branch).Parent != null) return UsePortal();
             if (t != TileKind.StairsUp && t != TileKind.LadderDown) { Say("There is no way up here."); return false; }
             if (Depth <= 1)
             {
@@ -193,7 +229,9 @@ namespace Ossuary.Core
             var t = World.Get(x, y);
             Say($"You enter {t.Name ?? "the darkness"}.", MessageKind.Narrative);
             int d = World.RegionAt(x, y).Depth;
-            DescendTo("The Dungeons", Math.Max(1, d / 4));
+            string branch = OverworldGen.BranchForEntrance(t.Name);
+            int start = branch == QuestBranch ? Math.Max(1, d / 4) : Math.Max(1, Math.Min(Dungeon.Get(branch).MaxDepth / 2, d / 8));
+            DescendTo(branch, start);
         }
 
         // ---------------------------------------------------------------- FOV
@@ -205,6 +243,7 @@ namespace Ossuary.Core
             int radius = Player.Blinded ? 1 : Mode == GameMode.TownMap ? 16 : 10;
             for (int i = 0; i < 2; i++)
                 if (Player.Rings[i] != null && Player.RingKnown[i] && Player.Rings[i].Name == "ring of warning") radius += 2;
+            if (!Player.Blinded) radius += MutationSight();
             Fov.Compute(Map, Player.X, Player.Y, radius, null);
             Map.Version++;
         }
@@ -240,6 +279,7 @@ namespace Ossuary.Core
             }
 
             Player.X = nx; Player.Y = ny;
+            MakeNoise(ArmourClatter());
             Map.Version++;
 
             if (TrapTable.TryGet(Map.Number, nx, ny, out var trapKind, out var trapLevel) && Player.PoisonResist < 3 && Player.BuffTurns("levitating") == 0)
@@ -249,6 +289,7 @@ namespace Ossuary.Core
             }
 
             UpdateFov();
+            SenseTraps();
             bool slipped = Map.SurfaceAt(nx, ny) == SurfaceKind.Ice && Rng.Chance(30);
             if (slipped) Say("You slip on the ice!", MessageKind.Warn);
             EndPlayerTurn();
@@ -258,6 +299,7 @@ namespace Ossuary.Core
 
         void InteractWithWall(int x, int y)
         {
+            MakeNoise(2);
             TileKind t = Map.Get(x, y);
             switch (t)
             {
@@ -270,6 +312,13 @@ namespace Ossuary.Core
                     if (Player.FindFirst("lock pick") != null)
                     {
                         Say("You pick the lock.", MessageKind.Good);
+                        Map.Set(x, y, TileKind.OpenDoor);
+                        Map.Version++;
+                        return;
+                    }
+                    if (SpendBrassKey())
+                    {
+                        Say("The brass key turns, and the lock lets go. The key crumbles in your hand.", MessageKind.Good);
                         Map.Set(x, y, TileKind.OpenDoor);
                         Map.Version++;
                         return;
@@ -295,6 +344,7 @@ namespace Ossuary.Core
 
         void TriggerTrap(Traps kind, int level)
         {
+            HurtBy(kind == Traps.Spike ? "a spike trap" : kind == Traps.Dart ? "a poison dart trap" : kind == Traps.Fire ? "a fire trap" : "a trap");
             switch (kind)
             {
                 case Traps.Spike:
@@ -371,6 +421,7 @@ namespace Ossuary.Core
         public bool Attack(Monster target)
         {
             if (target == null) return false;
+            MakeNoise(3);
             if (target.Townsperson)
             {
                 Say("Not here. The Watch would hang you, and the dead would laugh.", MessageKind.Warn);
@@ -409,6 +460,10 @@ namespace Ossuary.Core
         {
             GodsOnKill(m);
             Monsters.Remove(m);
+            if (m.Def.Trait != null) TraitOnDeath(m);
+            ContractKill(m);
+            if (m.BossId != null) BossFalls(m);
+            if (m.BonesKey != null) { LaidToRest.Add(m.BonesKey); Say("The restless shade is laid to rest at last.", MessageKind.Good); }
             Player.Kills++;
             bool leveled = Player.AddXp(m.XpKill);
             Player.GainSkill(Skill.Combat, 2);
@@ -441,6 +496,7 @@ namespace Ossuary.Core
                 return;
             }
             Mode = GameMode.GameOver;
+            DeathCause = CauseOfDeath();
             Say("You die...", MessageKind.Death);
         }
 
@@ -451,6 +507,8 @@ namespace Ossuary.Core
             if (Mode != GameMode.Dungeon && Mode != GameMode.TownMap) return;
             Turn++;
             Player.Turns = Turn;
+            ResolveNoise();
+            AmuletCorrupts();
             ProcessHunger();
             DecrementStatus();
             TickSurfaces();
@@ -458,6 +516,8 @@ namespace Ossuary.Core
             if (!(Player.BuffTurns("haste") > 0 && (Turn & 1) == 0)) RunMonsters();
             UpdateFov();
             CheckDeath();
+            ReapCompanions();
+            CheckAchievements();
         }
 
         /// <summary>
@@ -470,14 +530,16 @@ namespace Ossuary.Core
         void ProcessHunger()
         {
             var p = Player;
+            if (Difficulty == Difficulty.Classic) { p.Hunger = 0; return; }
             if (p.PerkRank("gourmand") == 0 || (Turn & 1) == 1) p.Nutrient--;
+            p.Nutrient -= MutationHunger();
             if (p.Nutrient > 0) { p.Hunger = 0; return; }
 
             p.Hunger++;
             if (p.Nutrient == 0) Say("You are getting hungry.", MessageKind.Warn);
             else if (p.Nutrient <= -100 && p.Hunger % 20 == 0)
             {
-                p.HP -= 1;
+                p.HP -= 1; HurtBy("starvation");
                 Say("You are starving.", MessageKind.Bad);
             }
         }
@@ -529,7 +591,7 @@ namespace Ossuary.Core
             }
             if (Player.PoisonResist > 0)
             {
-                if (Rng.Chance(100 - Math.Max(0, Player.ResistPct(DamageType.Poison)))) Player.HP -= 1;
+                if (Rng.Chance(100 - Math.Max(0, Player.ResistPct(DamageType.Poison)))) { Player.HP -= 1; HurtBy("poison"); }
                 if (Player.PoisonResist <= 2 && Rng.Chance(30))
                 {
                     Player.PoisonResist--;
@@ -538,7 +600,7 @@ namespace Ossuary.Core
             }
             if (Player.Amulet != null && Player.Amulet.Name == "amulet of strangulation" && Turn % 15 == 0)
             {
-                Player.HP -= Rng.Range(1, 4);
+                Player.HP -= Rng.Range(1, 4); HurtBy("an amulet of strangulation");
                 Say("The amulet tightens around your throat!", MessageKind.Bad);
             }
         }
@@ -580,6 +642,9 @@ namespace Ossuary.Core
             if (m.IsGuard && Mode != GameMode.TownMap && dist > 24) return;
             if (m.FearTurns > 0) { if (FleeStep(m)) return; }
             else if (dist > 1 && AttackAdjacentAlly(m)) return;
+            if (dist > 1 && m.BossId == null && FightRival(m, dist)) return;
+            if (m.BossId != null && BossTurn(m, dist)) return;
+            if (m.Def.Trait != null && TraitBeforeAct(m, dist)) return;
 
             if (dist == 1)
             {
@@ -587,20 +652,24 @@ namespace Ossuary.Core
                 {
                     int dmg = Rng.Range(4, 12);
                     Player.HP -= dmg;
+                    HurtBy(Article(m));
                     Say($"The {m.Name} explodes for {dmg} damage!", MessageKind.Bad);
                     Monsters.Remove(m);
                     Map.Version++;
                     CheckDeath();
                     return;
                 }
+                HurtBy(Article(m));
                 var res = Battles.MeleeAttack(m, Player, Rng);
                 Say(res.Message, res.Killed ? MessageKind.Death : MessageKind.Combat);
+                if (m.Def.Trait != null) TraitAfterHit(m, res);
                 Map.Version++;
                 CheckDeath();
                 return;
             }
 
-            bool canSee = dist <= Math.Max(1, m.Def.Vision - 2 * Player.PerkRank("light-feet") - (Player.God == "sylk" && Player.GodTier >= 2 ? 1 : 0)) && !Player.Invisible && !m.Dormant;
+            LearnFromHiding(m, dist);
+            bool canSee = dist <= NoticeRadius(m) && !Player.Invisible && !m.Dormant;
             if (canSee) { m.Alert = 1; m.Dormant = false; }
 
             switch (m.Def.Ai)

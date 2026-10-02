@@ -200,9 +200,12 @@ namespace Ossuary.Core
             var theme = Theme.Current;
             var p = _g.Player;
 
+            // Square tiles use two screen columns per map cell, so the window holds half as many cells across.
+            int sq = DisplaySettings.Current.Square ? 2 : 1;
+            int cellsW = Math.Max(1, w / sq);
             // A map smaller than the window sits centred (negative camera offset) instead of
             // hugging the top-left corner; cells outside the map are simply skipped.
-            int cx = map.W <= w ? -((w - map.W) / 2) : Math.Max(0, Math.Min(p.X - w / 2, map.W - w));
+            int cx = map.W <= cellsW ? -((cellsW - map.W) / 2) : Math.Max(0, Math.Min(p.X - cellsW / 2, map.W - cellsW));
             int cy = map.H <= h ? -((h - map.H) / 2) : Math.Max(0, Math.Min(p.Y - h / 2, map.H - h));
             CameraX = cx; CameraY = cy;
 
@@ -214,7 +217,7 @@ namespace Ossuary.Core
             for (int y = 0; y < h; y++)
             {
                 int my = cy + y;
-                for (int x = 0; x < w; x++)
+                for (int x = 0; x < cellsW; x++)
                 {
                     int mx = cx + x;
                     if (!map.InBounds(mx, my)) continue;
@@ -226,7 +229,7 @@ namespace Ossuary.Core
                         // screen alive and shows that the dark is solid, not missing.
                         float fog = Theme.Hash01(mx * 3 + 1, my * 7 + 2);
                         if (fog > 0.88f)
-                            _t.Put(ox + x, oy + y, fog > 0.96f ? '▒' : '·', Rgb.Lerp(theme.Background, theme.Rule, fog > 0.96f ? 0.16f : 0.30f), false, theme.Background);
+                            PutTile(sq, ox + x * sq, oy + y, fog > 0.96f ? '▒' : '·', Rgb.Lerp(theme.Background, theme.Rule, fog > 0.96f ? 0.16f : 0.30f), false, theme.Background, false);
                         continue;
                     }
 
@@ -253,9 +256,11 @@ namespace Ossuary.Core
                         else if (vt == TileKind.WallDark) g = hv < 0.7f ? '#' : '▓';
                     }
 
+                    bool water = false;
                     if (t == TileKind.Floor || t == TileKind.FloorAlt)
                     {
                         var sk = map.SurfaceAt(mx, my);
+                        water = sk == SurfaceKind.Water && vis;
                         if (sk != SurfaceKind.None && (vis || sk != SurfaceKind.Fire))
                         {
                             theme.SurfaceStyle(sk, mx, my, _g.Turn, out char sg, out Rgb sfg, out Rgb sbg);
@@ -263,13 +268,19 @@ namespace Ossuary.Core
                         }
                     }
 
+                    if ((t == TileKind.Floor || t == TileKind.FloorAlt) && TrapTable.IsRevealed(map.Number, mx, my))
+                    {
+                        g = '^'; fg = theme.Warn; bold = true;
+                    }
+
+                    bool entity = false;
                     if (vis)
                     {
                         var item = TopItemAt(mx, my);
                         if (item != null)
                         {
                             Rgb ic = theme.ItemRaw(item);
-                            g = item.Def.Glyph; fg = ic; bold = true;
+                            g = item.Def.Glyph; fg = ic; bold = true; entity = true;
                             bg = Rgb.Lerp(bg, ic * 0.35f, 0.45f);
                         }
 
@@ -277,7 +288,7 @@ namespace Ossuary.Core
                         if (m != null)
                         {
                             Rgb mc = Theme.Mon(m.Def.Color);
-                            g = m.Glyph; fg = mc; bold = true;
+                            g = m.Glyph; fg = mc; bold = true; entity = true;
                             bg = Rgb.Lerp(bg, mc * 0.32f, 0.60f);
                         }
                     }
@@ -291,22 +302,34 @@ namespace Ossuary.Core
                     }
                     else if (vis) light = 0.75f;
                     theme.Shade(fg, bg, light, !vis, out Rgb ofg, out Rgb obg);
-                    _t.Put(ox + x, oy + y, g, ofg, bold, obg);
+                    PutTile(sq, ox + x * sq, oy + y, g, ofg, bold, obg, entity);
+                    if (water && g != '@' && _g.MonsterAt(mx, my) == null) { _t.Shimmer(ox + x * sq, oy + y); if (sq == 2) _t.Shimmer(ox + x * sq + 1, oy + y); }
                 }
             }
 
-            int px = ox + (p.X - cx), py = oy + (p.Y - cy);
+            int px = ox + (p.X - cx) * sq, py = oy + (p.Y - cy);
             if (px >= ox && py >= oy && px < ox + w && py < oy + h)
-                _t.Put(px, py, '@', theme.Accent, true, theme.Remap(Rgb.FromHex(0x6A4220), true));
+            {
+                Rgb pbg = theme.Remap(Rgb.FromHex(0x6A4220), true);
+                _t.Put(px, py, '@', theme.Accent, true, pbg);
+                if (sq == 2) _t.Put(px + 1, py, ' ', theme.Accent, false, pbg);
+            }
 
-            DrawCursors(ox, oy, w, h, cx, cy, theme);
+            DrawCursors(ox, oy, w, h, cx, cy, theme, sq);
         }
 
-        void DrawCursors(int ox, int oy, int w, int h, int cx, int cy, Theme theme)
+        void DrawCursors(int ox, int oy, int w, int h, int cx, int cy, Theme theme, int sq = 1)
         {
-            if (State.IsTargeting) PutCursor(ox + (State.TargetX - cx), oy + (State.TargetY - cy), ox, oy, w, h, '◎', theme);
+            if (State.IsTargeting) PutCursor(ox + (State.TargetX - cx) * sq, oy + (State.TargetY - cy), ox, oy, w, h, '◎', theme);
             if (State.Active == Panel.Travel || State.TravelMode)
-                PutCursor(ox + (State.TravelX - cx), oy + (State.TravelY - cy), ox, oy, w, h, '◊', theme);
+                PutCursor(ox + (State.TravelX - cx) * sq, oy + (State.TravelY - cy), ox, oy, w, h, '◊', theme);
+        }
+
+        /// <summary>One map cell: one screen column, or two when tiles are square. Scenery repeats across both, things stand on the left.</summary>
+        void PutTile(int sq, int sx, int sy, char g, Rgb fg, bool bold, Rgb bg, bool entity)
+        {
+            _t.Put(sx, sy, g, fg, bold, bg);
+            if (sq == 2) _t.Put(sx + 1, sy, entity ? ' ' : g, fg, bold && !entity, bg);
         }
 
         // The cursor keeps the cell's own background so the terrain stays readable under it.
@@ -329,14 +352,16 @@ namespace Ossuary.Core
         {
             var world = _g.World;
             var theme = Theme.Current;
-            int cx = world.W <= w ? -((w - world.W) / 2) : Math.Max(0, Math.Min(world.PlayerX - w / 2, world.W - w));
+            int sq = DisplaySettings.Current.Square ? 2 : 1;
+            int cellsW = Math.Max(1, w / sq);
+            int cx = world.W <= cellsW ? -((cellsW - world.W) / 2) : Math.Max(0, Math.Min(world.PlayerX - cellsW / 2, world.W - cellsW));
             int cy = world.H <= h ? -((h - world.H) / 2) : Math.Max(0, Math.Min(world.PlayerY - h / 2, world.H - h));
             CameraX = cx; CameraY = cy;
 
             for (int y = 0; y < h; y++)
             {
                 int my = cy + y;
-                for (int x = 0; x < w; x++)
+                for (int x = 0; x < cellsW; x++)
                 {
                     int mx = cx + x;
                     if (!world.InBounds(mx, my)) continue;
@@ -344,29 +369,31 @@ namespace Ossuary.Core
                     if (!t.Discovered)
                     {
                         float fog = Theme.Hash01(mx * 3 + 1, my * 7 + 2);
-                        if (fog > 0.9f) _t.Put(ox + x, oy + y, '·', Rgb.Lerp(theme.Background, theme.Rule, 0.30f), false, theme.Background);
+                        if (fog > 0.9f) PutTile(sq, ox + x * sq, oy + y, '·', Rgb.Lerp(theme.Background, theme.Rule, 0.30f), false, theme.Background, false);
                         continue;
                     }
                     theme.Terrain(t.Terrain, t.Feature, mx, my, world.Hour, out char g, out Rgb fg, out Rgb bg);
-                    _t.Put(ox + x, oy + y, g, fg, t.Feature != OverworldFeature.None, bg);
+                    PutTile(sq, ox + x * sq, oy + y, g, fg, t.Feature != OverworldFeature.None, bg, t.Feature != OverworldFeature.None);
                 }
             }
 
-            int px = ox + (world.PlayerX - cx), py = oy + (world.PlayerY - cy);
+            int px = ox + (world.PlayerX - cx) * sq, py = oy + (world.PlayerY - cy);
             _t.Put(px, py, '@', theme.Accent, true, _t.BgAt(px, py));
+            if (sq == 2) _t.Put(px + 1, py, ' ', theme.Accent, false, _t.BgAt(px, py));
 
             if (_g.ActiveEncounter && _g.EncounterMonster != null)
             {
-                int ex = ox + (_g.EncounterX - cx), ey = oy + (_g.EncounterY - cy);
+                int ex = ox + (_g.EncounterX - cx) * sq, ey = oy + (_g.EncounterY - cy);
                 if (ex >= ox && ey >= oy && ex < ox + w && ey < oy + h)
                 {
                     var mon = _g.EncounterMonster;
                     _t.Put(ex, ey, mon.Glyph, theme.Remap(Theme.Mon(mon.Def.Color), false), true, _t.BgAt(ex, ey));
+                    if (sq == 2) _t.Put(ex + 1, ey, ' ', theme.Text, false, _t.BgAt(ex, ey));
                     if (ey - 1 >= oy) _t.Put(ex, ey - 1, '▼', theme.Warn, true, _t.BgAt(ex, ey - 1));
                 }
             }
 
-            DrawCursors(ox, oy, w, h, cx, cy, theme);
+            DrawCursors(ox, oy, w, h, cx, cy, theme, sq);
         }
 
         // -------------------------------------------------------------- sidebar
@@ -932,6 +959,8 @@ namespace Ossuary.Core
                 case Panel.Shop: DrawShopPanel(); break;
                 case Panel.Settings: DrawSettingsPanel(); break;
                 case Panel.Controls: DrawControlsPanel(); break;
+                case Panel.Runs: DrawRunsPanel(); break;
+                case Panel.Achievements: DrawAchievementsPanel(); break;
                 case Panel.Create: DrawCreatePanel(); break;
                 case Panel.Spells: DrawSpellsPanel(); break;
                 case Panel.Abilities: DrawAbilitiesPanel(); break;
@@ -1128,7 +1157,12 @@ namespace Ossuary.Core
                 { "f", "fire at a target" },
                 { "k", "kick or attack ahead" },
                 { "u  D", "use a key / open a door" },
-                { "s", "search for traps and doors" },
+                { "s  Shift+S", "search for traps and doors / rest until healed" },
+                { "Shift+A", "disarm a trap you have found" },
+                { "Shift+E", "drink at a fountain (it may be tainted)" },
+                { "Shift+B", "craft: combine what you carry" },
+                { "Shift+N", "train a skill with XP (Trained mode)" },
+                { "t  `  ~", "auto-explore / travel to the stairs / to an altar or fountain" },
                 { "l  x  X", "look / inspect / swap with" },
                 { "O", "travel on the overworld" },
                 { "m", "toggle the minimap" },
@@ -1207,14 +1241,39 @@ namespace Ossuary.Core
             }
             y++;
             _t.Write(x, y++, "Skills", theme.Label, false, theme.Panel);
+            if (p.Trained) _t.WriteClipped(x + 20, y - 1, $"XP to spend: {p.TrainXp}", theme.Gold, iw - 20, true, theme.Panel);
             foreach (var kv in p.Skills)
             {
                 int cap = role.CapFor(kv.Key);
                 string capText = cap < 100 ? $"  (max {cap})" : "";
                 _t.Write(x + 2, y++, $"{kv.Key,-10}{kv.Value,3}  {SkillRanks.Name(kv.Value),-8}{capText}", theme.Text, false, theme.Panel);
             }
+            {
+                var houses = new System.Collections.Generic.List<string>();
+                foreach (string house in Houses.All) { int r = _g.RepOf(house); if (r != 0) houses.Add($"{Loc.T(Houses.Name(house))} {r:+#;-#;0}"); }
+                if (houses.Count > 0) _t.WriteClipped(x, y++, Loc.T("Standing") + ": " + string.Join(", ", houses.ToArray()), theme.Info, iw, false, theme.Panel);
+                foreach (var c in _g.Contracts)
+                    _t.WriteClipped(x, y++, $"{Loc.T("Job")}: {c.Describe()} ({System.Math.Min(c.Done, c.Count)}/{c.Count})" + (c.Complete ? " ✓" : ""), c.Complete ? theme.Good : theme.Dim, iw, false, theme.Panel);
+            }
+            foreach (var comp in _g.Companions)
+                _t.WriteClipped(x, y++, $"Companion: {comp.Name}, level {comp.Level}, {System.Math.Max(0, comp.HP)}/{comp.MaxHP} HP", theme.Good, iw, false, theme.Panel);
+            if (p.Corruption > 0 || p.Mutated.Count > 0)
+            {
+                _t.WriteClipped(x, y++, $"Corruption {p.Corruption}/{Game.CorruptionMax}", p.Corruption >= 60 ? theme.Bad : theme.Warn, iw, true, theme.Panel);
+                var muts = new System.Collections.Generic.List<string>();
+                foreach (string id in p.Mutated) { var mu = MutationTable.Find(id); if (mu != null) muts.Add(Loc.T(mu.Name)); }
+                if (muts.Count > 0) _t.WriteClipped(x, y++, Loc.T("Mutations") + ": " + string.Join(", ", muts.ToArray()), theme.Info, iw, false, theme.Panel);
+            }
+            if (_g.StealthReduction() > 0 || _g.ArmourClatter() > 0)
+                _t.WriteClipped(x, y++, _g.ArmourClatter() > 0 ? $"Stealth: notice -{_g.StealthReduction()}, armour rattles +{_g.ArmourClatter()}" : $"Stealth: monsters notice you {_g.StealthReduction()} square(s) later", theme.Info, iw, false, theme.Panel);
             var gearLines = p.Gear.Lines();
             if (gearLines.Count > 0) _t.WriteClipped(x, y++, "Gear: " + string.Join(", ", gearLines.ToArray()), theme.Info, iw, false, theme.Panel);
+            foreach (var set in ArtifactSets.All)
+            {
+                int pieces = ArtifactSets.Worn(p, set.Id);
+                if (pieces > 0) _t.WriteClipped(x, y++, $"Set: {Loc.T(set.Name)} {pieces}/3", pieces >= 2 ? theme.Gold : theme.Dim, iw, false, theme.Panel);
+            }
+            if (_g.WornRelics() > 0) _t.WriteClipped(x, y++, $"Relics worn: {_g.WornRelics()} (they corrupt)", theme.Warn, iw, false, theme.Panel);
             var faith = Gods.Find(p.God);
             if (faith != null) _t.WriteClipped(x, y++, $"Faith: {faith.Name}, {faith.Title} - piety {p.Piety}/{Gods.MaxPiety}" + (p.GodTier > 0 ? $" (tier {p.GodTier})" : ""), theme.Gold, iw, false, theme.Panel);
             var traits = Races.Find(p.RaceId).TraitLines();
@@ -1229,7 +1288,7 @@ namespace Ossuary.Core
             var theme = Theme.Current;
             var c = State.Create;
             string hint = c.Step == CreateStep.Name ? "Enter next  Esc title"
-                : c.Step == CreateStep.Confirm ? "Enter begin  Esc back" : "Up/Down choose  Enter next  Esc back";
+                : c.Step == CreateStep.Confirm ? "◄► mode  Enter begin  Esc back" : "Up/Down choose  Enter next  Esc back";
             PanelRect(out int px, out int py, out int pw, out int ph, 80, 25, "New character", hint);
             int x = px + 3, iw = pw - 6;
             var race = Races.All[c.RaceIndex];
@@ -1281,6 +1340,10 @@ namespace Ossuary.Core
             if (c.Step == CreateStep.Confirm)
             {
                 string who = $"{Heroes.CleanName(c.Name)} the {race.Name} {role.Name}";
+                _t.WriteClipped(x, py + ph - 5, "Mode", theme.Label, 6, false, theme.Panel);
+                string dn = Loc.T(Difficulties.Name(c.Difficulty));
+                _t.Write(x + 6, py + ph - 5, "◄ " + dn + " ►", theme.Accent, true, theme.Panel);
+                _t.WriteClipped(x + 8 + dn.Length + 5, py + ph - 5, Loc.T(Difficulties.Blurb(c.Difficulty)), theme.Dim, iw - dn.Length - 14, false, theme.Panel);
                 _t.WriteClipped(x, py + ph - 3, "Begin as " + who + "?  (Enter)", theme.Good, iw, true, theme.Panel);
             }
         }
@@ -1380,6 +1443,8 @@ namespace Ossuary.Core
             _t.WriteClipped(x, y++, $"Boon ({god.BoonCost} piety): " + god.Boon, theme.Text, iw, false, theme.Panel);
             _t.WriteClipped(x, y++, $"Piety {Gods.Tier1At}: " + god.Tier1, theme.Info, iw, false, theme.Panel);
             _t.WriteClipped(x, y++, $"Piety {Gods.Tier2At}: " + god.Tier2, theme.Info, iw, false, theme.Panel);
+            var rival = Gods.Find(god.Rival);
+            if (rival != null) _t.WriteClipped(x, y++, "Rival: " + rival.Name, theme.Dim, iw, false, theme.Panel);
             y++;
             if (p.God == god.Id)
             {
@@ -1606,9 +1671,13 @@ namespace Ossuary.Core
                 case MenuRow.Theme: return Loc.T(DisplaySettings.Describe(DisplaySettings.Current.Preset));
                 case MenuRow.Crt: return DisplaySettings.Current.Crt == CrtLevel.Off ? Loc.T("Flat pixels, no scanlines.") : Loc.T("Curvature, scanlines, phosphor glow.");
                 case MenuRow.Scale: return DisplaySettings.Current.Scale == 0 ? Loc.T("The largest that fits the window.") : (Loc.Current == Lang.Pt ? "Fixo: cada pixel da fonte vale " : "Fixed: each font pixel is ") + DisplaySettings.Current.Scale + "x" + DisplaySettings.Current.Scale + (Loc.Current == Lang.Pt ? " pixels de tela." : " screen pixels.");
+                case MenuRow.Tiles: return Loc.T(DisplaySettings.Current.Square ? "Each map cell is two columns wide: the world looks square." : "One column per map cell: the world looks tall and narrow.");
                 case MenuRow.Language: return Loc.T("Portuguese (Brazil) or English.");
-                case MenuRow.Master: case MenuRow.Music: case MenuRow.Effects: return Loc.T("Saved now; takes effect when sound is added.");
+                case MenuRow.Master: case MenuRow.Effects: return Loc.T("Short square-wave bleeps: hits, kills, wounds, warnings.");
+                case MenuRow.Music: return Loc.T("Music is not written yet.");
                 case MenuRow.Controls: return Loc.T("Rebind any key.");
+                case MenuRow.Achievements: return Loc.T("What you have done across all your runs.");
+                case MenuRow.PastRuns: return Loc.T("Your finished expeditions, newest first.");
                 case MenuRow.MainMenu: return Loc.T("Saves the run and returns to the title.");
                 default: return Loc.T("Saves the run and closes the game.");
             }
@@ -1618,7 +1687,7 @@ namespace Ossuary.Core
         {
             var theme = Theme.Current;
             var set = DisplaySettings.Current;
-            PanelRect(out int px, out int py, out int pw, out int ph, 60, 24, Loc.T("Menu"), Loc.T("Esc resumes"));
+            PanelRect(out int px, out int py, out int pw, out int ph, 60, 27, Loc.T("Menu"), Loc.T("Esc resumes"));
             int x = px + 3, iw = pw - 6;
             int sel = State.SettingsIndex;
             int y = py + 2;
@@ -1663,6 +1732,7 @@ namespace Ossuary.Core
             Row(MenuRow.Theme, "Theme", DisplaySettings.Name(set.Preset), true);
             Row(MenuRow.Crt, "CRT", DisplaySettings.Name(set.Crt), true);
             Row(MenuRow.Scale, "Text size", DisplaySettings.ScaleName(set.Scale), true);
+            Row(MenuRow.Tiles, "Tiles", set.Square ? "Square" : "Narrow", true);
             Row(MenuRow.Language, "Language", Loc.Name(set.Language), true);
             Header("Audio");
             var audio = AudioSettings.Current;
@@ -1671,6 +1741,8 @@ namespace Ossuary.Core
             Row(MenuRow.Effects, "Effects", null, true, audio.Effects);
             Header("Game");
             Row(MenuRow.Controls, "Controls", "rebind keys", false);
+            Row(MenuRow.Achievements, "Achievements", "local", false);
+            Row(MenuRow.PastRuns, "Past runs", "history", false);
             Row(MenuRow.MainMenu, "Main menu", null, false, -1, off);
             Row(MenuRow.Quit, "Quit game", null, false, -1, theme.Bad);
 
@@ -1740,6 +1812,82 @@ namespace Ossuary.Core
             _t.WriteClipped(x, py + ph - 2, hint, theme.Dim, iw, false, theme.Panel);
         }
 
+        // ------------------------------------------------------------------ achievements
+
+        void DrawAchievementsPanel()
+        {
+            var theme = Theme.Current;
+            var all = Achievements.All;
+            int got = 0;
+            foreach (var a in all) if (State.Unlocked.ContainsKey(a.Id)) got++;
+            PanelRect(out int px, out int py, out int pw, out int ph, 76, 24, "Achievements", "Esc back");
+            int x = px + 3, iw = pw - 6;
+            _t.Write(x, py + 2, $"{got}/{all.Length}", got == all.Length ? theme.Gold : theme.Label, true, theme.Panel);
+            int sel = Math.Max(0, Math.Min(State.AchIndex, all.Length - 1));
+            int visible = Math.Max(3, ph - 8);
+            int start = Math.Max(0, Math.Min(sel - visible / 2, all.Length - visible));
+            for (int r = 0; r < visible && start + r < all.Length; r++)
+            {
+                var a = all[start + r];
+                bool has = State.Unlocked.TryGetValue(a.Id, out string when);
+                bool on = start + r == sel;
+                int y = py + 4 + r;
+                Rgb bg = on ? theme.PanelHi : theme.Panel;
+                if (on) RowBar(px + 1, y, pw - 2, theme);
+                _t.Put(px + 2, y, on ? '▶' : ' ', theme.Accent, true, bg);
+                _t.Put(x + 1, y, has ? '♦' : '·', has ? theme.Gold : theme.Dim, true, bg);
+                _t.WriteClipped(x + 3, y, Loc.T(a.Name), has ? (on ? theme.Accent : theme.Text) : theme.Dim, 22, on, bg);
+                _t.WriteClipped(x + 27, y, has ? when : "", theme.Dim, iw - 27, false, bg);
+            }
+            var s = all[sel];
+            _t.HLine(px + 2, py + ph - 4, pw - 4, theme.Rule);
+            _t.WriteClipped(x, py + ph - 3, Loc.T(s.Blurb), theme.Text, iw, false, theme.Panel);
+        }
+
+        // ------------------------------------------------------------------ past runs
+
+        void DrawRunsPanel()
+        {
+            var theme = Theme.Current;
+            PanelRect(out int px, out int py, out int pw, out int ph, 84, 24, State.RunsDaily ? "Daily board" : "Past runs", "D daily board   Esc back");
+            int x = px + 3, iw = pw - 6;
+            var list = State.Runs;
+            if (list.Count == 0)
+            {
+                _t.WriteClipped(x, py + 3, Loc.T(State.RunsDaily ? "No daily runs yet." : "No finished runs yet."), theme.Dim, iw, false, theme.Panel);
+                return;
+            }
+            int sel = Math.Max(0, Math.Min(State.RunsIndex, list.Count - 1));
+            int visible = Math.Max(3, ph - 8);
+            int start = Math.Max(0, Math.Min(sel - visible / 2, list.Count - visible));
+            _t.WriteClipped(x + 2, py + 2, Loc.T("Hero") + new string(' ', 0), theme.Label, 18, false, theme.Panel);
+            _t.Write(x + 22, py + 2, Loc.T("Class"), theme.Label, false, theme.Panel);
+            _t.Write(x + 40, py + 2, "Dlvl", theme.Label, false, theme.Panel);
+            _t.Write(x + 46, py + 2, Loc.T("End"), theme.Label, false, theme.Panel);
+            _t.Write(x + 62, py + 2, Loc.T("Score"), theme.Label, false, theme.Panel);
+            for (int r = 0; r < visible && start + r < list.Count; r++)
+            {
+                var run = list[start + r];
+                int y = py + 3 + r;
+                bool on = start + r == sel;
+                Rgb bg = on ? theme.PanelHi : theme.Panel;
+                if (on) RowBar(px + 1, y, pw - 2, theme);
+                _t.Put(px + 2, y, on ? '▶' : ' ', theme.Accent, true, bg);
+                Rgb end = run.Outcome == "won" ? theme.Good : run.Outcome == "abandoned" ? theme.Dim : theme.Danger;
+                _t.WriteClipped(x + 2, y, (run.Daily.Length > 0 ? "◆ " : "") + run.Name, on ? theme.Accent : theme.Text, 18, on, bg);
+                _t.WriteClipped(x + 22, y, Loc.T(run.Role) + " " + run.Level, theme.Text, 17, false, bg);
+                _t.Write(x + 40, y, run.MaxDepth.ToString(), theme.Text, false, bg);
+                _t.WriteClipped(x + 46, y, Loc.T(run.Outcome), end, 15, false, bg);
+                _t.Write(x + 62, y, run.Score.ToString(), theme.Gold, false, bg);
+            }
+            var sr = list[sel];
+            _t.HLine(px + 2, py + ph - 5, pw - 4, theme.Rule);
+            string how = sr.Outcome == "won" ? Loc.T("Escaped with the Amulet of Yendor.") : sr.Outcome == "abandoned" ? Loc.T("Abandoned the run.") : Loc.T("Killed by") + " " + Loc.T(sr.Cause);
+            _t.WriteClipped(x, py + ph - 4, how, theme.Text, iw, true, theme.Panel);
+            _t.WriteClipped(x, py + ph - 3, $"{sr.Race} {Loc.T(sr.Role)}, {sr.Title}   {sr.Branch} {sr.Depth}   {sr.Turns} {Loc.T("Turns")}   {sr.Kills} {Loc.T("Kills")}", theme.Dim, iw, false, theme.Panel);
+            _t.WriteClipped(x, py + ph - 2, $"{sr.Date}   {Loc.T("Seed")} {sr.Seed}" + (sr.Daily.Length > 0 ? $"   {Loc.T("Daily")} {sr.Daily}" : "") + (sr.Mode != "Normal" ? $"   {Loc.T(sr.Mode)}" : ""), theme.Dim, iw, false, theme.Panel);
+        }
+
         static bool SameKeys(KeyBindings binds, int action)
         {
             var d = KeyBindings.Actions[action].Defaults; var k = binds.KeysOf(action);
@@ -1769,6 +1917,8 @@ namespace Ossuary.Core
             CentreOn(px, pw, py + 6, p.Name ?? "Adventurer", theme.Text, true);
             CentreOn(px, pw, py + 7, $"Dlvl {p.MaxDepth}   {p.Kills} kills", theme.Dim, false);
 
+            string cause = _g.Abandoned ? Loc.T("Abandoned the run.") : _g.DeathCause != null ? Loc.T("Killed by") + " " + Loc.T(_g.DeathCause) : "";
+            if (cause.Length > 0) CentreOn(px, pw, py + 9, cause.Length > pw - 4 ? cause.Substring(0, pw - 4) : cause, theme.Warn, false);
             CentreOn(px, pw, py + 11, "You have died.", theme.Danger, true);
             CentreOn(px, pw, py + 13, "Any key begins again.", theme.Text, false);
             CentreOn(px, pw, py + 14, "Esc quits.", theme.Dim, false);

@@ -132,6 +132,55 @@ namespace Ossuary.Core.Items
         public string Id, Name, Base, Branch, Lore;
         public int Depth, Enchant;
         public ItemMods Mods;
+        /// <summary>The set this piece belongs to (see <see cref="ArtifactSets"/>), or null.</summary>
+        public string Set;
+        /// <summary>A relic: strong, but every 25 turns it is carried it presses a point of corruption into you.</summary>
+        public bool Corrupts;
+    }
+
+    /// <summary>A named set of artifacts. Wearing two pieces grants the first bonus, three the second as well.</summary>
+    public sealed class ArtifactSetDef
+    {
+        public string Id, Name;
+        public ItemMods Two, Three;
+    }
+
+    public static class ArtifactSets
+    {
+        public static readonly ArtifactSetDef[] All =
+        {
+            new ArtifactSetDef { Id = "drowned-court", Name = "The Drowned Court", Two = new ItemMods { ResCold = 20, Wis = 1 }, Three = new ItemMods { Mp = 10, ResLightning = 30 } },
+            new ArtifactSetDef { Id = "ashen-regalia", Name = "The Ashen Regalia", Two = new ItemMods { ResFire = 20, Ac = 1 }, Three = new ItemMods { Dmg = 2, ResFire = 20 } },
+        };
+
+        public static ArtifactSetDef Find(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return null;
+            foreach (var s in All) if (s.Id == id) return s;
+            return null;
+        }
+
+        /// <summary>How many pieces of a set the hero has on (the wielded weapon counts).</summary>
+        public static int Worn(Entities.Player p, string setId)
+        {
+            int n = 0;
+            if (p.Wielded != null && Artifacts.Find(p.Wielded.ArtifactId)?.Set == setId) n++;
+            foreach (var piece in p.WornPieces()) if (Artifacts.Find(piece.ArtifactId)?.Set == setId) n++;
+            return n;
+        }
+
+        /// <summary>The bonus from every set the hero is partly wearing.</summary>
+        public static ItemMods Bonus(Entities.Player p)
+        {
+            var m = new ItemMods();
+            foreach (var s in All)
+            {
+                int n = Worn(p, s.Id);
+                if (n >= 2) m.Add(s.Two);
+                if (n >= 3) m.Add(s.Three);
+            }
+            return m;
+        }
     }
 
     public static class Artifacts
@@ -144,9 +193,33 @@ namespace Ossuary.Core.Items
             new ArtifactDef { Id = "rat-kings-tooth", Name = "Rat King's Tooth", Base = "dagger", Branch = "The Warrens", Depth = 7, Enchant = 2,
                 Lore = "Gnawed, not forged. It drinks.", Mods = new ItemMods { Dex = 2, ExtraType = DamageType.Poison, ExtraSides = 4, LifeSteal = 20 } },
             new ArtifactDef { Id = "crown-drowned-king", Name = "Crown of the Drowned King", Base = "dwarvish helm", Branch = "The Sunken Vaults", Depth = 10, Enchant = 3,
-                Lore = "Cold as the water that took him. It still wants a head to wear it.", Mods = new ItemMods { Wis = 3, Mp = 8, ResCold = 40 } },
+                Lore = "Cold as the water that took him. It still wants a head to wear it.", Mods = new ItemMods { Wis = 3, Mp = 8, ResCold = 40 }, Set = "drowned-court" },
             new ArtifactDef { Id = "ashfall", Name = "Ashfall", Base = "long sword", Branch = "The Ashen Spire", Depth = 13, Enchant = 2,
-                Lore = "Forged to burn the dead. It could not tell the difference.", Mods = new ItemMods { ResFire = 40, ExtraType = DamageType.Fire, ExtraSides = 6 } },
+                Lore = "Forged to burn the dead. It could not tell the difference.", Mods = new ItemMods { ResFire = 40, ExtraType = DamageType.Fire, ExtraSides = 6 }, Set = "ashen-regalia" },
+
+            // The Drowned Court: three pieces of a sunken king's regalia.
+            new ArtifactDef { Id = "tidecallers-gauntlets", Name = "Tidecaller's Gauntlets", Base = "gauntlets", Branch = "The Sunken Vaults", Depth = 5, Enchant = 2, Set = "drowned-court",
+                Lore = "They close like a tide. Whoever wore them once held the water back.", Mods = new ItemMods { Str = 1, ResCold = 15 } },
+            new ArtifactDef { Id = "brinewalkers", Name = "Brinewalkers", Base = "iron boots", Branch = "The Sunken Vaults", Depth = 8, Enchant = 2, Set = "drowned-court",
+                Lore = "They never dry. They never slip, either.", Mods = new ItemMods { Evasion = 2, ResLightning = 20 } },
+
+            // The Ashen Regalia: what the Spire's masters wore.
+            new ArtifactDef { Id = "mantle-of-ash", Name = "Mantle of Ash", Base = "cloak", Branch = "The Ashen Spire", Depth = 8, Enchant = 2, Set = "ashen-regalia",
+                Lore = "Grey flakes fall from it as you walk, and every flake is still warm.", Mods = new ItemMods { ResFire = 25, Evasion = 1 } },
+            new ArtifactDef { Id = "cinder-plate", Name = "Cinder Plate", Base = "plate mail", Branch = "The Ashen Spire", Depth = 11, Enchant = 3, Set = "ashen-regalia",
+                Lore = "Black plate, glowing at the seams. The last owner is still inside, in a way.", Mods = new ItemMods { Con = 2, ResFire = 20 } },
+
+            // The Annex's prize: a cloak for those who paid every debt.
+            new ArtifactDef { Id = "tithe-mantle", Name = "Tithe-Collector's Mantle", Base = "cloak of elvenkind", Branch = "The Annex", Depth = 3, Enchant = 3,
+                Lore = "Woven from the receipts of everything the Annex ever took. It has no weight. It has a great deal of memory.", Mods = new ItemMods { Evasion = 3, ResNecrotic = 40, Hp = 12, Wis = 1 } },
+
+            // Relics: strong, and they take something back.
+            new ArtifactDef { Id = "hollow-ribs", Name = "Hollow Ribs", Base = "splint mail", Branch = "The Dungeons", Depth = 9, Enchant = 4, Corrupts = true,
+                Lore = "A cage of ribs, hollowed out to be worn. It holds you like it held something else.", Mods = new ItemMods { Hp = 20, Con = 2 } },
+            new ArtifactDef { Id = "gravediggers-spade", Name = "Gravedigger's Spade", Base = "war hammer", Branch = "The Mines of Dwarfdeep", Depth = 7, Enchant = 3, Corrupts = true,
+                Lore = "It has dug more graves than anything alive. It wants to keep digging.", Mods = new ItemMods { Dmg = 3, ExtraType = DamageType.Necrotic, ExtraSides = 6 } },
+            new ArtifactDef { Id = "gnawed-cowl", Name = "Gnawed Cowl", Base = "orcish helm", Branch = "The Warrens", Depth = 8, Enchant = 3, Corrupts = true,
+                Lore = "The Rat King's thoughts still crawl in the lining. They are clever. They are hungry.", Mods = new ItemMods { Int = 3, Mp = 10, Evasion = 1 } },
         };
 
         public static ArtifactDef Find(string id)

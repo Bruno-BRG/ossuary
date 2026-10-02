@@ -6,6 +6,7 @@ const strings = {
   random: { pt: 'Aleatória', en: 'Random' },
   continue: { pt: 'CONTINUAR', en: 'CONTINUE' },
   begin: { pt: 'NOVA EXPEDIÇÃO', en: 'NEW EXPEDITION' },
+  daily: { pt: 'DESAFIO DIÁRIO', en: 'DAILY CHALLENGE' },
   options: { pt: 'OPÇÕES', en: 'OPTIONS' },
   retry: { pt: 'Tentar novamente', en: 'Try again' },
   preparing: { pt: 'Preparando o terminal…', en: 'Preparing the terminal…' },

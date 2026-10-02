@@ -10,6 +10,13 @@ namespace Ossuary.Desktop
         {
             if (!condition) throw new Exception("Desktop test failed: " + label);
         }
+        /// <summary>Moves the menu cursor down until it is on the row, whatever rows come before it.</summary>
+        static void Seek(Session s, MenuRow row)
+        {
+            for (int i = 0; i < 40 && MenuRows.All[s.Game.UiState.SettingsIndex] != row; i++) s.Key("ArrowDown");
+            Check(MenuRows.All[s.Game.UiState.SettingsIndex] == row, "test setup: menu row " + row);
+        }
+
         static void Menus()
         {
             var s = new Session(); s.New(31337); s.Resize(110, 36); s.Draw();
@@ -26,7 +33,7 @@ namespace Ossuary.Desktop
             Check(s.Game.UiState.Active == Panel.None, "Escape closes the pause menu");
             // Volume rows clamp and persist as data.
             s.Key("F2"); s.Draw();
-            for (int i = 0; i < 6; i++) s.Key("ArrowDown");
+            Seek(s, MenuRow.Master);
             int master = AudioSettings.Current.Master;
             for (int i = 0; i < 4; i++) s.Key("ArrowRight");
             Check(AudioSettings.Current.Master == Math.Min(AudioSettings.Max, master + 4), "volume changes and clamps");
@@ -35,10 +42,7 @@ namespace Ossuary.Desktop
             AudioSettings.Current.Load("8,6,8");
             s.Key("Escape"); s.Key("Period", "."); s.Draw();   // a real turn, so there is a run to save
             s.Key("F2"); s.Draw();
-            for (int i = 0; i < 10; i++) s.Key("ArrowDown");
-            s.Key("ArrowUp"); s.Key("ArrowUp"); s.Key("ArrowUp"); s.Key("ArrowUp");
-            // Master -> Music -> Effects -> Controls -> Main menu
-            for (int i = 0; i < 4; i++) s.Key("ArrowDown");
+            Seek(s, MenuRow.MainMenu);
             s.Draw();
             s.Key("Enter"); var f = s.Draw();
             Check(f.ToTitle && s.Game != null, "main menu returns to the title");
@@ -86,7 +90,7 @@ namespace Ossuary.Desktop
             b.ResetAll();
             // Rebinding through the Controls panel itself.
             s.Key("F2"); s.Draw();
-            for (int i = 0; i < 9; i++) s.Key("ArrowDown");
+            Seek(s, MenuRow.Controls);
             s.Key("Enter"); s.Draw();
             Check(s.Game.UiState.Active == Panel.Controls, "menu opens the controls panel");
             s.Key("Enter"); s.Draw();
@@ -283,6 +287,209 @@ namespace Ossuary.Desktop
             Check(f.Game.UiState.Active == Panel.None, "Esc closes abilities");
         }
 
+        /// <summary>A finished run leaves one history entry and one morgue file, however many frames are drawn.</summary>
+        static void RunRecorded()
+        {
+            var s = new Session(); s.New(1357); s.Resize(110, 36); s.Draw();
+            s.Key("Period", "."); s.Draw();
+            int before = SaveStore.ReadHistory().Count;
+            s.Game.Player.HP = 0; s.Game.CheckDeath();
+            s.Draw(); s.Draw();
+            var history = SaveStore.ReadHistory();
+            Check(history.Count == before + 1, "a death is recorded exactly once");
+            Check(s.LastMorgue != null && System.IO.File.Exists(s.LastMorgue), "the morgue file exists");
+            Check(System.IO.File.ReadAllText(s.LastMorgue).Contains("Last words"), "the morgue file has content");
+            Check(history[history.Count - 1].Outcome == "died", "outcome is died");
+
+            // The menu lists past runs, newest first, and Esc returns to the menu.
+            s = new Session(); s.New(2468); s.Resize(110, 36); s.Draw();
+            s.Key("F2"); s.Draw();
+            for (int i = 0; i < 20 && Ossuary.Core.MenuRows.All[s.Game.UiState.SettingsIndex] != Ossuary.Core.MenuRow.PastRuns; i++) s.Key("ArrowDown");
+            Check(Ossuary.Core.MenuRows.All[s.Game.UiState.SettingsIndex] == Ossuary.Core.MenuRow.PastRuns, "test setup: Past runs row selected");
+            s.Key("Enter"); var f = s.Draw();
+            Check(s.Game.UiState.Active == Panel.Runs && s.Game.UiState.Runs.Count >= 1, "Past runs opens with the recorded runs");
+            s.Key("Escape"); s.Draw();
+            Check(s.Game.UiState.Active == Panel.Settings, "Esc returns from Past runs to the menu");
+        }
+
+        /// <summary>Achievements persist across runs and the menu lists them.</summary>
+        static void AchievementsFlow()
+        {
+            var s = new Session(); s.New(5151); s.Resize(110, 36); s.Draw();
+            s.Game.Monsters.Clear(); s.Game.Player.Kills = 1;
+            s.Key("Period", "."); s.Draw();
+            Check(SaveStore.ReadAchievements().ContainsKey("first-blood"), "an earned achievement is written to disk");
+            var s2 = new Session(); s2.New(5252); s2.Resize(110, 36); s2.Draw();
+            Check(s2.Game.AlreadyUnlocked.Contains("first-blood"), "the next run knows what is unlocked");
+            s2.Key("F2"); s2.Draw();
+            for (int i = 0; i < 20 && Ossuary.Core.MenuRows.All[s2.Game.UiState.SettingsIndex] != Ossuary.Core.MenuRow.Achievements; i++) s2.Key("ArrowDown");
+            s2.Key("Enter"); s2.Draw();
+            Check(s2.Game.UiState.Active == Panel.Achievements && s2.Game.UiState.Unlocked.ContainsKey("first-blood"), "the achievements panel opens with the unlocked ones");
+            s2.Key("ArrowDown"); s2.Key("End"); s2.Draw();
+            s2.Key("Escape"); s2.Draw();
+            Check(s2.Game.UiState.Active == Panel.Settings, "Esc returns to the menu");
+        }
+
+        /// <summary>The daily challenge is the same dungeon and hero for a date, its runs are flagged, and the board lists them best first.</summary>
+        static void DailyFlow()
+        {
+            var day = new DateTime(2026, 10, 2, 12, 0, 0, DateTimeKind.Utc);
+            var a = new Session(); a.NewDaily(day); a.Resize(110, 36); a.Draw();
+            var b = new Session(); b.NewDaily(day.AddHours(5)); b.Resize(110, 36); b.Draw();
+            var other = new Session(); other.NewDaily(day.AddDays(1)); other.Resize(110, 36); other.Draw();
+            Check(a.Game.Rng.Seed == b.Game.Rng.Seed && a.Game.Player.RaceId == b.Game.Player.RaceId && a.Game.Player.RoleId == b.Game.Player.RoleId, "one day, one seed and one hero");
+            Check(a.Game.Rng.Seed != other.Game.Rng.Seed, "another day, another seed");
+            Check(a.Intro && a.Game.Player.CharName == "Daily", "the daily opens on the story");
+
+            a.Key("Enter"); a.Draw();
+            a.Key("Period", "."); a.Game.Player.HP = 0; a.Game.CheckDeath(); a.Draw();
+            var runs = SaveStore.ReadHistory();
+            Check(runs[runs.Count - 1].Daily == "2026-10-02", "the run is flagged with its date");
+
+            var s = new Session(); s.New(99); s.Resize(110, 36); s.Draw();
+            s.Key("F2"); s.Draw();
+            for (int i = 0; i < 20 && Ossuary.Core.MenuRows.All[s.Game.UiState.SettingsIndex] != Ossuary.Core.MenuRow.PastRuns; i++) s.Key("ArrowDown");
+            s.Key("Enter"); s.Draw();
+            int all = s.Game.UiState.Runs.Count;
+            s.Key("KeyD"); s.Draw();
+            Check(s.Game.UiState.RunsDaily && s.Game.UiState.Runs.Count >= 1 && s.Game.UiState.Runs.Count <= all, "D filters to daily runs");
+            Check(s.Game.UiState.Runs.TrueForAll(r => r.Daily.Length > 0), "the daily board has only daily runs");
+            s.Key("KeyD"); s.Draw();
+            Check(!s.Game.UiState.RunsDaily && s.Game.UiState.Runs.Count == all, "D again shows everything");
+        }
+
+        /// <summary>Water cells are marked for the front end to shimmer, and only while the map is what is on screen.</summary>
+        static void WaterAnimates()
+        {
+            var s = new Session(); s.New(4747); s.Resize(110, 36); s.Draw();
+            var g = s.Game; g.Monsters.Clear();
+            int px = g.Player.X, py = g.Player.Y;
+            for (int dx = 1; dx <= 3; dx++) { g.Map.Set(px + dx, py, TileKind.Floor); g.PutSurface(px + dx, py, SurfaceKind.Water, 100); }
+            g.UpdateFov();
+            var f = s.Draw();
+            Check(f.Anim != null && f.Anim.Length >= 3, "visible water is marked, " + (f.Anim?.Length ?? -1));
+            foreach (int i in f.Anim) Check(f.Glyphs[i] == 0x2248, "a marked cell is drawn as water");
+            s.Key("KeyI", "i"); f = s.Draw();
+            Check(f.Anim.Length == 0, "nothing shimmers under an open panel");
+            s.Key("Escape"); s.Draw();
+            var empty = new Session(); empty.New(4748); empty.Resize(110, 36); empty.Game.Monsters.Clear();
+            Check(empty.Draw().Anim.Length == 0 || empty.Game.Map.Surfaces.Count > 0, "no water, nothing to animate");
+        }
+
+        /// <summary>Modes are picked on the confirm step, survive a save, and Hardcore keeps one save that resuming spends.</summary>
+        static void DifficultyFlow()
+        {
+            SaveStore.DeleteSave();
+            var s = new Session(); s.New(6006, true); s.Resize(110, 36); s.Draw();
+            var c = s.Game.UiState.Create;
+            s.Key("Enter"); s.Key("Enter"); s.Key("Enter");
+            Check(c.Step == CreateStep.Confirm && c.Difficulty == Difficulty.Normal, "confirm starts on Normal");
+            s.Key("ArrowRight"); s.Key("ArrowRight"); s.Draw();
+            Check(c.Difficulty == Difficulty.Hardcore, "arrows pick the mode");
+            for (int i = 0; i < Difficulties.All.Length - 2; i++) s.Key("ArrowRight");
+            Check(c.Difficulty == Difficulty.Normal, "the mode wraps");
+            s.Key("ArrowLeft"); Check(c.Difficulty == Difficulty.Trained, "and goes back");
+            for (int i = 0; i < Difficulties.All.Length - 3; i++) s.Key("ArrowLeft");
+            Check(c.Difficulty == Difficulty.Hardcore, "to Hardcore");
+            s.Key("Enter"); s.Draw(); s.Key("Enter"); s.Draw();   // begin, then skip the opening story
+            Check(s.Game.Difficulty == Difficulty.Hardcore, "the run is Hardcore");
+            s.Key("Period", "."); s.Draw();
+            Check(s.Save() != null && !s.HasSave, "no free save in Hardcore");
+            s.Key("F5"); s.Draw();
+            Check(!s.HasSave, "quicksave is refused in Hardcore");
+            Check(s.Save(true) == null && s.HasSave, "quitting writes the one save");
+            var back = new Session(); back.New(); back.Resize(110, 36); back.Load();
+            Check(back.Game.Difficulty == Difficulty.Hardcore && back.Game.Turn == s.Game.Turn, "the loaded run is still Hardcore");
+            Check(!back.HasSave && SaveStore.ReadSave() == null, "resuming a Hardcore run spends its save");
+
+            // Classic: nothing is eaten.
+            var g = new Game(77) { Difficulty = Difficulty.Classic };
+            int food = g.Player.Nutrient;
+            for (int i = 0; i < 300; i++) g.Wait();
+            Check(g.Player.Nutrient == food && g.Player.Hunger == 0, "Classic has no hunger");
+            var n = new Game(77);
+            for (int i = 0; i < 300; i++) n.Wait();
+            Check(n.Player.Nutrient < food, "Normal still gets hungry");
+        }
+
+        /// <summary>A death below the first level leaves bones; a replay keeps the snapshot; laying the shade to rest removes them.</summary>
+        static void BonesFlow()
+        {
+            var s = new Session(); s.New(8484); s.Resize(110, 36); s.Draw();
+            s.Key("Period", "."); s.Game.DescendTo("The Dungeons", 2); s.Draw();
+            s.Game.Player.HP = 0; s.Game.CheckDeath(); s.Draw();
+            var bones = SaveStore.ReadBones();
+            Check(bones.Exists(b => b.Key == "The Dungeons@2"), "the death left bones on its level");
+
+            var s2 = new Session(); s2.New(8585); s2.Resize(110, 36); s2.Draw();
+            Check(s2.Game.Graveyard.Exists(b => b.Key == "The Dungeons@2"), "a new run starts with the graveyard");
+            s2.Key("Period", "."); s2.Draw();
+            Check(s2.Save() == null, "the run saves");
+            SaveStore.RemoveBones("The Dungeons@2");
+            var s3 = new Session(); s3.Load(); s3.Draw();
+            Check(s3.Game.Graveyard.Exists(b => b.Key == "The Dungeons@2"), "a loaded run keeps the graveyard it began with");
+            s3.Game.LaidToRest.Add("The Dungeons@2");
+            SaveStore.WriteBones(bones.Find(b => b.Key == "The Dungeons@2"));
+            s3.Key("Period", "."); s3.Draw();
+            Check(!SaveStore.ReadBones().Exists(b => b.Key == "The Dungeons@2"), "a shade laid to rest takes its bones off disk");
+            SaveStore.DeleteSave();
+        }
+
+        /// <summary>Holding a direction keeps walking, but only while the way is calm, and never queues turns.</summary>
+        static void HeldKeyWalking()
+        {
+            var s = new Session(); s.New(4242); s.Resize(110, 36); s.Draw();
+            var g = s.Game;
+            g.Monsters.Clear();
+            int y = g.Player.Y, x0 = g.Player.X;
+            // A straight, empty corridor of twelve floor cells with a wall at the end.
+            for (int x = x0; x <= x0 + 12; x++)
+            {
+                g.Map.Set(x, y, TileKind.Floor); g.Map.Set(x, y - 1, TileKind.Wall); g.Map.Set(x, y + 1, TileKind.Wall);
+                GroundItems.RemoveCell(g.Map.Number, x, y);
+            }
+            g.Map.Set(x0 + 13, y, TileKind.Wall);
+            g.UpdateFov(); s.Draw();
+
+            int turn = g.Turn;
+            s.KeyRepeat("ArrowRight");
+            Check(g.Player.X == x0, "a repeat does nothing before a first real step");
+            s.Key("ArrowRight");
+            for (int i = 0; i < 4; i++) s.KeyRepeat("ArrowRight");
+            Check(g.Player.X == x0 + 5, "held direction keeps walking");
+            Check(g.Turn - turn == 5, "each repeat is exactly one turn");
+
+            s.KeyRepeat("KeyI", "i");
+            Check(g.UiState.Active == Panel.None, "only movement repeats");
+
+            // Something hostile steps into view: the repeat stops by itself.
+            var rat = new Monster(Bestiary.Find("giant rat"), g.Rng) { X = g.Player.X + 4, Y = y };
+            g.Monsters.Add(rat); g.UpdateFov(); s.Key("ArrowRight"); int at = g.Player.X;
+            Check(g.Map.IsCurrentlyVisible(rat.X, rat.Y), "test setup: the rat is in sight");
+            s.KeyRepeat("ArrowRight"); s.KeyRepeat("ArrowRight");
+            Check(g.Player.X == at, "a hostile in view stops the held walk");
+            g.Monsters.Clear(); g.UpdateFov();
+
+            // A fresh press rearms it.
+            s.Key("ArrowLeft"); int x1 = g.Player.X; s.KeyRepeat("ArrowLeft");
+            Check(g.Player.X == x1 - 1, "a new press rearms the walk");
+            g.Player.HP = g.Player.MaxHP;
+            s.Key("ArrowRight"); int x2 = g.Player.X;
+            GroundItems.Add(g.Map.Number, x2 + 1, y, new Ossuary.Core.Items.Item(Ossuary.Core.Items.Catalogue.Weapons[0], g.Rng, g.NextUid()));
+            s.KeyRepeat("ArrowRight"); s.KeyRepeat("ArrowRight");
+            Check(g.Player.X == x2 + 1, "an item underfoot stops the held walk");
+
+            // The auto-walk keys reach the engine: T explores, Shift+S rests, ` heads for the stairs.
+            var s2 = new Session(); s2.New(777); s2.Resize(110, 36); s2.Draw();
+            s2.Game.Monsters.Clear();
+            int t0 = s2.Game.Turn; s2.Key("KeyT", "t"); s2.Draw();
+            Check(s2.Game.Turn > t0, "T explores");
+            s2.Game.Player.HP = 1; s2.Game.Player.Nutrient = 5000; s2.Key("KeyS", "S", true); s2.Draw();
+            Check(s2.Game.Player.HP > 1, "Shift+S rests");
+            t0 = s2.Game.Turn; s2.Key("Backquote", "`"); s2.Draw();
+            Check(s2.Game.Turn >= t0, "` travels to the stairs");
+        }
+
         /// <summary>
         /// A monster in the road is fought with Enter, Space or K and fled from with R or Shift+Comma.
         /// Plain K used to be "walk north" and was refused, so the player could only ever run.
@@ -400,9 +607,9 @@ namespace Ossuary.Desktop
             s.Key("Escape"); s.Draw();
             Check(g.UiState.Active == Panel.None, "Esc leaves the altar");
             s.Key(dir > 0 ? "ArrowRight" : "ArrowLeft"); s.Draw();
-            s.Key("KeyD", "d"); s.Draw();   // fourth row: renounce, which only asks
+            s.Key("KeyF", "f"); s.Draw();   // sixth row: renounce, which only asks
             Check(g.UiState.Active == Panel.Altar && g.UiState.AltarConfirm && p.God != null, "renouncing asks twice");
-            s.Key("KeyD", "d"); s.Draw();
+            s.Key("KeyF", "f"); s.Draw();
             Check(p.God == null && g.UiState.Active == Panel.None, "the second press renounces");
         }
 
@@ -417,6 +624,7 @@ namespace Ossuary.Desktop
             var s = new Session(); s.New(31337); s.Resize(110, 36);
             var f = s.Draw();
             Check(f.Glyphs.Length == 3960 && f.Fg.Length == 3960 && f.Bg.Length == 3960, "cell protocol");
+            Check(f.Sounds != null, "every frame says what to play, even if it is nothing");
             int turn = s.Game.Turn;
             s.Key("KeyI"); s.Draw();
             Check(s.Game.UiState.Active == Panel.Inventory, "inventory request drained");
@@ -462,7 +670,7 @@ namespace Ossuary.Desktop
             s.Game.Mode = GameMode.GameOver; s.Draw(); s.Key("Enter"); s.Draw();
             Check(s.Game.Mode == GameMode.Dungeon && s.Game.Turn == 0 && s.Hud.Ui.Width == 110, "death restarts and keeps viewport");
             DisplaySettings.Current.Apply(ThemePreset.Ossuary, CrtLevel.Subtle);
-            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); TownFlow();
+            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); HeldKeyWalking(); RunRecorded(); BonesFlow(); DifficultyFlow(); DailyFlow(); AchievementsFlow(); WaterAnimates(); TownFlow();
             try { System.IO.Directory.Delete(data, true); } catch { /* temp dir only */ }
             Environment.SetEnvironmentVariable("OSSUARY_DATA", null);
             Console.WriteLine("==== desktop: input, choices, targeting, travel, shop, settings, restart and frame protocol PASS ====");

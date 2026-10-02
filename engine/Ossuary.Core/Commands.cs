@@ -23,6 +23,7 @@ namespace Ossuary.Core
         {
             Handled = true;
             if (string.IsNullOrEmpty(cmd)) return false;
+            _g.ResetNoise();   // noise belongs to the action that makes it, never to a refused one before it
 
             // Inside the walls nothing is thrown, shot, zapped or cast at anyone.
             if (_g.Mode == GameMode.TownMap && (cmd == "f" || cmd == "z" || cmd == "Z" || cmd == "V" || cmd == "k"))
@@ -67,9 +68,18 @@ namespace Ossuary.Core
                 case "u": return DoUseKey();
                 case "D": return DoOpenDoor();
                 case "s": return DoSearch();
+                case "disarm": return DoDisarm();
+                case "craft": return DoCraft();
+                case "train": return DoTrain();
+                case "drink": return DoDrinkFountain();
                 case "x": _g.PushTargeting(TargetingMode.Inspect); return true;
                 case "l": _g.PushTargeting(TargetingMode.Look); return true;
                 case "X": return DoSwapWith();
+
+                case "explore": return DoAutoWalk(AutoWalk.Explore);
+                case "stairs": return DoAutoWalk(AutoWalk.Stairs);
+                case "rest": return DoAutoWalk(AutoWalk.Rest);
+                case "feature": return DoAutoWalk(AutoWalk.Feature);
 
                 case "O": _g.PushTravelMode(); return true;
                 case "m": _g.ToggleMinimap(); return true;
@@ -81,11 +91,85 @@ namespace Ossuary.Core
                 case "settings": _g.PushSettings(); return true;
                 case "crt": DisplaySettings.Current.CycleCrt(1); return true;
                 case "theme": DisplaySettings.Current.CycleTheme(1); return true;
-                case "quit": _g.Mode = GameMode.GameOver; _g.Say("You abandon the run."); return true;
+                case "quit": _g.Mode = GameMode.GameOver; _g.Abandoned = true; _g.DeathCause = "abandoned the run"; _g.Say("You abandon the run."); return true;
                 case "shop-buy": return BuyShopCursor();
                 case "shop-sell": return BeginSellToShop();
                 default: Handled = false; return false;
             }
+        }
+
+        // ------------------------------------------------------------ auto-walk
+
+        enum AutoWalk { Explore, Stairs, Rest, Feature }
+        const int AutoWalkLimit = 600, RestLimit = 3000;
+
+        /// <summary>
+        /// Explore, travel to stairs and rest: each is a loop of ordinary turns that stops the moment anything
+        /// happens (an enemy in sight, damage, any message, stairs or items underfoot). Refusals cost no turn.
+        /// </summary>
+        bool DoAutoWalk(AutoWalk kind)
+        {
+            var p = _g.Player;
+            if (_g.Mode != GameMode.Dungeon || _g.Map == null)
+            {
+                _g.Say(kind == AutoWalk.Rest ? "You cannot rest here." : "There is nothing to explore here.", MessageKind.Info);
+                return true;
+            }
+            if (p.Asleep || p.Stunned) { _g.Say(p.Asleep ? "You are asleep." : "You are stunned."); return true; }
+            if (_g.HostileInView()) { _g.Say("Not with enemies in sight.", MessageKind.Warn); return true; }
+            if (kind == AutoWalk.Rest && !_g.NeedsRest()) { _g.Say("You are already rested.", MessageKind.Info); return true; }
+            if (kind == AutoWalk.Feature && _g.IsFeatureSpot(p.X, p.Y)) { _g.Say("You are already there.", MessageKind.Info); return true; }
+            if (kind == AutoWalk.Stairs)
+            {
+                var here = _g.Map.Get(p.X, p.Y);
+                if (here == TileKind.StairsDown || here == TileKind.StairsUp || here == TileKind.LadderDown)
+                { _g.Say("You are already on the stairs.", MessageKind.Info); return true; }
+            }
+
+            int map = _g.Map.Number, hp = p.HP, stuck = 0;
+            for (int n = 0; n < (kind == AutoWalk.Rest ? RestLimit : AutoWalkLimit); n++)
+            {
+                long said = _g.Said;
+                var from = _g.WalkPosition();
+                if (kind == AutoWalk.Rest)
+                {
+                    if (!_g.NeedsRest()) { _g.Say("You feel rested.", MessageKind.Good); break; }
+                    _g.Wait();
+                }
+                else
+                {
+                    int dx, dy;
+                    if (kind == AutoWalk.Explore)
+                    {
+                        _g.ExploreMarkHere();
+                        var pile = GroundItems.At(map, p.X, p.Y);
+                        if (n > 0 && pile != null && pile.Count > 0) { _g.Say("You stop at some items.", MessageKind.Info); break; }
+                        if (!_g.AutoStep(_g.ExploreGoal, out dx, out dy))
+                        { _g.Say(n == 0 ? "Nothing left to explore here." : "You have seen all there is to see here.", MessageKind.Info); break; }
+                    }
+                    else if (kind == AutoWalk.Feature)
+                    {
+                        if (!_g.FeatureStep(out dx, out dy)) { _g.Say("You have not found a fountain or an altar yet.", MessageKind.Info); break; }
+                    }
+                    else if (!_g.StairsStep(out dx, out dy, out _))
+                    { _g.Say("You have not found any stairs yet.", MessageKind.Info); break; }
+                    DoMove(dx, dy);
+                    stuck = _g.WalkPosition() == from ? stuck + 1 : 0;
+                    if (stuck >= 2) { _g.Say("Something is in the way.", MessageKind.Info); break; }
+                }
+                if (_g.Mode != GameMode.Dungeon || _g.Map == null || _g.Map.Number != map) break;
+                if (p.HP < hp || p.HP <= 0) break;
+                if (_g.Said != said || (kind == AutoWalk.Stairs && ArrivedAtStairs()) || (kind == AutoWalk.Feature && _g.IsFeatureSpot(p.X, p.Y))) break;
+                if (_g.HostileInView()) break;
+                if (kind == AutoWalk.Rest) hp = p.HP;
+            }
+            return true;
+        }
+
+        bool ArrivedAtStairs()
+        {
+            var t = _g.Map.Get(_g.Player.X, _g.Player.Y);
+            return t == TileKind.StairsDown || t == TileKind.StairsUp || t == TileKind.LadderDown;
         }
 
         // ------------------------------------------------------------ movement
@@ -158,9 +242,20 @@ namespace Ossuary.Core
             return true;
         }
 
+        bool DoDrinkFountain()
+        {
+            if (_g.Mode != GameMode.Dungeon || _g.Map == null || _g.Map.Get(_g.Player.X, _g.Player.Y) != TileKind.Fountain)
+            { _g.Say("There is nothing to drink from here.", MessageKind.Info); return true; }
+            if (_g.Player.Asleep || _g.Player.Stunned) { _g.Say("You cannot do that now."); return true; }
+            _g.DrinkFromFountain();
+            return true;
+        }
+
         void HandleStairs(TileKind t)
         {
-            if (t == TileKind.StairsDown) _g.Say("There is a staircase down here. Press > to descend.", MessageKind.Info);
+            if (t == TileKind.Fountain && _g.Mode == GameMode.Dungeon) { _g.Say("A fountain bubbles here. Press Shift+E to drink.", MessageKind.Info); return; }
+            if (t == TileKind.Portal) _g.Say("A portal shimmers here. Press > to step through.", MessageKind.Info);
+            else if (t == TileKind.StairsDown) _g.Say("There is a staircase down here. Press > to descend.", MessageKind.Info);
             else if (t == TileKind.StairsUp) _g.Say("There is a staircase up here. Press < to climb.", MessageKind.Info);
         }
 
@@ -219,12 +314,33 @@ namespace Ossuary.Core
             if (tool == null) return true;
             if (tool.Name == "pick-axe") { _g.PushTargeting(TargetingMode.Dig); return true; }
             if (tool.Name == "lock pick") { _g.PushTargeting(TargetingMode.PickLock); return true; }
+            if (tool.Name == "molotov") { _g.UiState.ThrowItem = tool; _g.PushTargeting(TargetingMode.Throw); return true; }
             _g.Say($"You cannot work out how to use {tool.Name}.", MessageKind.Info);
+            return true;
+        }
+
+        bool DoCraft()
+        {
+            if (_g.Mode == GameMode.Overworld) { _g.Say("There is no room to work on the road.", MessageKind.Info); return true; }
+            var choices = _g.CraftChoices();
+            if (choices.Count == 0) { _g.Say("You have nothing you can combine into something better.", MessageKind.Info); return true; }
+            _g.PushChoice(Game.CraftPrompt, choices);
+            return true;
+        }
+
+        bool DoTrain()
+        {
+            if (!_g.Player.Trained) { _g.Say("Your skills grow with use. Training is for the Trained mode.", MessageKind.Info); return true; }
+            var choices = _g.TrainChoices();
+            if (choices.Count == 0) { _g.Say("There is nothing left you can train.", MessageKind.Info); return true; }
+            _g.Say($"You have {_g.Player.TrainXp} experience to spend.", MessageKind.Info);
+            _g.PushChoice(Game.TrainPrompt, choices);
             return true;
         }
 
         bool DoShoot()
         {
+            _g.MakeNoise(2);
             _g.PushTargeting(TargetingMode.Shoot);
             return true;
         }
@@ -354,6 +470,7 @@ namespace Ossuary.Core
 
         bool DoZap()
         {
+            _g.MakeNoise(2);
             var w = ChooseItem("Zap what?", it => it.Def.Kind == ItemKind.Wand);
             if (w == null) return true;
             _g.UseWand(w);
@@ -367,7 +484,7 @@ namespace Ossuary.Core
             int fx = p.X + _g.FacingX, fy = p.Y + _g.FacingY;
             TileKind t = _g.Map.Get(fx, fy);
 
-            if (t == TileKind.LockedDoor && p.FindFirst("lock pick") == null)
+            if (t == TileKind.LockedDoor && p.FindFirst("lock pick") == null && !_g.SpendBrassKey())
             {
                 _g.Say("The door is locked and you have nothing to pick it with.");
                 return true;
@@ -393,7 +510,7 @@ namespace Ossuary.Core
 
             if (t == TileKind.ClosedDoor || t == TileKind.LockedDoor)
             {
-                if (t == TileKind.LockedDoor && p.FindFirst("lock pick") == null)
+                if (t == TileKind.LockedDoor && p.FindFirst("lock pick") == null && !_g.SpendBrassKey())
                 {
                     _g.Say("The door is locked.");
                     return true;
@@ -450,15 +567,16 @@ namespace Ossuary.Core
         bool DoSearch()
         {
             var p = _g.Player;
+            _g.BeQuiet();
             if (_g.Map == null) return true;
             bool found = false;
             for (int y = p.Y - 1; y <= p.Y + 1; y++)
             {
                 for (int x = p.X - 1; x <= p.X + 1; x++)
                 {
-                    if (TrapTable.TryGet(_g.Map.Number, x, y, out _, out _))
+                    if (TrapTable.TryGet(_g.Map.Number, x, y, out var trapKind, out _))
                     {
-                        _g.Say($"You find a trap at ({x},{y}).", MessageKind.Good);
+                        if (TrapTable.Reveal(_g.Map.Number, x, y)) _g.Say($"You find a {TrapTable.Name(trapKind)} at ({x},{y}).", MessageKind.Good);
                         found = true;
                     }
                     if (_g.Map.InBounds(x, y) && _g.Map.Get(x, y) == TileKind.HiddenDoor)
@@ -473,6 +591,26 @@ namespace Ossuary.Core
             p.GainSkill(Skill.Search, 2);
             _g.Map.Version++;
             _g.EndPlayerTurn();
+            return true;
+        }
+
+        /// <summary>Disarms a found trap underfoot or beside you, preferring the one you face. Refusals cost no turn.</summary>
+        bool DoDisarm()
+        {
+            var p = _g.Player;
+            if (_g.Mode != GameMode.Dungeon || _g.Map == null) { _g.Say("There is nothing to disarm here."); return true; }
+            int bx = int.MinValue, by = int.MinValue;
+            for (int dy = -1; dy <= 1; dy++)
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    int x = p.X + dx, y = p.Y + dy;
+                    if (!TrapTable.TryGet(_g.Map.Number, x, y, out _, out _) || !TrapTable.IsRevealed(_g.Map.Number, x, y)) continue;
+                    bool facing = dx == _g.FacingX && dy == _g.FacingY;
+                    if (bx == int.MinValue || facing) { bx = x; by = y; }
+                }
+            if (bx == int.MinValue) { _g.Say("There is no known trap to disarm nearby.", MessageKind.Info); return true; }
+            if (p.Asleep || p.Stunned || p.Blinded) { _g.Say("You cannot do that now."); return true; }
+            _g.DisarmTrap(bx, by);
             return true;
         }
 
@@ -551,6 +689,9 @@ namespace Ossuary.Core
             _g.PendingChoice.Clear();
             if (chosen == null) return false;
             if (prompt == Game.OfferPrompt) { _g.OfferItem(chosen); return true; }
+            if (prompt == Game.SacrificePrompt) { _g.SacrificeCorpse(chosen); return true; }
+            if (prompt == Game.CraftPrompt) { _g.Craft(chosen); return true; }
+            if (prompt == Game.TrainPrompt) { _g.Train(chosen); return true; }
             if (prompt == Game.AppraisePrompt)
             {
                 _g.AppraiseItem(chosen);

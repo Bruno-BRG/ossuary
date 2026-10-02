@@ -27,6 +27,8 @@ namespace Ossuary.Core
         Advance,
         Altar,
         Service,
+        Runs,
+        Achievements,
     }
 
     /// <summary>
@@ -34,13 +36,15 @@ namespace Ossuary.Core
     /// layer mutates them. This layer is plain data, so the whole interface
     /// is testable headlessly.
     /// </summary>
-    public enum TargetingMode { None, Look, Shoot, Dig, PickLock, Swap, Inspect, Cast, Ability }
+    public enum TargetingMode { None, Look, Shoot, Dig, PickLock, Swap, Inspect, Cast, Ability, Throw }
 
     public sealed class UiState
     {
         public Panel Active = Panel.None;
 
         public TargetingMode Targeting = TargetingMode.None;
+        /// <summary>What is about to be thrown (TargetingMode.Throw).</summary>
+        public Item ThrowItem;
         public int TargetX, TargetY;
         /// <summary>The spell waiting on a target (TargetingMode.Cast).</summary>
         public string CastSpell;
@@ -74,6 +78,15 @@ namespace Ossuary.Core
         public bool Rebinding;
         public string BindNote = "";
 
+        /// <summary>Finished runs, newest first, loaded by the host when the panel opens (the Core reads no files).</summary>
+        public System.Collections.Generic.List<RunRecord> Runs = new System.Collections.Generic.List<RunRecord>();
+        public int RunsIndex;
+        /// <summary>Achievement id to the date it was unlocked, loaded by the host when the panel opens.</summary>
+        public System.Collections.Generic.Dictionary<string, string> Unlocked = new System.Collections.Generic.Dictionary<string, string>();
+        public int AchIndex;
+        /// <summary>Show only daily-challenge runs, best score first.</summary>
+        public bool RunsDaily;
+
         /// <summary>One-line result of the last menu action ("Game saved.").</summary>
         public string MenuNote = "";
 
@@ -95,9 +108,10 @@ namespace Ossuary.Core
         public CreateStep Step = CreateStep.Name;
         public string Name = "";
         public int RaceIndex, RoleIndex;
+        public Difficulty Difficulty;
         public string RaceId => Races.All[RaceIndex].Id;
         public string RoleId => Roles.All[RoleIndex].Id;
-        public void Reset() { Step = CreateStep.Name; Name = ""; RaceIndex = 0; RoleIndex = 0; }
+        public void Reset() { Step = CreateStep.Name; Name = ""; RaceIndex = 0; RoleIndex = 0; Difficulty = Difficulty.Normal; }
     }
 
     /// <summary>A "which item?" prompt. Modal: it blocks the map until answered or cancelled.</summary>
@@ -140,7 +154,7 @@ namespace Ossuary.Core
 
 namespace Ossuary.Core
 {
-    public enum MenuRow { Resume, Save, Theme, Crt, Scale, Language, Master, Music, Effects, Controls, MainMenu, Quit }
+    public enum MenuRow { Resume, Save, Theme, Crt, Scale, Tiles, Language, Master, Music, Effects, Controls, Achievements, PastRuns, MainMenu, Quit }
 
     /// <summary>Row order of the F2 menu, shared by the panel that draws it and the host that drives it.</summary>
     public static class MenuRows

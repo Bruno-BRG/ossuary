@@ -22,12 +22,15 @@ struct Request {
     key: Option<String>,
     shift: Option<bool>,
     ctrl: Option<bool>,
+    repeat: Option<bool>,
     cols: Option<u16>,
     rows: Option<u16>,
     theme: Option<u8>,
     crt: Option<u8>,
     scale: Option<u8>,
+    square: Option<u8>,
     create: Option<bool>,
+    daily: Option<bool>,
     lang: Option<String>,
 }
 
@@ -64,12 +67,15 @@ impl Request {
         field!(key);
         field!(shift);
         field!(ctrl);
+        field!(repeat);
         field!(cols);
         field!(rows);
         field!(theme);
         field!(crt);
         field!(scale);
+        field!(square);
         field!(create);
+        field!(daily);
         field!(lang);
         value
     }
@@ -256,6 +262,29 @@ mod tests {
             serde_json::json!({"op":"frame","path":"secret"})
         )
         .is_err());
+    }
+
+    #[test]
+    fn every_display_and_run_option_reaches_the_engine() {
+        let request: Request = serde_json::from_value(serde_json::json!({
+            "op":"new","theme":1,"crt":2,"scale":3,"square":1,"lang":"en","daily":true,"create":false
+        }))
+        .unwrap();
+        assert!(request.validate().is_ok());
+        let json = request.json();
+        assert_eq!(json["square"], 1);
+        assert_eq!(json["daily"], true);
+        assert_eq!(json["scale"], 3);
+    }
+
+    #[test]
+    fn held_key_flag_reaches_the_engine() {
+        let request: Request = serde_json::from_value(
+            serde_json::json!({"op":"key","code":"ArrowRight","shift":false,"ctrl":false,"repeat":true}),
+        )
+        .unwrap();
+        assert!(request.validate().is_ok());
+        assert_eq!(request.json()["repeat"], true);
     }
 
     #[test]

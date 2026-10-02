@@ -24,6 +24,10 @@ namespace Ossuary.Core
             List<SpecialRoom> specials, List<int> startCells, out int startX, out int startY)
         {
             var points = new List<SpawnPoint>();
+            // Traps and floor items live in tables keyed by map number. A new game that draws the same number must not
+            // inherit what an earlier game left there, or two runs of one seed would not be the same run.
+            TrapTable.Clear(map.Number);
+            GroundItems.Clear(map.Number);
 
             startX = startCells.Count > 0 ? startCells[0] % map.W : 1;
             startY = startCells.Count > 0 ? startCells[0] / map.W : 1;
@@ -37,10 +41,15 @@ namespace Ossuary.Core
             map.Depth = depth;
             map.LevelName = NameFor(branchName, depth);
 
-            SpawnMonsters(map, rng, depth, startX, startY, points);
-            PlaceLoot(map, rng, depth);
+            // The Annex is only three floors deep and meant to be hard: its monsters and loot are those of six floors lower.
+            int eff = branchName == "The Annex" ? depth + 6 : depth;
+            SpawnMonsters(map, rng, eff, startX, startY, points, branchName);
+            PlaceLoot(map, rng, eff, depth);
             PlaceTraps(map, rng, depth);
             PlaceSurfaces(map, rng, depth, branchName);
+            PlaceVaults(map, rng, eff, points);
+            if (branchName == "The Dungeons" && depth == 4 && TryFindOpenFloor(map, rng, out int px, out int py) && map.Get(px, py) != TileKind.StairsUp)
+                map.Set(px, py, TileKind.Portal);
             return points;
         }
 
@@ -50,9 +59,9 @@ namespace Ossuary.Core
             return $"{b} : level {depth}";
         }
 
-        static void SpawnMonsters(GameMap map, Rng rng, int depth, int startX, int startY, List<SpawnPoint> points)
+        static void SpawnMonsters(GameMap map, Rng rng, int depth, int startX, int startY, List<SpawnPoint> points, string branchName = null)
         {
-            var table = Bestiary.SpawnTable(depth, rng);
+            var table = Bestiary.SpawnTable(depth, rng, branchName);
             if (table.Count == 0) return;
 
             int area = map.CountWalkable();
@@ -116,7 +125,7 @@ namespace Ossuary.Core
         /// so terrain stays exactly one byte per cell and the renderer can layer
         /// "floor with something on it" without a second grid.
         /// </summary>
-        static void PlaceLoot(GameMap map, Rng rng, int depth)
+        static void PlaceLoot(GameMap map, Rng rng, int depth, int levelDepth)
         {
             int floor = map.CountWalkable();
             int stacks = Math.Max(2, floor / 140);
@@ -129,7 +138,7 @@ namespace Ossuary.Core
             }
 
             // Each branch hides one named artifact on a fixed level.
-            var art = Artifacts.ForLevel(map.BranchName, depth);
+            var art = Artifacts.ForLevel(map.BranchName, levelDepth);
             if (art != null && TryFindOpenFloor(map, rng, out int ax, out int ay))
                 GroundItems.Add(map.Number, ax, ay, Artifacts.Create(art, rng, GroundItems.NextUid()));
 
@@ -145,6 +154,52 @@ namespace Ossuary.Core
                     {
                         loot.Identified = true;
                         GroundItems.Add(map.Number, x, y, loot);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Two kinds of sealed chamber, built last and out of unused rock: a locked vault whose key a monster carries, and a
+        /// hidden cache whose floor is rigged with traps. Both pay far better than a floor item.
+        /// </summary>
+        static void PlaceVaults(GameMap map, Rng rng, int depth, List<SpawnPoint> points)
+        {
+            if (depth >= 2 && rng.Chance(30))
+            {
+                var site = Vaults.Carve(map, rng, TileKind.LockedDoor);
+                if (site != null)
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        var item = RollLoot(rng, depth + 2);
+                        if (item != null) GroundItems.Add(map.Number, site.Cells[site.Cells.Count - 1 - i * 2] % map.W, site.Cells[site.Cells.Count - 1 - i * 2] / map.W, item);
+                    }
+                    var gold = new Item(GoldDef, rng, GroundItems.NextUid()) { Quantity = 60 + depth * 25 };
+                    int gc = site.Cells[site.Cells.Count / 2];
+                    GroundItems.Add(map.Number, gc % map.W, gc / map.W, gold);
+                    var key = new Item(Crafted.BrassKey, rng, GroundItems.NextUid()) { Identified = true };
+                    if (points.Count > 0) points[rng.Range(0, points.Count)].Monster.Inventory.Add(key);
+                    else if (TryFindOpenFloor(map, rng, out int kx, out int ky)) GroundItems.Add(map.Number, kx, ky, key);
+                }
+            }
+            if (depth >= 3 && rng.Chance(22))
+            {
+                var site = Vaults.Carve(map, rng, TileKind.HiddenDoor);
+                if (site != null)
+                {
+                    // Every cell but the far end is rigged; the loot waits at the far end.
+                    for (int i = 0; i < site.Cells.Count - 3; i++)
+                        if (rng.Chance(45))
+                        {
+                            Traps kind = rng.Pick(new[] { Traps.Spike, Traps.Dart, Traps.Fire, Traps.Alarm, Traps.Web });
+                            TrapTable.Put(map.Number, site.Cells[i] % map.W, site.Cells[i] / map.W, kind, Math.Max(2, depth / 3));
+                        }
+                    for (int i = 0; i < 3; i++)
+                    {
+                        var item = RollLoot(rng, depth + 3);
+                        int c = site.Cells[site.Cells.Count - 1 - i];
+                        if (item != null) GroundItems.Add(map.Number, c % map.W, c / map.W, item);
                     }
                 }
             }
@@ -261,7 +316,7 @@ namespace Ossuary.Core
         static readonly Dictionary<int, Dictionary<int, KeyValuePair<Traps, int>>> _traps
             = new Dictionary<int, Dictionary<int, KeyValuePair<Traps, int>>>();
 
-        public static void Clear(int mapNumber) => _traps.Remove(mapNumber);
+        public static void Clear(int mapNumber) { _traps.Remove(mapNumber); _revealed.Remove(mapNumber); }
 
         public static void Put(int mapNumber, int x, int y, Traps kind, int level)
         {
@@ -284,8 +339,36 @@ namespace Ossuary.Core
 
         public static bool Remove(int mapNumber, int x, int y)
         {
+            if (_revealed.TryGetValue(mapNumber, out var r)) r.Remove(x + y * 4096);
             if (!_traps.TryGetValue(mapNumber, out var d)) return false;
             return d.Remove(x + y * 4096);
+        }
+
+        // Traps the player has found. A found trap is drawn, avoided by auto-walk and can be disarmed.
+        static readonly Dictionary<int, HashSet<int>> _revealed = new Dictionary<int, HashSet<int>>();
+
+        public static bool Reveal(int mapNumber, int x, int y)
+        {
+            if (!TryGet(mapNumber, x, y, out _, out _)) return false;
+            if (!_revealed.TryGetValue(mapNumber, out var r)) { r = new HashSet<int>(); _revealed[mapNumber] = r; }
+            return r.Add(x + y * 4096);
+        }
+
+        public static bool IsRevealed(int mapNumber, int x, int y) =>
+            _revealed.TryGetValue(mapNumber, out var r) && r.Contains(x + y * 4096);
+
+        public static string Name(Traps kind)
+        {
+            switch (kind)
+            {
+                case Traps.Spike: return "spike trap";
+                case Traps.Hole: return "hole";
+                case Traps.Dart: return "dart trap";
+                case Traps.Teleport: return "teleport trap";
+                case Traps.Alarm: return "alarm trap";
+                case Traps.Fire: return "fire trap";
+                default: return "web";
+            }
         }
     }
 

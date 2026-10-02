@@ -208,6 +208,46 @@ namespace Ossuary.Core
             return pool[(m.Voice + n) % pool.Length];
         }
 
+        // ------------------------------------------------------------- they remember you
+
+        static readonly string RGuardFriend = L("Well met. The Watch has not forgotten what you did on the roads.", "Bem-vindo. A Guarda não esqueceu o que você fez nas estradas.");
+        static readonly string RGuardFoe = L("I know your face. Keep your hands where I can see them.", "Conheço seu rosto. Mantenha as mãos onde eu possa ver.");
+        static readonly string RPriestFriend = L("The Temple is glad of you. Few come back from the dark with their hands clean.", "O Templo se alegra com você. Poucos voltam do escuro com as mãos limpas.");
+        static readonly string RPriestFoe = L("You have robbed the dead, and the dead have noticed. Do not bring that in here.", "Você roubou os mortos, e os mortos notaram. Não traga isso aqui.");
+        static readonly string RPriestTainted = L("Child... what has the Ossuary done to you? Let me look at your hands.", "Criança... o que o Ossuário fez com você? Deixe-me ver suas mãos.");
+        static readonly string RTradeFriend = L("For you, a fair price. The Guild speaks well of you.", "Para você, um preço justo. A Guilda fala bem de você.");
+        static readonly string RTradeFoe = L("Coin first. The Guild says you do not pay what you owe.", "Dinheiro primeiro. A Guilda diz que você não paga o que deve.");
+        static readonly string RMutant = L("They edge away from you, and pretend they are not.", "Eles se afastam de você e fingem que não.");
+        static readonly string RSellsword = L("Nice sword-arm you have there. Does it eat much?", "Belo braço de espada você tem aí. Come muito?");
+
+        /// <summary>
+        /// A line that depends on what the hero has done, or null when this person has nothing to add. Guards answer to the
+        /// Watch, priests to the Temple (and to corruption), traders to the Guild; everyone else notices the body and the company.
+        /// </summary>
+        public static string Reaction(Monster m, int watch, int temple, int guild, int corruption, int mutations, bool companion)
+        {
+            switch (m.Role)
+            {
+                case TownRole.Guard: case TownRole.Captain:
+                    if (watch >= 25) return RGuardFriend;
+                    if (watch <= -25) return RGuardFoe;
+                    break;
+                case TownRole.Priest:
+                    if (corruption >= 40) return RPriestTainted;
+                    if (temple >= 25) return RPriestFriend;
+                    if (temple <= -25) return RPriestFoe;
+                    break;
+                case TownRole.Shopkeeper: case TownRole.Smith: case TownRole.Innkeeper: case TownRole.Barkeep:
+                    if (guild >= 25) return RTradeFriend;
+                    if (guild <= -25) return RTradeFoe;
+                    break;
+                case TownRole.Pet: return null;
+            }
+            if (mutations >= 2) return RMutant;
+            if (companion && m.Role == TownRole.Citizen) return RSellsword;
+            return null;
+        }
+
         /// <summary>The first thing a shopkeeper or service-giver says when you step up.</summary>
         public static string Greeting(Monster m)
         {

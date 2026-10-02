@@ -41,10 +41,13 @@ namespace Ossuary.Core.Magic
             S("chain-lightning", "Chain Lightning", 4, School.Evocation, 10, SpellTarget.Monster, 8, "Strikes a target, then leaps to up to three more nearby."),
             S("wall-of-fire", "Wall of Fire", 4, School.Evocation, 9, SpellTarget.Area, 7, "A burning cross on the floor. Spreads through brush and oil; creatures in it catch fire.", 1),
             S("meteor", "Meteor", 5, School.Evocation, 15, SpellTarget.Area, 8, "A burning rock from nowhere. Devastates 3 cells around.", 3),
+            S("ice-lance", "Ice Lance", 2, School.Evocation, 4, SpellTarget.Monster, 8, "A spear of ice. Chills the target and freezes any water it stands in."),
+            S("steam-burst", "Steam Burst", 3, School.Evocation, 6, SpellTarget.Area, 7, "Boils water into scalding steam: heavy damage to anything wet within 2 cells, and the water is gone. Dry ground only hisses.", 2),
             // ---- Conjuration
             S("familiar", "Familiar", 1, School.Conjuration, 3, SpellTarget.Self, 0, "Calls a small beast to fight for you for a time.", 0, 1),
             S("summon-beast", "Summon Beast", 2, School.Conjuration, 5, SpellTarget.Self, 0, "Calls a stronger beast as your level grows.", 0, 1),
             S("create-water", "Create Water", 2, School.Conjuration, 4, SpellTarget.Area, 7, "Floods the floor around a spot. The wet burn less and conduct lightning; frost turns it to ice.", 2),
+            S("create-oil", "Create Oil", 1, School.Conjuration, 3, SpellTarget.Area, 6, "Slicks the floor around a spot with oil. It burns long and slides the unwary. Mind your torches.", 1),
             S("blink", "Blink", 3, School.Conjuration, 5, SpellTarget.Cell, 6, "Step through space to a spot you can see."),
             S("teleport", "Teleport", 4, School.Conjuration, 9, SpellTarget.Self, 0, "Throws you to a random place on this level."),
             // ---- Alteration
@@ -61,6 +64,9 @@ namespace Ossuary.Core.Magic
             // ---- Necromancy
             S("drain-life", "Drain Life", 3, School.Necromancy, 5, SpellTarget.Monster, 6, "Steals life: damages the target, heals you by half. Not the dead."),
             S("raise-skeleton", "Raise Skeleton", 3, School.Necromancy, 6, SpellTarget.Self, 0, "A skeleton claws out of the floor to serve you.", 0, 1),
+            S("ossify", "Ossify", 3, School.Necromancy, 5, SpellTarget.Self, 0, "Bone creeps over your skin: AC +4 for a while. The Ossuary takes a little of you for it."),
+            S("reshape-flesh", "Reshape Flesh", 3, School.Necromancy, 8, SpellTarget.Self, 0, "Asks the Ossuary for a gift. You get a mutation, and it gets a share of you."),
+            S("marrow-bolt", "Marrow Bolt", 4, School.Necromancy, 7, SpellTarget.Monster, 7, "A spike of grave-cold marrow. Hits hard; the Ossuary takes a little of you each time. Not the dead."),
             S("fear", "Fear", 4, School.Necromancy, 8, SpellTarget.Monster, 6, "The target flees in terror. Mindless things do not fear."),
             S("finger-of-death", "Finger of Death", 5, School.Necromancy, 15, SpellTarget.Monster, 6, "Unmakes the living with a point of the hand."),
             S("army-of-bones", "Army of Bones", 5, School.Necromancy, 14, SpellTarget.Self, 0, "Three skeletons rise to guard you.", 0, 3),
@@ -71,6 +77,7 @@ namespace Ossuary.Core.Magic
             S("cleanse", "Cleanse", 2, School.Sacred, 3, SpellTarget.Self, 0, "Burns away poison, confusion, blindness and visions."),
             S("turn-undead", "Turn Undead", 2, School.Sacred, 5, SpellTarget.Self, 0, "Every undead in sight burns and flees."),
             S("greater-heal", "Greater Heal", 3, School.Sacred, 8, SpellTarget.Self, 0, "A great mending: 4d8 plus Wisdom and level."),
+            S("purify", "Purify", 4, School.Sacred, 10, SpellTarget.Self, 0, "Burns 15 points of the Ossuary's corruption out of you. Mutations stay."),
             S("revive", "Revive", 5, School.Sacred, 15, SpellTarget.Self, 0, "Wards your soul: the next death within 300 turns is undone."),
         };
 
@@ -78,15 +85,15 @@ namespace Ossuary.Core.Magic
         static readonly Dictionary<string, string[]> Books = new Dictionary<string, string[]>
         {
             { "a spellbook", new[] { "magic-missile", "shocking-grasp", "ward", "frost-ray", "familiar" } },
-            { "a tome of evocation", new[] { "magic-missile", "frost-ray", "fireball", "lightning-bolt", "wall-of-fire" } },
+            { "a tome of evocation", new[] { "magic-missile", "frost-ray", "ice-lance", "fireball", "steam-burst", "lightning-bolt", "wall-of-fire" } },
             { "a codex of storms", new[] { "lightning-bolt", "fireball", "wall-of-fire", "chain-lightning", "meteor" } },
-            { "a tome of conjuration", new[] { "familiar", "summon-beast", "create-water", "blink", "teleport" } },
+            { "a tome of conjuration", new[] { "familiar", "summon-beast", "create-water", "create-oil", "blink", "teleport" } },
             { "a book of wards", new[] { "ward", "haste", "slow", "clairvoyance", "stone-skin" } },
             { "a book of illusions", new[] { "sleep", "confuse", "invisibility", "charm" } },
             { "a book of shadows", new[] { "sleep", "blink", "drain-life", "raise-skeleton", "fear" } },
-            { "a grimoire of the dead", new[] { "raise-skeleton", "drain-life", "fear", "finger-of-death", "army-of-bones" } },
+            { "a grimoire of the dead", new[] { "raise-skeleton", "ossify", "reshape-flesh", "drain-life", "marrow-bolt", "fear", "finger-of-death", "army-of-bones" } },
             { "a book of prayers", new[] { "cure-wounds", "ward", "bless", "cleanse" } },
-            { "a book of mercy", new[] { "smite", "turn-undead", "greater-heal", "revive" } },
+            { "a book of mercy", new[] { "smite", "turn-undead", "greater-heal", "purify", "revive" } },
         };
 
         public static SpellDef Find(string id)
@@ -109,6 +116,7 @@ namespace Ossuary.Core.Magic
                 case "bless": return "Bless";
                 case "invisibility": return "Invisible";
                 case "revive": return "Revive";
+                case "ossify": return "Ossified";
                 case "flame": return "Flame";
                 case "levitating": return "Levitate";
                 default: return id;

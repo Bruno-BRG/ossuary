@@ -16,6 +16,54 @@ namespace Ossuary.Core
         /// <summary>Live language. Core defaults to English so headless tests stay stable; the app sets it from DisplaySettings.</summary>
         public static Lang Current = Lang.En;
 
+        // Mutations: every name, blurb and the messages that carry them.
+        static void AddMutationText()
+        {
+            var pt = new Dictionary<string, (string, string)>
+            {
+                ["bone-plating"] = ("Placas de Osso", "Placas de osso crescem sob a pele. CA +2."),
+                ["many-eyes"] = ("Muitos Olhos", "Mais dois pares de olhos se abrem. Visão +2."),
+                ["marrow-heart"] = ("Coração de Tutano", "Seu coração bate grosso e lento. PV +8."),
+                ["grave-whisper"] = ("Sussurro da Cova", "Os mortos murmuram para você. Mp +6, necrótico 20%."),
+                ["ashen-skin"] = ("Pele de Cinza", "Sua pele fica cinza e seca. Fogo 25%."),
+                ["hollow-step"] = ("Passo Oco", "Seus passos são leves como pó. Evasão +2."),
+                ["knuckle-spurs"] = ("Esporões nos Nós", "Esporões brotam dos seus nós dos dedos. Acerto +1, dano +1."),
+                ["iron-gut"] = ("Estômago de Ferro", "Nada que você engole o envenena por muito tempo. Veneno 30%."),
+                ["third-rib"] = ("Terceira Costela", "Uma costela extra protege, mas aperta. CA +3, Des -1."),
+                ["ember-marrow"] = ("Tutano em Brasa", "Seus ossos queimam. Dano +2, e você vive com fome."),
+                ["brittle-bones"] = ("Ossos Quebradiços", "Seus ossos são giz. CA -2."),
+                ["ravenous"] = ("Voraz", "Algo em você passa fome sempre. Você gasta comida em dobro."),
+                ["palsied-hands"] = ("Mãos Trêmulas", "Suas mãos não param quietas. Acerto -2."),
+                ["echoing-steps"] = ("Passos Ecoantes", "Seus passos ecoam no escuro. Monstros notam de uma casa mais longe."),
+                ["pallid-skin"] = ("Pele Pálida", "O frio morde fundo. Gelo -30%."),
+                ["thin-blood"] = ("Sangue Ralo", "Seu sangue corre ralo. PV -6."),
+            };
+            foreach (var m in Entities.MutationTable.All)
+            {
+                if (!pt.TryGetValue(m.Id, out var t)) continue;
+                Pt[m.Name] = t.Item1; Pt[m.Blurb] = t.Item2;
+                Pt[$"Your body twists: {m.Name}. {m.Blurb}"] = $"Seu corpo se retorce: {t.Item1}. {t.Item2}";
+                Pt[$"The priest draws out {m.Name} like a splinter."] = $"O padre arranca {t.Item1} como uma farpa.";
+            }
+        }
+
+        // Trap messages carry the trap's name, so every combination is registered up front.
+        static Loc()
+        {
+            AddMutationText();
+            var traps = new[] { ("spike trap", "armadilha de espetos", "uma"), ("hole", "buraco", "um"), ("dart trap", "armadilha de dardos", "uma"),
+                                ("teleport trap", "armadilha de teletransporte", "uma"), ("alarm trap", "armadilha de alarme", "uma"),
+                                ("fire trap", "armadilha de fogo", "uma"), ("web", "teia", "uma") };
+            foreach (var (en, pt, art) in traps)
+            {
+                string the = art == "uma" ? "a" : "o";
+                Pt[$"You spot a {en}."] = $"Você percebe {art} {pt}.";
+                Pt[$"You disarm the {en}."] = $"Você desarma {the} {pt}.";
+                Pt[$"You fail to disarm the {en}."] = $"Você não consegue desarmar {the} {pt}.";
+                Rx.Add(R($@"You find a {en} at \((\d+),(\d+)\)\.", $"Você acha {art} {pt} em ($1,$2)."));
+            }
+        }
+
         public static string Code(Lang l) => l == Lang.Pt ? "pt" : "en";
         public static string Name(Lang l) => l == Lang.Pt ? "Português" : "English";
 
@@ -144,6 +192,149 @@ namespace Ossuary.Core
 
         static readonly Dictionary<string, string> Pt = new Dictionary<string, string>
         {
+            ["The restless shade is laid to rest at last."] = "A sombra inquieta enfim descansa.",
+            ["Tiles"] = "Tiles", ["Square"] = "Quadrado", ["Narrow"] = "Estreito",
+            ["Each map cell is two columns wide: the world looks square."] = "Cada célula do mapa ocupa duas colunas: o mundo fica quadrado.",
+            ["One column per map cell: the world looks tall and narrow."] = "Uma coluna por célula: o mundo fica alto e estreito.",
+            // ---- difficulty modes
+            ["Mode"] = "Modo", ["Normal"] = "Normal", ["Classic"] = "Clássico", ["Hardcore"] = "Hardcore",
+            ["The standard game."] = "O jogo padrão.", ["No hunger. Food is only a luxury."] = "Sem fome. Comida é só luxo.",
+            ["One save: it is erased when you resume. No quicksave."] = "Um único save: some ao retomar. Sem save rápido.",
+            ["Hardcore: the run is saved only when you quit."] = "Hardcore: a run só é salva ao sair.",
+            ["◄► mode  Enter begin  Esc back"] = "◄► modo  Enter começa  Esc volta",
+            ["Daily board"] = "Placar diário", ["No daily runs yet."] = "Nenhuma run diária ainda.", ["Daily"] = "Diário",
+            ["D daily board   Esc back"] = "D placar diário   Esc volta",
+            // ---- challenge modes
+            ["Dive"] = "Mergulho", ["Naked"] = "Pelado",
+            ["Start on depth 5, a few levels up. Score x2."] = "Começa no nível 5, com alguns níveis a mais. Pontos x2.",
+            ["No weapon, armour or shield. One more advancement. Score x2."] = "Sem arma, armadura ou escudo. Um avanço a mais. Pontos x2.",
+            // ---- artifacts, sets and relics
+            ["The Drowned Court"] = "A Corte Afogada", ["The Ashen Regalia"] = "A Regalia de Cinza", ["Relics worn: "] = "Relíquias vestidas: ",
+            ["Tidecaller's Gauntlets"] = "Manoplas do Chamador de Marés", ["Brinewalkers"] = "Andarilhos da Salmoura", ["Mantle of Ash"] = "Manto de Cinza",
+            ["Cinder Plate"] = "Placa de Brasa", ["Hollow Ribs"] = "Costelas Ocas", ["Gravedigger's Spade"] = "Pá do Coveiro", ["Gnawed Cowl"] = "Capuz Roído",
+            // ---- training
+            ["Trained"] = "Treinado", ["Skills rise only when you buy them with XP (Shift+N)."] = "As habilidades só sobem quando você as compra com XP (Shift+N).",
+            ["train a skill with XP (Trained mode)"] = "treinar uma habilidade com XP (modo Treinado)",
+            ["Your skills grow with use. Training is for the Trained mode."] = "Suas habilidades crescem com o uso. Treinar é do modo Treinado.",
+            ["There is nothing left you can train."] = "Não há mais nada que você possa treinar.",
+            ["Train what?"] = "Treinar o quê?",
+            // ---- crafting
+            ["craft: combine what you carry"] = "criar: combinar o que você carrega",
+            ["Make what?"] = "Fazer o quê?", ["molotov"] = "molotov", ["bone blade"] = "lâmina de osso", ["bone-studded armour"] = "armadura cravejada de osso",
+            ["potion of oil + candle"] = "poção de óleo + vela", ["a blade + remains"] = "uma lâmina + restos", ["armour + two remains"] = "armadura + dois restos",
+            ["two potions of healing"] = "duas poções de cura",
+            ["There is no room to work on the road."] = "Não há espaço para trabalhar na estrada.",
+            ["You have nothing you can combine into something better."] = "Você não tem nada que dê para combinar em algo melhor.",
+            ["You no longer have what that needs."] = "Você não tem mais o que isso pede.",
+            ["You are not holding that."] = "Você não está segurando isso.", ["You cannot throw it there."] = "Você não pode jogar ali.",
+            ["That is too far to throw."] = "Longe demais para jogar.", ["It would shatter on stone. Aim at open floor."] = "Quebraria na pedra. Mire no chão livre.",
+            ["The molotov bursts into flame!"] = "O molotov explode em chamas!",
+            // ---- vaults
+            ["The brass key turns, and the lock lets go. The key crumbles in your hand."] = "A chave de latão gira e a fechadura cede. A chave se desfaz na sua mão.",
+            ["The door is locked and you have nothing to pick it with."] = "A porta está trancada e você não tem como abri-la.",
+            // ---- reputation, jobs and the road
+            ["Standing"] = "Reputação", ["Job"] = "Serviço", ["Jobs done"] = "Serviços feitos",
+            ["the Watch"] = "a Guarda", ["the Temple"] = "o Templo", ["the Guild"] = "a Guilda", ["the Cult of the Drowned"] = "o Culto dos Afogados",
+            ["revered"] = "reverenciado", ["trusted"] = "de confiança", ["known"] = "conhecido", ["distrusted"] = "malvisto", ["hated"] = "odiado",
+            ["Hired Hand"] = "Mão Contratada", ["Finish three Guild jobs."] = "Termine três serviços da Guilda.",
+            ["Well Liked"] = "Bem Quisto", ["Be revered by any house."] = "Seja reverenciado por qualquer casa.",
+            ["Rest until morning (they know your face)"] = "Descansar até de manhã (conhecem seu rosto)",
+            ["A vial from the back room (the Cult sells)"] = "Um frasco dos fundos (o Culto vende)",
+            ["A vial of black water, handed over without a word."] = "Um frasco de água negra, entregue sem uma palavra.",
+            ["You are already carrying as many jobs as you can finish."] = "Você já carrega tantos serviços quanto consegue terminar.",
+            ["An abandoned camp"] = "Um acampamento abandonado", ["A caravan"] = "Uma caravana", ["A ruin by the road"] = "Uma ruína na estrada",
+            ["A roadside shrine"] = "Um santuário na estrada", ["A toll"] = "Um pedágio", ["A body by the road"] = "Um corpo na estrada",
+            ["Search the camp"] = "Revistar o acampamento", ["Rest here until you are well"] = "Descansar aqui até se curar",
+            ["Buy rations (two)"] = "Comprar rações (duas)", ["Buy a healing potion"] = "Comprar uma poção de cura", ["Ask about the vial in the black cart"] = "Perguntar do frasco na carroça preta",
+            ["Climb down into the ruin"] = "Descer para a ruína", ["Dig under the fallen wall"] = "Cavar sob o muro caído",
+            ["Leave an offering"] = "Deixar uma oferenda", ["Kneel and swear to whoever listens"] = "Ajoelhar e jurar a quem ouvir",
+            ["Pay the toll"] = "Pagar o pedágio", ["Refuse and draw"] = "Recusar e sacar", ["Bluff: the Watch is right behind you"] = "Blefar: a Guarda vem logo atrás",
+            ["Take the purse"] = "Pegar a bolsa", ["Bury the body"] = "Enterrar o corpo", ["Move on"] = "Seguir viagem",
+            // ---- companions
+            ["Hire a sellsword"] = "Contratar um mercenário", ["Send my sellsword home"] = "Mandar meu mercenário para casa",
+            ["Your sellsword shakes your hand and goes back to the bar."] = "Seu mercenário aperta sua mão e volta para o balcão.",
+            // ---- corruption
+            ["drink at a fountain (it may be tainted)"] = "beber numa fonte (pode estar contaminada)",
+            ["There is nothing to drink from here."] = "Não há de onde beber aqui.",
+            ["A fountain bubbles here. Press Shift+E to drink."] = "Uma fonte borbulha aqui. Aperte Shift+E para beber.",
+            ["Mutations"] = "Mutações", ["Corruption"] = "Corrupção", ["Mutant"] = "Mutante", ["Carry three mutations at once."] = "Carregue três mutações ao mesmo tempo.",
+            ["Purge the Ossuary from me"] = "Expulse o Ossuário de mim",
+            ["The water is dark with something that was not water. You swallow it anyway."] = "A água está escura com algo que não era água. Você engole mesmo assim.",
+            ["The water is thick and black. It burns going down, and it does not stop."] = "A água é grossa e negra. Queima ao descer e não para.",
+            ["The water tastes of rust and nothing else."] = "A água tem gosto de ferrugem e mais nada.",
+            ["It tastes of bone dust and old graves."] = "Tem gosto de pó de osso e de covas velhas.",
+            ["Your body has nothing left to give."] = "Seu corpo não tem mais nada a dar.",
+            ["The priest drains the worst of it. Nothing unwelcome is left in you."] = "O padre drena o pior. Nada indesejado resta em você.",
+            // ---- stealth
+            ["Stealth: notice -"] = "Furtividade: aviso -",
+            // ---- traps
+            ["disarm a trap you have found"] = "desarmar uma armadilha achada",
+            ["There is nothing to disarm here."] = "Não há o que desarmar aqui.",
+            ["There is no known trap to disarm nearby."] = "Não há armadilha conhecida para desarmar por perto.",
+            ["There is no known trap to disarm there."] = "Não há armadilha conhecida para desarmar ali.",
+            ["You cannot do that now."] = "Você não pode fazer isso agora.",
+            ["You set it off!"] = "Você a disparou!",
+            ["Boss Slayer"] = "Matador de Chefes", ["Kill a branch boss."] = "Mate o chefe de um branch.",
+            ["Kingslayer"] = "Matador de Reis", ["Kill three branch bosses in one run."] = "Mate três chefes de branch em uma run.",
+            ["Past the Portal"] = "Além do Portal", ["Step through the portal on Dungeons 4."] = "Atravesse o portal em Dungeons 4.",
+            ["Debts Paid"] = "Dívidas Pagas", ["Kill the Annex Warden."] = "Mate o Warden do Anexo.",
+            ["The portal takes you, and the world folds."] = "O portal leva você, e o mundo se dobra.", ["You step back through the portal."] = "Você volta pelo portal.",
+            ["A portal shimmers here. Press > to step through."] = "Um portal cintila aqui. Aperte > para atravessar.",
+            ["The portal is dead. Whatever it led to is gone."] = "O portal está morto. O que havia do outro lado se foi.",
+            // ---- achievements
+            ["Achievements"] = "Conquistas", ["local"] = "locais", ["What you have done across all your runs."] = "O que você já fez em todas as suas runs.",
+            ["Achievement: "] = "Conquista: ",
+            ["First Blood"] = "Primeiro Sangue", ["Kill something."] = "Mate alguma coisa.",
+            ["Slayer"] = "Carniceiro", ["Kill 100 creatures in one run."] = "Mate 100 criaturas em uma run.",
+            ["Delver"] = "Escavador", ["Reach depth 5."] = "Chegue ao nível 5.",
+            ["Deep Delver"] = "Mergulhador", ["Reach depth 10."] = "Chegue ao nível 10.",
+            ["Into the Abyss"] = "No Abismo", ["Reach depth 15."] = "Chegue ao nível 15.",
+            ["Veteran"] = "Veterano", ["Reach level 10."] = "Chegue ao nível 10 de personagem.",
+            ["Champion"] = "Campeão", ["Reach level 20."] = "Chegue ao nível 20 de personagem.",
+            ["Survivor"] = "Sobrevivente", ["Live through 5000 turns."] = "Sobreviva a 5000 turnos.",
+            ["Pious"] = "Devoto", ["Reach 100 piety with a god."] = "Chegue a 100 de piedade com um deus.",
+            ["Scholar"] = "Erudito", ["Know ten spells."] = "Conheça dez magias.",
+            ["Rich"] = "Rico", ["Carry 1000 gold."] = "Carregue 1000 de ouro.",
+            ["Relic Hunter"] = "Caçador de Relíquias", ["Hold an artifact."] = "Segure um artefato.",
+            ["Shade Breaker"] = "Quebra-Sombras", ["Lay a dead hero's shade to rest."] = "Dê descanso à sombra de um herói morto.",
+            ["Cartographer"] = "Cartógrafo", ["See six regions of the world."] = "Veja seis regiões do mundo.",
+            ["Light Footed"] = "Pés Leves", ["Reach depth 3 without killing anything."] = "Chegue ao nível 3 sem matar nada.",
+            ["Out of the Pit"] = "Fora do Poço", ["Escape with the Amulet."] = "Escape com o Amuleto.",
+            ["Iron Will"] = "Vontade de Ferro", ["Escape with the Amulet in Hardcore."] = "Escape com o Amuleto no Hardcore.",
+            ["Daily Victor"] = "Vitória Diária", ["Escape with the Amulet in a daily challenge."] = "Escape com o Amuleto em um desafio diário.",
+            // ---- past runs
+            ["Past runs"] = "Expedições passadas", ["history"] = "histórico", ["Your finished expeditions, newest first."] = "Suas expedições terminadas, as mais novas primeiro.",
+            ["No finished runs yet."] = "Nenhuma expedição terminada ainda.", ["Hero"] = "Herói", ["Class"] = "Classe", ["End"] = "Fim",
+            ["died"] = "morreu", ["won"] = "venceu", ["abandoned"] = "abandonou",
+            // ---- morgue and death
+            ["morgue"] = "necrotério", ["level"] = "nível", ["Killed by"] = "Morto por", ["Abandoned the run."] = "Abandonou a expedição.",
+            ["Escaped with the Amulet of Yendor."] = "Escapou com o Amuleto de Yendor.",
+            ["Deepest level"] = "Nível mais fundo", ["Turns"] = "Turnos", ["Kills"] = "Mortes", ["Score"] = "Pontos",
+            ["Ended on"] = "Terminou em", ["Ended in"] = "Terminou em", ["Follower of"] = "Devoto de", ["piety"] = "piedade", ["Seed"] = "Semente",
+            ["Attributes"] = "Atributos", ["Skills"] = "Habilidades", ["Perks"] = "Vantagens", ["Spells"] = "Magias", ["Equipment"] = "Equipamento",
+            ["Inventory"] = "Mochila", ["Last words"] = "Últimas palavras", ["Wielding"] = "Empunhando", ["Wearing"] = "Vestindo",
+            ["Ring"] = "Anel", ["Amulet"] = "Amuleto", ["(empty)"] = "(vazia)", ["gold"] = "ouro",
+            ["starvation"] = "fome", ["poison"] = "veneno", ["burning"] = "queimadura", ["a spike trap"] = "uma armadilha de espetos",
+            ["a poison dart trap"] = "uma armadilha de dardos", ["a fire trap"] = "uma armadilha de fogo", ["a trap"] = "uma armadilha",
+            ["an electric shock"] = "um choque elétrico", ["a potion of acid"] = "uma poção de ácido", ["unknown causes"] = "causas desconhecidas",
+            ["an amulet of strangulation"] = "um amuleto de estrangulamento", ["abandoned the run"] = "abandono",
+            // ---- auto-explore, stairs travel, rest
+            ["search for traps and doors / rest until healed"] = "procurar armadilhas e portas / descansar até curar",
+            ["auto-explore / travel to the stairs"] = "explorar sozinho / ir até a escada",
+            ["auto-explore / travel to the stairs / to an altar or fountain"] = "explorar sozinho / ir até a escada / até um altar ou fonte",
+            ["You have not found a fountain or an altar yet."] = "Você ainda não achou uma fonte ou um altar.",
+            ["You are already there."] = "Você já está lá.",
+            ["There is nothing to explore here."] = "Não há o que explorar aqui.",
+            ["You cannot rest here."] = "Você não pode descansar aqui.",
+            ["Not with enemies in sight."] = "Não com inimigos à vista.",
+            ["You are already rested."] = "Você já está descansado.",
+            ["You are already on the stairs."] = "Você já está na escada.",
+            ["You feel rested."] = "Você se sente descansado.",
+            ["You stop at some items."] = "Você para diante de alguns itens.",
+            ["Nothing left to explore here."] = "Não há mais o que explorar aqui.",
+            ["You have seen all there is to see here."] = "Você já viu tudo o que há para ver aqui.",
+            ["You have not found any stairs yet."] = "Você ainda não achou nenhuma escada.",
+            ["Something is in the way."] = "Algo está no caminho.",
             // ---- menu / settings
             ["Menu"] = "Menu", ["Esc resumes"] = "Esc volta",
             ["Resume"] = "Continuar", ["Back"] = "Voltar", ["Save game"] = "Salvar jogo",
@@ -157,6 +348,8 @@ namespace Ossuary.Core
             ["Flat pixels, no scanlines."] = "Pixels chapados, sem linhas de varredura.",
             ["Curvature, scanlines, phosphor glow."] = "Curvatura, linhas de varredura e brilho de fósforo.",
             ["The largest that fits the window."] = "O maior que cabe na janela.",
+            ["Short square-wave bleeps: hits, kills, wounds, warnings."] = "Bipes curtos de onda quadrada: golpes, mortes, ferimentos, avisos.",
+            ["Music is not written yet."] = "A música ainda não foi escrita.",
             ["Saved now; takes effect when sound is added."] = "Salvo; vale quando o som for adicionado.",
             ["Rebind any key."] = "Remapeie qualquer tecla.",
             ["Saves the run and returns to the title."] = "Salva a expedição e volta ao título.",
@@ -199,6 +392,10 @@ namespace Ossuary.Core
         static readonly List<(Regex, string)> Rx = new List<(Regex, string)>
         {
             R(@"Seed (\d+)\. Press \? for help\.", "Semente $1. Aperte ? para ajuda."),
+            R(@"(.+) takes your coin and your word\. They will follow you down\.", "$1 pega seu dinheiro e sua palavra. Vai te seguir lá para baixo."),
+            R(@"The (.+) has fallen\.", "$1 tombou."),
+            R(@"You make (.+)\.", "Você faz $1."),
+            R(@"A cold draught\. Someone died here: (.+) the (.+)\.", "Uma corrente fria. Alguém morreu aqui: $1, $2."),
             R(@"A (.+) blocks your path!", "Algo barra seu caminho: $1!"),
             R(@"Attack it with k, or flee with <\. It is (.+)\.", "Ataque com k ou fuja com <. Parece $1."),
             R(@"You travel (\d+) hours into (.+)\.", "Você viaja $1 horas até $2."),

@@ -8,7 +8,7 @@ namespace Ossuary.Core
     /// <summary>UI-facing entry points and simple state flags. Deliberately thin.</summary>
     public sealed partial class Game
     {
-        public void Wait() => EndPlayerTurn();
+        public void Wait() { BeQuiet(); EndPlayerTurn(); }
 
         public void ToggleMinimap() => UiState.ShowMinimap = !UiState.ShowMinimap;
 

@@ -124,3 +124,9 @@ barras sólidas de meio bloco (HP/EN/XP); atributos coloridos; seções
 `NEARBY`, `IN VIEW` (legenda viva), `WORN`, `VITALS`, `MAP`; diário com marcador
 por tipo e esmaecimento por idade; barra de status com o que está sob os pés;
 atalhos como teclas; painéis modais com sombra projetada e título ornamentado.
+
+
+## Água animada e tiles quadrados
+
+- Água visível é marcada pelo motor (`Frame.Anim`) e o front-end alterna glifo/brilho entre frames (`desktop/src/anim.ts`); nada disso consome turno nem Rng.
+- Opção **Tiles** (menu): `DisplaySettings.Square` desenha cada célula do mapa em duas colunas 8×16, ficando quadrada na tela. O Core continua contando em células.

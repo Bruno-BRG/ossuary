@@ -28,6 +28,11 @@ namespace Ossuary.Core
         /// <summary>Text size: 0 picks the largest that fits, otherwise a fixed 1x, 2x or 3x.</summary>
         public int Scale;
 
+        /// <summary>Map tiles two columns wide (square on screen, since the 8x16 font is twice as tall as it is wide).</summary>
+        public bool Square;
+
+        public void CycleSquare() { Square = !Square; Version++; }
+
         /// <summary>Bumped on every change so the runtime knows to re-apply.</summary>
         public int Version;
 

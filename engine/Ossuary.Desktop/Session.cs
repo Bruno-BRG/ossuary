@@ -37,11 +37,27 @@ namespace Ossuary.Desktop
         /// <summary>Starts a fresh run. With <paramref name="create"/> the creation screen opens first.</summary>
         public void New(ulong? seed = null, bool create = false) => Start(seed, null, null, null, create, false);
 
-        void Start(ulong? seed, string name, string race, string role, bool create, bool overworld)
+        /// <summary>Today's challenge: the date's seed and a hero fixed by it. Opens on the story like a created hero.</summary>
+        public void NewDaily(DateTime utc)
+        {
+            string label = Daily.Label(utc.Year, utc.Month, utc.Day);
+            ulong seed = Daily.SeedFor(label);
+            Daily.HeroFor(seed, out string race, out string role);
+            Start(seed, "Daily", race, role, false, true, null, Difficulty.Normal, label);
+            Intro = true;
+        }
+
+        void Start(ulong? seed, string name, string race, string role, bool create, bool overworld, List<Bones> bones = null, Difficulty difficulty = Difficulty.Normal, string daily = "")
         {
             ulong s = seed ?? BitConverter.ToUInt64(RandomNumberGenerator.GetBytes(8), 0);
             Game = role == null ? new Game(s) : Game.NewHero(s, name, race, role);
+            Game.Difficulty = difficulty; _difficulty = difficulty;
+            if (difficulty == Difficulty.Dive) overworld = false; _daily = daily ?? ""; Game.DailyLabel = _daily;
+            _unlocked = SaveStore.ReadAchievements(); Game.AlreadyUnlocked = new HashSet<string>(_unlocked.Keys);
             _seed = Game.Rng.Seed;
+            _graveyard = bones ?? SaveStore.ReadBones();
+            Game.Graveyard = _graveyard;
+            Game.ApplyChallenge();
             _name = Game.Player.CharName; _race = Game.Player.RaceId; _role = Game.Player.RoleId;
             _overworld = overworld;
             if (overworld) Game.BeginAtOverworld();
@@ -55,6 +71,10 @@ namespace Ossuary.Desktop
         }
 
         bool _overworld;
+        Difficulty _difficulty;
+        string _daily = "";
+        Dictionary<string, string> _unlocked = new Dictionary<string, string>();
+        List<Bones> _graveyard = new List<Bones>();
         string _name = Heroes.DefaultName, _race = "human", _role = "adventurer";
         // Hero (name, race, role) is a save field, not a logged key, so the creation form needs no replay.
 
@@ -62,7 +82,7 @@ namespace Ossuary.Desktop
         {
             AtTitle = on;
             var ui = Game.UiState;
-            if (on && (ui.Active == Panel.Settings || ui.Active == Panel.Controls)) ui.Active = Panel.None;
+            if (on && (ui.Active == Panel.Settings || ui.Active == Panel.Controls || ui.Active == Panel.Runs || ui.Active == Panel.Achievements)) ui.Active = Panel.None;
             ui.Rebinding = false;
         }
 
@@ -87,12 +107,13 @@ namespace Ossuary.Desktop
         }
 
         /// <summary>Writes the run to disk. Returns null on success, otherwise a short error.</summary>
-        public string Save()
+        public string Save(bool forQuit = false)
         {
             if (Game.Mode == GameMode.GameOver || Game.Mode == GameMode.Won || !Started) return Loc.T("Nothing to save yet.");
+            if (_difficulty == Difficulty.Hardcore && !forQuit) return Loc.T("Hardcore: the run is saved only when you quit.");
             try
             {
-                SaveStore.WriteSave(new SaveData { Seed = _seed.ToString(), Name = _name, Race = _race, Role = _role, Overworld = _overworld, Keys = new List<string>(_log), Info = Describe() });
+                SaveStore.WriteSave(new SaveData { Seed = _seed.ToString(), Name = _name, Race = _race, Role = _role, Overworld = _overworld, Bones = _graveyard, Difficulty = _difficulty.ToString(), Daily = _daily, Keys = new List<string>(_log), Info = Describe() });
                 RefreshSave();
                 return null;
             }
@@ -104,7 +125,7 @@ namespace Ossuary.Desktop
         {
             var data = SaveStore.ReadSave() ?? throw new InvalidOperationException("No saved run.");
             int cols = Hud?.Ui.Width ?? 110, rows = Hud?.Ui.Height ?? 36;
-            Start(ulong.Parse(data.Seed), data.Name, data.Race, data.Role, false, data.Overworld); Resize(cols, rows);
+            Start(ulong.Parse(data.Seed), data.Name, data.Race, data.Role, false, data.Overworld, data.Bones ?? new List<Bones>(), Difficulties.Parse(data.Difficulty), data.Daily ?? ""); Resize(cols, rows);
             _replaying = true;
             try
             {
@@ -124,8 +145,33 @@ namespace Ossuary.Desktop
             finally { _replaying = false; }
             if (Game.UiState.Active == Panel.Settings) Game.UiState.Active = Panel.None;
             _log = new List<string>(data.Keys);
+            Game.LaidToRest.Clear();
+            Game.DrainCues();      // a replayed run is silent
+            // Hardcore keeps a single save: resuming spends it.
+            if (_difficulty == Difficulty.Hardcore) SaveStore.DeleteSave();
             Started = true; RefreshSave();
         }
+
+        // A run that ends (death, victory or abandoning it) leaves a morgue file and a history entry, once.
+        Game _recorded;
+
+        void RecordRun()
+        {
+            if (_replaying || Game == null || ReferenceEquals(_recorded, Game)) return;
+            if (Game.Mode != GameMode.GameOver && Game.Mode != GameMode.Won) return;
+            _recorded = Game;
+            if (!Started && Game.Turn == 0) return;   // nothing was played
+            var record = Morgue.Summarize(Game);
+            record.Daily = _daily;
+            record.Date = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss");
+            string path = SaveStore.WriteRun(record, Morgue.Text(Game, record));
+            if (path != null) LastMorgue = path;
+            var bones = Game.LeaveBones();
+            if (bones != null) SaveStore.WriteBones(bones);
+        }
+
+        /// <summary>Where the last finished run's morgue file went (for the death screen); null if none.</summary>
+        public string LastMorgue;
 
         void DeleteSaveIfThisRun()
         {
@@ -135,8 +181,29 @@ namespace Ossuary.Desktop
 
         // ------------------------------------------------------------------ input
 
-        public void Key(string code, string key = "", bool shift = false, bool ctrl = false)
+        // Held-key walking: a repeat is honoured only after a step that was calm (see Game.CanKeepWalking).
+        bool _walkCalm;
+
+        /// <summary>Autorepeat of a held key. Anything but a calm walking step is ignored, so holding a key never queues turns.</summary>
+        public void KeyRepeat(string code, string key = "", bool shift = false, bool ctrl = false)
         {
+            if (!_walkCalm || Intro || Game == null) return;
+            var ui = Game.UiState;
+            if (ui.Active != Panel.None || ui.Rebinding || ui.IsTargeting || ui.TravelMode || Game.PendingChoice.Active) return;
+            KeyBindings.Current.Resolve(ref code, ref key, ref shift, ref ctrl);
+            if (!IsWalk(code, key, shift, ctrl)) return;
+            Key(code, key, shift, ctrl, bindingsApplied: true);
+        }
+
+        static bool IsWalk(string code, string key, bool shift, bool ctrl)
+        {
+            string command = Input.Translate(code, key, shift, ctrl);
+            return command != null && command.StartsWith("move-");
+        }
+
+        public void Key(string code, string key = "", bool shift = false, bool ctrl = false, bool bindingsApplied = false)
+        {
+            _walkCalm = false;
             var ui = Game.UiState;
             ToTitle = false;
             if (Intro) { if (!_replaying) Started = true; Intro = false; return; }
@@ -151,10 +218,14 @@ namespace Ossuary.Desktop
             }
             if (ui.Rebinding) { RebindKey(code, shift, ctrl); return; }
             if (ui.Active == Panel.Controls) { ControlsKey(code, shift); return; }
+            if (ui.Active == Panel.Runs) { RunsKey(code); return; }
+            if (ui.Active == Panel.Achievements) { AchievementsKey(code); return; }
 
-            KeyBindings.Current.Resolve(ref code, ref key, ref shift, ref ctrl);
+            if (!bindingsApplied) KeyBindings.Current.Resolve(ref code, ref key, ref shift, ref ctrl);
             if (code == "None") return;
 
+            bool walk = IsWalk(code, key, shift, ctrl);
+            int hp = Game.Player.HP; long said = Game.Said; var from = Game.WalkPosition();
             bool log = ShouldLog(code, ctrl, ui);
             int generation = _generation;
             _quitRan = false;
@@ -163,13 +234,21 @@ namespace Ossuary.Desktop
             KeyCore(code, key, shift, ctrl);
 
             bool dead = Game.Mode == GameMode.GameOver || Game.Mode == GameMode.Won;
-            if (dead) { DeleteSaveIfThisRun(); return; }
+            if (dead) { RecordRun(); DeleteSaveIfThisRun(); return; }
             if (generation != _generation) return;
             if ((log || _quitRan) && !ExitRequested)
             {
                 _log.Add($"{code}|{key}|{(shift ? 1 : 0)}|{(ctrl ? 1 : 0)}");
                 Started = true;
             }
+            if (Game.LaidToRest.Count > 0)
+            {
+                foreach (string grave in Game.LaidToRest) SaveStore.RemoveBones(grave);
+                Game.LaidToRest.Clear();
+            }
+            // The next repeat is allowed only if this step moved us, said nothing, cost no HP and the way is still calm.
+            _walkCalm = walk && Game.Said == said && Game.Player.HP >= hp
+                && Game.WalkPosition() != from && Game.CanKeepWalking();
         }
 
         // Keys that only drive the menu, the display or the host never enter the run log, so a
@@ -420,8 +499,10 @@ namespace Ossuary.Desktop
                     if (enter)
                     {
                         int cols = Hud.Ui.Width, rows = Hud.Ui.Height;
-                        Start(_seed, c.Name, c.RaceId, c.RoleId, false, true); Resize(cols, rows); Intro = true;
+                        Start(_seed, c.Name, c.RaceId, c.RoleId, false, true, null, c.Difficulty); Resize(cols, rows); Intro = true;
                     }
+                    else if (code == "ArrowLeft" || code == "ArrowRight" || up || down)
+                        c.Difficulty = Difficulties.All[Wrap(Array.IndexOf(Difficulties.All, c.Difficulty) + (code == "ArrowLeft" || up ? -1 : 1), Difficulties.All.Length)];
                     else if (code == "Escape") c.Step = CreateStep.Role;
                     break;
             }
@@ -452,6 +533,7 @@ namespace Ossuary.Desktop
                 case MenuRow.Theme: settings.CycleTheme(dir); break;
                 case MenuRow.Crt: settings.CycleCrt(dir); break;
                 case MenuRow.Scale: settings.CycleScale(dir); break;
+                case MenuRow.Tiles: settings.CycleSquare(); break;
                 case MenuRow.Language: settings.CycleLanguage(); break;
                 case MenuRow.Master: AudioSettings.Current.Change(0, dir); break;
                 case MenuRow.Music: AudioSettings.Current.Change(1, dir); break;
@@ -469,13 +551,56 @@ namespace Ossuary.Desktop
                     { string error = Save(); ui.MenuNote = error == null ? Loc.T("Game saved.") : Loc.T("Could not save: " + error); break; }
                 case MenuRow.MainMenu when AtTitle: ui.MenuNote = Loc.T("You are already here."); break;
                 case MenuRow.Controls: ui.Active = Panel.Controls; ui.ControlsIndex = 0; ui.BindNote = ""; break;
-                case MenuRow.MainMenu: Save(); ui.Active = Panel.None; ToTitle = true; AtTitle = true; break;
-                case MenuRow.Quit: Save(); ExitRequested = true; break;
+                case MenuRow.Achievements:
+                    FlushAchievements(); ui.Unlocked = new Dictionary<string, string>(SaveStore.ReadAchievements()); ui.AchIndex = 0; ui.Active = Panel.Achievements; break;
+                case MenuRow.PastRuns:
+                    ui.RunsDaily = false; LoadRuns(ui); ui.Active = Panel.Runs; break;
+                case MenuRow.MainMenu: Save(true); ui.Active = Panel.None; ToTitle = true; AtTitle = true; break;
+                case MenuRow.Quit: Save(true); ExitRequested = true; break;
                 default: ChangeMenu(row, 1); break;
             }
         }
 
         // --------------------------------------------------------------- controls
+
+        /// <summary>Newest first, or only the daily challenge runs with the best score first.</summary>
+        static void LoadRuns(UiState ui)
+        {
+            var all = SaveStore.ReadHistory();
+            all.Reverse();
+            if (ui.RunsDaily)
+            {
+                all = all.FindAll(r => r.Daily.Length > 0);
+                all.Sort((a, b) => b.Score.CompareTo(a.Score));
+            }
+            ui.Runs = all; ui.RunsIndex = 0;
+        }
+
+        void AchievementsKey(string code)
+        {
+            var ui = Game.UiState;
+            int n = Achievements.All.Length;
+            if (code == "Escape" || code == "F2") { ui.Active = Panel.Settings; return; }
+            if (code == "PageDown") ui.AchIndex = Math.Min(n - 1, ui.AchIndex + 8);
+            else if (code == "PageUp") ui.AchIndex = Math.Max(0, ui.AchIndex - 8);
+            else if (code == "Home") ui.AchIndex = 0;
+            else if (code == "End") ui.AchIndex = n - 1;
+            else if (code == "ArrowUp" || code == "ArrowDown") ui.AchIndex = Wrap(ui.AchIndex + (code == "ArrowUp" ? -1 : 1), n);
+        }
+
+        void RunsKey(string code)
+        {
+            var ui = Game.UiState;
+            if (code == "KeyD") { ui.RunsDaily = !ui.RunsDaily; LoadRuns(ui); return; }
+            int n = ui.Runs.Count;
+            if (code == "Escape" || code == "F2") { ui.Active = Panel.Settings; return; }
+            if (n == 0) return;
+            if (code == "PageDown") ui.RunsIndex = Math.Min(n - 1, ui.RunsIndex + 8);
+            else if (code == "PageUp") ui.RunsIndex = Math.Max(0, ui.RunsIndex - 8);
+            else if (code == "Home") ui.RunsIndex = 0;
+            else if (code == "End") ui.RunsIndex = n - 1;
+            else if (code == "ArrowUp" || code == "ArrowDown") ui.RunsIndex = Wrap(ui.RunsIndex + (code == "ArrowUp" ? -1 : 1), n);
+        }
 
         void ControlsKey(string code, bool shift)
         {
@@ -511,8 +636,20 @@ namespace Ossuary.Desktop
 
         // ------------------------------------------------------------------ frame
 
+        /// <summary>Writes achievements earned in this run that were not unlocked before (never during a replay).</summary>
+        void FlushAchievements()
+        {
+            if (_replaying || Game == null) return;
+            bool changed = false;
+            foreach (string id in Game.Earned)
+                if (!_unlocked.ContainsKey(id)) { _unlocked[id] = DateTime.Now.ToString("yyyy-MM-dd"); changed = true; }
+            if (changed) SaveStore.WriteAchievements(_unlocked);
+        }
+
         public Frame Draw()
         {
+            FlushAchievements();
+            RecordRun();
             Hud.Ui.TitleBackdrop = AtTitle;
             TextBuilder screen = Hud.Draw();
             int n = screen.Width * screen.Height;
@@ -529,13 +666,15 @@ namespace Ossuary.Desktop
             {
                 Cols = screen.Width, Rows = screen.Height, Glyphs = glyphs, Fg = fg, Bg = bg, Bold = bold,
                 Seed = Game.Rng.Seed.ToString(), Turn = Game.Turn, Mode = Game.Mode.ToString(),
-                Panel = Game.UiState.Active.ToString(), Theme = (int)s.Preset, Crt = (int)s.Crt, Scale = s.Scale,
+                Panel = Game.UiState.Active.ToString(), Theme = (int)s.Preset, Crt = (int)s.Crt, Scale = s.Scale, Square = s.Square ? 1 : 0,
                 Void = Pack(t.Void), Text = Pack(t.Text), Dim = Pack(t.Dim), Title = Pack(t.Title),
                 Rule = Pack(t.Rule), PanelColor = Pack(t.Panel), Bad = Pack(t.Bad), Exit = ExitRequested,
                 Scanline = scanline, Vignette = vignette, Glow = glow,
                 Master = a.Master, Music = a.Music, Effects = a.Effects,
                 Started = Started, ToTitle = ToTitle, HasSave = HasSave, SaveInfo = SaveInfo,
                 Lang = Loc.Code(s.Language), Intro = Intro ? Story.Intro() : null,
+                Sounds = _replaying || AtTitle || Intro ? new string[0] : Game.DrainCues(),
+                Anim = AtTitle || Intro || Game.UiState.Active != Panel.None || Game.PendingChoice.Active || Game.Mode == GameMode.GameOver || Game.Mode == GameMode.Won ? new int[0] : screen.ShimmerCells(),
             };
         }
         static int Pack(Rgb c) => (c.R << 16) | (c.G << 8) | c.B;
@@ -556,6 +695,7 @@ namespace Ossuary.Desktop
         public int Theme { get; set; }
         public int Crt { get; set; }
         public int Scale { get; set; }
+        public int Square { get; set; }
         public int Void { get; set; }
         public int Text { get; set; }
         public int Dim { get; set; }
@@ -576,5 +716,9 @@ namespace Ossuary.Desktop
         public string SaveInfo { get; set; }
         public string Lang { get; set; }
         public string[][] Intro { get; set; }
+        /// <summary>Sound cues that happened since the last frame (see Game.DrainCues), strongest first.</summary>
+        public string[] Sounds { get; set; }
+        /// <summary>Cells (row * Cols + col) holding moving water, for the front end to shimmer between frames.</summary>
+        public int[] Anim { get; set; }
     }
 }

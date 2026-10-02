@@ -49,6 +49,7 @@ namespace Ossuary.Core
             var p = Player;
             if (spell == null || !p.Spells.Contains(id) || Map == null) return false;
             if (p.Mp < spell.Cost) { Say("You do not have the mana."); return false; }
+            MakeNoise(2);
 
             Monster target = null;
             if (spell.Target != SpellTarget.Self)
@@ -85,8 +86,10 @@ namespace Ossuary.Core
 
             p.Mp -= spell.Cost;
             p.MpTimer = 0;
+            Cue("magic");
             ApplySpell(spell, target, tx, ty);
             GodsOnCast(spell);
+            if (spell.School == School.Necromancy && spell.Level >= 4 && p.Corruption < 40) AddCorruption(1, null);   // the greater rites leave a mark, but only so far
             p.GainSkill(Skill.Magic, spell.Level >= 2 ? 2 : 1);
             if (target != null && !target.IsDead && !target.Ally) { target.Alert = 1; target.Dormant = false; }
             Map.Version++;

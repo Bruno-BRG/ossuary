@@ -73,6 +73,10 @@ namespace Ossuary.Core.Entities
         /// <summary>The god followed (id), piety 0..200, turns until the next safe prayer, and oaths broken.</summary>
         public string God;
         public int Piety, PrayerTimer, Renounced;
+        /// <summary>A god's trial: deeds the god likes still to do (0 = none) and how many are done.</summary>
+        public int TrialGoal, TrialDone;
+        /// <summary>Reputation per house (see Houses), -100..100.</summary>
+        public readonly Dictionary<string, int> Rep = new Dictionary<string, int>();
         /// <summary>0 none, 1 from piety 50, 2 from piety 100.</summary>
         public int GodTier => God == null ? 0 : Piety >= Gods.Tier2At ? 2 : Piety >= Gods.Tier1At ? 1 : 0;
         public int GodMeleeHit => God == "khorr" && GodTier >= 1 ? 1 : 0;
@@ -82,6 +86,10 @@ namespace Ossuary.Core.Entities
         /// curves and ring bonuses stay recomputable.</summary>
         public int BonusMaxHP;
         public int Kills;
+        /// <summary>How far the Ossuary has got into the hero, 0..100. Every 20 points a mutation takes hold.</summary>
+        public int Corruption;
+        /// <summary>Mutation ids, in the order they took hold.</summary>
+        public readonly List<string> Mutated = new List<string>();
         public int Turns;
         public bool InsideDungeon;
         public string CurrentBranch = "";
@@ -249,6 +257,7 @@ namespace Ossuary.Core.Entities
             if (type == DamageType.Poison) pct += 20 * PerkRank("iron-will");
             pct += Gear.Resist(type);
             if (type == DamageType.Fire && God == "veyra") pct += GodTier >= 2 ? 60 : GodTier == 1 ? 30 : 0;
+            if (type == DamageType.Poison && God == "mourne" && GodTier >= 2) pct += 30;
             if (type == DamageType.Necrotic && ((God == "nhal" && GodTier >= 1) || (God == "aurel" && GodTier >= 2))) pct += 30;
             return Math.Max(-100, Math.Min(90, pct));
         }
@@ -349,6 +358,8 @@ namespace Ossuary.Core.Entities
                 var g = new ItemMods();
                 if (Wielded != null) g.Add(Wielded.Mods);
                 foreach (var it in WornPieces()) g.Add(it.Mods);
+                foreach (string id in Mutated) { var mu = MutationTable.Find(id); if (mu != null) g.Add(mu.Mods); }
+                g.Add(ArtifactSets.Bonus(this));
                 return g;
             }
         }
@@ -374,12 +385,14 @@ namespace Ossuary.Core.Entities
         {
             int ac = AC;
             foreach (var piece in WornPieces()) ac -= piece.TotalAc;
+            foreach (string id in Mutated) ac -= MutationTable.Find(id)?.Mods.Ac ?? 0;
             if (Rings[0] != null && RingKnown[0] && Rings[0].Name == "ring of protection") ac -= 3;
             if (Rings[1] != null && RingKnown[1] && Rings[1].Name == "ring of protection") ac -= 3;
             if (WardTurns > 0) ac -= 3;
             if (WornShield != null) ac -= 2 * PerkRank("shield-wall");
             if (WornArmor != null) ac -= PerkRank("aura");
             if (BuffTurns("stone-skin") > 0) ac -= 6;
+            if (BuffTurns("ossify") > 0) ac -= 4;
             int dexAdj = Dex >= 10 ? (Dex - 10) / 2 : -((10 - Dex) / 2);
             ac -= dexAdj;
             if (WornArmor != null && (WornArmor.Def.Flags & ItemFlags.Cursed) != 0) ac += 2;
@@ -406,6 +419,7 @@ namespace Ossuary.Core.Entities
         {
             amount += amount * 15 * PerkRank("quick-learner") / 100;
             Xp += amount;
+            if (Trained) TrainXp += amount;
             bool leveled = false;
             while (Xp >= XpNext)
             {
@@ -457,8 +471,13 @@ namespace Ossuary.Core.Entities
 
         public string AlignmentString => Align.ToString();
 
-        public int GainSkill(Skill s, int amount)
+        /// <summary>Trained mode: skills are bought, not earned by use. TrainXp is what has not been spent yet.</summary>
+        public bool Trained;
+        public int TrainXp;
+
+        public int GainSkill(Skill s, int amount, bool bought = false)
         {
+            if (Trained && !bought) return Skills[s];
             Skills[s] = Math.Min(Roles.Find(RoleId).CapFor(s), Skills[s] + amount);
             return Skills[s];
         }

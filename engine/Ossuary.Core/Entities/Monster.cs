@@ -52,6 +52,8 @@ namespace Ossuary.Core.Entities
         public bool Explodes;
         public bool Flys;
         public int Difficulty;       // for spawn tables
+        /// <summary>A branch name this monster is native to (null = any), and a behaviour tag handled in Game.Traits.</summary>
+        public string Branch, Trait;
     }
 
     /// <summary>A living (or once-living) thing in the dungeon.</summary>
@@ -65,6 +67,14 @@ namespace Ossuary.Core.Entities
         public bool IsPriest;
         public bool IsGuard;
         public bool Unique;
+        /// <summary>A hired follower: an ally with no timer that travels with the hero between levels.</summary>
+        public bool Companion;
+        /// <summary>Set on a named boss (see Bosses); BossClock counts its own turns and BossPhase is 1 or 2.</summary>
+        public string BossId;
+        public int BossClock, BossPhase;
+        public string CompanionRole;
+        /// <summary>Set on the shade of a dead hero: the bones key to lay to rest when it is destroyed.</summary>
+        public string BonesKey;
         /// <summary>Fights for the player (summoned or charmed). SummonTurns counts down to its end.</summary>
         public bool Ally;
         public int SummonTurns, FearTurns, SlowTurns;

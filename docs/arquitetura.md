@@ -63,11 +63,19 @@ O pacote usa IPC privado e funciona localmente. O modo web de desenvolvimento
 usa um endpoint Vite apenas em loopback, com o mesmo motor e uma cópia privada
 dos assemblies para manter o build disponível durante a prévia.
 
+## Som
+
+O Core não toca nada: `Game.Cue/DrainCues` guardam nomes (`hit`, `kill`, `hurt`, `death`, `levelup`, `quest`, `magic`, `warn`, `good`), o host põe em `Frame.Sounds`
+e `desktop/src/audio.ts` os transforma em bipes de onda quadrada. O áudio só destrava depois de uma tecla (política dos navegadores).
+
 ## Turnos e display
 
 Somente comandos da simulação avançam turnos. Redimensionar, renderizar,
 persistir opções e verificar estado da janela não alteram o jogo. A interface
-aceita uma ação em andamento e ignora autorepeat para evitar filas de turnos.
+aceita uma ação em andamento por vez e nunca enfileira turnos. O autorepeat de uma tecla
+segurada é enviado com `repeat: true`; o motor (`Session.KeyRepeat`) só o honra para
+caminhada calma (`Game.CanKeepWalking`: sem hostil à vista, nada sob os pés, sem dano nem
+mensagem no passo anterior) e ignora o resto.
 Tema, CRT e escala são dados do usuário, persistidos em localStorage; começar
 uma run pela tela inicial ou reiniciar após morte conserva essas preferências.
 

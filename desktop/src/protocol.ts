@@ -1,5 +1,5 @@
 import type { Lang } from './i18n';
-export interface Display { theme: number; crt: number; scale: number; lang: Lang }
+export interface Display { theme: number; crt: number; scale: number; square: number; lang: Lang }
 export interface Frame extends Display {
   cols: number; rows: number;
   glyphs: number[]; fg: number[]; bg: number[]; bold: boolean[];
@@ -10,11 +10,13 @@ export interface Frame extends Display {
   master: number; music: number; effects: number;
   started: boolean; toTitle: boolean; hasSave: boolean; saveInfo: string;
   intro: string[][] | null;
+  sounds?: string[];
+  anim?: number[];
 }
 export interface Request {
   op: 'new' | 'load' | 'title' | 'play' | 'key' | 'resize' | 'display' | 'frame';
-  seed?: string; code?: string; key?: string; shift?: boolean; ctrl?: boolean;
-  cols?: number; rows?: number; theme?: number; crt?: number; scale?: number; create?: boolean; lang?: Lang;
+  seed?: string; code?: string; key?: string; shift?: boolean; ctrl?: boolean; repeat?: boolean;
+  cols?: number; rows?: number; theme?: number; crt?: number; scale?: number; square?: number; create?: boolean; daily?: boolean; lang?: Lang;
 }
 interface Response { ok: boolean; frame?: Frame; error?: string }
 
@@ -49,6 +51,6 @@ export function readDisplay(): Display {
   try {
     const data = JSON.parse(localStorage.getItem('ossuary.display') ?? '{}') as Partial<Display>;
     const bound = (v: unknown, max: number, fallback: number) => typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= max ? v : fallback;
-    return { theme: bound(data.theme, 3, 0), crt: bound(data.crt, 2, 1), scale: bound(data.scale, 3, 0), lang: data.lang === 'en' ? 'en' : 'pt' };
-  } catch { return { theme: 0, crt: 1, scale: 0, lang: 'pt' }; }
+    return { theme: bound(data.theme, 3, 0), crt: bound(data.crt, 2, 1), scale: bound(data.scale, 3, 0), square: bound(data.square, 1, 0), lang: data.lang === 'en' ? 'en' : 'pt' };
+  } catch { return { theme: 0, crt: 1, scale: 0, square: 0, lang: 'pt' }; }
 }

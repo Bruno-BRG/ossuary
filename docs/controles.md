@@ -8,10 +8,23 @@ Movimento vi-keys vence verbo na tecla sem shift; shift recupera o verbo.
 
 `h j k l` / setas / numpad — `y u b n` diagonais — `.` esperar
 
+**Segurar a tecla** repete o passo (como em Caves of Qud) enquanto o caminho está calmo: para sozinho
+ao ver um hostil, pisar em item, escada, altar, fonte ou porta, levar dano ou aparecer mensagem nova.
+Soltar e apertar de novo rearma. Só movimento repete; nunca enfileira turnos.
+
+## Andar sozinho (dungeon)
+
+`t` explora o nível sozinho (vai até itens e bordas do mapa conhecido) — `` ` `` vai até a escada
+conhecida mais próxima (desce, senão sobe) — `~` (Shift+`` ` ``) vai até um altar ou fonte lembrado —
+`Shift+S` descansa até curar HP e mana. Todos param ao ver
+hostil, levar dano, surgir mensagem ou pisar em item/escada; com inimigo à vista recusam sem gastar turno.
+Teclas remapeáveis em Controles.
+
 ## Dungeon
 
 `>` descer — `<` subir (também escadas de prédios nas cidades) — `g` ou `,`
 pegar — `d` largar — `s` procurar (armadilhas/portas secretas) —
+`Shift+N` treinar skill com XP (modo Trained) — `Shift+B` criar (combinar o que você carrega: molotov, lâmina de osso…; `a` num molotov joga) — `Shift+E` beber numa fonte (pode corromper) — `Shift+A` desarmar armadilha achada (embaixo ou ao lado, de preferência à frente) —
 `k` (shift-K) chutar / atacar à frente — `D` (shift) abrir porta — `u` (shift-U)
 usar chave — `a` aplicar ferramenta — `f`/`Q` atirar
 
@@ -19,6 +32,20 @@ usar chave — `a` aplicar ferramenta — `f`/`Q` atirar
 
 `w` empunhar — `W` vestir — `T` tirar armadura — `P` pôr anel —
 `R` tirar anel — `r` ler pergaminho — `z` zapar varinha — `e` comer
+
+## Menu
+
+`Esc` ou `F2` abre o menu (tema, CRT, tamanho, idioma, volume, **Controles**, **Achievements**, **Past runs**). *Past runs* lista as
+expedições terminadas (setas, PgUp/PgDn, Home/End; Esc volta). Ao fim de cada run grava-se um arquivo de necrotério
+em `morgue/` no diretório de dados do jogo.
+
+## Criação e modos
+
+**Desafio diário** (botão no título): mesma semente e mesmo herói para todos no dia (UTC), começa direto na história.
+Em *Past runs*, `D` alterna para o placar diário.
+
+No último passo da criação, ◄► escolhe o modo: **Normal**, **Classic** (sem fome), **Hardcore** (um save só, gravado ao
+sair e apagado ao retomar; sem `F5`) os desafios **Dive** (começa no nível 5) e **Naked** (sem equipamento), ou **Trained** (skills só sobem comprando com XP). Desafios dobram os pontos.
 
 ## Estrada e cidade
 

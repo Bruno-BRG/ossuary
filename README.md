@@ -16,7 +16,13 @@ and run as a private local process.
   `>` on stairs). Smith, armourer, alchemist, mage tower, tavern, inn, temple, guild,
   library, barracks, market stalls — and the people who live in them. Shops, healing,
   rest, appraisal, weapon honing, rumours.
-- Seven races, eight classes, spells, abilities, perks, gods and altars.
+- Seven races, eight classes, 39 spells, abilities, perks, six gods (with rivals, trials and sacrifices) and altars.
+- Five reachable branches plus an optional portal branch (**The Annex**), branch bosses, native monsters with habits, monster factions, vaults, rigged caches and brass keys.
+- **Corruption and mutations**, hired companions, light crafting (molotovs, bone blades), artifact sets and corrupting relics.
+- A living world: reputation with four houses, Guild jobs, road events, townsfolk who keep hours and remember you.
+- Auto-explore, travel to stairs/altars, rest until healed, held-key walking, stealth and noise, found traps you can disarm.
+- Modes: Normal, Classic (no hunger), Hardcore, Dive, Naked, Trained; a daily challenge with a local board; achievements, morgue files, past runs and bones of dead heroes.
+- Short square-wave sound effects, animated water and optional square tiles.
 - Animated opening story, from the first pit to your arrival.
 - Portuguese (Brazil) and English, switchable at any time (`F2`).
 - Deterministic by seed; the seed is the save.

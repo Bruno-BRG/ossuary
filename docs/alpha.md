@@ -26,6 +26,13 @@ Capturas em `docs/shots/`.
 Executar: `desktop.ps1 dev`. Distribuir: `desktop.ps1 build`.
 Ver [build-teste.md](build-teste.md).
 
+## Estado depois da rodada de acompanhamento
+
+Todo o backlog de `a-fazer.md` foi implementado nesta rodada (tecla segurada, auto-explore, morgue/histórico/cemitério, modos e desafios, diário, conquistas, armadilhas, furtividade,
+corrupção e mutações, companheiros, crafting, artefatos e conjuntos, magias, deuses, monstros e chefes por branch, facções, reputação/contratos/eventos, cofres e estilos novos, The Annex,
+Trained, som, água animada e tiles quadrados). Salvamento: **versão 10**. Suíte headless: 79 testes de simulação + 5 de vitória + 28 de funcionalidades + fluxo desktop; vitest: terminal, áudio e água
+(o teste de IPC empacotado só roda no Windows). Itens que ficaram como ideias futuras estão anotados dentro de cada entrada em *Feito* de `a-fazer.md`.
+
 ## Evolução de gameplay
 
 Sistema RPG completo (raças, classes, magia, perks, itens, deuses, superfícies; ver rpg.md e balance.md). Save/load completo, novos conteúdos, animação de água e tiles de mapa

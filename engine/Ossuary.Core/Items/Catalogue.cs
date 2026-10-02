@@ -28,6 +28,15 @@ namespace Ossuary.Core.Items
         public static IReadOnlyList<ItemDef> Books => _books;
         public static IReadOnlyList<ItemDef> Ornaments => _ornaments;
 
+        /// <summary>A piece of wielded or worn gear by its base name.</summary>
+        public static bool TryFindGear(string name, out ItemDef def)
+        {
+            foreach (var list in new[] { _weapons, _armor, _shields, _helms, _gloves, _boots, _cloaks })
+                foreach (var d in list) if (d.Name == name) { def = d; return true; }
+            def = default;
+            return false;
+        }
+
         static Catalogue()
         {
             _weapons = new[] {
@@ -156,6 +165,7 @@ namespace Ossuary.Core.Items
                 M("potion of see invisible",'!', 200),
                 M("potion of gain ability", '!', 300),
                 M("potion of gain level",   '!', 500, ItemFlags.Special),
+                M("potion of mutation",     '!', 300, ItemFlags.Special),
             };
 
             // F(name, glyph, cost, nutrition, weight). The weights are per ration and are

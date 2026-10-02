@@ -11,6 +11,8 @@ namespace Ossuary.Core.Gen
         Barracks,   // Dwarf Fortress-ish: halls in a grid, doors everywhere
         Fort,       // keep/stronghold: concentric walls, vault in the middle
         Warrens,    // Caves of Qud-ish: organic cells, pillars, ruined walls
+        Ruins,      // rooms that fell down: breached walls, rubble, debris
+        Catacombs,  // a lattice of crypts off a grid of narrow passages
     }
 
     public enum SpecialRoom
@@ -82,6 +84,8 @@ namespace Ossuary.Core.Gen
                 case LevelStyle.Barracks: GenBarracks(map, o, rng); break;
                 case LevelStyle.Fort: GenFort(map, o, rng); break;
                 case LevelStyle.Warrens: GenWarrens(map, o, rng); break;
+                case LevelStyle.Ruins: GenRuins(map, o, rng); break;
+                case LevelStyle.Catacombs: GenCatacombs(map, o, rng); break;
                 default: GenRooms(map, o, rng); break;
             }
 
@@ -220,6 +224,64 @@ namespace Ossuary.Core.Gen
                     break;
             }
             return r;
+        }
+
+        // ---------------------------------------------------------------- ruins
+
+        /// <summary>Ordinary rooms, then time: walls give way to breaches and rubble, floors fill with debris.</summary>
+        static void GenRuins(GameMap map, GenOptions o, Rng rng)
+        {
+            GenRooms(map, o, rng);
+            var cells = new List<(int, int)>();
+            for (int y = 1; y < map.H - 1; y++)
+                for (int x = 1; x < map.W - 1; x++)
+                {
+                    TileKind t = map.Get(x, y);
+                    if (t == TileKind.Wall || t == TileKind.WallAlt)
+                    {
+                        bool nextToFloor = false;
+                        for (int k = 0; k < 4; k++) if (map.Walkable(x + Dirs.Dx4[k], y + Dirs.Dy4[k])) nextToFloor = true;
+                        if (nextToFloor) cells.Add((x, y));
+                    }
+                    else if (t == TileKind.Floor && rng.Chance(14)) map.SetRaw(x + y * map.W, TileKind.FloorAlt);
+                }
+            foreach (var (x, y) in cells)
+            {
+                int roll = rng.Range(0, 100);
+                if (roll < 7) map.SetRaw(x + y * map.W, TileKind.Floor);          // a breach
+                else if (roll < 16) map.SetRaw(x + y * map.W, TileKind.Rubble);   // something fell
+                else if (roll < 21) map.SetRaw(x + y * map.W, TileKind.Pillar);   // what is left of a column
+            }
+        }
+
+        // ------------------------------------------------------------ catacombs
+
+        /// <summary>Narrow passages on a grid, with a crypt in every block, most of them with graves and a door onto the nearest passage.</summary>
+        static void GenCatacombs(GameMap map, GenOptions o, Rng rng)
+        {
+            map.Fill(TileKind.WallDark);
+            const int strideX = 8, strideY = 6, offX = 2, offY = 2;
+            int cols = (map.W - 1 - offX) / strideX, rows = (map.H - 1 - offY) / strideY;
+            // The passages: one-wide lines along every block edge.
+            for (int gx = 0; gx <= cols; gx++)
+                for (int y = offY; y <= offY + rows * strideY && y < map.H - 1; y++) map.SetRaw(offX + gx * strideX + y * map.W, TileKind.Floor);
+            for (int gy = 0; gy <= rows; gy++)
+                for (int x = offX; x <= offX + cols * strideX && x < map.W - 1; x++) map.SetRaw(x + (offY + gy * strideY) * map.W, TileKind.Floor);
+            // The crypts.
+            for (int gy = 0; gy < rows; gy++)
+                for (int gx = 0; gx < cols; gx++)
+                {
+                    if (rng.Chance(12)) continue;                       // solid rock: a block nobody dug
+                    int cx = offX + gx * strideX, cy = offY + gy * strideY;
+                    map.Stamp(cx + 2, cy + 2, 5, 3, TileKind.Floor, true);
+                    // A door onto one of the four passages around the block.
+                    int side = rng.Range(0, 4);
+                    int dx = side == 0 ? cx + 1 : side == 1 ? cx + 7 : cx + 4, dy = side == 2 ? cy + 1 : side == 3 ? cy + 5 : cy + 3;
+                    map.SetRaw(dx + dy * map.W, TileKind.Floor);
+                    if (rng.Chance(50)) map.Set(cx + 4, cy + 3, TileKind.Grave);
+                    else if (rng.Chance(40)) map.Set(cx + 3, cy + 3, TileKind.Grave);
+                    if (rng.Chance(30)) map.Set(cx + 5, cy + 3, TileKind.Grave);
+                }
         }
 
         // ----------------------------------------------------------------- maze

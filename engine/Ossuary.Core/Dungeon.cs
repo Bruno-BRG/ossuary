@@ -16,6 +16,9 @@ namespace Ossuary.Core
         public int[] WallStyles;      // per depth band
         public string EntryText;
         public bool AscendPossible = true;
+        /// <summary>For an optional side branch: the branch and depth whose portal leads into it (null for the main five).</summary>
+        public string Parent;
+        public int ParentDepth;
 
         public Branch(string name, string adj, int maxDepth, LevelStyle[] styles, int[] walls, string entry)
         {
@@ -58,7 +61,7 @@ namespace Ossuary.Core
         void BuildBranches()
         {
             Branches.Add(new Branch("The Dungeons", "dungeon", 10,
-                new[] { LevelStyle.Rooms, LevelStyle.Rooms, LevelStyle.Barracks, LevelStyle.Maze, LevelStyle.Rooms, LevelStyle.Cave, LevelStyle.Barracks, LevelStyle.Maze, LevelStyle.Fort, LevelStyle.Cave },
+                new[] { LevelStyle.Rooms, LevelStyle.Ruins, LevelStyle.Barracks, LevelStyle.Maze, LevelStyle.Catacombs, LevelStyle.Cave, LevelStyle.Ruins, LevelStyle.Maze, LevelStyle.Fort, LevelStyle.Cave },
                 new[] { 0, 0, 0, 1, 0, 2, 0, 1, 1, 2 },
                 "You enter the dungeons beneath the earth."));
 
@@ -73,14 +76,28 @@ namespace Ossuary.Core
                 "Something has been living here a long time."));
 
             Branches.Add(new Branch("The Sunken Vaults", "sunken", 12,
-                new[] { LevelStyle.Cave, LevelStyle.Rooms, LevelStyle.Fort, LevelStyle.Cave, LevelStyle.Barracks, LevelStyle.Maze, LevelStyle.Fort, LevelStyle.Cave, LevelStyle.Warrens, LevelStyle.Cave, LevelStyle.Fort, LevelStyle.Cave },
+                new[] { LevelStyle.Cave, LevelStyle.Catacombs, LevelStyle.Fort, LevelStyle.Cave, LevelStyle.Ruins, LevelStyle.Maze, LevelStyle.Catacombs, LevelStyle.Cave, LevelStyle.Warrens, LevelStyle.Cave, LevelStyle.Fort, LevelStyle.Cave },
                 new[] { 2, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 2 },
                 "Black water drips from a ceiling you cannot see."));
 
             Branches.Add(new Branch("The Ashen Spire", "ashen", 15,
-                new[] { LevelStyle.Fort, LevelStyle.Maze, LevelStyle.Fort, LevelStyle.Barracks, LevelStyle.Fort, LevelStyle.Maze, LevelStyle.Fort, LevelStyle.Barracks, LevelStyle.Fort, LevelStyle.Maze, LevelStyle.Fort, LevelStyle.Maze, LevelStyle.Fort, LevelStyle.Cave, LevelStyle.Fort },
+                new[] { LevelStyle.Fort, LevelStyle.Maze, LevelStyle.Fort, LevelStyle.Barracks, LevelStyle.Fort, LevelStyle.Ruins, LevelStyle.Fort, LevelStyle.Barracks, LevelStyle.Fort, LevelStyle.Maze, LevelStyle.Fort, LevelStyle.Catacombs, LevelStyle.Fort, LevelStyle.Cave, LevelStyle.Fort },
                 new[] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1 },
                 "The stone here is warm, and it should not be."));
+
+            // An optional side branch, reached by a portal on Dungeons 4: short, brutal, and worth it.
+            Branches.Add(new Branch("The Annex", "annex", 3,
+                new[] { LevelStyle.Catacombs, LevelStyle.Maze, LevelStyle.Fort },
+                new[] { 1, 0, 1 },
+                "A door that should not have opened, and has, and has closed behind you.")
+            { Parent = "The Dungeons", ParentDepth = 4, AscendPossible = false });
+        }
+
+        /// <summary>The side branch whose portal stands on this level, or null.</summary>
+        public Branch SideBranchAt(string branch, int depth)
+        {
+            foreach (var b in Branches) if (b.Parent == branch && b.ParentDepth == depth) return b;
+            return null;
         }
 
         public Branch Get(string name)
@@ -140,6 +157,8 @@ namespace Ossuary.Core
                 for (int y = 0; y < map.H; y++)
                     for (int x = 0; x < map.W; x++)
                         if (map.Get(x, y) == TileKind.StairsUp) map.Set(x, y, TileKind.Floor);
+                // A side branch is entered by a portal, and left by the same one: you arrive standing on it.
+                if (b.Parent != null) map.Set(sx, sy, TileKind.Portal);
             }
 
             _levels[k] = map;

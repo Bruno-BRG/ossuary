@@ -112,6 +112,7 @@ namespace Ossuary.Core
         void TownsfolkTurn(Monster m)
         {
             if (m.Leash <= 0) return;
+            if (GoHomeAtNight(m)) return;
             uint h = Mix((uint)(m.Voice * 31 + m.X), (uint)(m.Y * 7 + Turn), (uint)m.Floor + 11u);
             if (h % 100 >= 24) return;
             int k = (int)((h >> 8) % 8);
@@ -126,12 +127,31 @@ namespace Ossuary.Core
             Map.Version++;
         }
 
+        /// <summary>
+        /// Townsfolk keep hours. After dark the ones with a home make for its door and stay in until morning (guards, keepers,
+        /// priests, the drunk and the beggar stay out). A routine of the world clock, not of the Rng.
+        /// </summary>
+        bool GoHomeAtNight(Monster m)
+        {
+            if (World == null || !World.IsNight || m.Home == null || m.Floor != TownZ || TownZ != 0) return false;
+            if (m.IsGuard || m.IsPriest || m.Home.Keeper == m) return false;
+            if (m.Role != TownRole.Citizen && m.Role != TownRole.Child && m.Role != TownRole.Elder && m.Role != TownRole.Scholar) return false;
+            var b = m.Home;
+            int cx = b.X + b.W / 2, cy = b.Y + b.H / 2;
+            if (b.Contains(m.X, m.Y) && Pathfinder.Chebyshev(m.X, m.Y, cx, cy) <= 1) return true;   // in for the night
+            uint h = Mix((uint)(m.Voice * 17 + m.X), (uint)(m.Y * 13 + Turn), 77u);
+            if (h % 100 >= 70) return true;                                                           // walking, not running
+            StepToward(m, b.Contains(m.X, m.Y) ? cx : b.DoorX, b.Contains(m.X, m.Y) ? cy : b.DoorY);
+            return true;
+        }
+
         /// <summary>Bumping a person: shopkeepers and service-givers open their counter, everyone else chats.</summary>
         public void TalkTo(Monster m)
         {
             if (m == null || !m.Townsperson) return;
             if (m.Home != null && m.Home.Keeper == m) { OpenCounter(m.Home, m); return; }
-            string line = TownText.LineFor(m, _talkCount++);
+            string line = TownText.Reaction(m, RepOf(Houses.Watch), RepOf(Houses.Temple), RepOf(Houses.Guild), Player.Corruption, Player.Mutated.Count, Companions.Count > 0)
+                          ?? TownText.LineFor(m, _talkCount++);
             if (m.Role == TownRole.Pet) Say(line, MessageKind.Neutral);
             else Say($"{m.Name} ({Loc.T(TownText.RoleTitle(m.Role))}): \"{Loc.T(line)}\"", MessageKind.Narrative);
             EndPlayerTurn();
@@ -148,8 +168,10 @@ namespace Ossuary.Core
 
         void OpenCounter(Building b, Monster keeper)
         {
+            CurrentEvent = null;
             Talking = keeper; TalkBuilding = b;
-            ServiceNote = TownText.Greeting(keeper);
+            ServiceNote = TownText.Reaction(keeper, RepOf(Houses.Watch), RepOf(Houses.Temple), RepOf(Houses.Guild), Player.Corruption, Player.Mutated.Count, false) is string said
+                ? Loc.T(said) : TownText.Greeting(keeper);
             if (b.Services == Service.None && b.Shop != null)
             {
                 OpenShop(b.Shop);
@@ -166,9 +188,10 @@ namespace Ossuary.Core
 
         // ------------------------------------------------------------- services
 
-        public int RestPrice => 6 + Player.Level * 2;
-        public int HealPrice => 4 + Player.Level * 2 + Math.Max(0, Player.MaxHP - Player.HP) / 3;
-        public const int MealPrice = 5, AlePrice = 3, CurePrice = 12, DonatePrice = 25, AppraisePrice = 30;
+        public int RestPrice => Haggle(6 + Player.Level * 2, Houses.Watch, 10);
+        public int HealPrice => Haggle(4 + Player.Level * 2 + Math.Max(0, Player.MaxHP - Player.HP) / 3, Houses.Temple);
+        public const int MealPrice = 5, AlePrice = 3, BaseCurePrice = 12, DonatePrice = 25, AppraisePrice = 30;
+        public int CurePrice => Haggle(BaseCurePrice, Houses.Temple);
 
         bool NeedsCure() =>
             Player.PoisonResist > 0 || Player.Blinded || Player.Confused || Player.Hallucinating || Player.StunTurns > 0 || Player.BlindTurns > 0;
@@ -183,17 +206,22 @@ namespace Ossuary.Core
             var rows = new List<ServiceRow>();
             var b = TalkBuilding;
             if (b == null) return rows;
+            if (CurrentEvent != null) return CurrentEvent.Rows;
             var s = b.Services;
             int gold = Player.Gold;
             void Add(string id, string label, int price, bool ok = true) =>
                 rows.Add(new ServiceRow { Id = id, Label = label, Price = price, Enabled = ok && gold >= price });
 
             if (b.Shop != null) Add("browse", "Browse the wares", 0);
-            if ((s & Service.Rest) != 0) Add("rest", "Rest until morning", RestPrice);
+            if ((s & Service.Rest) != 0) Add("rest", RepOf(Houses.Watch) <= -25 ? "Rest until morning (they know your face)" : "Rest until morning", RestPrice, RepOf(Houses.Watch) > -25);
             if ((s & Service.Meal) != 0) Add("meal", "A hot meal", MealPrice);
             if ((s & Service.Ale) != 0) Add("ale", "A mug of ale", AlePrice);
+            if ((s & Service.Ale) != 0 && Companions.Count < MaxCompanions) Add("hire", "Hire a sellsword", HirePrice);
+            if ((s & Service.Ale) != 0 && Companions.Count > 0) Add("dismiss", "Send my sellsword home", 0);
             if ((s & Service.Heal) != 0) Add("heal", "Heal my wounds", HealPrice, Player.HP < Player.MaxHP);
             if ((s & Service.Cure) != 0) Add("cure", "Cure my ailments", CurePrice, NeedsCure());
+            if ((s & Service.Cure) != 0) Add("purge", "Purge the Ossuary from me", Haggle(PurgePrice, Houses.Temple), Player.Corruption > 0);
+            if ((s & Service.Cure) != 0 && RepOf(Houses.Cult) >= 25) Add("grave", "A vial from the back room (the Cult sells)", Haggle(220, Houses.Cult));
             if ((s & Service.Donate) != 0) Add("donate", "Make an offering", DonatePrice);
             if ((s & Service.Appraise) != 0) Add("appraise", "Appraise an item", AppraisePrice, UnidentifiedItems().Count > 0);
             if ((s & Service.Hone) != 0)
@@ -204,6 +232,14 @@ namespace Ossuary.Core
             }
             if ((s & Service.Quest) != 0) Add("story", "Ask about the Ossuary", 0);
             if ((s & Service.Quest) != 0) Add("board", "Read the notice board", 0);
+            if ((s & Service.Quest) != 0)
+            {
+                var offers = ContractOffers();
+                for (int i = 0; i < offers.Count; i++)
+                    Add("offer:" + i, $"Take a job: {offers[i].Describe()} (pays {offers[i].Reward}g)", 0, Contracts.Count < MaxContracts);
+                for (int i = 0; i < Contracts.Count; i++)
+                    Add("turnin:" + i, $"Report: {Contracts[i].Describe()} ({Math.Min(Contracts[i].Done, Contracts[i].Count)}/{Contracts[i].Count})", 0, Contracts[i].Complete);
+            }
             if ((s & Service.Rumor) != 0 && (s & Service.Quest) == 0) Add("rumor", "Ask for news", (s & Service.Ale) != 0 ? 4 : 0);
             Add("leave", "Take my leave", 0);
             return rows;
@@ -228,6 +264,8 @@ namespace Ossuary.Core
         {
             var b = TalkBuilding;
             if (b == null) return true;
+            if (CurrentEvent != null) return EventAction(id);
+            if (id.StartsWith("offer:") || id.StartsWith("turnin:")) return ContractAction(id);
             switch (id)
             {
                 case "leave": return true;
@@ -251,9 +289,21 @@ namespace Ossuary.Core
                     Player.HP = Math.Min(Player.MaxHP, Player.HP + Math.Max(2, Player.MaxHP / 10));
                     Tell("You drink a mug of ale. It is bad, and it warms you.", MessageKind.Good);
                     return false;
+                case "hire":
+                    {
+                        if (Companions.Count >= MaxCompanions || !Pay(HirePrice)) return false;
+                        var hired = HireCompanion();
+                        Tell($"{hired.Name} takes your coin and your word. They will follow you down.", MessageKind.Good);
+                        return false;
+                    }
+                case "dismiss":
+                    DismissCompanion();
+                    Tell("Your sellsword shakes your hand and goes back to the bar.", MessageKind.Info);
+                    return false;
                 case "heal":
                     if (!Pay(HealPrice)) return false;
                     Player.HP = Player.MaxHP;
+                    AddRep(Houses.Temple, 1, null);
                     Tell("A cold hand, a quiet word. Your wounds close.", MessageKind.Good);
                     return false;
                 case "cure":
@@ -261,8 +311,19 @@ namespace Ossuary.Core
                     CureAilments();
                     Tell("A prayer, and the sickness leaves you.", MessageKind.Good);
                     return false;
+                case "purge":
+                    if (Player.Corruption <= 0 || !Pay(Haggle(PurgePrice, Houses.Temple))) return false;
+                    PurgeCorruption();
+                    AddRep(Houses.Temple, 3, null); AddRep(Houses.Cult, -3, null);
+                    return false;
+                case "grave":
+                    if (RepOf(Houses.Cult) < 25 || !Pay(Haggle(220, Houses.Cult))) return false;
+                    GiveItem("potion of mutation", 1);
+                    Tell("A vial of black water, handed over without a word.", MessageKind.Warn);
+                    return false;
                 case "donate":
                     if (!Pay(DonatePrice)) return false;
+                    AddRep(Houses.Temple, 2, null);
                     if (Player.God != null)
                     {
                         Player.Piety = Math.Min(Gods.MaxPiety, Player.Piety + 3);
@@ -301,6 +362,21 @@ namespace Ossuary.Core
                     Tell(TownText.Rumor(_talkCount++ + (Talking?.Voice ?? 0)), MessageKind.Narrative);
                     return false;
             }
+            return false;
+        }
+
+        bool ContractAction(string id)
+        {
+            int i = int.Parse(id.Substring(id.IndexOf(':') + 1));
+            if (id.StartsWith("offer:"))
+            {
+                var offers = ContractOffers();
+                if (i < 0 || i >= offers.Count) return false;
+                AcceptContract(offers[i]);
+                return false;
+            }
+            if (i < 0 || i >= Contracts.Count) return false;
+            TurnInContract(Contracts[i]);
             return false;
         }
 
