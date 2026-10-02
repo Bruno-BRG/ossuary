@@ -20,6 +20,7 @@ DOM, renderização, plataforma ou serviços de janela. Todos os verbos vivem em
 - `desktop/src-tauri/`: janela Rust, transporte local, ciclo do processo e pacote.
 - `assets/fonts/unscii-16.hex`: fonte canônica 8×16; atribuição em NOTICE.md.
 - `docs/`: documentação PT-BR; capturas reais em `docs/shots/`.
+- `docs/a-fazer.md`: backlog e acompanhamento de progresso, organizado por categoria.
 
 ## Comandos
 
@@ -69,6 +70,8 @@ O pacote distribui `ossuary.exe` e o motor `ossuary-engine.exe` lado a lado.
 
 ## Trabalho e validação
 
+0. Antes de começar, leia `docs/a-fazer.md`; ao terminar, atualize-o (marque `[x]` com data,
+   `[~]` se parcial, e registre ideias novas na categoria certa). É o nosso acompanhamento de progresso.
 1. Type-check durante a edição.
 2. Suite headless antes e depois de alterações no Core; dump panels para layout.
 3. Suite completa antes de fechar e build depois de mudanças distribuíveis.
