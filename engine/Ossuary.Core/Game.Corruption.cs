@@ -1,5 +1,6 @@
 using System;
 using Ossuary.Core.Entities;
+using Ossuary.Core.Items;
 
 namespace Ossuary.Core
 {
@@ -42,10 +43,24 @@ namespace Ossuary.Core
         public int MutationHunger() { int s = 0; foreach (string id in Player.Mutated) s += MutationTable.Find(id)?.Hunger ?? 0; return s; }
         public int MutationNoise() { int s = 0; foreach (string id in Player.Mutated) s += MutationTable.Find(id)?.Noise ?? 0; return s; }
 
-        /// <summary>The Amulet gnaws at whoever carries it: a point of corruption every 40 turns.</summary>
+        /// <summary>The Amulet gnaws at whoever carries it (a point every 40 turns); relics do the same, every 25.</summary>
         void AmuletCorrupts()
         {
             if (Turn % 40 == 0 && HasAmulet()) AddCorruption(1, null);
+            if (Turn % 25 == 0)
+            {
+                int relics = WornRelics();
+                if (relics > 0) AddCorruption(relics, null);
+            }
+        }
+
+        /// <summary>Corrupting artifacts the hero has on (wielded or worn).</summary>
+        public int WornRelics()
+        {
+            int n = 0;
+            if (Player.Wielded != null && Artifacts.Find(Player.Wielded.ArtifactId)?.Corrupts == true) n++;
+            foreach (var piece in Player.WornPieces()) if (Artifacts.Find(piece.ArtifactId)?.Corrupts == true) n++;
+            return n;
         }
 
         // ---------------------------------------------------------------- fountains

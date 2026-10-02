@@ -250,6 +250,11 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
   **Classic**: `ProcessHunger` não faz nada. **Hardcore**: `Session.Save(forQuit)` só grava ao sair (Main menu/Quit),
   `QuickSave` e *Save game* recusam, e `Load` apaga o arquivo depois de reproduzir a run.
 
+## Conjuntos e relíquias (`Items/Affixes.cs`, `Game.Corruption.cs`)
+
+- `ArtifactDef.Set` liga uma peça a um `ArtifactSetDef` (bônus `Two`/`Three`, somados por `ArtifactSets.Bonus` em `Player.Gear`).
+  `ArtifactDef.Corrupts` marca relíquias: `AmuletCorrupts` soma `WornRelics()` a cada 25 turnos. Um artefato por (branch, profundidade).
+
 ## Crafting (`Game.Crafting.cs`)
 
 - `Recipe` = (Id, Needs, Gather, Make). `CraftChoices` lista o que a mochila permite, como itens-prévia (`Uid = −1 − índice`);

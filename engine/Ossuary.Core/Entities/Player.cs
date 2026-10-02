@@ -354,6 +354,7 @@ namespace Ossuary.Core.Entities
                 if (Wielded != null) g.Add(Wielded.Mods);
                 foreach (var it in WornPieces()) g.Add(it.Mods);
                 foreach (string id in Mutated) { var mu = MutationTable.Find(id); if (mu != null) g.Add(mu.Mods); }
+                g.Add(ArtifactSets.Bonus(this));
                 return g;
             }
         }

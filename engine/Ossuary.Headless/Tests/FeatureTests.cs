@@ -30,6 +30,7 @@ namespace Ossuary.Tests
             Test("Dive and Naked challenge runs start differently", Challenges);
             Test("travel finds altars and fountains", FeatureTravel);
             Test("crafting combines the pack and a molotov burns", CraftingFlow);
+            Test("artifact sets add up and relics corrupt", SetsAndRelics);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -565,6 +566,43 @@ namespace Ossuary.Tests
             Assert(brew != null, "two healing potions brew an extra healing");
             g.Craft(brew);
             Assert(g.Player.Inventory.Count == 1 && g.Player.Inventory[0].Def.Name == "potion of extra healing", "the pair becomes one stronger potion");
+        }
+
+        static void SetsAndRelics()
+        {
+            var seen = new HashSet<string>();
+            foreach (var a in Artifacts.All)
+            {
+                Assert(seen.Add(a.Branch + "@" + a.Depth), "two artifacts on one level: " + a.Branch + " " + a.Depth);
+                Assert(a.Set == null || ArtifactSets.Find(a.Set) != null, "known set for " + a.Id);
+            }
+            Assert(Artifacts.All.Length >= 12, "a real roster of artifacts");
+
+            var g = Game.NewHero(1100, "Court", "human", "fighter");
+            g.Monsters.Clear();
+            Item Art(string id) => Artifacts.Create(Artifacts.Find(id), g.Rng, g.NextUid());
+            int cold0 = g.Player.Gear.ResCold;
+            g.Player.Wear(Art("tidecallers-gauntlets"));
+            Assert(ArtifactSets.Worn(g.Player, "drowned-court") == 1 && g.Player.Gear.ResCold == cold0 + 15, "one piece: its own bonus only");
+            g.Player.Wear(Art("brinewalkers"));
+            Assert(ArtifactSets.Worn(g.Player, "drowned-court") == 2 && g.Player.Gear.ResCold == cold0 + 15 + 20, "two pieces: the set's first bonus");
+            int mp = g.Player.Gear.Mp;
+            g.Player.Wear(Art("crown-drowned-king"));
+            Assert(ArtifactSets.Worn(g.Player, "drowned-court") == 3 && g.Player.Gear.Mp >= mp + 10, "three pieces: the second bonus too");
+            Assert(ArtifactSets.Worn(g.Player, "ashen-regalia") == 0, "another set is untouched");
+
+            var r = Game.NewHero(1101, "Relic", "human", "fighter");
+            r.Monsters.Clear();
+            int hp = r.Player.MaxHP;
+            Assert(r.WornRelics() == 0, "no relics at first");
+            r.Player.Wear(Artifacts.Create(Artifacts.Find("hollow-ribs"), r.Rng, r.NextUid()));
+            Assert(r.WornRelics() == 1 && r.Player.MaxHP >= hp + 20, "Hollow Ribs are strong");
+            for (int i = 0; i < 100; i++) { r.Player.Nutrient = 1000; r.Player.HP = r.Player.MaxHP; r.EndPlayerTurn(); }
+            Assert(r.Player.Corruption >= 4, "and they take something back, corruption " + r.Player.Corruption);
+            var plain = Game.NewHero(1101, "Plain", "human", "fighter");
+            plain.Monsters.Clear();
+            for (int i = 0; i < 100; i++) { plain.Player.Nutrient = 1000; plain.Player.HP = plain.Player.MaxHP; plain.EndPlayerTurn(); }
+            Assert(plain.Player.Corruption == 0, "without a relic nothing is taken");
         }
     }
 }

@@ -205,6 +205,10 @@ namespace Ossuary.Core
             ["Dive"] = "Mergulho", ["Naked"] = "Pelado",
             ["Start on depth 5, a few levels up. Score x2."] = "Começa no nível 5, com alguns níveis a mais. Pontos x2.",
             ["No weapon, armour or shield. One more advancement. Score x2."] = "Sem arma, armadura ou escudo. Um avanço a mais. Pontos x2.",
+            // ---- artifacts, sets and relics
+            ["The Drowned Court"] = "A Corte Afogada", ["The Ashen Regalia"] = "A Regalia de Cinza", ["Relics worn: "] = "Relíquias vestidas: ",
+            ["Tidecaller's Gauntlets"] = "Manoplas do Chamador de Marés", ["Brinewalkers"] = "Andarilhos da Salmoura", ["Mantle of Ash"] = "Manto de Cinza",
+            ["Cinder Plate"] = "Placa de Brasa", ["Hollow Ribs"] = "Costelas Ocas", ["Gravedigger's Spade"] = "Pá do Coveiro", ["Gnawed Cowl"] = "Capuz Roído",
             // ---- crafting
             ["craft: combine what you carry"] = "criar: combinar o que você carrega",
             ["Make what?"] = "Fazer o quê?", ["molotov"] = "molotov", ["bone blade"] = "lâmina de osso", ["bone-studded armour"] = "armadura cravejada de osso",

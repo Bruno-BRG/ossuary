@@ -31,8 +31,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Itens e crafting
 
-- [ ] **Mais artefatos e conjuntos** além dos 5 (um por branch).
-- [ ] **Itens de corrupção** (relíquias que dão mutação em troca de poder).
 
 ## Mundo, cidades e missões
 
@@ -69,6 +67,11 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Mais artefatos, conjuntos e relíquias de corrupção** (2026-10-02). `Artifacts.All` foi de 5 para 13 (um por nível em cada branch). **Conjuntos**
+  (`ArtifactSets`): *The Drowned Court* (Crown, Tidecaller's Gauntlets, Brinewalkers) e *The Ashen Regalia* (Ashfall, Mantle of Ash, Cinder Plate); 2 peças =
+  1º bônus, 3 = 2º (somados em `Player.Gear`). **Relíquias** (`Corrupts`): *Hollow Ribs*, *Gravedigger's Spade*, *Gnawed Cowl*: fortes, mas cada
+  uma vestida dá +1 corrupção a cada 25 turnos (`Game.WornRelics`). Mostrados na ficha Character. Teste `SetsAndRelics`.
 
 - [x] **Crafting leve** (2026-10-02). `Shift+B` (`Game.Crafting.cs`, `Items/Crafted.cs`): receitas como dados — **molotov** (poção de óleo + vela),
   **bone blade** (lâmina + restos; vem *vampiric*), **bone-studded armour** (armadura leve + 2 restos, +1) e **extra healing** (2 curas).

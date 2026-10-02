@@ -1237,6 +1237,12 @@ namespace Ossuary.Core
                 _t.WriteClipped(x, y++, _g.ArmourClatter() > 0 ? $"Stealth: notice -{_g.StealthReduction()}, armour rattles +{_g.ArmourClatter()}" : $"Stealth: monsters notice you {_g.StealthReduction()} square(s) later", theme.Info, iw, false, theme.Panel);
             var gearLines = p.Gear.Lines();
             if (gearLines.Count > 0) _t.WriteClipped(x, y++, "Gear: " + string.Join(", ", gearLines.ToArray()), theme.Info, iw, false, theme.Panel);
+            foreach (var set in ArtifactSets.All)
+            {
+                int pieces = ArtifactSets.Worn(p, set.Id);
+                if (pieces > 0) _t.WriteClipped(x, y++, $"Set: {Loc.T(set.Name)} {pieces}/3", pieces >= 2 ? theme.Gold : theme.Dim, iw, false, theme.Panel);
+            }
+            if (_g.WornRelics() > 0) _t.WriteClipped(x, y++, $"Relics worn: {_g.WornRelics()} (they corrupt)", theme.Warn, iw, false, theme.Panel);
             var faith = Gods.Find(p.God);
             if (faith != null) _t.WriteClipped(x, y++, $"Faith: {faith.Name}, {faith.Title} - piety {p.Piety}/{Gods.MaxPiety}" + (p.GodTier > 0 ? $" (tier {p.GodTier})" : ""), theme.Gold, iw, false, theme.Panel);
             var traits = Races.Find(p.RaceId).TraitLines();
