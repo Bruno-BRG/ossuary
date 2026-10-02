@@ -16,6 +16,7 @@ o que o jogo é, como cada sistema funciona e onde mora no código.
 - [`renderer.md`](renderer.md) — fonte bitmap, Canvas, CRT, temas, FOV, como verificar
 - [`controles.md`](controles.md) — teclado completo (vi-keys + verbos)
 - [`build-teste.md`](build-teste.md) — pipeline: scripts, CLI, builds, shots
+- [`a-fazer.md`](a-fazer.md) — **backlog e acompanhamento de progresso** (o que falta, o que já foi feito)
 - [`alpha.md`](alpha.md) — estado do alpha jogável + roadmap
 - [`lore.md`](lore.md) — bíblia de worldbuilding (tom, Ossuary, facções, Yendor)
 - [`idiomas.md`](idiomas.md) — português/inglês, como traduzir e a história de abertura
