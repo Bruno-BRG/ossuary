@@ -250,6 +250,12 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
   **Classic**: `ProcessHunger` não faz nada. **Hardcore**: `Session.Save(forQuit)` só grava ao sair (Main menu/Quit),
   `QuickSave` e *Save game* recusam, e `Load` apaga o arquivo depois de reproduzir a run.
 
+## Crafting (`Game.Crafting.cs`)
+
+- `Recipe` = (Id, Needs, Gather, Make). `CraftChoices` lista o que a mochila permite, como itens-prévia (`Uid = −1 − índice`);
+  `CommitChoice` com `CraftPrompt` chama `Craft`, que gasta os ingredientes e custa um turno. O **molotov** (`Crafted.Molotov`, ferramenta) usa
+  `TargetingMode.Throw` → `ThrowAt`: fogo (`PutSurface`) no alvo e nas quatro vizinhas andáveis, `SetAlight` + dano de fogo no monstro.
+
 ## Companheiros (`Game.Companions.cs`)
 
 - Serviço *Hire a sellsword* (taverna): `HireCompanion` cria um `Monster` com `Companion=true`, `Ally=true`, `SummonTurns=0`; `RescaleCompanion`

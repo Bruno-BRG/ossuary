@@ -29,6 +29,7 @@ namespace Ossuary.Tests
             Test("a hired companion follows, grows and can fall", Companions);
             Test("Dive and Naked challenge runs start differently", Challenges);
             Test("travel finds altars and fountains", FeatureTravel);
+            Test("crafting combines the pack and a molotov burns", CraftingFlow);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -496,6 +497,74 @@ namespace Ossuary.Tests
             Assert(g.Map.Get(g.Player.X, g.Player.Y) == TileKind.Fountain, "the walk ends on the fountain");
             turn = g.Turn; cmd.Execute("feature");
             Assert(g.Turn == turn, "already there costs nothing");
+        }
+
+        static Item Make(Game g, string name, int qty = 1)
+        {
+            foreach (var list in new IEnumerable<ItemDef>[] { Catalogue.Potions, Catalogue.Tools, Catalogue.Weapons, Catalogue.Armor })
+                foreach (var d in list) if (d.Name == name) return new Item(d, g.Rng, g.NextUid()) { Identified = true, Quantity = qty };
+            var corpse = new ItemDef { Name = name, Glyph = '%', Kind = ItemKind.Corpse, Weight = 10 };
+            return new Item(corpse, g.Rng, g.NextUid()) { Quantity = qty };
+        }
+
+        static void CraftingFlow()
+        {
+            var g = Game.NewHero(1001, "Maker", "human", "fighter");
+            g.Monsters.Clear();
+            var cmd = new Commands(g);
+            g.Player.Inventory.Clear();
+            Assert(g.CraftChoices().Count == 0, "an empty pack makes nothing");
+            int turn = g.Turn; cmd.Execute("craft");
+            Assert(g.Turn == turn && !g.PendingChoice.Active, "nothing to craft costs no turn and opens nothing");
+
+            // Molotov: oil + candle.
+            g.Player.Inventory.Add(Make(g, "potion of oil")); g.Player.Inventory.Add(Make(g, "candle"));
+            var choices = g.CraftChoices();
+            Assert(choices.Count == 1 && choices[0].Def.Name == "molotov", "oil and a candle make a molotov");
+            cmd.Execute("craft");
+            Assert(g.PendingChoice.Active && g.PendingChoice.Prompt == Game.CraftPrompt, "the craft list opens");
+            cmd.CommitChoice(g.PendingChoice.Items[0]);
+            Assert(g.Player.Inventory.Exists(i => i.Def.Name == "molotov"), "the molotov is in the pack");
+            Assert(!g.Player.Inventory.Exists(i => i.Def.Name == "potion of oil" || i.Def.Name == "candle"), "the ingredients are spent");
+
+            // Throw it at a rat three squares away.
+            g.Monsters.Clear();
+            int px = g.Player.X, py = g.Player.Y;
+            for (int x = px; x <= px + 4; x++) { g.Map.Set(x, py, TileKind.Floor); g.Map.SetSurface(x, py, SurfaceKind.None); }
+            var rat = new Monster(Bestiary.Find("giant rat"), g.Rng) { X = px + 3, Y = py };
+            g.Monsters.Add(rat); g.UpdateFov();
+            var bomb = g.Player.Inventory.Find(i => i.Def.Name == "molotov");
+            g.UiState.ThrowItem = bomb; g.UiState.Targeting = TargetingMode.Throw;
+            int hp = rat.HP;
+            g.ResolveTargeting(px + 3, py);
+            Assert(!g.Player.Inventory.Contains(bomb), "the molotov is used up");
+            Assert(g.Map.SurfaceAt(px + 3, py) == SurfaceKind.Fire || rat.IsDead || rat.HP < hp, "it lands in flames");
+            Assert(rat.IsDead || rat.HP < hp || rat.BurnTurns > 0, "and whatever it hits burns");
+
+            // Bone blade, bone armour, and brewing.
+            g.Player.Inventory.Clear();
+            g.Player.Inventory.Add(Make(g, "dagger")); g.Player.Inventory.Add(Make(g, "remains"));
+            var blade = g.CraftChoices().Find(i => i.Def.Name == "bone blade");
+            Assert(blade != null, "a blade and remains make a bone blade");
+            g.Craft(blade);
+            var made = g.Player.Inventory.Find(i => i.Def.Name == "bone blade");
+            Assert(made != null && made.Prefix == "vampiric" && made.Def.Kind == ItemKind.Weapon, "the bone blade drinks life");
+
+            g.Player.Inventory.Clear();
+            g.Player.Inventory.Add(Make(g, "leather armour")); g.Player.Inventory.Add(Make(g, "remains"));
+            Assert(g.CraftChoices().Find(i => i.Def.Name == "bone-studded armour") == null, "one remains is not enough for armour");
+            g.Player.Inventory.Add(Make(g, "skeleton corpse"));
+            var armour = g.CraftChoices().Find(i => i.Def.Name == "bone-studded armour");
+            Assert(armour != null, "armour and two remains make bone armour");
+
+            g.Player.Inventory.Clear();
+            g.Player.Inventory.Add(Make(g, "potion of healing"));
+            Assert(g.CraftChoices().Count == 0, "one healing potion brews nothing");
+            g.Player.Inventory[0].Quantity = 2;
+            var brew = g.CraftChoices().Find(i => i.Def.Name == "potion of extra healing");
+            Assert(brew != null, "two healing potions brew an extra healing");
+            g.Craft(brew);
+            Assert(g.Player.Inventory.Count == 1 && g.Player.Inventory[0].Def.Name == "potion of extra healing", "the pair becomes one stronger potion");
         }
     }
 }

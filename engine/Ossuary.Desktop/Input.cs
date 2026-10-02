@@ -29,6 +29,7 @@ namespace Ossuary.Desktop
                 if (shift && code == "KeyK") return "k";
                 if (shift && code == "KeyL") return "l";
                 if (shift && code == "KeyU") return "u";
+                if (shift && code == "KeyB") return "craft";
                 return move;
             }
             switch (code)

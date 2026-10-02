@@ -36,13 +36,15 @@ namespace Ossuary.Core
     /// layer mutates them. This layer is plain data, so the whole interface
     /// is testable headlessly.
     /// </summary>
-    public enum TargetingMode { None, Look, Shoot, Dig, PickLock, Swap, Inspect, Cast, Ability }
+    public enum TargetingMode { None, Look, Shoot, Dig, PickLock, Swap, Inspect, Cast, Ability, Throw }
 
     public sealed class UiState
     {
         public Panel Active = Panel.None;
 
         public TargetingMode Targeting = TargetingMode.None;
+        /// <summary>What is about to be thrown (TargetingMode.Throw).</summary>
+        public Item ThrowItem;
         public int TargetX, TargetY;
         /// <summary>The spell waiting on a target (TargetingMode.Cast).</summary>
         public string CastSpell;

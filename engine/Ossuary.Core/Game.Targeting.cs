@@ -20,6 +20,7 @@ namespace Ossuary.Core
                 case TargetingMode.Dig: DigAt(tx, ty); break;
                 case TargetingMode.PickLock: PickLockAt(tx, ty); break;
                 case TargetingMode.Shoot: ShootAt(tx, ty); break;
+                case TargetingMode.Throw: ThrowAt(UiState.ThrowItem, tx, ty); UiState.ThrowItem = null; break;
                 case TargetingMode.Swap: SwapWith(tx, ty); break;
                 case TargetingMode.Cast: CastSpell(UiState.CastSpell, tx, ty); break;
                 case TargetingMode.Ability: UseAbility(UiState.PendingAbility, tx, ty); break;

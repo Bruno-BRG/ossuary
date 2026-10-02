@@ -50,6 +50,7 @@ namespace Ossuary.Core
             new KeyAction("search", "Search", "Movement", "KeyS", new[] { "KeyS" }),
             new KeyAction("disarm", "Disarm a trap", "Movement", "Shift+KeyA", new[] { "Shift+KeyA" }),
             new KeyAction("drink", "Drink at a fountain", "Items", "Shift+KeyE", new[] { "Shift+KeyE" }),
+            new KeyAction("craft", "Craft", "Items", "Shift+KeyB", new[] { "Shift+KeyB" }),
             new KeyAction("travel", "Travel (overworld)", "Movement", "KeyO", new[] { "KeyO" }),
             new KeyAction("explore", "Auto-explore", "Movement", "KeyT", new[] { "KeyT" }),
             new KeyAction("stairs", "Travel to stairs", "Movement", "Backquote", new[] { "Backquote" }),

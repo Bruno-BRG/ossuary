@@ -69,6 +69,7 @@ namespace Ossuary.Core
                 case "D": return DoOpenDoor();
                 case "s": return DoSearch();
                 case "disarm": return DoDisarm();
+                case "craft": return DoCraft();
                 case "drink": return DoDrinkFountain();
                 case "x": _g.PushTargeting(TargetingMode.Inspect); return true;
                 case "l": _g.PushTargeting(TargetingMode.Look); return true;
@@ -311,7 +312,17 @@ namespace Ossuary.Core
             if (tool == null) return true;
             if (tool.Name == "pick-axe") { _g.PushTargeting(TargetingMode.Dig); return true; }
             if (tool.Name == "lock pick") { _g.PushTargeting(TargetingMode.PickLock); return true; }
+            if (tool.Name == "molotov") { _g.UiState.ThrowItem = tool; _g.PushTargeting(TargetingMode.Throw); return true; }
             _g.Say($"You cannot work out how to use {tool.Name}.", MessageKind.Info);
+            return true;
+        }
+
+        bool DoCraft()
+        {
+            if (_g.Mode == GameMode.Overworld) { _g.Say("There is no room to work on the road.", MessageKind.Info); return true; }
+            var choices = _g.CraftChoices();
+            if (choices.Count == 0) { _g.Say("You have nothing you can combine into something better.", MessageKind.Info); return true; }
+            _g.PushChoice(Game.CraftPrompt, choices);
             return true;
         }
 
@@ -666,6 +677,7 @@ namespace Ossuary.Core
             _g.PendingChoice.Clear();
             if (chosen == null) return false;
             if (prompt == Game.OfferPrompt) { _g.OfferItem(chosen); return true; }
+            if (prompt == Game.CraftPrompt) { _g.Craft(chosen); return true; }
             if (prompt == Game.AppraisePrompt)
             {
                 _g.AppraiseItem(chosen);

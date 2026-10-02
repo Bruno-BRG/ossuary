@@ -31,7 +31,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Itens e crafting
 
-- [ ] **Crafting leve**: óleo + garrafa/tocha = molotov; ossos + ferro = armas; ligado ao tema.
 - [ ] **Mais artefatos e conjuntos** além dos 5 (um por branch).
 - [ ] **Itens de corrupção** (relíquias que dão mutação em troca de poder).
 
@@ -70,6 +69,11 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Crafting leve** (2026-10-02). `Shift+B` (`Game.Crafting.cs`, `Items/Crafted.cs`): receitas como dados — **molotov** (poção de óleo + vela),
+  **bone blade** (lâmina + restos; vem *vampiric*), **bone-studded armour** (armadura leve + 2 restos, +1) e **extra healing** (2 curas).
+  O molotov é aplicado com `a` e jogado (novo `TargetingMode.Throw`, alcance 7): fogo no alvo e nas 4 vizinhas. Defs fora das tabelas de loot.
+  Teste `CraftingFlow`.
 
 - [x] **Desafios: Dive e Naked** (2026-10-02). Novos valores de `Difficulty` escolhidos na criação: **Dive** (começa no nível 5, nível 4, 2 poções, `ApplyChallenge`)
   e **Naked** (sem arma/armadura/escudo, +1 avanço). Pontos ×2 (`Difficulties.ScoreFactor`). Teste `Challenges`. Ideia futura: Pacifista.
