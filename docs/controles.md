@@ -37,6 +37,11 @@ usar chave — `a` aplicar ferramenta — `f`/`Q` atirar
 expedições terminadas (setas, PgUp/PgDn, Home/End; Esc volta). Ao fim de cada run grava-se um arquivo de necrotério
 em `morgue/` no diretório de dados do jogo.
 
+## Criação e modos
+
+No último passo da criação, ◄► escolhe o modo: **Normal**, **Classic** (sem fome) ou **Hardcore** (um save só, gravado ao
+sair e apagado ao retomar; sem `F5`).
+
 ## Estrada e cidade
 
 Monstro bloqueando a estrada: `Enter`, `Espaço`, `K` ou `F` atacam; `R` ou `<`

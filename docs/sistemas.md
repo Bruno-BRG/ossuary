@@ -244,6 +244,12 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
   do nível, com Rng privado (`seed ^ hash(branch, depth)`): 60% de chance, longe da entrada. A sombra é um
   `wandering wraith` reescalado (`BonesKey` marca quem é); destruí-la entra em `Game.LaidToRest` e o host remove o arquivo.
 
+## Modos (`Difficulty.cs`)
+
+- `Game.Difficulty` é fixado pelo host antes da primeira tecla (`Session.Start`) e salvo em `SaveData.Difficulty`.
+  **Classic**: `ProcessHunger` não faz nada. **Hardcore**: `Session.Save(forQuit)` só grava ao sair (Main menu/Quit),
+  `QuickSave` e *Save game* recusam, e `Load` apaga o arquivo depois de reproduzir a run.
+
 ## FOV / pathfinding (`Fov.cs`, `Pathfinder.cs`)
 
 - FOV com sombra (raio 10, +2 com ring of warning), simétrico, testado.

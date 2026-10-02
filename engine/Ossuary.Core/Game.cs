@@ -477,6 +477,7 @@ namespace Ossuary.Core
         void ProcessHunger()
         {
             var p = Player;
+            if (Difficulty == Difficulty.Classic) { p.Hunger = 0; return; }
             if (p.PerkRank("gourmand") == 0 || (Turn & 1) == 1) p.Nutrient--;
             if (p.Nutrient > 0) { p.Hunger = 0; return; }
 

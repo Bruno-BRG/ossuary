@@ -145,6 +145,12 @@ namespace Ossuary.Core
         static readonly Dictionary<string, string> Pt = new Dictionary<string, string>
         {
             ["The restless shade is laid to rest at last."] = "A sombra inquieta enfim descansa.",
+            // ---- difficulty modes
+            ["Mode"] = "Modo", ["Normal"] = "Normal", ["Classic"] = "Clássico", ["Hardcore"] = "Hardcore",
+            ["The standard game."] = "O jogo padrão.", ["No hunger. Food is only a luxury."] = "Sem fome. Comida é só luxo.",
+            ["One save: it is erased when you resume. No quicksave."] = "Um único save: some ao retomar. Sem save rápido.",
+            ["Hardcore: the run is saved only when you quit."] = "Hardcore: a run só é salva ao sair.",
+            ["◄► mode  Enter begin  Esc back"] = "◄► modo  Enter começa  Esc volta",
             // ---- past runs
             ["Past runs"] = "Expedições passadas", ["history"] = "histórico", ["Your finished expeditions, newest first."] = "Suas expedições terminadas, as mais novas primeiro.",
             ["No finished runs yet."] = "Nenhuma expedição terminada ainda.", ["Hero"] = "Herói", ["Class"] = "Classe", ["End"] = "Fim",

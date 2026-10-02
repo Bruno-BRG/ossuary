@@ -308,6 +308,39 @@ namespace Ossuary.Desktop
             Check(s.Game.UiState.Active == Panel.Settings, "Esc returns from Past runs to the menu");
         }
 
+        /// <summary>Modes are picked on the confirm step, survive a save, and Hardcore keeps one save that resuming spends.</summary>
+        static void DifficultyFlow()
+        {
+            SaveStore.DeleteSave();
+            var s = new Session(); s.New(6006, true); s.Resize(110, 36); s.Draw();
+            var c = s.Game.UiState.Create;
+            s.Key("Enter"); s.Key("Enter"); s.Key("Enter");
+            Check(c.Step == CreateStep.Confirm && c.Difficulty == Difficulty.Normal, "confirm starts on Normal");
+            s.Key("ArrowRight"); s.Key("ArrowRight"); s.Draw();
+            Check(c.Difficulty == Difficulty.Hardcore, "arrows pick the mode");
+            s.Key("ArrowRight"); Check(c.Difficulty == Difficulty.Normal, "the mode wraps");
+            s.Key("ArrowLeft"); Check(c.Difficulty == Difficulty.Hardcore, "and goes back");
+            s.Key("Enter"); s.Draw(); s.Key("Enter"); s.Draw();   // begin, then skip the opening story
+            Check(s.Game.Difficulty == Difficulty.Hardcore, "the run is Hardcore");
+            s.Key("Period", "."); s.Draw();
+            Check(s.Save() != null && !s.HasSave, "no free save in Hardcore");
+            s.Key("F5"); s.Draw();
+            Check(!s.HasSave, "quicksave is refused in Hardcore");
+            Check(s.Save(true) == null && s.HasSave, "quitting writes the one save");
+            var back = new Session(); back.New(); back.Resize(110, 36); back.Load();
+            Check(back.Game.Difficulty == Difficulty.Hardcore && back.Game.Turn == s.Game.Turn, "the loaded run is still Hardcore");
+            Check(!back.HasSave && SaveStore.ReadSave() == null, "resuming a Hardcore run spends its save");
+
+            // Classic: nothing is eaten.
+            var g = new Game(77) { Difficulty = Difficulty.Classic };
+            int food = g.Player.Nutrient;
+            for (int i = 0; i < 300; i++) g.Wait();
+            Check(g.Player.Nutrient == food && g.Player.Hunger == 0, "Classic has no hunger");
+            var n = new Game(77);
+            for (int i = 0; i < 300; i++) n.Wait();
+            Check(n.Player.Nutrient < food, "Normal still gets hungry");
+        }
+
         /// <summary>A death below the first level leaves bones; a replay keeps the snapshot; laying the shade to rest removes them.</summary>
         static void BonesFlow()
         {
@@ -565,7 +598,7 @@ namespace Ossuary.Desktop
             s.Game.Mode = GameMode.GameOver; s.Draw(); s.Key("Enter"); s.Draw();
             Check(s.Game.Mode == GameMode.Dungeon && s.Game.Turn == 0 && s.Hud.Ui.Width == 110, "death restarts and keeps viewport");
             DisplaySettings.Current.Apply(ThemePreset.Ossuary, CrtLevel.Subtle);
-            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); HeldKeyWalking(); RunRecorded(); BonesFlow(); TownFlow();
+            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); HeldKeyWalking(); RunRecorded(); BonesFlow(); DifficultyFlow(); TownFlow();
             try { System.IO.Directory.Delete(data, true); } catch { /* temp dir only */ }
             Environment.SetEnvironmentVariable("OSSUARY_DATA", null);
             Console.WriteLine("==== desktop: input, choices, targeting, travel, shop, settings, restart and frame protocol PASS ====");

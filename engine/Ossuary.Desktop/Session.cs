@@ -37,10 +37,11 @@ namespace Ossuary.Desktop
         /// <summary>Starts a fresh run. With <paramref name="create"/> the creation screen opens first.</summary>
         public void New(ulong? seed = null, bool create = false) => Start(seed, null, null, null, create, false);
 
-        void Start(ulong? seed, string name, string race, string role, bool create, bool overworld, List<Bones> bones = null)
+        void Start(ulong? seed, string name, string race, string role, bool create, bool overworld, List<Bones> bones = null, Difficulty difficulty = Difficulty.Normal)
         {
             ulong s = seed ?? BitConverter.ToUInt64(RandomNumberGenerator.GetBytes(8), 0);
             Game = role == null ? new Game(s) : Game.NewHero(s, name, race, role);
+            Game.Difficulty = difficulty; _difficulty = difficulty;
             _seed = Game.Rng.Seed;
             _graveyard = bones ?? SaveStore.ReadBones();
             Game.Graveyard = _graveyard;
@@ -57,6 +58,7 @@ namespace Ossuary.Desktop
         }
 
         bool _overworld;
+        Difficulty _difficulty;
         List<Bones> _graveyard = new List<Bones>();
         string _name = Heroes.DefaultName, _race = "human", _role = "adventurer";
         // Hero (name, race, role) is a save field, not a logged key, so the creation form needs no replay.
@@ -90,12 +92,13 @@ namespace Ossuary.Desktop
         }
 
         /// <summary>Writes the run to disk. Returns null on success, otherwise a short error.</summary>
-        public string Save()
+        public string Save(bool forQuit = false)
         {
             if (Game.Mode == GameMode.GameOver || Game.Mode == GameMode.Won || !Started) return Loc.T("Nothing to save yet.");
+            if (_difficulty == Difficulty.Hardcore && !forQuit) return Loc.T("Hardcore: the run is saved only when you quit.");
             try
             {
-                SaveStore.WriteSave(new SaveData { Seed = _seed.ToString(), Name = _name, Race = _race, Role = _role, Overworld = _overworld, Bones = _graveyard, Keys = new List<string>(_log), Info = Describe() });
+                SaveStore.WriteSave(new SaveData { Seed = _seed.ToString(), Name = _name, Race = _race, Role = _role, Overworld = _overworld, Bones = _graveyard, Difficulty = _difficulty.ToString(), Keys = new List<string>(_log), Info = Describe() });
                 RefreshSave();
                 return null;
             }
@@ -107,7 +110,7 @@ namespace Ossuary.Desktop
         {
             var data = SaveStore.ReadSave() ?? throw new InvalidOperationException("No saved run.");
             int cols = Hud?.Ui.Width ?? 110, rows = Hud?.Ui.Height ?? 36;
-            Start(ulong.Parse(data.Seed), data.Name, data.Race, data.Role, false, data.Overworld, data.Bones ?? new List<Bones>()); Resize(cols, rows);
+            Start(ulong.Parse(data.Seed), data.Name, data.Race, data.Role, false, data.Overworld, data.Bones ?? new List<Bones>(), Difficulties.Parse(data.Difficulty)); Resize(cols, rows);
             _replaying = true;
             try
             {
@@ -128,6 +131,8 @@ namespace Ossuary.Desktop
             if (Game.UiState.Active == Panel.Settings) Game.UiState.Active = Panel.None;
             _log = new List<string>(data.Keys);
             Game.LaidToRest.Clear();
+            // Hardcore keeps a single save: resuming spends it.
+            if (_difficulty == Difficulty.Hardcore) SaveStore.DeleteSave();
             Started = true; RefreshSave();
         }
 
@@ -476,8 +481,10 @@ namespace Ossuary.Desktop
                     if (enter)
                     {
                         int cols = Hud.Ui.Width, rows = Hud.Ui.Height;
-                        Start(_seed, c.Name, c.RaceId, c.RoleId, false, true); Resize(cols, rows); Intro = true;
+                        Start(_seed, c.Name, c.RaceId, c.RoleId, false, true, null, c.Difficulty); Resize(cols, rows); Intro = true;
                     }
+                    else if (code == "ArrowLeft" || code == "ArrowRight" || up || down)
+                        c.Difficulty = Difficulties.All[Wrap(Array.IndexOf(Difficulties.All, c.Difficulty) + (code == "ArrowLeft" || up ? -1 : 1), Difficulties.All.Length)];
                     else if (code == "Escape") c.Step = CreateStep.Role;
                     break;
             }
@@ -527,8 +534,8 @@ namespace Ossuary.Desktop
                 case MenuRow.Controls: ui.Active = Panel.Controls; ui.ControlsIndex = 0; ui.BindNote = ""; break;
                 case MenuRow.PastRuns:
                     ui.Runs = SaveStore.ReadHistory(); ui.Runs.Reverse(); ui.RunsIndex = 0; ui.Active = Panel.Runs; break;
-                case MenuRow.MainMenu: Save(); ui.Active = Panel.None; ToTitle = true; AtTitle = true; break;
-                case MenuRow.Quit: Save(); ExitRequested = true; break;
+                case MenuRow.MainMenu: Save(true); ui.Active = Panel.None; ToTitle = true; AtTitle = true; break;
+                case MenuRow.Quit: Save(true); ExitRequested = true; break;
                 default: ChangeMenu(row, 1); break;
             }
         }

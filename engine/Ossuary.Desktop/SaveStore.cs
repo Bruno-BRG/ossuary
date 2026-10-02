@@ -20,6 +20,8 @@ namespace Ossuary.Desktop
         public string Role { get; set; }
         /// <summary>The run began on the overworld (created through the creation screen) rather than on dungeon level 1.</summary>
         public bool Overworld { get; set; }
+        /// <summary>"Normal", "Classic" or "Hardcore". Absent in older saves, which are Normal.</summary>
+        public string Difficulty { get; set; } = "Normal";
         /// <summary>The dead heroes this run could meet, as they were when it began. A replay must see the same ones.</summary>
         public List<Bones> Bones { get; set; } = new List<Bones>();
     }

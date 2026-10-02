@@ -1231,7 +1231,7 @@ namespace Ossuary.Core
             var theme = Theme.Current;
             var c = State.Create;
             string hint = c.Step == CreateStep.Name ? "Enter next  Esc title"
-                : c.Step == CreateStep.Confirm ? "Enter begin  Esc back" : "Up/Down choose  Enter next  Esc back";
+                : c.Step == CreateStep.Confirm ? "◄► mode  Enter begin  Esc back" : "Up/Down choose  Enter next  Esc back";
             PanelRect(out int px, out int py, out int pw, out int ph, 80, 25, "New character", hint);
             int x = px + 3, iw = pw - 6;
             var race = Races.All[c.RaceIndex];
@@ -1283,6 +1283,10 @@ namespace Ossuary.Core
             if (c.Step == CreateStep.Confirm)
             {
                 string who = $"{Heroes.CleanName(c.Name)} the {race.Name} {role.Name}";
+                _t.WriteClipped(x, py + ph - 5, "Mode", theme.Label, 6, false, theme.Panel);
+                string dn = Loc.T(Difficulties.Name(c.Difficulty));
+                _t.Write(x + 6, py + ph - 5, "◄ " + dn + " ►", theme.Accent, true, theme.Panel);
+                _t.WriteClipped(x + 8 + dn.Length + 5, py + ph - 5, Loc.T(Difficulties.Blurb(c.Difficulty)), theme.Dim, iw - dn.Length - 14, false, theme.Panel);
                 _t.WriteClipped(x, py + ph - 3, "Begin as " + who + "?  (Enter)", theme.Good, iw, true, theme.Panel);
             }
         }

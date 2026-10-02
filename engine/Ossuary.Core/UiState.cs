@@ -100,9 +100,10 @@ namespace Ossuary.Core
         public CreateStep Step = CreateStep.Name;
         public string Name = "";
         public int RaceIndex, RoleIndex;
+        public Difficulty Difficulty;
         public string RaceId => Races.All[RaceIndex].Id;
         public string RoleId => Roles.All[RoleIndex].Id;
-        public void Reset() { Step = CreateStep.Name; Name = ""; RaceIndex = 0; RoleIndex = 0; }
+        public void Reset() { Step = CreateStep.Name; Name = ""; RaceIndex = 0; RoleIndex = 0; Difficulty = Difficulty.Normal; }
     }
 
     /// <summary>A "which item?" prompt. Modal: it blocks the map until answered or cancelled.</summary>

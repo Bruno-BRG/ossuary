@@ -16,18 +16,13 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Controles e QoL
 
+- [ ] **Desafios** (modos extras além de Normal/Classic/Hardcore): pacifista, sem equipamento, mergulho (começa fundo). `Difficulty` já é dado salvo e passa pelo replay.
 - [ ] **Travel até altar/fonte/ponto marcado**: generalizar `Game.AutoStep` (já aceita qualquer objetivo) com um seletor.
 - [ ] **Seed diária** com placar local (a determinismo por seed já permite).
-- [ ] **Modos de dificuldade**: Clássico sem fome, Hardcore, desafios.
 - [ ] **Conquistas** locais (sem rede).
 - [ ] **Efeitos sonoros** curtos estilo bip de PC dos anos 80, opcional em DisplaySettings.
 
 ## Persistência e meta-progressão
-
-- [ ] **Save-and-quit** estilo Brogue/DCSS: o save some ao carregar (preserva morte permanente).
-  Hoje o save é a seed + replay (`alpha.md`); avaliar se continua suficiente com overworld e cidades longas.
-
-## Mecânica de personagem
 
 - [ ] **Mutações e Corrupção do Ossuário** (QD): fontes de corrupção (locais, itens, o Amuleto)
   dão mutações permanentes, boas e ruins (ossos extras → AC, olhos múltiplos → FOV; fragilidade, fome).
@@ -87,6 +82,10 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Modos de dificuldade + save-and-quit** (2026-10-02). `Core/Difficulty.cs`: Normal, **Classic** (sem fome) e **Hardcore**
+  (um save só, gravado ao sair pelo menu e apagado ao retomar; sem quicksave). Escolhido na tela de criação (◄► no passo
+  de confirmação), vai em `SaveData.Difficulty` e no registro da run (pontos ×1,5 / ×0,67). Teste `DifficultyFlow`.
 
 - [x] **Cemitério / Bones** (2026-10-02). `Core/Bones.cs`: quem morre a partir do nível 2 de um dungeon deixa `Bones` (nome, classe,
   causa, equipamento) em `bones.json` (um por nível, máx. 100). Em runs futuras, ao gerar esse nível pela primeira vez,

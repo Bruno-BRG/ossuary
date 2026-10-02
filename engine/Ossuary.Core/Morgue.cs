@@ -28,6 +28,7 @@ namespace Ossuary.Core
         /// <summary>Filled in by the host (the Core keeps no clock).</summary>
         public string Date { get; set; } = "";
         public int Score { get; set; }
+        public string Mode { get; set; } = "Normal";
     }
 
     /// <summary>The end-of-run summary and the morgue file text. Pure functions of the finished game.</summary>
@@ -55,6 +56,7 @@ namespace Ossuary.Core
                 Kills = p.Kills,
                 God = p.God != null ? Gods.Find(p.God)?.Name ?? p.God : "",
                 Seed = g.Rng.Seed.ToString(),
+                Mode = Difficulties.Name(g.Difficulty),
             };
             r.Score = Score(r, p);
             return r;
@@ -62,7 +64,8 @@ namespace Ossuary.Core
 
         /// <summary>A plain, comparable number for the history screen: depth and kills count, victory counts a lot.</summary>
         public static int Score(RunRecord r, Player p) =>
-            r.MaxDepth * 100 + r.Kills * 10 + r.Level * 50 + p.Gold / 10 + (r.Outcome == "won" ? 5000 : 0);
+            (r.MaxDepth * 100 + r.Kills * 10 + r.Level * 50 + p.Gold / 10 + (r.Outcome == "won" ? 5000 : 0))
+            * (r.Mode == "Hardcore" ? 3 : 2) / (r.Mode == "Classic" ? 3 : 2);
 
         public static string Text(Game g, RunRecord r)
         {
@@ -80,6 +83,7 @@ namespace Ossuary.Core
             Line($"{Loc.T("Deepest level")} {r.MaxDepth}   {Loc.T("Turns")} {r.Turns}   {Loc.T("Kills")} {r.Kills}   {Loc.T("Score")} {r.Score}");
             Line($"{Loc.T(r.Outcome == "won" ? "Ended in" : "Ended on")} {r.Branch} {r.Depth}");
             if (r.God.Length > 0) Line($"{Loc.T("Follower of")} {r.God} ({Loc.T("piety")} {p.Piety})");
+            if (r.Mode != "Normal") Line(Loc.T("Mode") + ": " + Loc.T(r.Mode));
             Line($"{Loc.T("Seed")} {r.Seed}" + (r.Date.Length > 0 ? "   " + r.Date : ""));
 
             Head("Attributes");
