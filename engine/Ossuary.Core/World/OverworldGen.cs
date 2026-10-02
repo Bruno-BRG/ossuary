@@ -198,7 +198,7 @@ namespace Ossuary.Core.World
 
                     t.Feature = OverworldFeature.Dungeon;
                     t.Glyph = '^';
-                    t.Name = DungeonName(rng, i);
+                    t.Name = DungeonName(rng, r.Name);
                     t.Index = 0;
                     world.Set(x, y, t);
                     break;
@@ -353,11 +353,47 @@ namespace Ossuary.Core.World
             return a[rng.Range(0, a.Length)] + b[rng.Range(0, b.Length)];
         }
 
-        static string DungeonName(Rng rng, int i)
+        /// <summary>
+        /// The branch a region's entrance leads into: the Spire in the ash country, the Vaults under the drowned vale, the Mines
+        /// in the hills, the Warrens in the fen, and the plain Dungeons everywhere else (so the Amulet is always within reach).
+        /// </summary>
+        public static string BranchForRegion(string region)
         {
-            string[] a = { "the Sunless", "the Weeping", "the Iron", "the Hollow", "the Drowned", "the Ashen", "the Gilded", "the Bleak" };
-            string[] b = { "Vaults", "Warren", "Delve", "Catacombs", "Hollows", "Spire", "Galleries", "Deep" };
-            return a[rng.Range(0, a.Length)] + " " + b[rng.Range(0, b.Length)];
+            switch (region)
+            {
+                case "Ashen Marches": case "Emberdown": return "The Ashen Spire";
+                case "The Sunken Vale": return "The Sunken Vaults";
+                case "The Iron Hills": case "The Craglands": return "The Mines of Dwarfdeep";
+                case "Whisperfen": return "The Warrens";
+                default: return "The Dungeons";
+            }
+        }
+
+        /// <summary>The branch an entrance name belongs to, from the word the name ends in.</summary>
+        public static string BranchForEntrance(string name)
+        {
+            if (name == null) return "The Dungeons";
+            if (name.EndsWith("Spire")) return "The Ashen Spire";
+            if (name.EndsWith("Vaults")) return "The Sunken Vaults";
+            if (name.EndsWith("Delve")) return "The Mines of Dwarfdeep";
+            if (name.EndsWith("Warren")) return "The Warrens";
+            return "The Dungeons";
+        }
+
+        static string DungeonName(Rng rng, string region)
+        {
+            string[] names;
+            switch (BranchForRegion(region))
+            {
+                case "The Ashen Spire": names = new[] { "the Ashen Spire", "the Cinder Spire" }; break;
+                case "The Sunken Vaults": names = new[] { "the Sunless Vaults", "the Drowned Vaults" }; break;
+                case "The Mines of Dwarfdeep": names = new[] { "the Iron Delve", "the Deep Delve" }; break;
+                case "The Warrens": names = new[] { "the Weeping Warren", "the Gnawed Warren" }; break;
+                default: names = new[] { "the Hollow Deep", "the Bleak Catacombs", "the Gilded Galleries", "the Gloomhold Dungeons" }; break;
+            }
+            string pick = names[rng.Range(0, names.Length)];
+            rng.Range(0, 8);          // the old two-part name drew twice: keep the stream, and so the rest of the world, as it was
+            return pick;
         }
 
         static string FeatureName(OverworldFeature f, Rng rng)

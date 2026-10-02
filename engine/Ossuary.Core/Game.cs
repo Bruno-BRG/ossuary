@@ -200,7 +200,9 @@ namespace Ossuary.Core
             var t = World.Get(x, y);
             Say($"You enter {t.Name ?? "the darkness"}.", MessageKind.Narrative);
             int d = World.RegionAt(x, y).Depth;
-            DescendTo("The Dungeons", Math.Max(1, d / 4));
+            string branch = OverworldGen.BranchForEntrance(t.Name);
+            int start = branch == QuestBranch ? Math.Max(1, d / 4) : Math.Max(1, Math.Min(Dungeon.Get(branch).MaxDepth / 2, d / 8));
+            DescendTo(branch, start);
         }
 
         // ---------------------------------------------------------------- FOV

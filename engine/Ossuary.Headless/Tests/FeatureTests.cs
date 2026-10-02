@@ -41,6 +41,7 @@ namespace Ossuary.Tests
             Test("road events offer choices with prices", RoadEvents);
             Test("townsfolk keep hours and remember you", TownRoutine);
             Test("vaults are carved out of unused rock and need a key", VaultsAndKeys);
+            Test("overworld entrances lead into every branch", EntrancesReachBranches);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -1248,6 +1249,31 @@ namespace Ossuary.Tests
             cmd.Execute("move-e");
             Assert(g.Map.Get(px + 1, py) == TileKind.OpenDoor, "the brass key opens it");
             Assert(!g.Player.Inventory.Exists(i => i.Def.Name == "brass key"), "and is used up");
+        }
+
+        static void EntrancesReachBranches()
+        {
+            var reached = new HashSet<string>();
+            for (ulong seed = 1; seed <= 6; seed++)
+            {
+                var g = new Game(seed * 31337);
+                g.LeaveToOverworld();
+                for (int y = 0; y < g.World.H; y++)
+                    for (int x = 0; x < g.World.W; x++)
+                    {
+                        var t = g.World.Get(x, y);
+                        if (t.Feature != Ossuary.Core.World.OverworldFeature.Dungeon) continue;
+                        string region = g.World.RegionAt(x, y).Name;
+                        string want = Ossuary.Core.World.OverworldGen.BranchForRegion(region);
+                        Assert(Ossuary.Core.World.OverworldGen.BranchForEntrance(t.Name) == want, $"{t.Name} in {region} should lead to {want}");
+                        g.Mode = GameMode.Overworld;
+                        g.EnterDungeonFromOverworld(x, y);
+                        Assert(g.Branch == want && g.Mode == GameMode.Dungeon, $"entering {t.Name} lands in {want}, not {g.Branch}");
+                        reached.Add(g.Branch);
+                        g.LeaveToOverworld();
+                    }
+            }
+            Assert(reached.Count == 5, "every branch can be reached from the overworld, reached " + string.Join(", ", reached));
         }
     }
 }
