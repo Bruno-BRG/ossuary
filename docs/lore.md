@@ -83,8 +83,10 @@ Cada região tem 1 entrada de dungeon (`DungeonName`: *the Sunless Vaults*,
 "oficial" do branch) e cidades com nomes tipo `Ashford`, `Grimhold`
 (`TownName`: Ash/Gloom/Hollow/Ember + brook/ford/haven…). Lore: cidades não
 têm história própria porque **são todas a mesma cidade reconstruída** —
-gente que fugiu de uma região e fundou outra com o mesmo molde: praça,
-fonte, 8 lojas, guardas.
+gente que fugiu de uma região e fundou outra com o mesmo molde: muralha,
+praça, fonte, ferraria, taverna, templo, guardas. Como não havia terreno de
+sobra, as cidades cresceram para cima (torres, sótãos) e para baixo (porões,
+criptas): quem fundou uma vila ao lado do Ossuary aprendeu a cavar.
 
 ## Facções e povos (quem aparece de verdade no bestiário)
 

@@ -31,9 +31,9 @@
 <body>
 <header>
   <h1>OSSUARY</h1>
-  <div class="dim">roguelike ASCII — dungeons de Rogue/NetHack · mundo de Fallout/Qud · visual Dwarf Fortress</div>
-  <div>Alpha v0.1 · testes <span class="ok">29/29 PASS</span> · build Windows <span class="ok">0 erros</span> (30/09/2026)</div>
-  <div class="ok">Renderer verificado: atlas com cobertura real, glifos na orientação certa, framing ok</div>
+  <div class="dim">roguelike ASCII — dungeons de Rogue/NetHack · mundo de Fallout/Qud · visual Fósforo &amp; Osso</div>
+  <div>Alpha v0.1 · <span class="ok">73/73 testes + protocolo desktop PASS</span> · build Windows <span class="ok">01/10/2026</span></div>
+  <div class="ok">App desktop Tauri 2 + Rust · terminal Canvas bitmap · motor C#/.NET 10</div>
 </header>
 
 <h2>A Visão</h2>
@@ -41,58 +41,50 @@
   <ul>
     <li><span class="cyan">Dungeons: Rogue + NetHack</span> — procedural, escadas, armadilhas, fome, morte permanente.</li>
     <li><span class="cyan">Mundo: Fallout 1/2 + Caves of Qud</span> — overworld com regiões, cidades-hub, viagem com custo de tempo, história emergente.</li>
-    <li><span class="cyan">Visual: Dwarf Fortress</span> — ASCII denso e colorido, painéis de informação, CRT por cima.</li>
+    <li><span class="cyan">Visual: Fósforo &amp; Osso</span> — terminal anos 80, fundo índigo, fonte unscii 8×16 sem suavização, CRT ajustável.</li>
   </ul>
 </div>
 
 <h2>Feito (verificado)</h2>
 <div class="card"><ul>
-  <li><span class="ok">✔</span> Simulação completa: 5 branches (~54 níveis, 6 estilos), 25+ monstros, combate, FOV, fome, status</li>
-  <li><span class="ok">✔</span> Overworld 96×60 (dia/noite, estradas, encontros) + cidades com 8 lojas e economia</li>
-  <li><span class="ok">✔</span> HUD + 10 painéis, mira, viagem, minimap, seed como save</li>
-  <li><span class="ok">✔</span> Loja jogável (painel com cursor, <kbd>Enter</kbd>/<kbd>B</kbd> compra, <kbd>S</kbd> vende), papéis + level-ups, objetivo final com vitória</li>
-  <li><span class="ok">✔</span> Suite headless 29/29, dumps ASCII, soak 25 seeds — <code>headless.ps1 test</code></li>
-  <li><span class="ok">✔</span> <code>AGENTS.md</code> + pasta <code>docs/</code> com a arquitetura documentada</li>
+  <li><span class="ok">✔</span> Simulação: 5 branches (~54 níveis, 6 estilos), 25+ monstros, combate, FOV, fome, status, RPG (raças, classes, magia, deuses)</li>
+  <li><span class="ok">✔</span> Overworld 96×60 (dia/noite, estradas, encontros) + cidades com lojas compráveis e economia</li>
+  <li><span class="ok">✔</span> Objetivo final: Amuleto de Yendor no fundo + extração = vitória</li>
+  <li><span class="ok">✔</span> HUD, 10+ painéis, mira, viagem, minimapa, título, opções, 4 temas</li>
+  <li><span class="ok">✔</span> Suite headless 73/73 + protocolo desktop + 8 testes frontend/IPC + 2 Rust</li>
+  <li><span class="ok">✔</span> <code>AGENTS.md</code> + <code>docs/</code> (visão, arquitetura, sistemas, rpg, balance, visual, desktop)</li>
 </ul></div>
 
 <h2>Fazendo agora</h2>
 <div class="card"><ul>
-  <li><span class="warn">◐</span> Bug do renderer (tela preta nos captures, sem glifos) — diagnóstico rodando</li>
-</ul></div>
-
-<h2>Próximo (roadmap)</h2>
-<div class="card"><ul>
-  <li>Declarar alpha jogável com screenshot legível</li>
-  <li>Save em arquivo (hoje só seed), som, balanceamento via soak</li>
-  <li>Facções/quests do mundo (Qud), mais branches e chefes</li>
+  <li><span class="warn">◐</span> Duas sessões em paralelo — coordenação via <code>AGENTS.md</code>, sem commit sem pedido</li>
+  <li><span class="warn">◐</span> Evoluções futuras: save/load, novos conteúdos, água animada (ver <code>docs/alpha.md</code>)</li>
 </ul></div>
 
 <h2>Como jogar o alpha</h2>
 <div class="card">
-  <div>Abra <code>unity/Builds/StandaloneWindows64/Ossuary.exe</code></div>
+  <div>Execute <code>desktop\src-tauri\target\release\ossuary.exe</code> (ou <code>desktop.ps1 dev</code> p/ desenvolver)</div>
   <div><kbd>h</kbd><kbd>j</kbd><kbd>k</kbd><kbd>l</kbd> andar · <kbd>&gt;</kbd><kbd>&lt;</kbd> escada ·
-  <kbd>g</kbd> pegar · <kbd>i</kbd> inventário · <kbd>?</kbd> ajuda · <kbd>Ctrl-Q</kbd> 2x sair</div>
+  <kbd>g</kbd> pegar · <kbd>i</kbd> inventário · <kbd>?</kbd> ajuda · <kbd>F2</kbd> opções</div>
   <div class="dim">Controles completos em <code>docs/controles.md</code>. Morreu = qualquer tecla recomeça.</div>
 </div>
 
 <h2>Screenshots</h2>
 <div class="shots">
-  <figure><img src="../unity/Builds/shots/01-dungeon.png" alt="dungeon"><figcaption>01 — dungeon</figcaption></figure>
-  <figure><img src="../unity/Builds/shots/02-dungeon-explored.png" alt="dungeon explorada"><figcaption>02 — dungeon explorada</figcaption></figure>
-  <figure><img src="../unity/Builds/shots/03-inventory.png" alt="inventário"><figcaption>03 — inventário</figcaption></figure>
-  <figure><img src="../unity/Builds/shots/04-character.png" alt="ficha"><figcaption>04 — ficha do personagem</figcaption></figure>
-  <figure><img src="../unity/Builds/shots/05-overworld.png" alt="overworld"><figcaption>05 — overworld</figcaption></figure>
+  <figure><img src="../docs/shots/tauri-dungeon.jpg" alt="dungeon"><figcaption>dungeon — Fósforo &amp; Osso</figcaption></figure>
+  <figure><img src="../docs/shots/tauri-title.jpg" alt="título"><figcaption>título</figcaption></figure>
+  <figure><img src="../docs/shots/tauri-options.jpg" alt="opções"><figcaption>opções</figcaption></figure>
 </div>
 
 <h2>Pipeline</h2>
 <div class="card dim">
-  <code>fastcheck.ps1</code> (segundos, sem lock) ·
-  <code>headless.ps1 test|dump|soak</code> (lógica, sem Unity) ·
-  <code>check.ps1</code> (verdade de compilação) ·
-  <code>unity-run.ps1 -Method ...BuildWindows64</code> (build)<br>
+  <code>desktop.ps1 dev</code> (rodar) ·
+  <code>headless.ps1 test|dump|soak|balance</code> (simulação) ·
+  <code>check.ps1</code> (suite completa) ·
+  <code>desktop.ps1 build</code> (instalador Windows)<br>
   Detalhes em <code>AGENTS.md</code> e <code>docs/build-teste.md</code>.
 </div>
 
-<footer>Atualizado em 01/10/2026 · gerado no repo, sem build — abra este arquivo no navegador ou sirva com <code>python -m http.server</code> na pasta <code>site/</code>.</footer>
+<footer>Atualizado em 01/10/2026 · abra este arquivo no navegador ou sirva com <code>python -m http.server</code> na pasta <code>site/</code>.</footer>
 </body>
 </html>

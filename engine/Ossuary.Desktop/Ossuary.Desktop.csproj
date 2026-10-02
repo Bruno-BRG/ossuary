@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <AssemblyName>ossuary-engine</AssemblyName>
+    <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <!-- The desktop host consumes the independent simulation library. -->
+  <ItemGroup>
+    <ProjectReference Include="../Ossuary.Core/Ossuary.Core.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,15 +1,22 @@
-# Unity — gerados, não versionar
-unity/Library/
-unity/Temp/
-unity/Logs/
-unity/UserSettings/
-unity/Builds/StandaloneWindows64/
-unity/Builds/StandaloneLinux64/
-*.csproj
-*.sln
+# Build outputs and workspace-local tools
+.tools/
+**/obj/
+**/bin/
 *.user
-obj/
-bin/
+desktop/node_modules/
+desktop/dist/
+desktop/src-tauri/target/
+desktop/src-tauri/binaries/
+desktop/src-tauri/gen/
+desktop/public/unscii-16.hex
 
-# Logs locais dos scripts
+# Generated icons for unused platforms
+desktop/src-tauri/icons/android/
+desktop/src-tauri/icons/ios/
+desktop/src-tauri/icons/Square*.png
+desktop/src-tauri/icons/StoreLogo.png
+desktop/src-tauri/icons/icon.icns
+
+# Local validation logs
 ossuary_test.stdout.txt
+.claude/

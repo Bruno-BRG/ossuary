@@ -1,97 +1,63 @@
 # Renderer — Ossuary
 
-Como o texto ASCII vira pixel na tela, e os erros que já custaram tempo.
+O renderer em `desktop/src/renderer.ts` consome frames do motor e desenha
+uma grade bitmap, com o filtro CRT em WebGL2 (e Canvas 2D como reserva). Ele não conhece mapa, combate ou regras do jogo.
 
-## Pipeline
+## Fonte e células
 
-`Game.UiState` + `Ui.Draw()` escrevem num `TextBuilder` (chars + cor fg/bg +
-bold por célula). `TerminalRenderer.Present(buffer)` transforma isso em dois
-meshes — fundo (cores chapadas) e glifos (amostra o atlas) — e a câmera
-ortográfica enquadra a grade. `OssuaryTerminal.shader` faz o blend;
-`OssuaryCrt.shader` põe scanline/vinheta por cima.
+Fonte canônica: `assets/fonts/unscii-16.hex`, unscii-16 de viznut, domínio
+público. `desktop/src/font.ts` lê as linhas hex, retendo glifos BMP 8×16.
+Cada glifo tem 16 bytes; o bit mais significativo representa a coluna esquerda.
+O glifo `?` é o fallback. Nenhuma fonte dinâmica desenha o terminal.
 
-Uma chamada de `Present` = 4 vértices por célula. Turnos são discretos, então
-rebuild completo por turno é barato; o dirty-check (`GameMap.Version`) evita
-rebuild quando nada mudou.
+A grade tem 84–240 colunas e 26–120 linhas. `layout` escolhe escala inteira
+1×, 2× ou 3× em pixels físicos e centraliza a tela com letterbox. O DPI é
+incluído no cálculo; o Canvas mantém suavização desativada. Uma escala fixa
+maior que a disponível é reduzida para manter a grade jogável.
 
-## Atlas de glifos (`Render/GlyphAtlas.cs`)
+## Frame
 
-**Usa a textura da fonte do próprio Unity.** Não copia pixels para um atlas
-próprio. Isso é deliberado, e reverter isso reintroduz uma classe de bug:
+`Session.Draw` percorre `TextBuilder` em ordem linha/coluna, exportando
+codepoint, cor de frente, cor de fundo e negrito. Também envia tokens de cor,
+dimensões, modo, turno, painel, opções e parâmetros do CRT.
 
-A textura de fonte dinâmica é Alpha8, tem tamanho fixo e é **reconstruída (um
-objeto novo, layout novo) sempre que esgota espaço**. Copiar os pixels para um
-atlas próprio exige que o UV, a página e a ordem dos linhas ainda concordem no
-momento da cópia. Quando não concordam, o atlas enche de blocos sólidos ou de
-fragmentos de outras letras — e o jogo renderiza texto com os caracteres
-errados. Visível num screenshot, invisível numa contagem de cobertura.
+O renderer rasteriza a grade em resolução nativa 8×16 por célula em duas
+texturas: a imagem base e uma camada de emissão com os glifos brilhantes ou
+em negrito. O look CRT é um fragment shader (`desktop/src/crt.ts`) sobre elas:
 
-Duas regras mantêm os UVs válidos:
+- curvatura de barril suave e vidro com cantos arredondados;
+- *sharp bilinear*: texels nítidos, só a costura de 1 px é filtrada;
+- scanlines (a parte baixa de cada linha de fonte escurece; em 1× alterna
+  linhas de tela, bem leve) e máscara de fósforo RGB por pixel;
+- bloom por mipmap só dos emissores e halação leve da imagem inteira;
+- vinheta, flicker e zumbido muito sutis, e grão (hash inteiro, sem `sin`).
 
-1. Pedir **todos** os glifos antes de ler qualquer UV.
-2. Capturar a textura **depois** disso, e nunca pedir mais nada (cada
-   `RequestCharactersInTexture` pode reconstruir o atlas e invalidar os UVs).
+Intensidade de scanline, vinheta e glow continua vindo do Core
+(`DisplaySettings.CrtParams`); curvatura, máscara e flicker derivam do nível
+(`crtParams`). O brilho vaza como aura CSS ao redor do vidro. Sem WebGL2 o
+renderer cai para Canvas 2D com blur + overlay CSS. A animação roda a ~30 fps
+só com CRT ligado e é desativada com `prefers-reduced-motion`.
 
-`RequestBatch` + `TextureKey()` existem porque o empacotamento é preguiçoso e
-*repetido*: `GetCharacterInfo` de um glifo ainda não guardado também empacota, e
-isso pode mover o layout. O laço repete até a textura parar de trocar de
-instância.
+O título (`title.ts`) é cena só do cliente: céu, ruínas, brasas e logo com
+gradiente; as brasas se movem por tick local e nunca consultam o motor.
 
-### Cobertura no shader
+## Paleta, luz e preferências
 
-`float cov = max(s.a, max(s.r, max(s.g, s.b)));`
+Cores vêm exclusivamente de `engine/Ossuary.Core/Theme.cs`. A luz de tocha,
+memória, dia/noite e remap dos quatro presets são aplicados pela composição
+Core antes do frame. O CSS recebe tokens, sem uma paleta paralela.
 
-O canal que carrega a forma **não é sempre o alpha** — depende da plataforma. E
-`max(alpha, luminância)` não resolve: o canal que não carrega a forma é
-uniformemente 1, nunca parcialmente aceso, então o `max` dá 1 e o glifo vira
-retângulo cheio.
-
-### Filtro Point (obrigatório)
-
-`filterMode = FilterMode.Point` no atlas. O Unity empacota glifos colados e o
-retângulo UV inclui esse padding; com bilinear, todo caractere cresce uma
-sombra do vizinho e a tela enche de letras corretas cada uma arrastando
-fragmentos de outras. Isso não é cosmético.
-
-### Métricas de célula
-
-`CellW` = max do *advance* e da tinta real do glifo mais largo. Só o advance
-não basta: `M` e `W` passam da advance em um ou dois pixels, a tinta invade a
-célula vizinha e as linhas saem com letras coladas.
-
-O quad é desenhado na **caixa de tinta** (`InkOf`: offsetX, offsetY, w, h em
-pixels), não na célula inteira — esticar o UV do glifo sobre a advance
-distorce todo caractere.
-
-O UV é **reduzido em meio texel** em cada borda, porque o retângulo empacotado
-inclui o padding que se sobrepõe aos texels do vizinho.
-
-## FOV (`Core/Fov.cs`)
-
-Ray casting simétrico com revelação de canto. **Não** é shadowcasting com
-aritmética de slope: o shadowcasting recursivo é exatamente a parte do FOV de
-roguelike que fica sutilmente assimétrica, porque uma célula em cima de uma
-fronteira de setor é decidida pelo setor que a alcançar primeiro. Raio não tem
-fronteira — uma célula é visível se algum raio a vê — então a simetria vem por
-construção, e vale mais aqui do que as últimas células de velocidade.
-
-36 raios por quadrante, passo de 0.25 célula, e `RevealCorner` mostra a célula
-diagonal quando as duas laterais do canto estão abertas (senão o batente de uma
-porta fica serrilhado).
+`DisplaySettings.Current` conserva tema, CRT e escala durante uma run e nos
+reinícios. O frontend persiste essas opções em localStorage. `F2` abre opções,
+`F3` alterna CRT e `F4` alterna tema; `F11` controla a janela em tela cheia.
 
 ## Como verificar
 
-```powershell
-.\unity-run.ps1 -Method Ossuary.EditorTools.OssuaryCli.DumpTestPattern -Graphics
-```
+- `headless.ps1 test`: GlyphSet, fonte real, paleta, composição de todos os painéis.
+- `headless.ps1 dump panels`: layout e conteúdo em ASCII.
+- `npm test` em `desktop/`: fonte real, dimensões/DPI, sementes e IPC empacotado.
+- `desktop.ps1 web`: inspeção visual com o mesmo motor da distribuição.
+- `check.ps1`: validação completa.
 
-`unity/Builds/shots/testpattern.png` tem o alfabeto completo em duas_caixas.
-Letras legíveis e sem sangramento = atlas e UVs certos. **Precisa de
-`-Graphics`**: com `-nographics` não existe device gráfico, e o readback volta
-lixo — foi exatamente isso que fez parecer que o shader estava errado quando o
-problema era a textura ausente.
-
-`CaptureFrames` renderiza o jogo de verdade em PNG. `RenderDiagnostics`
-imprime o atlas, quantos glifos resolveram, e qual textura o material
-realmente amostrou (esse último campo é o que transformou "bug de shader" em
-"textura nula").
+Capturas reais ficam em `docs/shots/tauri-title.jpg`, `tauri-dungeon.jpg` e
+`tauri-options.jpg`. A direção de arte está em [visual.md](visual.md).

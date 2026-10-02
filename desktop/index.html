@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ossuary</title>
+</head>
+<body>
+  <main id="terminal" aria-label="Terminal do jogo Ossuary">
+    <canvas id="screen" aria-label="Mapa e interface ASCII" tabindex="0"></canvas>
+    <div id="crt" aria-hidden="true"></div>
+    <section id="launch" aria-label="Nova expedição" hidden>
+      <label for="seed">SEMENTE <span>opcional</span></label>
+      <input id="seed" inputmode="numeric" maxlength="20" placeholder="Aleatória" autocomplete="off" />
+      <button id="continue" type="button" hidden><b>CONTINUAR</b> <small id="continue-info"></small><span>↵</span></button>
+      <button id="begin" type="button">NOVA EXPEDIÇÃO <span id="begin-key">↵</span></button>
+      <button id="options" type="button">OPÇÕES <span>Esc</span></button>
+    </section>
+    <section id="failure" role="alert" hidden>
+      <p id="error"></p>
+      <button id="retry" type="button">Tentar novamente</button>
+    </section>
+    <p id="status" role="status" aria-live="polite">Preparando o terminal…</p>
+  </main>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

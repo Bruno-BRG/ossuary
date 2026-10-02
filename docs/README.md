@@ -6,11 +6,16 @@ o que o jogo é, como cada sistema funciona e onde mora no código.
 
 ## Índice
 
+- [`desktop.md`](desktop.md) — runtime Tauri, arquitetura, protocolo e distribuição
 - [`visao-geral.md`](visao-geral.md) — o que é o Ossuary, pilares, loop do jogo
 - [`arquitetura.md`](arquitetura.md) — camadas, classes, regras de dependência
 - [`sistemas.md`](sistemas.md) — dungeon, overworld, cidades, combate, itens, FOV…
-- [`renderer.md`](renderer.md) — atlas de glifos, UVs, shader, FOV, como verificar
+- [`rpg.md`](rpg.md) — pesquisa, catálogo e roteiro do sistema RPG (raças, classes, magia, itens)
+- [`balance.md`](balance.md) — bot de balanceamento, linha de base e botões de ajuste
+- [`visual.md`](visual.md) — direção de arte "Fósforo & Osso": paleta, fonte, glifos e layout
+- [`renderer.md`](renderer.md) — fonte bitmap, Canvas, CRT, temas, FOV, como verificar
 - [`controles.md`](controles.md) — teclado completo (vi-keys + verbos)
 - [`build-teste.md`](build-teste.md) — pipeline: scripts, CLI, builds, shots
 - [`alpha.md`](alpha.md) — estado do alpha jogável + roadmap
 - [`lore.md`](lore.md) — bíblia de worldbuilding (tom, Ossuary, facções, Yendor)
+- [`idiomas.md`](idiomas.md) — português/inglês, como traduzir e a história de abertura

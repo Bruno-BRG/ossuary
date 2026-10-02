@@ -1,46 +1,33 @@
-# Alpha v0.1 — Ossuary (jogável)
+# Alpha v0.1 — Ossuary
 
-Build: `unity/Builds/StandaloneWindows64/Ossuary.exe` (rebuild 30/09/2026,
-`Succeeded, 0 errors`). Suite: **30/30 PASS** (`headless.ps1 test -Rebuild`):
-núcleo 24 + loja + papéis/level-ups (3) + vitória (5 asserts via `WinTests`)
-+ cobertura de glifos (1). Shots: `unity/Builds/shots/` (pendente regenerar).
+Aplicativo desktop Tauri 2 + Rust, terminal TypeScript/Canvas bitmap e motor
+C#/.NET 10 autocontido. Os fontes definitivos estão em `engine/`, `desktop/`
+e `assets/`; o pipeline e os testes usam essa estrutura.
 
-## Status honesto (01/10/2026)
+## Implementado
 
-- Simulação: 100% jogável e verificada (testes + dumps ASCII perfeitos).
-- Renderer na tela: causa raiz encontrada. O charset do atlas tinha 400+
-  codepoints (braille, clima, box duplo, moedas) e estourava o atlas dinâmico
-  da fonte — Unity evicta glifos e as UVs lidas viram lixo (captures pretos /
-  hieróglifos). Fix aplicado: charset enxuto (~140, canônico em
-  `Core/GlyphSet.cs`), vocabulário 100% ASCII (`Tile.cs`, `OverworldGen`),
-  layout sem sobreposição msg/mapa (`Ui.cs`), minimap sem off-by-one, CRT
-  desligado por padrão (`GameApp`). Falta validar com GPU: `RenderDiagnostics`
-  + `CaptureFrames` frescos e um screenshot legível. **Alpha só será declarado
-  jogável de verdade com esse screenshot.**
-- Suspeita antiga de `FitCamera` (z=+10) descartada: a câmera vai p/ z=-10
-  com rotação identidade, correto.
+- Geração de dungeon: 5 branches, aproximadamente 54 níveis e 6 estilos.
+- Combate, FOV, pathfinding, monstros, fome, status, itens e equipamento.
+- Overworld, regiões, estradas, relógio, viagens, encontros e cidades verticais (andares, porões, serviços, gente).
+- Lojas, economia, seleção de compra/venda, papéis e progressão.
+- Missão, amuleto final, morte permanente e vitória.
+- HUD, inventário, personagem, histórico, descobertas, ajuda, mira e opções.
+- Título com logo em blocos, semente opcional, 4 temas e CRT ajustável.
+- Fonte unscii-16 8×16, escala inteira em pixels físicos e preferências persistidas.
+- Empacotamento Windows x64 com motor embutido no instalador NSIS.
 
-## Como jogar (quando o renderer estiver ok)
+## Validação
 
-Abra o exe, use o teclado (lista completa em `controles.md`):
-`h j k l` anda, `>`/`<` escada, `g` pegar, `i` inventário, `?` ajuda,
-`Ctrl-Q` 2x sai. Morreu = qualquer tecla recomeça.
+73 testes headless (simulação + protocolo desktop) PASS, 8 testes
+frontend/IPC PASS e 2 testes Rust. O protocolo é exercitado com o
+executável autocontido em uma pasta vazia. Soak: 50 sementes × 500 turnos.
+Capturas em `docs/shots/`.
 
-## O que tem
+Executar: `desktop.ps1 dev`. Distribuir: `desktop.ps1 build`.
+Ver [build-teste.md](build-teste.md).
 
-Movimento 8-dir, FOV, 5 branches (~54 níveis, 6 estilos), 25+ monstros c/
-energia/velocidade e 3 AIs, combate corpo-a-corpo + tiro/varinhas,
-armadilhas, portas secretas/trancadas, fome, status (veneno, cega, confuso…),
-loot/cadáveres, overworld 96×60 c/ dia-noite/estradas/encontros, cidades c/
-8 lojas + guardas, loja jogável (comprar `Enter`/`B`, vender `S`), papéis
-iniciais + level-ups gastáveis, objetivo final (Amuleto de Yendor no fundo,
-extração = vitória), HUD + 10 painéis, CRT, seed como save.
+## Evolução de gameplay
 
-## Limites conhecidos (roadmap)
-
-- Renderer na tela: fix aplicado mas ainda não validado visualmente (falta
-  GPU p/ `CaptureFrames`) — ver "Status honesto". É o único item bloqueando
-  o alpha jogável.
-- Sem save em arquivo (só seed), sem som, sem mouse, balanceamento só via soak.
-- `CaptureFrames` e `RenderDiagnostics` precisam de GPU; rodar com
-  `unity-run.ps1 -Graphics` (sem `-nographics`).
+Sistema RPG completo (raças, classes, magia, perks, itens, deuses, superfícies; ver rpg.md e balance.md). Save/load completo, novos conteúdos, animação de água e tiles de mapa
+quadrados são evoluções futuras. `F5` mostra a semente inicial; não restaura
+progresso de uma run. Estas funcionalidades não são requisitos do runtime.
