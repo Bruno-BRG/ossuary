@@ -144,6 +144,7 @@ namespace Ossuary.Core
 
         static readonly Dictionary<string, string> Pt = new Dictionary<string, string>
         {
+            ["The restless shade is laid to rest at last."] = "A sombra inquieta enfim descansa.",
             // ---- past runs
             ["Past runs"] = "Expedições passadas", ["history"] = "histórico", ["Your finished expeditions, newest first."] = "Suas expedições terminadas, as mais novas primeiro.",
             ["No finished runs yet."] = "Nenhuma expedição terminada ainda.", ["Hero"] = "Herói", ["Class"] = "Classe", ["End"] = "Fim",
@@ -229,6 +230,7 @@ namespace Ossuary.Core
         static readonly List<(Regex, string)> Rx = new List<(Regex, string)>
         {
             R(@"Seed (\d+)\. Press \? for help\.", "Semente $1. Aperte ? para ajuda."),
+            R(@"A cold draught\. Someone died here: (.+) the (.+)\.", "Uma corrente fria. Alguém morreu aqui: $1, $2."),
             R(@"A (.+) blocks your path!", "Algo barra seu caminho: $1!"),
             R(@"Attack it with k, or flee with <\. It is (.+)\.", "Ataque com k ou fuja com <. Parece $1."),
             R(@"You travel (\d+) hours into (.+)\.", "Você viaja $1 horas até $2."),

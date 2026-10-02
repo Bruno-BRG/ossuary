@@ -19,6 +19,7 @@ namespace Ossuary.Tests
             Test("auto-explore reveals the level and ends", AutoExplore);
             Test("travel to stairs and rest until healed", StairsAndRest);
             Test("a death is recorded with its cause and a morgue text", MorgueContent);
+            Test("dead heroes return as shades on their level", BonesShades);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -108,6 +109,44 @@ namespace Ossuary.Tests
             Assert(text.Contains("Killed by a giant rat"), "morgue names the killer");
             Assert(text.Contains("Mara") && text.Contains("Inventory") && text.Contains("Last words"), "morgue has the sections");
             Assert(Morgue.FileStem(r).IndexOf('/') < 0, "file stem is safe");
+        }
+
+        static void BonesShades()
+        {
+            var dead = Game.NewHero(8080, "Mara", "dwarf", "fighter");
+            dead.DescendTo("The Dungeons", 2);
+            dead.Player.HP = 0; dead.CheckDeath();
+            var bones = dead.LeaveBones();
+            Assert(bones != null && bones.Depth == 2 && bones.Name == "Mara", "a death at depth 2 leaves bones");
+            Assert(bones.Gear.Count > 0 && bones.Gear[0].Def == dead.Player.Wielded.Def.Name, "the weapon is among the gear");
+            var shallow = Game.NewHero(8081, "Pip", "human", "fighter");
+            shallow.Player.HP = 0; shallow.CheckDeath();
+            Assert(shallow.LeaveBones() == null, "no bones on level 1");
+
+            int found = 0;
+            for (ulong seed = 1; seed <= 24; seed++)
+            {
+                var plain = new Game(seed); plain.DescendTo("The Dungeons", 2);
+                var haunted = new Game(seed); haunted.Graveyard.Add(bones); haunted.DescendTo("The Dungeons", 2);
+                Assert(plain.Map.ToAscii() == haunted.Map.ToAscii(), "a shade never changes the level itself, seed " + seed);
+                Assert(plain.Rng.NextULong() == haunted.Rng.NextULong(), "a shade never consumes the world's Rng, seed " + seed);
+                Monster shade = null;
+                foreach (var m in haunted.Monsters) if (m.BonesKey != null) shade = m;
+                if (shade == null) continue;
+                found++;
+                Assert(shade.Name == "shade of Mara" && shade.Unique && shade.Def.Undead, "the shade is named for the hero");
+                Assert(shade.Inventory.Count > 0, "the shade carries the hero's gear");
+                var again = new Game(seed); again.Graveyard.Add(bones); again.DescendTo("The Dungeons", 2);
+                Monster twin = null; foreach (var m in again.Monsters) if (m.BonesKey != null) twin = m;
+                Assert(twin != null && twin.X == shade.X && twin.Y == shade.Y, "the shade stands in the same place on a replay");
+                if (found == 1)
+                {
+                    haunted.Monsters.Remove(shade); haunted.Monsters.Add(shade);
+                    haunted.KillMonster(shade);
+                    Assert(haunted.LaidToRest.Contains(bones.Key), "destroying the shade lays the bones to rest");
+                }
+            }
+            Assert(found >= 5 && found <= 22, "shades appear on most but not all levels, found " + found);
         }
     }
 }

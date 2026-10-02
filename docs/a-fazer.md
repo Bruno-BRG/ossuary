@@ -26,8 +26,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 - [ ] **Save-and-quit** estilo Brogue/DCSS: o save some ao carregar (preserva morte permanente).
   Hoje o save é a seed + replay (`alpha.md`); avaliar se continua suficiente com overworld e cidades longas.
-- [ ] **Cemitério / Bones**: tumbas de heróis anteriores; o herói morto reaparece como
-  fantasma ou inimigo nomeado, com o equipamento dele (NetHack *bones*). Histórico de runs.
 
 ## Mecânica de personagem
 
@@ -89,6 +87,12 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Cemitério / Bones** (2026-10-02). `Core/Bones.cs`: quem morre a partir do nível 2 de um dungeon deixa `Bones` (nome, classe,
+  causa, equipamento) em `bones.json` (um por nível, máx. 100). Em runs futuras, ao gerar esse nível pela primeira vez,
+  60% de chance de um *shade of <nome>* (Unique, morto-vivo, escala com o nível do herói, guarda o tumulo com o equipamento).
+  Rng próprio: a fase e o Rng do mundo não mudam. O save carrega o cemitério do início da run (`SaveData.Bones`) para o replay.
+  Matar a sombra apaga o bones. Testes `BonesShades` e `BonesFlow`.
 
 - [x] **Histórico de runs** (2026-10-02). Menu (`Esc`/`F2`) → *Past runs* (`Panel.Runs`, `Ui.DrawRunsPanel`, `Session.RunsKey`):
   lista as runs terminadas, mais novas primeiro, com causa, classe, profundidade e pontos. Dados lidos de `history.json`.

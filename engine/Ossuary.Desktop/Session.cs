@@ -37,11 +37,13 @@ namespace Ossuary.Desktop
         /// <summary>Starts a fresh run. With <paramref name="create"/> the creation screen opens first.</summary>
         public void New(ulong? seed = null, bool create = false) => Start(seed, null, null, null, create, false);
 
-        void Start(ulong? seed, string name, string race, string role, bool create, bool overworld)
+        void Start(ulong? seed, string name, string race, string role, bool create, bool overworld, List<Bones> bones = null)
         {
             ulong s = seed ?? BitConverter.ToUInt64(RandomNumberGenerator.GetBytes(8), 0);
             Game = role == null ? new Game(s) : Game.NewHero(s, name, race, role);
             _seed = Game.Rng.Seed;
+            _graveyard = bones ?? SaveStore.ReadBones();
+            Game.Graveyard = _graveyard;
             _name = Game.Player.CharName; _race = Game.Player.RaceId; _role = Game.Player.RoleId;
             _overworld = overworld;
             if (overworld) Game.BeginAtOverworld();
@@ -55,6 +57,7 @@ namespace Ossuary.Desktop
         }
 
         bool _overworld;
+        List<Bones> _graveyard = new List<Bones>();
         string _name = Heroes.DefaultName, _race = "human", _role = "adventurer";
         // Hero (name, race, role) is a save field, not a logged key, so the creation form needs no replay.
 
@@ -92,7 +95,7 @@ namespace Ossuary.Desktop
             if (Game.Mode == GameMode.GameOver || Game.Mode == GameMode.Won || !Started) return Loc.T("Nothing to save yet.");
             try
             {
-                SaveStore.WriteSave(new SaveData { Seed = _seed.ToString(), Name = _name, Race = _race, Role = _role, Overworld = _overworld, Keys = new List<string>(_log), Info = Describe() });
+                SaveStore.WriteSave(new SaveData { Seed = _seed.ToString(), Name = _name, Race = _race, Role = _role, Overworld = _overworld, Bones = _graveyard, Keys = new List<string>(_log), Info = Describe() });
                 RefreshSave();
                 return null;
             }
@@ -104,7 +107,7 @@ namespace Ossuary.Desktop
         {
             var data = SaveStore.ReadSave() ?? throw new InvalidOperationException("No saved run.");
             int cols = Hud?.Ui.Width ?? 110, rows = Hud?.Ui.Height ?? 36;
-            Start(ulong.Parse(data.Seed), data.Name, data.Race, data.Role, false, data.Overworld); Resize(cols, rows);
+            Start(ulong.Parse(data.Seed), data.Name, data.Race, data.Role, false, data.Overworld, data.Bones ?? new List<Bones>()); Resize(cols, rows);
             _replaying = true;
             try
             {
@@ -124,6 +127,7 @@ namespace Ossuary.Desktop
             finally { _replaying = false; }
             if (Game.UiState.Active == Panel.Settings) Game.UiState.Active = Panel.None;
             _log = new List<string>(data.Keys);
+            Game.LaidToRest.Clear();
             Started = true; RefreshSave();
         }
 
@@ -140,6 +144,8 @@ namespace Ossuary.Desktop
             record.Date = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss");
             string path = SaveStore.WriteRun(record, Morgue.Text(Game, record));
             if (path != null) LastMorgue = path;
+            var bones = Game.LeaveBones();
+            if (bones != null) SaveStore.WriteBones(bones);
         }
 
         /// <summary>Where the last finished run's morgue file went (for the death screen); null if none.</summary>
@@ -211,6 +217,11 @@ namespace Ossuary.Desktop
             {
                 _log.Add($"{code}|{key}|{(shift ? 1 : 0)}|{(ctrl ? 1 : 0)}");
                 Started = true;
+            }
+            if (Game.LaidToRest.Count > 0)
+            {
+                foreach (string grave in Game.LaidToRest) SaveStore.RemoveBones(grave);
+                Game.LaidToRest.Clear();
             }
             // The next repeat is allowed only if this step moved us, said nothing, cost no HP and the way is still calm.
             _walkCalm = walk && Game.Said == said && Game.Player.HP >= hp

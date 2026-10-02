@@ -237,6 +237,13 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
 - `Morgue.Summarize/Text` são funções puras do jogo terminado. `Session.RecordRun` (uma vez por run, nunca em
   replay) grava `morgue/*.txt` e anexa a `history.json` no diretório de dados (`OSSUARY_DATA` nos testes).
 
+## Cemitério (`Bones.cs`)
+
+- Morrer em dungeon, nível ≥ 2 (`Game.LeaveBones`), grava `Bones` via `SaveStore.WriteBones`. `Game.Graveyard` é fixado
+  no início da run (e vai no save), então o replay encontra as mesmas sombras. `RaiseBones` roda só na primeira geração
+  do nível, com Rng privado (`seed ^ hash(branch, depth)`): 60% de chance, longe da entrada. A sombra é um
+  `wandering wraith` reescalado (`BonesKey` marca quem é); destruí-la entra em `Game.LaidToRest` e o host remove o arquivo.
+
 ## FOV / pathfinding (`Fov.cs`, `Pathfinder.cs`)
 
 - FOV com sombra (raio 10, +2 com ring of warning), simétrico, testado.

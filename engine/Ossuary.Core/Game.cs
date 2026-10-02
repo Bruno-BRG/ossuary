@@ -143,6 +143,7 @@ namespace Ossuary.Core
             Player.InsideDungeon = true;
             Mode = GameMode.Dungeon;
             Dungeon.Remember(branchName, depth, sx, sy);
+            if (spawns != null) RaiseBones(spawns, sx, sy);
             EnsureQuestAmulet(); // fallback: levels generated before the quest still get their amulet
 
             Say($"You arrive at {Map.LevelName}.", MessageKind.Narrative);
@@ -413,6 +414,7 @@ namespace Ossuary.Core
         {
             GodsOnKill(m);
             Monsters.Remove(m);
+            if (m.BonesKey != null) { LaidToRest.Add(m.BonesKey); Say("The restless shade is laid to rest at last.", MessageKind.Good); }
             Player.Kills++;
             bool leveled = Player.AddXp(m.XpKill);
             Player.GainSkill(Skill.Combat, 2);

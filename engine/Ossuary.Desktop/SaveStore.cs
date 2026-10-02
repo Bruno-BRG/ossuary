@@ -20,6 +20,8 @@ namespace Ossuary.Desktop
         public string Role { get; set; }
         /// <summary>The run began on the overworld (created through the creation screen) rather than on dungeon level 1.</summary>
         public bool Overworld { get; set; }
+        /// <summary>The dead heroes this run could meet, as they were when it began. A replay must see the same ones.</summary>
+        public List<Bones> Bones { get; set; } = new List<Bones>();
     }
 
     /// <summary>
@@ -100,6 +102,45 @@ namespace Ossuary.Desktop
                 return path;
             }
             catch (Exception ex) { Console.Error.WriteLine("Could not write the morgue: " + ex.Message); return null; }
+        }
+
+        // ----------------------------------------------------------------- bones
+
+        const int BonesCap = 100;
+        static string BonesPath => Path.Combine(Dir, "bones.json");
+
+        public static List<Bones> ReadBones()
+        {
+            try
+            {
+                if (!File.Exists(BonesPath)) return new List<Bones>();
+                return JsonSerializer.Deserialize<List<Bones>>(File.ReadAllText(BonesPath), Json) ?? new List<Bones>();
+            }
+            catch (Exception ex) { Console.Error.WriteLine("Unreadable bones: " + ex.Message); return new List<Bones>(); }
+        }
+
+        /// <summary>One hero per level: a newer death on the same level replaces the older one.</summary>
+        public static void WriteBones(Bones bones)
+        {
+            try
+            {
+                var list = ReadBones();
+                list.RemoveAll(b => b.Key == bones.Key);
+                list.Add(bones);
+                if (list.Count > BonesCap) list.RemoveRange(0, list.Count - BonesCap);
+                WriteAtomic(BonesPath, JsonSerializer.Serialize(list, Json));
+            }
+            catch (Exception ex) { Console.Error.WriteLine("Could not write bones: " + ex.Message); }
+        }
+
+        public static void RemoveBones(string key)
+        {
+            try
+            {
+                var list = ReadBones();
+                if (list.RemoveAll(b => b.Key == key) > 0) WriteAtomic(BonesPath, JsonSerializer.Serialize(list, Json));
+            }
+            catch (Exception ex) { Console.Error.WriteLine("Could not update bones: " + ex.Message); }
         }
 
         // ----------------------------------------------------------------- settings

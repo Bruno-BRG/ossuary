@@ -65,6 +65,8 @@ namespace Ossuary.Core.Entities
         public bool IsPriest;
         public bool IsGuard;
         public bool Unique;
+        /// <summary>Set on the shade of a dead hero: the bones key to lay to rest when it is destroyed.</summary>
+        public string BonesKey;
         /// <summary>Fights for the player (summoned or charmed). SummonTurns counts down to its end.</summary>
         public bool Ally;
         public int SummonTurns, FearTurns, SlowTurns;

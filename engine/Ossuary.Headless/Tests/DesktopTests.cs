@@ -308,6 +308,29 @@ namespace Ossuary.Desktop
             Check(s.Game.UiState.Active == Panel.Settings, "Esc returns from Past runs to the menu");
         }
 
+        /// <summary>A death below the first level leaves bones; a replay keeps the snapshot; laying the shade to rest removes them.</summary>
+        static void BonesFlow()
+        {
+            var s = new Session(); s.New(8484); s.Resize(110, 36); s.Draw();
+            s.Key("Period", "."); s.Game.DescendTo("The Dungeons", 2); s.Draw();
+            s.Game.Player.HP = 0; s.Game.CheckDeath(); s.Draw();
+            var bones = SaveStore.ReadBones();
+            Check(bones.Exists(b => b.Key == "The Dungeons@2"), "the death left bones on its level");
+
+            var s2 = new Session(); s2.New(8585); s2.Resize(110, 36); s2.Draw();
+            Check(s2.Game.Graveyard.Exists(b => b.Key == "The Dungeons@2"), "a new run starts with the graveyard");
+            s2.Key("Period", "."); s2.Draw();
+            Check(s2.Save() == null, "the run saves");
+            SaveStore.RemoveBones("The Dungeons@2");
+            var s3 = new Session(); s3.Load(); s3.Draw();
+            Check(s3.Game.Graveyard.Exists(b => b.Key == "The Dungeons@2"), "a loaded run keeps the graveyard it began with");
+            s3.Game.LaidToRest.Add("The Dungeons@2");
+            SaveStore.WriteBones(bones.Find(b => b.Key == "The Dungeons@2"));
+            s3.Key("Period", "."); s3.Draw();
+            Check(!SaveStore.ReadBones().Exists(b => b.Key == "The Dungeons@2"), "a shade laid to rest takes its bones off disk");
+            SaveStore.DeleteSave();
+        }
+
         /// <summary>Holding a direction keeps walking, but only while the way is calm, and never queues turns.</summary>
         static void HeldKeyWalking()
         {
@@ -542,7 +565,7 @@ namespace Ossuary.Desktop
             s.Game.Mode = GameMode.GameOver; s.Draw(); s.Key("Enter"); s.Draw();
             Check(s.Game.Mode == GameMode.Dungeon && s.Game.Turn == 0 && s.Hud.Ui.Width == 110, "death restarts and keeps viewport");
             DisplaySettings.Current.Apply(ThemePreset.Ossuary, CrtLevel.Subtle);
-            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); HeldKeyWalking(); RunRecorded(); TownFlow();
+            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); HeldKeyWalking(); RunRecorded(); BonesFlow(); TownFlow();
             try { System.IO.Directory.Delete(data, true); } catch { /* temp dir only */ }
             Environment.SetEnvironmentVariable("OSSUARY_DATA", null);
             Console.WriteLine("==== desktop: input, choices, targeting, travel, shop, settings, restart and frame protocol PASS ====");
