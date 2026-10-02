@@ -25,8 +25,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 - [ ] **Mutações e Corrupção do Ossuário** (QD): fontes de corrupção (locais, itens, o Amuleto)
   dão mutações permanentes, boas e ruins (ossos extras → AC, olhos múltiplos → FOV; fragilidade, fome).
   Trade-off e builds estranhos. Compatível com Ashen/Necromancer.
-- [ ] **Furtividade real** (Sil/Thief): raio de ruído do jogador; correr, lutar e abrir portas
-  fazem barulho; armadura pesada piora. Dá peso ao Rogue e à skill Stealth.
 - [ ] **Companheiros permanentes**: mercenário contratável na taverna, sobe de nível,
   carrega itens, comandos simples. Hoje só há aliados invocados/temporários.
 - [ ] **XP gasto em skills** (opção estilo Sil), listada em `rpg.md`.
@@ -79,6 +77,10 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Furtividade e ruído** (2026-10-02). `Game.Stealth.cs`: o raio em que um monstro percebe você é `Vision − Stealth/25 − light-feet×2 − Sylk + ruído`.
+  Ruído da ação: luta +3, magia/varinha/tiro/porta +2, armadura pesada ao andar +1/+2 (chain/splint, plate), parado ou buscando −2.
+  Stealth sobe ao passar despercebido. Sem Rng. Salvamento passou à **versão 9** (saves antigos deixam de carregar). Teste `StealthNoise`.
 
 - [x] **Armadilhas achadas e desarmar** (2026-10-02). `Game.Traps.cs` + `TrapTable.Reveal`: antes uma armadilha "achada" não ficava marcada.
   Agora `s` e a percepção passiva (`SenseTraps`: Search/2 + 25 do Ladino, por hash da posição, sem Rng) revelam; achadas aparecem como `^`,

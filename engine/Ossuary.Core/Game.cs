@@ -244,6 +244,7 @@ namespace Ossuary.Core
             }
 
             Player.X = nx; Player.Y = ny;
+            MakeNoise(ArmourClatter());
             Map.Version++;
 
             if (TrapTable.TryGet(Map.Number, nx, ny, out var trapKind, out var trapLevel) && Player.PoisonResist < 3 && Player.BuffTurns("levitating") == 0)
@@ -263,6 +264,7 @@ namespace Ossuary.Core
 
         void InteractWithWall(int x, int y)
         {
+            MakeNoise(2);
             TileKind t = Map.Get(x, y);
             switch (t)
             {
@@ -377,6 +379,7 @@ namespace Ossuary.Core
         public bool Attack(Monster target)
         {
             if (target == null) return false;
+            MakeNoise(3);
             if (target.Townsperson)
             {
                 Say("Not here. The Watch would hang you, and the dead would laugh.", MessageKind.Warn);
@@ -459,6 +462,7 @@ namespace Ossuary.Core
             if (Mode != GameMode.Dungeon && Mode != GameMode.TownMap) return;
             Turn++;
             Player.Turns = Turn;
+            ResolveNoise();
             ProcessHunger();
             DecrementStatus();
             TickSurfaces();
@@ -612,7 +616,8 @@ namespace Ossuary.Core
                 return;
             }
 
-            bool canSee = dist <= Math.Max(1, m.Def.Vision - 2 * Player.PerkRank("light-feet") - (Player.God == "sylk" && Player.GodTier >= 2 ? 1 : 0)) && !Player.Invisible && !m.Dormant;
+            LearnFromHiding(m, dist);
+            bool canSee = dist <= NoticeRadius(m) && !Player.Invisible && !m.Dormant;
             if (canSee) { m.Alert = 1; m.Dormant = false; }
 
             switch (m.Def.Ai)

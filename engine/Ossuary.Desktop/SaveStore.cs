@@ -9,8 +9,8 @@ namespace Ossuary.Desktop
     /// <summary>The persisted run: its seed and every canonical key applied since the start.</summary>
     public sealed class SaveData
     {
-        /// <summary>Bumped whenever simulation rules change, since a save is a replay (v2: regeneration, Mp, race traits; v3: spell catalogue and books; v4: perks, abilities, Vigor; v5: item rarity, affixes, new slots, artifacts; v6: gods and piety; v7: surfaces and elemental status; v8: balance pass, potions).</summary>
-        public int Version { get; set; } = 8;
+        /// <summary>Bumped whenever simulation rules change, since a save is a replay (v2: regeneration, Mp, race traits; v3: spell catalogue and books; v4: perks, abilities, Vigor; v5: item rarity, affixes, new slots, artifacts; v6: gods and piety; v7: surfaces and elemental status; v8: balance pass, potions; v9: stealth and noise).</summary>
+        public int Version { get; set; } = 9;
         public string Seed { get; set; }
         public List<string> Keys { get; set; } = new List<string>();
         public string Info { get; set; } = "";
@@ -64,7 +64,7 @@ namespace Ossuary.Desktop
             {
                 if (!File.Exists(SavePath)) return null;
                 var data = JsonSerializer.Deserialize<SaveData>(File.ReadAllText(SavePath), Json);
-                return data != null && data.Version == 8 && ulong.TryParse(data.Seed, out _) ? data : null;
+                return data != null && data.Version == 9 && ulong.TryParse(data.Seed, out _) ? data : null;
             }
             catch (Exception ex) { Console.Error.WriteLine("Unreadable save: " + ex.Message); return null; }
         }

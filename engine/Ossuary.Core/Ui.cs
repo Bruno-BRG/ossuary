@@ -1222,6 +1222,8 @@ namespace Ossuary.Core
                 string capText = cap < 100 ? $"  (max {cap})" : "";
                 _t.Write(x + 2, y++, $"{kv.Key,-10}{kv.Value,3}  {SkillRanks.Name(kv.Value),-8}{capText}", theme.Text, false, theme.Panel);
             }
+            if (_g.StealthReduction() > 0 || _g.ArmourClatter() > 0)
+                _t.WriteClipped(x, y++, _g.ArmourClatter() > 0 ? $"Stealth: notice -{_g.StealthReduction()}, armour rattles +{_g.ArmourClatter()}" : $"Stealth: monsters notice you {_g.StealthReduction()} square(s) later", theme.Info, iw, false, theme.Panel);
             var gearLines = p.Gear.Lines();
             if (gearLines.Count > 0) _t.WriteClipped(x, y++, "Gear: " + string.Join(", ", gearLines.ToArray()), theme.Info, iw, false, theme.Panel);
             var faith = Gods.Find(p.God);

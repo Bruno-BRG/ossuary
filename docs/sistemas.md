@@ -250,6 +250,12 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
   **Classic**: `ProcessHunger` não faz nada. **Hardcore**: `Session.Save(forQuit)` só grava ao sair (Main menu/Quit),
   `QuickSave` e *Save game* recusam, e `Load` apaga o arquivo depois de reproduzir a run.
 
+## Furtividade e ruído (`Game.Stealth.cs`)
+
+- `NoticeRadius(m) = max(1, Vision − StealthReduction + NoticeShift)`. `StealthReduction` = Stealth/25 + 2×*light-feet* + Sylk tier 2.
+  `NoticeShift` vem da ação do turno (`MakeNoise`: luta 3, magia/zap/tiro/porta/kick 2, armadura pesada ao andar; `BeQuiet`: esperar/buscar −2).
+  `Commands.Execute` zera o ruído a cada verbo, então uma ação recusada não deixa barulho. O Stealth treina em `LearnFromHiding`.
+
 ## Armadilhas achadas (`Game.Traps.cs`)
 
 - Armadilhas nascem ocultas (`TrapTable`). `Reveal` as marca (desenhadas como `^` em `theme.Warn`). Revelam-se por busca (`s`),

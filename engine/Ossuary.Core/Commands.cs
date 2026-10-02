@@ -23,6 +23,7 @@ namespace Ossuary.Core
         {
             Handled = true;
             if (string.IsNullOrEmpty(cmd)) return false;
+            _g.ResetNoise();   // noise belongs to the action that makes it, never to a refused one before it
 
             // Inside the walls nothing is thrown, shot, zapped or cast at anyone.
             if (_g.Mode == GameMode.TownMap && (cmd == "f" || cmd == "z" || cmd == "Z" || cmd == "V" || cmd == "k"))
@@ -299,6 +300,7 @@ namespace Ossuary.Core
 
         bool DoShoot()
         {
+            _g.MakeNoise(2);
             _g.PushTargeting(TargetingMode.Shoot);
             return true;
         }
@@ -428,6 +430,7 @@ namespace Ossuary.Core
 
         bool DoZap()
         {
+            _g.MakeNoise(2);
             var w = ChooseItem("Zap what?", it => it.Def.Kind == ItemKind.Wand);
             if (w == null) return true;
             _g.UseWand(w);
@@ -524,6 +527,7 @@ namespace Ossuary.Core
         bool DoSearch()
         {
             var p = _g.Player;
+            _g.BeQuiet();
             if (_g.Map == null) return true;
             bool found = false;
             for (int y = p.Y - 1; y <= p.Y + 1; y++)

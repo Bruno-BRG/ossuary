@@ -169,6 +169,8 @@ namespace Ossuary.Core
             ["◄► mode  Enter begin  Esc back"] = "◄► modo  Enter começa  Esc volta",
             ["Daily board"] = "Placar diário", ["No daily runs yet."] = "Nenhuma run diária ainda.", ["Daily"] = "Diário",
             ["D daily board   Esc back"] = "D placar diário   Esc volta",
+            // ---- stealth
+            ["Stealth: notice -"] = "Furtividade: aviso -",
             // ---- traps
             ["disarm a trap you have found"] = "desarmar uma armadilha achada",
             ["There is nothing to disarm here."] = "Não há o que desarmar aqui.",

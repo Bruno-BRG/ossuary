@@ -23,6 +23,7 @@ namespace Ossuary.Tests
             Test("the daily challenge is stable per date", DailySeeds);
             Test("achievements are earned from state and never touch the simulation", AchievementsEarned);
             Test("traps are sensed, found by searching and disarmed", TrapsFlow);
+            Test("stealth and noise shift how far monsters notice", StealthNoise);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -258,6 +259,54 @@ namespace Ossuary.Tests
             var hc = new Commands(h);
             for (int i = 0; i < 200; i++) hc.Execute("explore");
             Assert(h.Player.HP == h.Player.MaxHP, "an explorer on a trapless level is never hurt");
+        }
+
+        static void StealthNoise()
+        {
+            var g = Game.NewHero(404, "Shade", "human", "fighter");
+            g.Monsters.Clear();
+            var rat = new Monster(Bestiary.Find("giant rat"), g.Rng);
+            int v = rat.Def.Vision;
+            Assert(v >= 4, "test setup: the rat sees some distance");
+            g.Player.Skills[Skill.Stealth] = 0;
+            g.EndPlayerTurn();
+            Assert(g.NoticeRadius(rat) == v, "an untrained hero walking is noticed at full Vision");
+            g.Wait();
+            Assert(g.NoticeRadius(rat) == Math.Max(1, v - 2), "holding still is quieter");
+            g.MakeNoise(3); g.EndPlayerTurn();
+            Assert(g.NoticeRadius(rat) == v + 3, "a fight carries further");
+            g.Player.Skills[Skill.Stealth] = 100;
+            g.EndPlayerTurn();
+            Assert(g.StealthReduction() == 4 && g.NoticeRadius(rat) == Math.Max(1, v - 4), "Stealth 100 takes four squares off");
+            g.Player.Skills[Skill.Stealth] = 0;
+
+            // Plate rattles; the Rng is untouched by any of it.
+            var knight = Game.NewHero(404, "Tin", "human", "fighter");
+            knight.Player.WornArmor = new Ossuary.Core.Items.Item(ItemDefs.ArmorPlate, knight.Rng, 1);
+            Assert(knight.ArmourClatter() == 2, "plate mail clatters");
+            knight.Player.WornArmor = null;
+            Assert(knight.ArmourClatter() == 0, "no armour, no clatter");
+            var a = Game.NewHero(404, "X", "human", "fighter"); var b = Game.NewHero(404, "X", "human", "fighter");
+            a.Monsters.Clear(); b.Monsters.Clear();
+            a.MakeNoise(5); a.EndPlayerTurn(); b.EndPlayerTurn();
+            Assert(a.Rng.NextULong() == b.Rng.NextULong(), "noise never consumes the Rng");
+
+            // A monster just inside sight but outside a stealthy hero's notice stays unaware; without stealth it notices.
+            foreach (int stealth in new[] { 0, 100 })
+            {
+                var h = Game.NewHero(405, "Quiet", "human", "fighter");
+                h.Monsters.Clear();
+                h.Player.Skills[Skill.Stealth] = stealth;
+                var m = new Monster(Bestiary.Find("giant rat"), h.Rng);
+                int d = m.Def.Vision - 2;
+                for (int x = h.Player.X - 1; x <= h.Player.X + d + 1; x++)
+                    for (int y = h.Player.Y - 1; y <= h.Player.Y + 1; y++) h.Map.Set(x, y, TileKind.Floor);
+                m.X = h.Player.X + d; m.Y = h.Player.Y; m.HomeX = m.X; m.HomeY = m.Y; m.Alert = 0; m.Energy = 12;
+                h.Monsters.Add(m);
+                h.EndPlayerTurn();
+                if (stealth == 0) Assert(m.Alert == 1, "without stealth the rat notices from Vision-2");
+                else Assert(m.Alert == 0, "with Stealth 100 the rat does not notice from Vision-2");
+            }
         }
     }
 }

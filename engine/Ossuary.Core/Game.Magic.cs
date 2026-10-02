@@ -49,6 +49,7 @@ namespace Ossuary.Core
             var p = Player;
             if (spell == null || !p.Spells.Contains(id) || Map == null) return false;
             if (p.Mp < spell.Cost) { Say("You do not have the mana."); return false; }
+            MakeNoise(2);
 
             Monster target = null;
             if (spell.Target != SpellTarget.Self)
