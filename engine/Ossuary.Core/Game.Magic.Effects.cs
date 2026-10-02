@@ -20,6 +20,8 @@ namespace Ossuary.Core
                 case "shocking-grasp": Hurt(target, Rng.Roll(2 + lvl / 3, 6, rank), DamageType.Lightning, "Lightning arcs into"); break;
                 case "frost-ray": Hurt(target, Rng.Roll(3 + lvl / 3, 4, rank), DamageType.Cold, "A ray of frost hits"); break;
                 case "fireball": Burst(tx, ty, spell.Radius, Rng.Roll(3 + lvl / 3, 6, rank), DamageType.Fire, "Fire engulfs"); break;
+                case "ice-lance": Hurt(target, Rng.Roll(2 + lvl / 3, 6, rank), DamageType.Cold, "A lance of ice pierces"); break;
+                case "steam-burst": SteamBurst(tx, ty, spell.Radius, Rng.Roll(2 + lvl / 3, 6, rank)); break;
                 case "meteor": Burst(tx, ty, spell.Radius, Rng.Roll(6 + lvl / 2, 6, rank), DamageType.Fire, "A meteor crushes"); break;
                 case "lightning-bolt": Bolt(tx, ty, spell.Range, Rng.Roll(3 + lvl / 3, 6, rank), DamageType.Lightning); break;
                 case "chain-lightning": Chain(target, 3 + lvl / 4, rank); break;
@@ -40,6 +42,12 @@ namespace Ossuary.Core
                 // ---- Conjuration
                 case "familiar": SummonAllies(lvl < 6 ? "jackal" : "giant rat", 1, 80 + p.Skills[Skill.Magic]); break;
                 case "summon-beast": SummonAllies(lvl < 5 ? "cave spider" : lvl < 9 ? "jackal warden" : "ogre", 1, 60 + p.Skills[Skill.Magic]); break;
+                case "create-oil":
+                    for (int dy = -spell.Radius; dy <= spell.Radius; dy++)
+                        for (int dx = -spell.Radius; dx <= spell.Radius; dx++)
+                            if (Map.IsVisible(tx + dx, ty + dy)) PutSurface(tx + dx, ty + dy, SurfaceKind.Oil);
+                    Say("Black oil seeps across the floor.", MessageKind.Info);
+                    break;
                 case "blink":
                     p.X = tx; p.Y = ty;
                     Map.Version++;
@@ -115,6 +123,19 @@ namespace Ossuary.Core
                         break;
                     }
                 case "raise-skeleton": SummonAllies("skeleton", 1, 150); break;
+                case "ossify":
+                    p.SetBuff("ossify", 50 + p.Skills[Skill.Magic] / 2);
+                    Say("Bone creeps over your skin. (AC +4)", MessageKind.Good);
+                    AddCorruption(2, null);
+                    break;
+                case "reshape-flesh":
+                    if (!GainMutation()) Say("There is nothing left in you to reshape.", MessageKind.Info);
+                    AddCorruption(10, null);
+                    break;
+                case "marrow-bolt":
+                    Hurt(target, Rng.Roll(4 + lvl / 3, 6, rank), DamageType.Necrotic, "A marrow spike drives into");
+                    AddCorruption(2, null);
+                    break;
                 case "army-of-bones": SummonAllies("skeleton", 3, 120); break;
                 case "fear":
                     if (target.Def.Undead || target.Def.Mindless) Say($"The {target.TheName} knows no fear.", MessageKind.Info);
@@ -132,6 +153,10 @@ namespace Ossuary.Core
                 case "greater-heal": Heal(Rng.Roll(4, 8, (p.Wis - 10) + lvl)); break;
                 case "bless": p.SetBuff("bless", 60 + p.Skills[Skill.Magic] / 2); Say("A calm certainty steadies your hand. (+2 to hit)", MessageKind.Good); break;
                 case "smite": Hurt(target, Rng.Roll(3 + lvl / 3, 6, rank), DamageType.Holy, "Radiance scours"); break;
+                case "purify":
+                    p.Corruption = Math.Max(0, p.Corruption - 15);
+                    Say("A clean light burns the Ossuary out of you. (-15 corruption)", MessageKind.Good);
+                    break;
                 case "cleanse":
                     p.PoisonResist = 0;
                     p.Confused = false; p.ConfusionTurns = 0;
@@ -238,6 +263,28 @@ namespace Ossuary.Core
             if (hit.Count == 0) Say("The blast lands on empty ground.", MessageKind.Info);
             foreach (var m in hit) Hurt(m, dmg, type, verb);
             if (type == DamageType.Fire) ScorchGround(cx, cy, radius, radius >= 3);
+        }
+
+        /// <summary>Boils the water in a burst: scalding for anything wet, a hiss for anything dry.</summary>
+        void SteamBurst(int cx, int cy, int radius, int dmg)
+        {
+            bool water = false;
+            var hit = new List<Monster>();
+            foreach (var m in Monsters)
+                if (!m.IsDead && !m.Ally && Pathfinder.Chebyshev(cx, cy, m.X, m.Y) <= radius && Map.IsVisible(m.X, m.Y)) hit.Add(m);
+            foreach (var m in hit)
+            {
+                bool wet = Map.SurfaceAt(m.X, m.Y) == SurfaceKind.Water || m.WetTurns > 0;
+                Hurt(m, wet ? dmg * 3 / 2 : Math.Max(1, dmg / 3), DamageType.Fire, wet ? "Scalding steam sears" : "Steam hisses over");
+            }
+            for (int dy = -radius; dy <= radius; dy++)
+                for (int dx = -radius; dx <= radius; dx++)
+                {
+                    int x = cx + dx, y = cy + dy;
+                    if (Map.InBounds(x, y) && Map.SurfaceAt(x, y) == SurfaceKind.Water) { Map.SetSurface(x, y, SurfaceKind.None); water = true; }
+                }
+            Say(water ? "The water boils away in a scream of steam." : "Steam hisses up from the stone, and thins to nothing.", water ? MessageKind.Combat : MessageKind.Info);
+            Map.Version++;
         }
 
         /// <summary>A piercing line from you through (tx, ty), out to range, stopped by walls.</summary>

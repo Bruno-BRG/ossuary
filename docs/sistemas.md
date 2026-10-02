@@ -187,7 +187,7 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
 ## Magia (`Magic/Spells.cs`, `Game.Magic.cs`)
 
 - `SpellDef` é dado (id, nível 1–5, escola, custo Mp, alvo, alcance, raio, invocações);
-  efeitos em `Game.Magic.Effects.cs` por id (`ApplySpell`). **32 magias em 6 escolas**:
+  efeitos em `Game.Magic.Effects.cs` por id (`ApplySpell`). **39 magias em 6 escolas** (as 7 mais novas — Ice Lance, Steam Burst, Create Oil, Ossify, Reshape Flesh, Marrow Bolt, Purify — ligam magia, superfícies e corrupção):
   - **Evocation**: Magic Missile, Shocking Grasp (adjacente), Frost Ray, Fireball
     (área r2), Lightning Bolt (perfura a linha), Chain Lightning (salta até 3), Meteor (área r3).
   - **Conjuration**: Familiar, Summon Beast (escala com nível), Blink, Teleport.

@@ -24,8 +24,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Magia e deuses
 
-- [ ] **Mais escolas/magias** e feitiços de corrupção ligados às mutações.
-- [ ] **Interações magia × superfície** novas (gelo × raio, vapor, óleo × tocha/molotov).
 - [ ] **Sacrifício e templos de deus** nos dungeons (ofertas, missões divinas, dádivas únicas).
 - [ ] **Mais deuses** ou relações entre eles (rivalidade, conflito de piedade).
 
@@ -67,6 +65,11 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Sete magias novas (corrupção e superfícies)** (2026-10-02). *Ice Lance*, **Steam Burst** (ferve a água: dano maior em molhados e some com a poça),
+  **Create Oil** (acende com fogo), **Ossify** (CA +4, +2 corrupção), **Reshape Flesh** (uma mutação por 10 de corrupção), **Marrow Bolt** (necrótico, +2 corrupção) e
+  **Purify** (−15 corrupção). Entraram nos livros de evocação, conjuração, mortos e misericórdia. Total: 39 magias. Teste `NewSpells`.
+  Ideias futuras: escola nova, gelo × raio.
 
 - [x] **Mais artefatos, conjuntos e relíquias de corrupção** (2026-10-02). `Artifacts.All` foi de 5 para 13 (um por nível em cada branch). **Conjuntos**
   (`ArtifactSets`): *The Drowned Court* (Crown, Tidecaller's Gauntlets, Brinewalkers) e *The Ashen Regalia* (Ashfall, Mantle of Ash, Cinder Plate); 2 peças =

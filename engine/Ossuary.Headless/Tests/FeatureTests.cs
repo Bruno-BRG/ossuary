@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Ossuary.Core;
 using Ossuary.Core.Entities;
 using Ossuary.Core.Items;
+using Ossuary.Core.Magic;
 
 namespace Ossuary.Tests
 {
@@ -31,6 +32,7 @@ namespace Ossuary.Tests
             Test("travel finds altars and fountains", FeatureTravel);
             Test("crafting combines the pack and a molotov burns", CraftingFlow);
             Test("artifact sets add up and relics corrupt", SetsAndRelics);
+            Test("new spells: ice, steam, oil, bone and purification", NewSpells);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -603,6 +605,93 @@ namespace Ossuary.Tests
             plain.Monsters.Clear();
             for (int i = 0; i < 100; i++) { plain.Player.Nutrient = 1000; plain.Player.HP = plain.Player.MaxHP; plain.EndPlayerTurn(); }
             Assert(plain.Player.Corruption == 0, "without a relic nothing is taken");
+        }
+
+        static Game Archmage(ulong seed)
+        {
+            var g = Game.NewHero(seed, "A", "gnome", "wizard");
+            var p = g.Player;
+            p.Level = 15; p.Int = 21; p.Wis = 21; p.Skills[Skill.Magic] = 100;
+            p.RecomputeMaxMp();
+            p.MaxHP = p.HP = 5000;
+            foreach (var s in Spells.All) if (!p.Spells.Contains(s.Id)) p.Spells.Add(s.Id);
+            g.Monsters.Clear();
+            return g;
+        }
+
+        // A visible open cell 2-3 squares away, with a clear line.
+        static void SpellTarget(Game g, out int x, out int y)
+        {
+            int px = g.Player.X, py = g.Player.Y;
+            for (int yy = py - 4; yy <= py + 4; yy++)
+                for (int xx = px - 4; xx <= px + 4; xx++) { g.Map.Set(xx, yy, TileKind.Floor); g.Map.SetSurface(xx, yy, SurfaceKind.None); }
+            g.UpdateFov();
+            x = px + 3; y = py;
+        }
+
+        // Casts until one lands (not fizzled).
+        static bool Cast(Game g, string id, int x, int y)
+        {
+            var p = g.Player; int cost = Spells.Find(id).Cost;
+            for (int i = 0; i < 80; i++)
+            {
+                p.Mp = p.MpMax = Math.Max(p.MpMax, 99);
+                if (!g.CastSpell(id, x, y)) return false;
+                if (p.Mp == p.MpMax - cost) return true;
+            }
+            return false;
+        }
+
+        static void NewSpells()
+        {
+            foreach (var id in new[] { "ice-lance", "steam-burst", "create-oil", "ossify", "reshape-flesh", "marrow-bolt", "purify" })
+            {
+                Assert(Spells.Find(id) != null, id + " exists");
+                bool inBook = false;
+                foreach (var book in new[] { "a tome of evocation", "a tome of conjuration", "a grimoire of the dead", "a book of mercy" })
+                    foreach (string s in Spells.InBook(book)) if (s == id) inBook = true;
+                Assert(inBook, id + " can be learned from a book");
+            }
+
+            var g = Archmage(1200); SpellTarget(g, out int x, out int y);
+            var ogre = new Monster(Bestiary.Find("ogre"), g.Rng) { X = x, Y = y }; ogre.HP = ogre.MaxHP = 4000; g.Monsters.Add(ogre);
+            Assert(Cast(g, "ice-lance", x, y) && ogre.HP < 4000, "an ice lance hurts");
+            int ac = g.Player.ArmorClass();
+
+            // Steam: wet things are scalded harder than dry ones, and the water is spent.
+            var wet = Archmage(1201); SpellTarget(wet, out int wx, out int wy);
+            var dry = Archmage(1201); SpellTarget(dry, out int dx, out int dy);
+            var wo = new Monster(Bestiary.Find("ogre"), wet.Rng) { X = wx, Y = wy }; wo.HP = wo.MaxHP = 4000; wet.Monsters.Add(wo);
+            var dd = new Monster(Bestiary.Find("ogre"), dry.Rng) { X = dx, Y = dy }; dd.HP = dd.MaxHP = 4000; dry.Monsters.Add(dd);
+            wet.PutSurface(wx, wy, SurfaceKind.Water, 60); wet.PutSurface(wx + 1, wy, SurfaceKind.Water, 60);
+            Assert(Cast(wet, "steam-burst", wx, wy) && Cast(dry, "steam-burst", dx, dy), "steam bursts cast");
+            Assert(4000 - wo.HP > 4000 - dd.HP, "wet damage beats dry damage: " + (4000 - wo.HP) + " vs " + (4000 - dd.HP));
+            Assert(wet.Map.SurfaceAt(wx, wy) == SurfaceKind.None && wet.Map.SurfaceAt(wx + 1, wy) == SurfaceKind.None, "the water boils away");
+
+            // Oil.
+            var oil = Archmage(1202); SpellTarget(oil, out int ox, out int oy);
+            Assert(Cast(oil, "create-oil", ox, oy) && oil.Map.SurfaceAt(ox, oy) == SurfaceKind.Oil, "oil covers the target");
+
+            // Bone and the Ossuary.
+            var bone = Archmage(1203); bone.Player.Corruption = 0;
+            int acBefore = bone.Player.ArmorClass();
+            Assert(Cast(bone, "ossify", bone.Player.X, bone.Player.Y), "ossify casts");
+            Assert(bone.Player.ArmorClass() == acBefore - 4, "bone armour adds four AC");
+            Assert(bone.Player.Corruption >= 2, "and it costs corruption, got " + bone.Player.Corruption);
+
+            var shape = Archmage(1204); shape.Player.Corruption = 0;
+            Assert(Cast(shape, "reshape-flesh", shape.Player.X, shape.Player.Y), "reshape flesh casts");
+            Assert(shape.Player.Mutated.Count >= 1 && shape.Player.Corruption >= 10, "a mutation and a price");
+
+            var mb = Archmage(1205); SpellTarget(mb, out int mx, out int my);
+            var target = new Monster(Bestiary.Find("ogre"), mb.Rng) { X = mx, Y = my }; target.HP = target.MaxHP = 4000; mb.Monsters.Add(target);
+            var sk = new Monster(Bestiary.Find("skeleton"), mb.Rng) { X = mx, Y = my + 1 }; sk.HP = sk.MaxHP = 4000; mb.Monsters.Add(sk);
+            Assert(Cast(mb, "marrow-bolt", mx, my) && target.HP < 4000, "a marrow bolt hurts the living");
+            Assert(Cast(mb, "marrow-bolt", mx, my + 1) && sk.HP == 4000, "and the dead shrug it off");
+            Assert(mb.Player.Corruption >= 4, "twice the price");
+
+            var pure = Archmage(1206); pure.Player.Corruption = 40;
+            Assert(Cast(pure, "purify", pure.Player.X, pure.Player.Y) && pure.Player.Corruption == 25, "purify burns 15 corruption");
         }
     }
 }

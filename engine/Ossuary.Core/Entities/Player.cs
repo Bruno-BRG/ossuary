@@ -387,6 +387,7 @@ namespace Ossuary.Core.Entities
             if (WornShield != null) ac -= 2 * PerkRank("shield-wall");
             if (WornArmor != null) ac -= PerkRank("aura");
             if (BuffTurns("stone-skin") > 0) ac -= 6;
+            if (BuffTurns("ossify") > 0) ac -= 4;
             int dexAdj = Dex >= 10 ? (Dex - 10) / 2 : -((10 - Dex) / 2);
             ac -= dexAdj;
             if (WornArmor != null && (WornArmor.Def.Flags & ItemFlags.Cursed) != 0) ac += 2;
