@@ -27,6 +27,8 @@ namespace Ossuary.Tests
             Test("stealth and noise shift how far monsters notice", StealthNoise);
             Test("corruption grows mutations that change the numbers", CorruptionMutations);
             Test("a hired companion follows, grows and can fall", Companions);
+            Test("Dive and Naked challenge runs start differently", Challenges);
+            Test("travel finds altars and fountains", FeatureTravel);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -442,6 +444,58 @@ namespace Ossuary.Tests
             Assert(said, "and the log says so");
             g.DescendTo("The Dungeons", 4);
             Assert(!g.Monsters.Exists(m => m.Companion), "they do not come back");
+        }
+
+        static void Challenges()
+        {
+            var dive = Game.NewHero(808, "Fall", "human", "fighter");
+            dive.Difficulty = Difficulty.Dive; dive.ApplyChallenge();
+            Assert(dive.Depth == 5 && dive.Mode == GameMode.Dungeon, "Dive starts on depth 5");
+            Assert(dive.Player.Level >= 4 && dive.Player.HP == dive.Player.MaxHP, "a few levels up and healthy");
+            Assert(dive.Player.Inventory.Exists(i => i.Def.Name == "potion of healing"), "with potions");
+
+            var naked = Game.NewHero(809, "Bare", "human", "fighter");
+            int adv = naked.Player.PendingAdvances;
+            naked.Difficulty = Difficulty.Naked; naked.ApplyChallenge();
+            Assert(naked.Player.Wielded == null && naked.Player.WornArmor == null && naked.Player.WornShield == null, "Naked starts with nothing on");
+            Assert(naked.Player.PendingAdvances == adv + 1, "and one more advancement");
+
+            var normal = Game.NewHero(810, "Plain", "human", "fighter");
+            normal.ApplyChallenge();
+            Assert(normal.Player.Wielded != null && normal.Depth == 1, "Normal is untouched");
+
+            foreach (var d in Difficulties.All)
+            {
+                Assert(Difficulties.Parse(Difficulties.Name(d)) == d, "mode names round-trip: " + d);
+                Assert(Difficulties.Blurb(d).Length > 0, "every mode explains itself");
+            }
+            Difficulties.ScoreFactor("Dive", out int n, out int den);
+            Assert(n == 2 && den == 1, "challenges score double");
+        }
+
+        static void FeatureTravel()
+        {
+            var g = Game.NewHero(901, "Walk", "human", "fighter");
+            g.Monsters.Clear();
+            var cmd = new Commands(g);
+            int turn = g.Turn; cmd.Execute("feature");
+            Assert(g.Turn == turn, "with nothing known the walk costs no turn");
+            for (int i = 0; i < 40; i++) cmd.Execute("explore");
+            // The farthest known floor cell gets a fountain; another one gets an altar beside it.
+            int bx = -1, by = -1, bd = -1;
+            for (int y = 0; y < g.Map.H; y++)
+                for (int x = 0; x < g.Map.W; x++)
+                    if (g.Map.WasSeen(x, y) && g.Map.Get(x, y) == TileKind.Floor)
+                    {
+                        int d = Pathfinder.Chebyshev(x, y, g.Player.X, g.Player.Y);
+                        if (d > bd) { bd = d; bx = x; by = y; }
+                    }
+            Assert(bx >= 0 && bd >= 6, "test setup: a far floor cell");
+            g.Map.Set(bx, by, TileKind.Fountain);
+            for (int i = 0; i < 8 && !g.IsFeatureSpot(g.Player.X, g.Player.Y); i++) cmd.Execute("feature");
+            Assert(g.Map.Get(g.Player.X, g.Player.Y) == TileKind.Fountain, "the walk ends on the fountain");
+            turn = g.Turn; cmd.Execute("feature");
+            Assert(g.Turn == turn, "already there costs nothing");
         }
     }
 }

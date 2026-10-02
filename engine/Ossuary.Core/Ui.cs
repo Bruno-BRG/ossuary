@@ -1138,7 +1138,7 @@ namespace Ossuary.Core
                 { "s  Shift+S", "search for traps and doors / rest until healed" },
                 { "Shift+A", "disarm a trap you have found" },
                 { "Shift+E", "drink at a fountain (it may be tainted)" },
-                { "t  `", "auto-explore / travel to the stairs" },
+                { "t  `  ~", "auto-explore / travel to the stairs / to an altar or fountain" },
                 { "l  x  X", "look / inspect / swap with" },
                 { "O", "travel on the overworld" },
                 { "m", "toggle the minimap" },

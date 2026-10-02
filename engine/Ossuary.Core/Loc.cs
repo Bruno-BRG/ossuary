@@ -201,6 +201,10 @@ namespace Ossuary.Core
             ["◄► mode  Enter begin  Esc back"] = "◄► modo  Enter começa  Esc volta",
             ["Daily board"] = "Placar diário", ["No daily runs yet."] = "Nenhuma run diária ainda.", ["Daily"] = "Diário",
             ["D daily board   Esc back"] = "D placar diário   Esc volta",
+            // ---- challenge modes
+            ["Dive"] = "Mergulho", ["Naked"] = "Pelado",
+            ["Start on depth 5, a few levels up. Score x2."] = "Começa no nível 5, com alguns níveis a mais. Pontos x2.",
+            ["No weapon, armour or shield. One more advancement. Score x2."] = "Sem arma, armadura ou escudo. Um avanço a mais. Pontos x2.",
             // ---- companions
             ["Hire a sellsword"] = "Contratar um mercenário", ["Send my sellsword home"] = "Mandar meu mercenário para casa",
             ["Your sellsword shakes your hand and goes back to the bar."] = "Seu mercenário aperta sua mão e volta para o balcão.",
@@ -265,6 +269,9 @@ namespace Ossuary.Core
             // ---- auto-explore, stairs travel, rest
             ["search for traps and doors / rest until healed"] = "procurar armadilhas e portas / descansar até curar",
             ["auto-explore / travel to the stairs"] = "explorar sozinho / ir até a escada",
+            ["auto-explore / travel to the stairs / to an altar or fountain"] = "explorar sozinho / ir até a escada / até um altar ou fonte",
+            ["You have not found a fountain or an altar yet."] = "Você ainda não achou uma fonte ou um altar.",
+            ["You are already there."] = "Você já está lá.",
             ["There is nothing to explore here."] = "Não há o que explorar aqui.",
             ["You cannot rest here."] = "Você não pode descansar aqui.",
             ["Not with enemies in sight."] = "Não com inimigos à vista.",

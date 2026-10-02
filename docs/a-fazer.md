@@ -16,8 +16,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Controles e QoL
 
-- [ ] **Desafios** (modos extras além de Normal/Classic/Hardcore): pacifista, sem equipamento, mergulho (começa fundo). `Difficulty` já é dado salvo e passa pelo replay.
-- [ ] **Travel até altar/fonte/ponto marcado**: generalizar `Game.AutoStep` (já aceita qualquer objetivo) com um seletor.
 - [ ] **Efeitos sonoros** curtos estilo bip de PC dos anos 80, opcional em DisplaySettings.
 
 ## Persistência e meta-progressão
@@ -72,6 +70,11 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Desafios: Dive e Naked** (2026-10-02). Novos valores de `Difficulty` escolhidos na criação: **Dive** (começa no nível 5, nível 4, 2 poções, `ApplyChallenge`)
+  e **Naked** (sem arma/armadura/escudo, +1 avanço). Pontos ×2 (`Difficulties.ScoreFactor`). Teste `Challenges`. Ideia futura: Pacifista.
+- [x] **Travel até altar/fonte** (2026-10-02). `Shift+Backquote` (`~`): `Game.FeatureStep`/`IsFeatureSpot` (fonte ou chão ao lado de altar lembrado), reaproveitando `AutoStep`.
+  Teste `FeatureTravel`. Ainda sem pontos marcados pelo jogador.
 
 - [x] **Companheiros permanentes** (2026-10-02). `Game.Companions.cs`: a taverna contrata um mercenário (*sellsword / shield-bearer / cutthroat*,
   `100 + 40×nível` de ouro); é um aliado sem timer que atravessa toda escada, sobe de nível com o herói (mantendo a fração de vida) e,

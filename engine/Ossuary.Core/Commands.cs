@@ -77,6 +77,7 @@ namespace Ossuary.Core
                 case "explore": return DoAutoWalk(AutoWalk.Explore);
                 case "stairs": return DoAutoWalk(AutoWalk.Stairs);
                 case "rest": return DoAutoWalk(AutoWalk.Rest);
+                case "feature": return DoAutoWalk(AutoWalk.Feature);
 
                 case "O": _g.PushTravelMode(); return true;
                 case "m": _g.ToggleMinimap(); return true;
@@ -97,7 +98,7 @@ namespace Ossuary.Core
 
         // ------------------------------------------------------------ auto-walk
 
-        enum AutoWalk { Explore, Stairs, Rest }
+        enum AutoWalk { Explore, Stairs, Rest, Feature }
         const int AutoWalkLimit = 600, RestLimit = 3000;
 
         /// <summary>
@@ -115,6 +116,7 @@ namespace Ossuary.Core
             if (p.Asleep || p.Stunned) { _g.Say(p.Asleep ? "You are asleep." : "You are stunned."); return true; }
             if (_g.HostileInView()) { _g.Say("Not with enemies in sight.", MessageKind.Warn); return true; }
             if (kind == AutoWalk.Rest && !_g.NeedsRest()) { _g.Say("You are already rested.", MessageKind.Info); return true; }
+            if (kind == AutoWalk.Feature && _g.IsFeatureSpot(p.X, p.Y)) { _g.Say("You are already there.", MessageKind.Info); return true; }
             if (kind == AutoWalk.Stairs)
             {
                 var here = _g.Map.Get(p.X, p.Y);
@@ -143,6 +145,10 @@ namespace Ossuary.Core
                         if (!_g.AutoStep(_g.ExploreGoal, out dx, out dy))
                         { _g.Say(n == 0 ? "Nothing left to explore here." : "You have seen all there is to see here.", MessageKind.Info); break; }
                     }
+                    else if (kind == AutoWalk.Feature)
+                    {
+                        if (!_g.FeatureStep(out dx, out dy)) { _g.Say("You have not found a fountain or an altar yet.", MessageKind.Info); break; }
+                    }
                     else if (!_g.StairsStep(out dx, out dy, out _))
                     { _g.Say("You have not found any stairs yet.", MessageKind.Info); break; }
                     DoMove(dx, dy);
@@ -151,7 +157,7 @@ namespace Ossuary.Core
                 }
                 if (_g.Mode != GameMode.Dungeon || _g.Map == null || _g.Map.Number != map) break;
                 if (p.HP < hp || p.HP <= 0) break;
-                if (_g.Said != said || (kind == AutoWalk.Stairs && ArrivedAtStairs())) break;
+                if (_g.Said != said || (kind == AutoWalk.Stairs && ArrivedAtStairs()) || (kind == AutoWalk.Feature && _g.IsFeatureSpot(p.X, p.Y))) break;
                 if (_g.HostileInView()) break;
                 if (kind == AutoWalk.Rest) hp = p.HP;
             }

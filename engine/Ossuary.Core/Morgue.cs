@@ -65,9 +65,14 @@ namespace Ossuary.Core
         }
 
         /// <summary>A plain, comparable number for the history screen: depth and kills count, victory counts a lot.</summary>
-        public static int Score(RunRecord r, Player p) =>
-            (r.MaxDepth * 100 + r.Kills * 10 + r.Level * 50 + p.Gold / 10 + (r.Outcome == "won" ? 5000 : 0))
-            * (r.Mode == "Hardcore" ? 3 : 2) / (r.Mode == "Classic" ? 3 : 2);
+        public static int Score(RunRecord r, Player p)
+        {
+            Difficulties.ScoreFactor(r.Mode, out int num, out int den);
+            return BaseScore(r, p) * num / den;
+        }
+
+        static int BaseScore(RunRecord r, Player p) =>
+            r.MaxDepth * 100 + r.Kills * 10 + r.Level * 50 + p.Gold / 10 + (r.Outcome == "won" ? 5000 : 0);
 
         public static string Text(Game g, RunRecord r)
         {

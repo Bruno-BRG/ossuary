@@ -87,6 +87,20 @@ namespace Ossuary.Core
             return AutoStep((x, y) => Map.Get(x, y) == TileKind.StairsUp, out dx, out dy);
         }
 
+        /// <summary>A cell worth stopping at: a fountain, or any floor beside a remembered altar.</summary>
+        public bool IsFeatureSpot(int x, int y)
+        {
+            if (Map.Get(x, y) == TileKind.Fountain) return true;
+            for (int k = 0; k < 8; k += 2)
+            {
+                int nx = x + Pathfinder.Dx8[k], ny = y + Pathfinder.Dy8[k];
+                if (Map.InBounds(nx, ny) && Map.WasSeen(nx, ny) && Map.Get(nx, ny) == TileKind.Altar) return true;
+            }
+            return false;
+        }
+
+        public bool FeatureStep(out int dx, out int dy) => AutoStep(IsFeatureSpot, out dx, out dy);
+
         public bool NeedsRest() => Player.HP < Player.MaxHP || Player.Mp < Player.MpMax;
     }
 }

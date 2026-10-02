@@ -51,11 +51,13 @@ namespace Ossuary.Desktop
         {
             ulong s = seed ?? BitConverter.ToUInt64(RandomNumberGenerator.GetBytes(8), 0);
             Game = role == null ? new Game(s) : Game.NewHero(s, name, race, role);
-            Game.Difficulty = difficulty; _difficulty = difficulty; _daily = daily ?? ""; Game.DailyLabel = _daily;
+            Game.Difficulty = difficulty; _difficulty = difficulty;
+            if (difficulty == Difficulty.Dive) overworld = false; _daily = daily ?? ""; Game.DailyLabel = _daily;
             _unlocked = SaveStore.ReadAchievements(); Game.AlreadyUnlocked = new HashSet<string>(_unlocked.Keys);
             _seed = Game.Rng.Seed;
             _graveyard = bones ?? SaveStore.ReadBones();
             Game.Graveyard = _graveyard;
+            Game.ApplyChallenge();
             _name = Game.Player.CharName; _race = Game.Player.RaceId; _role = Game.Player.RoleId;
             _overworld = overworld;
             if (overworld) Game.BeginAtOverworld();
