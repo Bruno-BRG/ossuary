@@ -14,8 +14,9 @@ Soltar e apertar de novo rearma. Só movimento repete; nunca enfileira turnos.
 
 ## Andar sozinho (dungeon)
 
-`t` explora o nível sozinho (vai até itens e bordas do mapa conhecido) — `` ` `` vai até a escada conhecida mais próxima, `~` (Shift+`) até um altar ou fonte lembrado — antes: `` ` `` vai até a escada
-conhecida mais próxima (desce, senão sobe) — `Shift+S` descansa até curar HP e mana. Todos param ao ver
+`t` explora o nível sozinho (vai até itens e bordas do mapa conhecido) — `` ` `` vai até a escada
+conhecida mais próxima (desce, senão sobe) — `~` (Shift+`` ` ``) vai até um altar ou fonte lembrado —
+`Shift+S` descansa até curar HP e mana. Todos param ao ver
 hostil, levar dano, surgir mensagem ou pisar em item/escada; com inimigo à vista recusam sem gastar turno.
 Teclas remapeáveis em Controles.
 
