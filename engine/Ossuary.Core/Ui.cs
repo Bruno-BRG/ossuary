@@ -932,6 +932,7 @@ namespace Ossuary.Core
                 case Panel.Shop: DrawShopPanel(); break;
                 case Panel.Settings: DrawSettingsPanel(); break;
                 case Panel.Controls: DrawControlsPanel(); break;
+                case Panel.Runs: DrawRunsPanel(); break;
                 case Panel.Create: DrawCreatePanel(); break;
                 case Panel.Spells: DrawSpellsPanel(); break;
                 case Panel.Abilities: DrawAbilitiesPanel(); break;
@@ -1610,6 +1611,7 @@ namespace Ossuary.Core
                 case MenuRow.Language: return Loc.T("Portuguese (Brazil) or English.");
                 case MenuRow.Master: case MenuRow.Music: case MenuRow.Effects: return Loc.T("Saved now; takes effect when sound is added.");
                 case MenuRow.Controls: return Loc.T("Rebind any key.");
+                case MenuRow.PastRuns: return Loc.T("Your finished expeditions, newest first.");
                 case MenuRow.MainMenu: return Loc.T("Saves the run and returns to the title.");
                 default: return Loc.T("Saves the run and closes the game.");
             }
@@ -1619,7 +1621,7 @@ namespace Ossuary.Core
         {
             var theme = Theme.Current;
             var set = DisplaySettings.Current;
-            PanelRect(out int px, out int py, out int pw, out int ph, 60, 24, Loc.T("Menu"), Loc.T("Esc resumes"));
+            PanelRect(out int px, out int py, out int pw, out int ph, 60, 25, Loc.T("Menu"), Loc.T("Esc resumes"));
             int x = px + 3, iw = pw - 6;
             int sel = State.SettingsIndex;
             int y = py + 2;
@@ -1672,6 +1674,7 @@ namespace Ossuary.Core
             Row(MenuRow.Effects, "Effects", null, true, audio.Effects);
             Header("Game");
             Row(MenuRow.Controls, "Controls", "rebind keys", false);
+            Row(MenuRow.PastRuns, "Past runs", "history", false);
             Row(MenuRow.MainMenu, "Main menu", null, false, -1, off);
             Row(MenuRow.Quit, "Quit game", null, false, -1, theme.Bad);
 
@@ -1739,6 +1742,50 @@ namespace Ossuary.Core
             if (State.BindNote.Length > 0) _t.WriteClipped(x, py + ph - 3, State.BindNote, theme.Good, iw, true, theme.Panel);
             string hint = State.Rebinding ? "Press the new key.  Esc cancels." : "Enter rebind   Del clear   R reset   ⇧R reset all";
             _t.WriteClipped(x, py + ph - 2, hint, theme.Dim, iw, false, theme.Panel);
+        }
+
+        // ------------------------------------------------------------------ past runs
+
+        void DrawRunsPanel()
+        {
+            var theme = Theme.Current;
+            PanelRect(out int px, out int py, out int pw, out int ph, 84, 24, "Past runs", "Esc back");
+            int x = px + 3, iw = pw - 6;
+            var list = State.Runs;
+            if (list.Count == 0)
+            {
+                _t.WriteClipped(x, py + 3, Loc.T("No finished runs yet."), theme.Dim, iw, false, theme.Panel);
+                return;
+            }
+            int sel = Math.Max(0, Math.Min(State.RunsIndex, list.Count - 1));
+            int visible = Math.Max(3, ph - 8);
+            int start = Math.Max(0, Math.Min(sel - visible / 2, list.Count - visible));
+            _t.WriteClipped(x + 2, py + 2, Loc.T("Hero") + new string(' ', 0), theme.Label, 18, false, theme.Panel);
+            _t.Write(x + 22, py + 2, Loc.T("Class"), theme.Label, false, theme.Panel);
+            _t.Write(x + 40, py + 2, "Dlvl", theme.Label, false, theme.Panel);
+            _t.Write(x + 46, py + 2, Loc.T("End"), theme.Label, false, theme.Panel);
+            _t.Write(x + 62, py + 2, Loc.T("Score"), theme.Label, false, theme.Panel);
+            for (int r = 0; r < visible && start + r < list.Count; r++)
+            {
+                var run = list[start + r];
+                int y = py + 3 + r;
+                bool on = start + r == sel;
+                Rgb bg = on ? theme.PanelHi : theme.Panel;
+                if (on) RowBar(px + 1, y, pw - 2, theme);
+                _t.Put(px + 2, y, on ? '▶' : ' ', theme.Accent, true, bg);
+                Rgb end = run.Outcome == "won" ? theme.Good : run.Outcome == "abandoned" ? theme.Dim : theme.Danger;
+                _t.WriteClipped(x + 2, y, run.Name, on ? theme.Accent : theme.Text, 18, on, bg);
+                _t.WriteClipped(x + 22, y, Loc.T(run.Role) + " " + run.Level, theme.Text, 17, false, bg);
+                _t.Write(x + 40, y, run.MaxDepth.ToString(), theme.Text, false, bg);
+                _t.WriteClipped(x + 46, y, Loc.T(run.Outcome), end, 15, false, bg);
+                _t.Write(x + 62, y, run.Score.ToString(), theme.Gold, false, bg);
+            }
+            var sr = list[sel];
+            _t.HLine(px + 2, py + ph - 5, pw - 4, theme.Rule);
+            string how = sr.Outcome == "won" ? Loc.T("Escaped with the Amulet of Yendor.") : sr.Outcome == "abandoned" ? Loc.T("Abandoned the run.") : Loc.T("Killed by") + " " + Loc.T(sr.Cause);
+            _t.WriteClipped(x, py + ph - 4, how, theme.Text, iw, true, theme.Panel);
+            _t.WriteClipped(x, py + ph - 3, $"{sr.Race} {Loc.T(sr.Role)}, {sr.Title}   {sr.Branch} {sr.Depth}   {sr.Turns} {Loc.T("Turns")}   {sr.Kills} {Loc.T("Kills")}", theme.Dim, iw, false, theme.Panel);
+            _t.WriteClipped(x, py + ph - 2, $"{sr.Date}   {Loc.T("Seed")} {sr.Seed}", theme.Dim, iw, false, theme.Panel);
         }
 
         static bool SameKeys(KeyBindings binds, int action)

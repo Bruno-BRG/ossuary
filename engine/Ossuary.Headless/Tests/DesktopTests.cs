@@ -37,8 +37,8 @@ namespace Ossuary.Desktop
             s.Key("F2"); s.Draw();
             for (int i = 0; i < 10; i++) s.Key("ArrowDown");
             s.Key("ArrowUp"); s.Key("ArrowUp"); s.Key("ArrowUp"); s.Key("ArrowUp");
-            // Master -> Music -> Effects -> Controls -> Main menu
-            for (int i = 0; i < 4; i++) s.Key("ArrowDown");
+            // Master -> Music -> Effects -> Controls -> Past runs -> Main menu
+            for (int i = 0; i < 5; i++) s.Key("ArrowDown");
             s.Draw();
             s.Key("Enter"); var f = s.Draw();
             Check(f.ToTitle && s.Game != null, "main menu returns to the title");
@@ -296,7 +296,16 @@ namespace Ossuary.Desktop
             Check(s.LastMorgue != null && System.IO.File.Exists(s.LastMorgue), "the morgue file exists");
             Check(System.IO.File.ReadAllText(s.LastMorgue).Contains("Last words"), "the morgue file has content");
             Check(history[history.Count - 1].Outcome == "died", "outcome is died");
-            s.Key("Enter"); s.Draw();
+
+            // The menu lists past runs, newest first, and Esc returns to the menu.
+            s = new Session(); s.New(2468); s.Resize(110, 36); s.Draw();
+            s.Key("F2"); s.Draw();
+            for (int i = 0; i < 20 && Ossuary.Core.MenuRows.All[s.Game.UiState.SettingsIndex] != Ossuary.Core.MenuRow.PastRuns; i++) s.Key("ArrowDown");
+            Check(Ossuary.Core.MenuRows.All[s.Game.UiState.SettingsIndex] == Ossuary.Core.MenuRow.PastRuns, "test setup: Past runs row selected");
+            s.Key("Enter"); var f = s.Draw();
+            Check(s.Game.UiState.Active == Panel.Runs && s.Game.UiState.Runs.Count >= 1, "Past runs opens with the recorded runs");
+            s.Key("Escape"); s.Draw();
+            Check(s.Game.UiState.Active == Panel.Settings, "Esc returns from Past runs to the menu");
         }
 
         /// <summary>Holding a direction keeps walking, but only while the way is calm, and never queues turns.</summary>

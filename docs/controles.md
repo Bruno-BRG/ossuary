@@ -31,6 +31,12 @@ usar chave — `a` aplicar ferramenta — `f`/`Q` atirar
 `w` empunhar — `W` vestir — `T` tirar armadura — `P` pôr anel —
 `R` tirar anel — `r` ler pergaminho — `z` zapar varinha — `e` comer
 
+## Menu
+
+`Esc` ou `F2` abre o menu (tema, CRT, tamanho, idioma, volume, **Controles**, **Past runs**). *Past runs* lista as
+expedições terminadas (setas, PgUp/PgDn, Home/End; Esc volta). Ao fim de cada run grava-se um arquivo de necrotério
+em `morgue/` no diretório de dados do jogo.
+
 ## Estrada e cidade
 
 Monstro bloqueando a estrada: `Enter`, `Espaço`, `K` ou `F` atacam; `R` ou `<`

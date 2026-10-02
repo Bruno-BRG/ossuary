@@ -28,7 +28,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
   Hoje o save é a seed + replay (`alpha.md`); avaliar se continua suficiente com overworld e cidades longas.
 - [ ] **Cemitério / Bones**: tumbas de heróis anteriores; o herói morto reaparece como
   fantasma ou inimigo nomeado, com o equipamento dele (NetHack *bones*). Histórico de runs.
-- [ ] **Tela de histórico de runs** no título (classe, raça, profundidade, causa da morte).
 
 ## Mecânica de personagem
 
@@ -90,6 +89,9 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Histórico de runs** (2026-10-02). Menu (`Esc`/`F2`) → *Past runs* (`Panel.Runs`, `Ui.DrawRunsPanel`, `Session.RunsKey`):
+  lista as runs terminadas, mais novas primeiro, com causa, classe, profundidade e pontos. Dados lidos de `history.json`.
 
 - [x] **Morgue file** (2026-10-02). Ao morrer, vencer ou abandonar: `Core/Morgue.cs` (`RunRecord`, `Summarize`, `Text`) e
   `Game.Death.cs` (`DeathCause`, `HurtBy`); o host grava `morgue/<data>-<nome>.txt` e acrescenta ao `history.json`

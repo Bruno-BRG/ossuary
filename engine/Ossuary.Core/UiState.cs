@@ -27,6 +27,7 @@ namespace Ossuary.Core
         Advance,
         Altar,
         Service,
+        Runs,
     }
 
     /// <summary>
@@ -73,6 +74,10 @@ namespace Ossuary.Core
         public int ControlsIndex;
         public bool Rebinding;
         public string BindNote = "";
+
+        /// <summary>Finished runs, newest first, loaded by the host when the panel opens (the Core reads no files).</summary>
+        public System.Collections.Generic.List<RunRecord> Runs = new System.Collections.Generic.List<RunRecord>();
+        public int RunsIndex;
 
         /// <summary>One-line result of the last menu action ("Game saved.").</summary>
         public string MenuNote = "";
@@ -140,7 +145,7 @@ namespace Ossuary.Core
 
 namespace Ossuary.Core
 {
-    public enum MenuRow { Resume, Save, Theme, Crt, Scale, Language, Master, Music, Effects, Controls, MainMenu, Quit }
+    public enum MenuRow { Resume, Save, Theme, Crt, Scale, Language, Master, Music, Effects, Controls, PastRuns, MainMenu, Quit }
 
     /// <summary>Row order of the F2 menu, shared by the panel that draws it and the host that drives it.</summary>
     public static class MenuRows

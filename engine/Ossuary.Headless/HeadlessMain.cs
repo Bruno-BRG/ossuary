@@ -219,6 +219,19 @@ namespace Ossuary.Tools
             Console.WriteLine();
             Console.WriteLine("===== ALTAR: own god =====");
             Console.WriteLine(hud3.Draw().ToAscii());
+            knight.UiState.Runs = new System.Collections.Generic.List<RunRecord>
+            {
+                new RunRecord { Name = "Mara", Race = "Dwarf", Role = "Fighter", Title = "Warrior", Level = 7, Outcome = "died", Cause = "a giant rat", Branch = "The Mines", Depth = 4, MaxDepth = 4, Turns = 2210, Kills = 31, Seed = "123456789", Date = "2026-10-02 18-01-22", Score = 1010 },
+                new RunRecord { Name = "Ilse", Race = "Elf", Role = "Wizard", Title = "Mage", Level = 12, Outcome = "won", Branch = "The Dungeons", Depth = 1, MaxDepth = 12, Turns = 9001, Kills = 120, Seed = "42", Date = "2026-10-01 20-10-00", Score = 7400 },
+            };
+            knight.UiState.Active = Panel.Runs; knight.UiState.RunsIndex = 0;
+            Console.WriteLine();
+            Console.WriteLine("===== PAST RUNS =====");
+            Console.WriteLine(hud3.Draw().ToAscii());
+            Console.WriteLine();
+            Console.WriteLine("===== MORGUE FILE =====");
+            knight.Player.HP = 0; knight.CheckDeath();
+            Console.WriteLine(Morgue.Text(knight, Morgue.Summarize(knight)));
         }
 
         static void DumpPanels()

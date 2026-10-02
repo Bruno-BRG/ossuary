@@ -144,6 +144,10 @@ namespace Ossuary.Core
 
         static readonly Dictionary<string, string> Pt = new Dictionary<string, string>
         {
+            // ---- past runs
+            ["Past runs"] = "Expedições passadas", ["history"] = "histórico", ["Your finished expeditions, newest first."] = "Suas expedições terminadas, as mais novas primeiro.",
+            ["No finished runs yet."] = "Nenhuma expedição terminada ainda.", ["Hero"] = "Herói", ["Class"] = "Classe", ["End"] = "Fim",
+            ["died"] = "morreu", ["won"] = "venceu", ["abandoned"] = "abandonou",
             // ---- morgue and death
             ["morgue"] = "necrotério", ["level"] = "nível", ["Killed by"] = "Morto por", ["Abandoned the run."] = "Abandonou a expedição.",
             ["Escaped with the Amulet of Yendor."] = "Escapou com o Amuleto de Yendor.",

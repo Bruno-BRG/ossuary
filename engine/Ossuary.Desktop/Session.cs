@@ -62,7 +62,7 @@ namespace Ossuary.Desktop
         {
             AtTitle = on;
             var ui = Game.UiState;
-            if (on && (ui.Active == Panel.Settings || ui.Active == Panel.Controls)) ui.Active = Panel.None;
+            if (on && (ui.Active == Panel.Settings || ui.Active == Panel.Controls || ui.Active == Panel.Runs)) ui.Active = Panel.None;
             ui.Rebinding = false;
         }
 
@@ -190,6 +190,7 @@ namespace Ossuary.Desktop
             }
             if (ui.Rebinding) { RebindKey(code, shift, ctrl); return; }
             if (ui.Active == Panel.Controls) { ControlsKey(code, shift); return; }
+            if (ui.Active == Panel.Runs) { RunsKey(code); return; }
 
             if (!bindingsApplied) KeyBindings.Current.Resolve(ref code, ref key, ref shift, ref ctrl);
             if (code == "None") return;
@@ -513,6 +514,8 @@ namespace Ossuary.Desktop
                     { string error = Save(); ui.MenuNote = error == null ? Loc.T("Game saved.") : Loc.T("Could not save: " + error); break; }
                 case MenuRow.MainMenu when AtTitle: ui.MenuNote = Loc.T("You are already here."); break;
                 case MenuRow.Controls: ui.Active = Panel.Controls; ui.ControlsIndex = 0; ui.BindNote = ""; break;
+                case MenuRow.PastRuns:
+                    ui.Runs = SaveStore.ReadHistory(); ui.Runs.Reverse(); ui.RunsIndex = 0; ui.Active = Panel.Runs; break;
                 case MenuRow.MainMenu: Save(); ui.Active = Panel.None; ToTitle = true; AtTitle = true; break;
                 case MenuRow.Quit: Save(); ExitRequested = true; break;
                 default: ChangeMenu(row, 1); break;
@@ -520,6 +523,19 @@ namespace Ossuary.Desktop
         }
 
         // --------------------------------------------------------------- controls
+
+        void RunsKey(string code)
+        {
+            var ui = Game.UiState;
+            int n = ui.Runs.Count;
+            if (code == "Escape" || code == "F2") { ui.Active = Panel.Settings; return; }
+            if (n == 0) return;
+            if (code == "PageDown") ui.RunsIndex = Math.Min(n - 1, ui.RunsIndex + 8);
+            else if (code == "PageUp") ui.RunsIndex = Math.Max(0, ui.RunsIndex - 8);
+            else if (code == "Home") ui.RunsIndex = 0;
+            else if (code == "End") ui.RunsIndex = n - 1;
+            else if (code == "ArrowUp" || code == "ArrowDown") ui.RunsIndex = Wrap(ui.RunsIndex + (code == "ArrowUp" ? -1 : 1), n);
+        }
 
         void ControlsKey(string code, bool shift)
         {
