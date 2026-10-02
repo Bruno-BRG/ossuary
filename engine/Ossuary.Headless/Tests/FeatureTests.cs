@@ -40,6 +40,7 @@ namespace Ossuary.Tests
             Test("reputation, haggling and guild jobs", ReputationAndJobs);
             Test("road events offer choices with prices", RoadEvents);
             Test("townsfolk keep hours and remember you", TownRoutine);
+            Test("vaults are carved out of unused rock and need a key", VaultsAndKeys);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -1179,6 +1180,74 @@ namespace Ossuary.Tests
             for (int i = 0; i < 160; i++) { g.World.Hour = 22; g.Wait(); }
             int night = Inside();
             Assert(night >= noon && night * 100 >= residents.Count * 60, $"residents are tucked in at night: {noon} at noon, {night} of {residents.Count} at night");
+        }
+
+        static void VaultsAndKeys()
+        {
+            // Carving never changes what the stairs can reach.
+            int carved = 0;
+            for (int seed = 1; seed <= 30; seed++)
+            {
+                var rng = new Rng((ulong)(seed * 104729));
+                var opts = new Ossuary.Core.Gen.GenOptions { Width = 79, Height = 25, Style = seed % 2 == 0 ? Ossuary.Core.Gen.LevelStyle.Rooms : Ossuary.Core.Gen.LevelStyle.Barracks, MaxRooms = 10, AllowStairsUp = true, AllowStairsDown = true };
+                var map = Ossuary.Core.Gen.DungeonGen.Generate(opts, rng, out _, out var starts);
+                var before = map.Reachability(starts[0] % map.W, starts[0] / map.W, true);
+                var site = Ossuary.Core.Gen.Vaults.Carve(map, rng, TileKind.LockedDoor);
+                if (site == null) continue;
+                carved++;
+                var after = map.Reachability(starts[0] % map.W, starts[0] / map.W, true);
+                for (int i = 0; i < before.Length; i++) Assert(before[i] == after[i] || site.Cells.Contains(i), "carving a vault must not change the level around it, seed " + seed);
+                foreach (int c in site.Cells) Assert(!after[c], "the vault is sealed behind its door, seed " + seed);
+                Assert(map.Get(site.DoorX, site.DoorY) == TileKind.LockedDoor && site.Cells.Count == 12, "a locked door and a 4x3 chamber");
+                map.Set(site.DoorX, site.DoorY, TileKind.OpenDoor);
+                int ox = -1, oy = -1;
+                for (int k = 0; k < 4; k++)
+                {
+                    int nx = site.DoorX + Ossuary.Core.Dirs.Dx4[k], ny = site.DoorY + Ossuary.Core.Dirs.Dy4[k];
+                    if (map.Walkable(nx, ny) && !site.Cells.Contains(nx + ny * map.W)) { ox = nx; oy = ny; }
+                }
+                Assert(ox >= 0, "the door opens onto the level, seed " + seed);
+                var open = map.Reachability(ox, oy, true);
+                foreach (int c in site.Cells) Assert(open[c], "and the chamber is reachable once the door is open, seed " + seed);
+            }
+            Assert(carved >= 12, "many levels have room for a vault, carved " + carved);
+
+            // Generated levels: vaults appear, their key rides on a monster, and the cache is rigged.
+            int keyed = 0, caches = 0;
+            for (ulong seed = 1; seed <= 40; seed++)
+            {
+                var d = new Dungeon(new Rng(seed * 6700417));
+                var map = d.Ensure("The Dungeons", 4 + (int)(seed % 5), out var spawns, out int sx, out int sy);
+                bool key = false;
+                if (spawns != null) foreach (var s in spawns) if (s.Monster.Inventory.Exists(i => i.Def.Name == "brass key")) key = true;
+                for (int y = 0; y < map.H && !key; y++) for (int x = 0; x < map.W; x++) { var st = GroundItems.At(map.Number, x, y); if (st != null && st.Exists(i => i.Def.Name == "brass key")) key = true; }
+                bool lockedVault = false, hidden = false;
+                for (int y = 0; y < map.H; y++) for (int x = 0; x < map.W; x++) { if (map.Get(x, y) == TileKind.LockedDoor) lockedVault = true; if (map.Get(x, y) == TileKind.HiddenDoor) hidden = true; }
+                if (key) { keyed++; Assert(lockedVault, "a keyed level has its locked door, seed " + seed); }
+                if (hidden)
+                {
+                    int rigged = 0;
+                    for (int y = 0; y < map.H; y++) for (int x = 0; x < map.W; x++) if (TrapTable.TryGet(map.Number, x, y, out _, out _)) rigged++;
+                    if (rigged >= 3) caches++;
+                }
+            }
+            Assert(keyed >= 4, "locked vaults with keys turn up, saw " + keyed);
+            Assert(caches >= 1, "rigged caches turn up, saw " + caches);
+
+            // The key works, once, on any locked door.
+            var g = Game.NewHero(2100, "Keeper", "human", "fighter");
+            g.Monsters.Clear();
+            int px = g.Player.X, py = g.Player.Y;
+            for (int x = px - 1; x <= px + 2; x++) { g.Map.Set(x, py, TileKind.Floor); }
+            g.Map.Set(px + 1, py, TileKind.LockedDoor); g.Map.Set(px + 2, py, TileKind.Floor);
+            g.Player.Inventory.RemoveAll(i => i.Def.Name == "lock pick");
+            var cmd = new Commands(g);
+            cmd.Execute("move-e");
+            Assert(g.Map.Get(px + 1, py) == TileKind.LockedDoor, "a locked door holds without a key");
+            g.Player.Inventory.Add(new Item(Crafted.BrassKey, g.Rng, 1) { Identified = true });
+            cmd.Execute("move-e");
+            Assert(g.Map.Get(px + 1, py) == TileKind.OpenDoor, "the brass key opens it");
+            Assert(!g.Player.Inventory.Exists(i => i.Def.Name == "brass key"), "and is used up");
         }
     }
 }

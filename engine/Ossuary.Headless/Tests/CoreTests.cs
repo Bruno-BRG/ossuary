@@ -33,6 +33,8 @@ namespace Ossuary.Tests
             Test("barracks levels are connected", LevelBarracks);
             Test("fort levels are connected", LevelFort);
             Test("warrens levels are connected", LevelWarrens);
+            Test("ruins levels are connected", () => GenerateAndCheck(LevelStyle.Ruins, 12));
+            Test("catacombs levels are connected", () => GenerateAndCheck(LevelStyle.Catacombs, 30));
             Test("all branch depths generate", AllBranchDepths);
             Test("fov is symmetric-ish and bounded", FovBehaviour);
             Test("pathfinder finds a route", PathfindingWorks);

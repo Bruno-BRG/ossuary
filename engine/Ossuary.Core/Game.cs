@@ -285,6 +285,13 @@ namespace Ossuary.Core
                         Map.Version++;
                         return;
                     }
+                    if (SpendBrassKey())
+                    {
+                        Say("The brass key turns, and the lock lets go. The key crumbles in your hand.", MessageKind.Good);
+                        Map.Set(x, y, TileKind.OpenDoor);
+                        Map.Version++;
+                        return;
+                    }
                     Say("This door is locked.", MessageKind.Info);
                     return;
                 case TileKind.HiddenDoor:

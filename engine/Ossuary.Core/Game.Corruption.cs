@@ -84,6 +84,15 @@ namespace Ossuary.Core
 
         // ---------------------------------------------------------------- the temple
 
+        /// <summary>Uses up a brass key, if the hero has one.</summary>
+        public bool SpendBrassKey()
+        {
+            var key = Player.FindFirst("brass key");
+            if (key == null) return false;
+            if (--key.Quantity <= 0) Player.Inventory.Remove(key);
+            return true;
+        }
+
         public int PurgePrice => 60 + Player.Corruption * 3;
 
         /// <summary>A priest bleeds the Ossuary out of you: 30 corruption, and the newest unwelcome mutation.</summary>

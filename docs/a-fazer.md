@@ -27,15 +27,7 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Geração de níveis
 
-- [ ] **Vaults e salas especiais**: cofres trancados com puzzle, salas-armadilha, templos.
 - [ ] **Branches opcionais de desafio** (estilo DCSS) com recompensa própria.
-- [ ] **Mais estilos de level** além dos 6 atuais (Rooms, Cave, Maze, Barracks, Warrens, Fort).
-
-## Monstros e combate
-
-
-## Interface e visual
-
 - [ ] Animação de água e tiles de mapa quadrados (já listados como evolução em `alpha.md`).
 
 ## Técnico e qualidade
@@ -48,6 +40,11 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Cofres, caches armadilhados e dois estilos novos de nível** (2026-10-02). `Gen/Vaults.cs` escava uma câmara 4×3 em rocha não usada (nunca muda o que a escada alcança):
+  **cofre trancado** (porta trancada, ouro + 3 itens de loot ricos; a **chave de latão** — `Crafted.BrassKey` — está com um monstro do nível, abre qualquer porta trancada uma vez) e
+  **cache escondido** (porta secreta, chão com armadilhas ~45%, loot no fundo). `LevelBuilder.PlaceVaults`. Estilos **Ruins** (salas desabadas: brechas, entulho, colunas) e
+  **Catacombs** (grade de passagens com criptas e túmulos) usados nas branches (`Dungeon.BuildBranches`). Testes `VaultsAndKeys`, `LevelRuins`, `LevelCatacombs`.
 
 - [x] **Mundo vivo: reputação, contratos, eventos de estrada e rotina** (2026-10-02). Salvamento passa à **versão 10**.
   - **Reputação** (`Game.Reputation.cs`): quatro casas — a Guarda, o Templo, a Guilda e o Culto dos Afogados — de −100 a 100 (*revered/trusted/known/distrusted/hated*).

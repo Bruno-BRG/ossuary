@@ -5,7 +5,7 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
 ## Dungeon (`Dungeon.cs`, `Gen/`, `GameMap.cs`, `Tile.cs`)
 
 - 5 branches, ~54 níveis no total (teste `AllBranchDepths` garante).
-- Estilos: Rooms, Cave, Maze, Barracks, Warrens, Fort (`DungeonGen` +
+- Estilos: Rooms, Cave, Maze, Barracks, Warrens, Fort, **Ruins** (salas desabadas), **Catacombs** (criptas em grade); cofres e caches em `Gen/Vaults.cs` (`DungeonGen` +
   `LevelBuilder.Populate` p/ monstros/loot). Todo nível: 1 escada sobe + 1
   desce, tudo alcançável (testes por estilo, 12 seeds cada).
 - Tiles: parede, chão, portas (fechada/aberta/trancada/secreta), escadas,

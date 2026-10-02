@@ -45,6 +45,7 @@ namespace Ossuary.Core
             PlaceLoot(map, rng, depth);
             PlaceTraps(map, rng, depth);
             PlaceSurfaces(map, rng, depth, branchName);
+            PlaceVaults(map, rng, depth, points);
             return points;
         }
 
@@ -149,6 +150,52 @@ namespace Ossuary.Core
                     {
                         loot.Identified = true;
                         GroundItems.Add(map.Number, x, y, loot);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Two kinds of sealed chamber, built last and out of unused rock: a locked vault whose key a monster carries, and a
+        /// hidden cache whose floor is rigged with traps. Both pay far better than a floor item.
+        /// </summary>
+        static void PlaceVaults(GameMap map, Rng rng, int depth, List<SpawnPoint> points)
+        {
+            if (depth >= 2 && rng.Chance(30))
+            {
+                var site = Vaults.Carve(map, rng, TileKind.LockedDoor);
+                if (site != null)
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        var item = RollLoot(rng, depth + 2);
+                        if (item != null) GroundItems.Add(map.Number, site.Cells[site.Cells.Count - 1 - i * 2] % map.W, site.Cells[site.Cells.Count - 1 - i * 2] / map.W, item);
+                    }
+                    var gold = new Item(GoldDef, rng, GroundItems.NextUid()) { Quantity = 60 + depth * 25 };
+                    int gc = site.Cells[site.Cells.Count / 2];
+                    GroundItems.Add(map.Number, gc % map.W, gc / map.W, gold);
+                    var key = new Item(Crafted.BrassKey, rng, GroundItems.NextUid()) { Identified = true };
+                    if (points.Count > 0) points[rng.Range(0, points.Count)].Monster.Inventory.Add(key);
+                    else if (TryFindOpenFloor(map, rng, out int kx, out int ky)) GroundItems.Add(map.Number, kx, ky, key);
+                }
+            }
+            if (depth >= 3 && rng.Chance(22))
+            {
+                var site = Vaults.Carve(map, rng, TileKind.HiddenDoor);
+                if (site != null)
+                {
+                    // Every cell but the far end is rigged; the loot waits at the far end.
+                    for (int i = 0; i < site.Cells.Count - 3; i++)
+                        if (rng.Chance(45))
+                        {
+                            Traps kind = rng.Pick(new[] { Traps.Spike, Traps.Dart, Traps.Fire, Traps.Alarm, Traps.Web });
+                            TrapTable.Put(map.Number, site.Cells[i] % map.W, site.Cells[i] / map.W, kind, Math.Max(2, depth / 3));
+                        }
+                    for (int i = 0; i < 3; i++)
+                    {
+                        var item = RollLoot(rng, depth + 3);
+                        int c = site.Cells[site.Cells.Count - 1 - i];
+                        if (item != null) GroundItems.Add(map.Number, c % map.W, c / map.W, item);
                     }
                 }
             }

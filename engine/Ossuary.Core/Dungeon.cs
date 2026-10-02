@@ -58,7 +58,7 @@ namespace Ossuary.Core
         void BuildBranches()
         {
             Branches.Add(new Branch("The Dungeons", "dungeon", 10,
-                new[] { LevelStyle.Rooms, LevelStyle.Rooms, LevelStyle.Barracks, LevelStyle.Maze, LevelStyle.Rooms, LevelStyle.Cave, LevelStyle.Barracks, LevelStyle.Maze, LevelStyle.Fort, LevelStyle.Cave },
+                new[] { LevelStyle.Rooms, LevelStyle.Ruins, LevelStyle.Barracks, LevelStyle.Maze, LevelStyle.Catacombs, LevelStyle.Cave, LevelStyle.Ruins, LevelStyle.Maze, LevelStyle.Fort, LevelStyle.Cave },
                 new[] { 0, 0, 0, 1, 0, 2, 0, 1, 1, 2 },
                 "You enter the dungeons beneath the earth."));
 
@@ -73,12 +73,12 @@ namespace Ossuary.Core
                 "Something has been living here a long time."));
 
             Branches.Add(new Branch("The Sunken Vaults", "sunken", 12,
-                new[] { LevelStyle.Cave, LevelStyle.Rooms, LevelStyle.Fort, LevelStyle.Cave, LevelStyle.Barracks, LevelStyle.Maze, LevelStyle.Fort, LevelStyle.Cave, LevelStyle.Warrens, LevelStyle.Cave, LevelStyle.Fort, LevelStyle.Cave },
+                new[] { LevelStyle.Cave, LevelStyle.Catacombs, LevelStyle.Fort, LevelStyle.Cave, LevelStyle.Ruins, LevelStyle.Maze, LevelStyle.Catacombs, LevelStyle.Cave, LevelStyle.Warrens, LevelStyle.Cave, LevelStyle.Fort, LevelStyle.Cave },
                 new[] { 2, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 2 },
                 "Black water drips from a ceiling you cannot see."));
 
             Branches.Add(new Branch("The Ashen Spire", "ashen", 15,
-                new[] { LevelStyle.Fort, LevelStyle.Maze, LevelStyle.Fort, LevelStyle.Barracks, LevelStyle.Fort, LevelStyle.Maze, LevelStyle.Fort, LevelStyle.Barracks, LevelStyle.Fort, LevelStyle.Maze, LevelStyle.Fort, LevelStyle.Maze, LevelStyle.Fort, LevelStyle.Cave, LevelStyle.Fort },
+                new[] { LevelStyle.Fort, LevelStyle.Maze, LevelStyle.Fort, LevelStyle.Barracks, LevelStyle.Fort, LevelStyle.Ruins, LevelStyle.Fort, LevelStyle.Barracks, LevelStyle.Fort, LevelStyle.Maze, LevelStyle.Fort, LevelStyle.Catacombs, LevelStyle.Fort, LevelStyle.Cave, LevelStyle.Fort },
                 new[] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1 },
                 "The stone here is warm, and it should not be."));
         }

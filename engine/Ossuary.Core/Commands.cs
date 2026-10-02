@@ -472,7 +472,7 @@ namespace Ossuary.Core
             int fx = p.X + _g.FacingX, fy = p.Y + _g.FacingY;
             TileKind t = _g.Map.Get(fx, fy);
 
-            if (t == TileKind.LockedDoor && p.FindFirst("lock pick") == null)
+            if (t == TileKind.LockedDoor && p.FindFirst("lock pick") == null && !_g.SpendBrassKey())
             {
                 _g.Say("The door is locked and you have nothing to pick it with.");
                 return true;
@@ -498,7 +498,7 @@ namespace Ossuary.Core
 
             if (t == TileKind.ClosedDoor || t == TileKind.LockedDoor)
             {
-                if (t == TileKind.LockedDoor && p.FindFirst("lock pick") == null)
+                if (t == TileKind.LockedDoor && p.FindFirst("lock pick") == null && !_g.SpendBrassKey())
                 {
                     _g.Say("The door is locked.");
                     return true;

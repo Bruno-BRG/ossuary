@@ -220,6 +220,9 @@ namespace Ossuary.Core
             ["You are not holding that."] = "Você não está segurando isso.", ["You cannot throw it there."] = "Você não pode jogar ali.",
             ["That is too far to throw."] = "Longe demais para jogar.", ["It would shatter on stone. Aim at open floor."] = "Quebraria na pedra. Mire no chão livre.",
             ["The molotov bursts into flame!"] = "O molotov explode em chamas!",
+            // ---- vaults
+            ["The brass key turns, and the lock lets go. The key crumbles in your hand."] = "A chave de latão gira e a fechadura cede. A chave se desfaz na sua mão.",
+            ["The door is locked and you have nothing to pick it with."] = "A porta está trancada e você não tem como abri-la.",
             // ---- reputation, jobs and the road
             ["Standing"] = "Reputação", ["Job"] = "Serviço", ["Jobs done"] = "Serviços feitos",
             ["the Watch"] = "a Guarda", ["the Temple"] = "o Templo", ["the Guild"] = "a Guilda", ["the Cult of the Drowned"] = "o Culto dos Afogados",

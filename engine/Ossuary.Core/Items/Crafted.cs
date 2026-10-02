@@ -11,6 +11,12 @@ namespace Ossuary.Core.Items
             Name = "molotov", Glyph = '!', Kind = ItemKind.Tool, Class = ItemClass.Throw, Cost = 40, Weight = 12, Tier = 1, Flags = ItemFlags.Uncursed,
         };
 
+        /// <summary>The key to a sealed vault. A monster on the same level carries it.</summary>
+        public static readonly ItemDef BrassKey = new ItemDef
+        {
+            Name = "brass key", Glyph = '(', Kind = ItemKind.Tool, Class = ItemClass.Light, Cost = 30, Weight = 2, Tier = 1, Flags = ItemFlags.Uncursed,
+        };
+
         public static readonly ItemDef BoneBlade = new ItemDef
         {
             Name = "bone blade", Glyph = '/', Kind = ItemKind.Weapon, Class = ItemClass.Blade, Cost = 900, Weight = 25,
