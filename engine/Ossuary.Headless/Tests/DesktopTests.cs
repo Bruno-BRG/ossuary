@@ -583,9 +583,9 @@ namespace Ossuary.Desktop
             s.Key("Escape"); s.Draw();
             Check(g.UiState.Active == Panel.None, "Esc leaves the altar");
             s.Key(dir > 0 ? "ArrowRight" : "ArrowLeft"); s.Draw();
-            s.Key("KeyD", "d"); s.Draw();   // fourth row: renounce, which only asks
+            s.Key("KeyF", "f"); s.Draw();   // sixth row: renounce, which only asks
             Check(g.UiState.Active == Panel.Altar && g.UiState.AltarConfirm && p.God != null, "renouncing asks twice");
-            s.Key("KeyD", "d"); s.Draw();
+            s.Key("KeyF", "f"); s.Draw();
             Check(p.God == null && g.UiState.Active == Panel.None, "the second press renounces");
         }
 

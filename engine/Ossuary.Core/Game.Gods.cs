@@ -17,6 +17,10 @@ namespace Ossuary.Core
     public sealed partial class Game
     {
         public const string OfferPrompt = "Offer what?";
+        public const string SacrificePrompt = "Sacrifice what?";
+        public const int TrialDeeds = 5;
+        bool _deed;                                       // true while a deed the god likes is being scored
+        readonly HashSet<long> _defiled = new HashSet<long>();
 
         // How the last kill was made; set by whoever lands the blow, read (and reset) by KillMonster.
         DamageType _killType = DamageType.Physical;
@@ -43,6 +47,12 @@ namespace Ossuary.Core
             var here = AltarGod();
             if (here == null) return rows;
             var p = Player;
+            if (_defiled.Contains(Map.Number * 20_000_000L + UiState.AltarY * 4096 + UiState.AltarX))
+            {
+                rows.Add(new AltarRow { Id = "dead", Label = "The altar is dead. Nothing answers.", Enabled = false });
+                rows.Add(new AltarRow { Id = "leave", Label = "Step back" });
+                return rows;
+            }
             if (p.God == null)
             {
                 int cost = SwearCost();
@@ -53,11 +63,15 @@ namespace Ossuary.Core
                 rows.Add(new AltarRow { Id = "pray", Label = "Pray" });
                 rows.Add(new AltarRow { Id = "offer-gold", Label = "Offer gold", Enabled = p.Gold >= 25 });
                 rows.Add(new AltarRow { Id = "offer-item", Label = "Offer an item", Enabled = p.Inventory.Count > 0 });
+                rows.Add(new AltarRow { Id = "sacrifice", Label = "Sacrifice a corpse", Enabled = Corpses().Count > 0 });
+                if (p.TrialGoal > 0) rows.Add(new AltarRow { Id = "trial-info", Label = $"Trial: {p.TrialDone}/{p.TrialGoal} deeds {here.Name} likes", Enabled = false });
+                else rows.Add(new AltarRow { Id = "trial", Label = $"Ask {here.Name} for a trial", Enabled = p.Piety >= 30 });
                 rows.Add(new AltarRow { Id = "renounce", Label = UiState.AltarConfirm ? "Renounce " + here.Name + " (Enter again to confirm)" : "Renounce " + here.Name });
             }
             else
             {
-                int cost = 150 * (p.Renounced + 1);
+                int cost = 150 * (p.Renounced + 1) * (God.Rival == here.Id ? 2 : 1);
+                if (God.Rival == here.Id) rows.Add(new AltarRow { Id = "defile", Label = $"Defile the altar of {here.Name} (for {God.Name})" });
                 rows.Add(new AltarRow { Id = "convert", Label = $"Forsake {God.Name}, swear to {here.Name} ({cost} gold)", Enabled = p.Gold >= cost });
             }
             rows.Add(new AltarRow { Id = "leave", Label = "Step back" });
@@ -82,7 +96,7 @@ namespace Ossuary.Core
                     }
                 case "convert":
                     {
-                        int cost = 150 * (p.Renounced + 1);
+                        int cost = 150 * (p.Renounced + 1) * (God.Rival == here.Id ? 2 : 1);
                         if (p.Gold < cost) { Say("You cannot pay the tribute."); return false; }
                         p.Gold -= cost;
                         Say($"You turn your back on {God.Name}. The old oath tears loose.", MessageKind.Warn);
@@ -91,6 +105,21 @@ namespace Ossuary.Core
                         return true;
                     }
                 case "pray": Pray(here); return true;
+                case "sacrifice":
+                    {
+                        var corpses = Corpses();
+                        if (corpses.Count == 0) { Say("You have nothing to sacrifice."); return false; }
+                        PushChoice(SacrificePrompt, corpses);
+                        return true;
+                    }
+                case "trial":
+                    if (p.TrialGoal > 0 || p.Piety < 30) return false;
+                    p.TrialGoal = TrialDeeds; p.TrialDone = 0;
+                    Say($"{here.Name} sets you a trial: {TrialDeeds} deeds the god likes ({here.Likes}). The reward is a gift: {here.Gift}.", MessageKind.Quest);
+                    return true;
+                case "defile":
+                    DefileAltar(here);
+                    return true;
                 case "offer-gold":
                     {
                         int give = Math.Min(p.Gold, 100);
@@ -113,6 +142,73 @@ namespace Ossuary.Core
                     return true;
                 default: return true;
             }
+        }
+
+        // ---------------------------------------------------------- sacrifice, trials, rivals
+
+        List<Item> Corpses()
+        {
+            var list = new List<Item>();
+            foreach (var it in Player.Inventory) if (it.Def.Kind == ItemKind.Corpse) list.Add(it);
+            return list;
+        }
+
+        /// <summary>A corpse on the altar. Worth grows with what it was; every god weighs it by its own taste.</summary>
+        public void SacrificeCorpse(Item corpse)
+        {
+            var god = God;
+            if (corpse == null || god == null || !Player.Inventory.Remove(corpse)) return;
+            string name = corpse.Def.Name.EndsWith(" corpse") ? corpse.Def.Name.Substring(0, corpse.Def.Name.Length - 7) : corpse.Def.Name;
+            int level = Bestiary.TryGet(name, out var def) ? def.Level : 1;
+            int gain = Math.Max(1, Math.Min(10, 1 + level / 2));
+            switch (god.Id)
+            {
+                case "nhal": gain *= 2; break;
+                case "veyra": gain = Math.Max(1, gain - 1); break;
+                case "aurel": gain = -3; break;
+                case "khorr": if (level < Player.Level) gain = 1; break;
+            }
+            AddPiety(gain, gain < 0 ? "the desecration of the dead" : null);
+            Say(gain < 0 ? $"You lay {corpse.Name} on the altar. {god.Name} turns away." : $"{corpse.Name} burns on the altar. {god.Name} accepts it.", gain < 0 ? MessageKind.Warn : MessageKind.Info);
+            EndPlayerTurn();
+        }
+
+        /// <summary>Tearing down a rival's altar: a big gift to your own god, and the rival's wrath may follow.</summary>
+        void DefileAltar(GodDef rival)
+        {
+            var p = Player; var own = God;
+            _defiled.Add(Map.Number * 20_000_000L + UiState.AltarY * 4096 + UiState.AltarX);
+            AddPiety(8, null);
+            Say($"You smash the altar of {rival.Name}. {own.Name} is delighted.", MessageKind.Good);
+            if (Rng.Chance(40))
+            {
+                int dmg = Rng.Roll(3, 4, 0) + p.Level / 2;
+                p.HP -= Math.Min(dmg, Math.Max(0, p.HP - 1));
+                Say($"{rival.Name} curses you from beyond the stone. (-{dmg} HP)", MessageKind.Bad);
+                AddCorruption(5, null);
+            }
+            EndPlayerTurn();
+        }
+
+        /// <summary>A deed the god likes was done: it counts toward the trial, which may now be complete.</summary>
+        void ScoreDeed()
+        {
+            var p = Player; var god = God;
+            if (god == null || p.TrialGoal <= 0) return;
+            if (++p.TrialDone < p.TrialGoal) return;
+            p.TrialGoal = 0; p.TrialDone = 0;
+            switch (god.Id)
+            {
+                case "aurel": p.Wis = Math.Min(21, p.Wis + 1); p.BonusMaxHP += 6; break;
+                case "khorr": p.Str = Math.Min(21, p.Str + 1); break;
+                case "veyra": p.Con = Math.Min(21, p.Con + 1); break;
+                case "nhal": p.Int = Math.Min(21, p.Int + 1); break;
+                case "sylk": p.Dex = Math.Min(21, p.Dex + 1); break;
+                case "mourne": GainMutation(true, false); break;
+            }
+            p.RefreshGear(); p.RecomputeMaxHP(); p.RecomputeMaxMp();
+            Say($"{god.Name} is satisfied. Your trial is done. A gift: {god.Gift}.", MessageKind.Quest);
+            AddPiety(20, null);
         }
 
         void SwearTo(GodDef god)
@@ -197,6 +293,9 @@ namespace Ossuary.Core
                     if (CountFreeCellsNear(2) < 2) { Say("There is no room for Nhal's servants.", MessageKind.Warn); p.Piety += god.BoonCost; p.PrayerTimer = 0; break; }
                     SummonAllies("skeleton", 2, 200);
                     break;
+                case "mourne":
+                    if (!GainMutation(true, false)) { Say("There is nothing left in you for Mourne to give.", MessageKind.Warn); p.Piety += god.BoonCost; p.PrayerTimer = 0; }
+                    break;
                 case "sylk":
                     p.SetBuff("invisibility", 100); p.Invisible = true;
                     p.Vigor = p.VigorMax;
@@ -215,6 +314,7 @@ namespace Ossuary.Core
             if (god == null || amount == 0) return;
             var p = Player;
             int before = p.Piety;
+            if (amount > 0 && _deed) ScoreDeed();
             p.Piety = Math.Max(0, Math.Min(Gods.MaxPiety, p.Piety + amount));
             if (before < Gods.Tier1At && p.Piety >= Gods.Tier1At) Say($"{god.Name} favours you. ({god.Tier1})", MessageKind.Good);
             if (before < Gods.Tier2At && p.Piety >= Gods.Tier2At) Say($"{god.Name} holds you dear. ({god.Tier2})", MessageKind.Good);
@@ -229,6 +329,14 @@ namespace Ossuary.Core
             var type = _killType; bool sneak = _killSneak, byAlly = _killByAlly;
             _killType = DamageType.Physical; _killSneak = false; _killByAlly = false;
             if (god == null) return;
+            var p = Player;
+            _deed = true;
+            try { GodsOnKillRules(god, m, type, sneak, byAlly); }
+            finally { _deed = false; }
+        }
+
+        void GodsOnKillRules(GodDef god, Monster m, DamageType type, bool sneak, bool byAlly)
+        {
             var p = Player;
             switch (god.Id)
             {
@@ -259,8 +367,19 @@ namespace Ossuary.Core
         {
             var god = God;
             if (god == null) return;
+            _deed = true;
+            try { GodsOnCastRules(god, spell); }
+            finally { _deed = false; }
+        }
+
+        void GodsOnCastRules(GodDef god, SpellDef spell)
+        {
             switch (god.Id)
             {
+                case "mourne":
+                    if (spell.Id == "reshape-flesh" || spell.Id == "ossify" || spell.Id == "marrow-bolt") AddPiety(2, null);
+                    if (spell.Id == "purify") AddPiety(-3, "your purging");
+                    break;
                 case "aurel":
                     if (spell.School == School.Sacred) AddPiety(1, null);
                     if (spell.School == School.Necromancy) AddPiety(-3, "your necromancy");

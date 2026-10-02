@@ -33,6 +33,7 @@ namespace Ossuary.Tests
             Test("crafting combines the pack and a molotov burns", CraftingFlow);
             Test("artifact sets add up and relics corrupt", SetsAndRelics);
             Test("new spells: ice, steam, oil, bone and purification", NewSpells);
+            Test("gods: Mourne, rivals, sacrifices and trials", GodsExpanded);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -692,6 +693,101 @@ namespace Ossuary.Tests
 
             var pure = Archmage(1206); pure.Player.Corruption = 40;
             Assert(Cast(pure, "purify", pure.Player.X, pure.Player.Y) && pure.Player.Corruption == 25, "purify burns 15 corruption");
+        }
+
+        // Puts an altar of the wanted god within a few squares and points the altar menu at it.
+        static bool AltarOf(Game g, string godId)
+        {
+            int px = g.Player.X, py = g.Player.Y;
+            for (int y = py - 4; y <= py + 4; y++)
+                for (int x = px - 4; x <= px + 4; x++)
+                {
+                    if (x == px && y == py) continue;
+                    if (!g.Map.InBounds(x, y) || Gods.AtAltar(g.Map.Number, x, y).Id != godId) continue;
+                    g.Map.Set(x, y, TileKind.Altar);
+                    g.UiState.AltarX = x; g.UiState.AltarY = y;
+                    return true;
+                }
+            return false;
+        }
+
+        static void GodsExpanded()
+        {
+            Assert(Gods.All.Length == 6, "six gods");
+            var mourne = Gods.Find("mourne");
+            Assert(mourne != null && mourne.Rival == "veyra" && Gods.Find("veyra").Rival == "mourne", "Mourne and Veyra are rivals");
+
+            // Sacrifices: a corpse's worth grows with the creature, and every god has its own taste.
+            var g = Game.NewHero(1300, "Priest", "human", "cleric");
+            g.Monsters.Clear();
+            var cmd = new Commands(g);
+            g.Player.God = "khorr"; g.Player.Piety = 60;
+            Assert(AltarOf(g, "khorr"), "test setup: Khorr's altar");
+            Assert(g.AltarRows().Exists(r => r.Id == "sacrifice" && !r.Enabled), "nothing to sacrifice without a corpse");
+            var corpse = Make(g, "ogre corpse");
+            g.Player.Inventory.Add(corpse);
+            Assert(g.AltarRows().Exists(r => r.Id == "sacrifice" && r.Enabled), "a corpse can be sacrificed");
+            g.Player.Level = 1;
+            int piety = g.Player.Piety;
+            g.AltarAction("sacrifice");
+            Assert(g.PendingChoice.Active && g.PendingChoice.Prompt == Game.SacrificePrompt, "the corpse list opens");
+            cmd.CommitChoice(g.PendingChoice.Items[0]);
+            Assert(g.Player.Piety > piety && !g.Player.Inventory.Contains(corpse), "the ogre is worth something to Khorr");
+
+            var aurel = Game.NewHero(1301, "Light", "human", "cleric");
+            aurel.Monsters.Clear();
+            aurel.Player.God = "aurel"; aurel.Player.Piety = 60;
+            Assert(AltarOf(aurel, "aurel"), "test setup: Aurel's altar");
+            var dead = Make(aurel, "jackal corpse"); aurel.Player.Inventory.Add(dead);
+            piety = aurel.Player.Piety;
+            aurel.SacrificeCorpse(dead);
+            Assert(aurel.Player.Piety < piety, "Aurel hates the desecration of the dead");
+
+            // A trial: five deeds the god likes, then a gift.
+            var t = Game.NewHero(1302, "Fighter", "human", "fighter");
+            t.Monsters.Clear();
+            t.Player.God = "khorr"; t.Player.Piety = 20;
+            Assert(AltarOf(t, "khorr"), "test setup: another altar of Khorr");
+            Assert(t.AltarRows().Exists(r => r.Id == "trial" && !r.Enabled), "a trial needs 30 piety");
+            t.Player.Piety = 40; int str = t.Player.Str;
+            t.AltarAction("trial");
+            Assert(t.Player.TrialGoal == Game.TrialDeeds && t.AltarRows().Exists(r => r.Id == "trial-info"), "the trial is set and shown");
+            for (int i = 0; i < Game.TrialDeeds; i++)
+            {
+                var m = new Monster(Bestiary.Find("ogre"), t.Rng) { X = t.Player.X + 1, Y = t.Player.Y };
+                t.Monsters.Add(m);
+                Assert(t.Player.TrialDone == i, "deed " + i + " counted so far: " + t.Player.TrialDone);
+                t.KillMonster(m);
+            }
+            Assert(t.Player.TrialGoal == 0 && t.Player.Str == str + 1, "the trial ends with Khorr's gift (+1 Str)");
+
+            // Rivals: a follower of Khorr can defile Sylk's altar, and the altar goes dead.
+            var d = Game.NewHero(1303, "Zealot", "human", "fighter");
+            d.Monsters.Clear();
+            d.Player.God = "khorr"; d.Player.Piety = 50;
+            Assert(AltarOf(d, "sylk"), "test setup: Sylk's altar");
+            Assert(d.AltarRows().Exists(r => r.Id == "defile"), "the rival's altar can be defiled");
+            Assert(!d.AltarRows().Exists(r => r.Id == "defile") || d.AltarRows().Find(r => r.Id == "convert").Label.Contains("300"), "converting to a rival costs double");
+            int before = d.Player.Piety;
+            d.AltarAction("defile");
+            Assert(d.Player.Piety >= before + 8 - 1, "defiling pleases your own god");
+            Assert(d.AltarRows().Exists(r => r.Id == "dead") && !d.AltarRows().Exists(r => r.Id == "convert"), "the defiled altar is dead");
+
+            // Mourne: mutations please her, her boon is always a gift, purging offends.
+            var m2 = Game.NewHero(1304, "Seam", "human", "fighter");
+            m2.Monsters.Clear();
+            m2.Player.God = "mourne"; m2.Player.Piety = 60;
+            int p0 = m2.Player.Piety;
+            m2.GainMutation();
+            Assert(m2.Player.Piety == p0 + 3, "a mutation pleases Mourne");
+            m2.Player.Piety = 100; m2.Player.PrayerTimer = 0; m2.Player.HP = m2.Player.MaxHP;
+            Assert(AltarOf(m2, "mourne"), "test setup: Mourne's altar");
+            int mut = m2.Player.Mutated.Count;
+            m2.AltarAction("pray");
+            Assert(m2.Player.Mutated.Count == mut + 1, "her boon is a mutation");
+            Assert(MutationTable.Find(m2.Player.Mutated[m2.Player.Mutated.Count - 1]).Kind == MutationKind.Boon, "and always a gift");
+            m2.Player.Piety = 120;
+            Assert(m2.Player.ResistPct(DamageType.Poison) >= 30, "tier two: poison resistance");
         }
     }
 }

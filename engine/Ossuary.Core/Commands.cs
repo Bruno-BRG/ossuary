@@ -677,6 +677,7 @@ namespace Ossuary.Core
             _g.PendingChoice.Clear();
             if (chosen == null) return false;
             if (prompt == Game.OfferPrompt) { _g.OfferItem(chosen); return true; }
+            if (prompt == Game.SacrificePrompt) { _g.SacrificeCorpse(chosen); return true; }
             if (prompt == Game.CraftPrompt) { _g.Craft(chosen); return true; }
             if (prompt == Game.AppraisePrompt)
             {

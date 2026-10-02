@@ -50,6 +50,14 @@ namespace Ossuary.Core.Entities
             return null;
         }
 
+        /// <summary>A mutation that is always a gift, or null when the hero has them all.</summary>
+        public static MutationDef PickBoon(Rng rng, ICollection<string> owned)
+        {
+            var pool = new List<MutationDef>();
+            foreach (var m in All) if (m.Kind == MutationKind.Boon && !owned.Contains(m.Id)) pool.Add(m);
+            return pool.Count == 0 ? null : pool[rng.Range(0, pool.Count)];
+        }
+
         /// <summary>
         /// Picks a mutation the hero does not have: half boons, a fifth trade-offs, the rest banes. Falls back to
         /// whatever kind is left. Returns null when the hero has them all.

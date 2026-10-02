@@ -82,7 +82,9 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
 
 ## Deuses, piedade e altares (`Entities/Gods.cs`, `Game.Gods.cs`)
 
-- **5 deuses** (`Gods.All`): **Aurel**, a Última Lamparina (luz, misericórdia), **Khorr**, o Martelo Abaixo
+- **Mourne, a Costura Chorosa** (6º deus; ver *Corrupção e mutações*), **rivais** (`GodDef.Rival`), linhas de altar *Sacrifice a corpse*, *Trial*
+  (`Player.TrialGoal/TrialDone`, `ScoreDeed` conta os feitos que dão piedade) e *Defile* (`DefileAltar`, altar morto em `_defiled`) — ver `a-fazer.md`.
+- **5 deuses originais** (`Gods.All`): **Aurel**, a Última Lamparina (luz, misericórdia), **Khorr**, o Martelo Abaixo
   (guerra), **Veyra**, Mãe das Cinzas (fogo), **Nhal**, o Rei Afogado (morte), **Sylk**, o Quieto (sombra).
   Cada um tem gostos, desgostos, uma **dádiva** de oração e dois bônus permanentes (piedade 50 e 100).
 - **Altar**: andar contra um `_` abre o menu (grátis, não gasta turno; `Panel.Altar`). O deus do altar sai de

@@ -28,14 +28,16 @@ namespace Ossuary.Core
         }
 
         /// <summary>One new mutation, chosen at random. False when the hero already has them all.</summary>
-        public bool GainMutation()
+        public bool GainMutation(bool boonOnly = false, bool pleasesGod = true)
         {
-            var m = MutationTable.Pick(Rng, Player.Mutated);
+            int luck = Player.God == "mourne" && Player.GodTier >= 1 ? 30 : 0;
+            var m = boonOnly ? MutationTable.PickBoon(Rng, Player.Mutated) : MutationTable.Pick(Rng, Player.Mutated, luck);
             if (m == null) return false;
             Player.Mutated.Add(m.Id);
             Player.RefreshGear();
             if (m.Sight > 0) UpdateFov();
             Say($"Your body twists: {m.Name}. {m.Blurb}", m.Kind == MutationKind.Bane ? MessageKind.Bad : m.Kind == MutationKind.Boon ? MessageKind.Good : MessageKind.Warn);
+            if (pleasesGod && Player.God == "mourne") { _deed = true; try { AddPiety(3, null); } finally { _deed = false; } }
             return true;
         }
 
@@ -95,6 +97,7 @@ namespace Ossuary.Core
                 if (m == null || m.Kind == MutationKind.Boon) continue;
                 p.Mutated.RemoveAt(i);
                 p.RefreshGear();
+                if (p.God == "mourne") AddPiety(-4, "your purging");
                 Tell($"The priest draws out {m.Name} like a splinter.", MessageKind.Good);
                 return;
             }

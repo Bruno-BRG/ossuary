@@ -1412,6 +1412,8 @@ namespace Ossuary.Core
             _t.WriteClipped(x, y++, $"Boon ({god.BoonCost} piety): " + god.Boon, theme.Text, iw, false, theme.Panel);
             _t.WriteClipped(x, y++, $"Piety {Gods.Tier1At}: " + god.Tier1, theme.Info, iw, false, theme.Panel);
             _t.WriteClipped(x, y++, $"Piety {Gods.Tier2At}: " + god.Tier2, theme.Info, iw, false, theme.Panel);
+            var rival = Gods.Find(god.Rival);
+            if (rival != null) _t.WriteClipped(x, y++, "Rival: " + rival.Name, theme.Dim, iw, false, theme.Panel);
             y++;
             if (p.God == god.Id)
             {

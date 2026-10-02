@@ -2307,7 +2307,8 @@ namespace Ossuary.Tests
                 Assert(!string.IsNullOrEmpty(d.Name) && !string.IsNullOrEmpty(d.Likes) && !string.IsNullOrEmpty(d.Boon) && !string.IsNullOrEmpty(d.Tier1) && !string.IsNullOrEmpty(d.Tier2), d.Id + " text");
                 Assert(d.BoonCost > 0 && d.BoonCost < Gods.Tier2At, d.Id + " boon cost");
             }
-            Assert(Gods.All.Length == 5 && Gods.Find("nope") == null, "five gods");
+            Assert(Gods.All.Length == 6 && Gods.Find("nope") == null, "six gods");
+            foreach (var d in Gods.All) Assert(Gods.Find(d.Rival)?.Rival == d.Id, d.Id + " and its rival must be each other's rival");
             var counts = new Dictionary<string, int>();
             for (int i = 0; i < 2000; i++)
             {

@@ -24,14 +24,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Magia e deuses
 
-- [ ] **Sacrifício e templos de deus** nos dungeons (ofertas, missões divinas, dádivas únicas).
-- [ ] **Mais deuses** ou relações entre eles (rivalidade, conflito de piedade).
-
-## Itens e crafting
-
-
-## Mundo, cidades e missões
-
 - [ ] **Facções e reputação**: templos, guilda, Guarda, culto de Nhal. Matar/roubar muda
   preços, hostilidade e acesso a serviços.
 - [ ] **Contratos e missões secundárias** no quadro da Guilda ("mate X no branch Y", "traga Z").
@@ -65,6 +57,12 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Mourne, rivalidades, sacrifício e provações dos deuses** (2026-10-02). Sexto deus: **Mourne, a Costura Chorosa** (carne e mudança: gosta de mutações,
+  odeia purgar; dádiva = mutação sempre boa; piedade 50 → mais boas, 100 → veneno 30%). Cada deus tem um **rival** (`GodDef.Rival`: Aurel↔Nhal,
+  Khorr↔Sylk, Veyra↔Mourne): trocar para o rival custa o dobro e, no altar do rival, *Defile the altar* dá +8 de piedade (40% de maldição
+  e +5 corrupção) e deixa o altar morto. Novas linhas no altar: **Sacrifice a corpse** (valor pelo nível; Nhal ×2, Aurel pune) e **Trial**
+  (5 feitos que o deus gosta → dádiva única: atributo, +6 PV, mutação). Teste `GodsExpanded`.
 
 - [x] **Sete magias novas (corrupção e superfícies)** (2026-10-02). *Ice Lance*, **Steam Burst** (ferve a água: dano maior em molhados e some com a poça),
   **Create Oil** (acende com fogo), **Ossify** (CA +4, +2 corrupção), **Reshape Flesh** (uma mutação por 10 de corrupção), **Marrow Bolt** (necrótico, +2 corrupção) e

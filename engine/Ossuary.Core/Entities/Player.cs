@@ -73,6 +73,8 @@ namespace Ossuary.Core.Entities
         /// <summary>The god followed (id), piety 0..200, turns until the next safe prayer, and oaths broken.</summary>
         public string God;
         public int Piety, PrayerTimer, Renounced;
+        /// <summary>A god's trial: deeds the god likes still to do (0 = none) and how many are done.</summary>
+        public int TrialGoal, TrialDone;
         /// <summary>0 none, 1 from piety 50, 2 from piety 100.</summary>
         public int GodTier => God == null ? 0 : Piety >= Gods.Tier2At ? 2 : Piety >= Gods.Tier1At ? 1 : 0;
         public int GodMeleeHit => God == "khorr" && GodTier >= 1 ? 1 : 0;
@@ -253,6 +255,7 @@ namespace Ossuary.Core.Entities
             if (type == DamageType.Poison) pct += 20 * PerkRank("iron-will");
             pct += Gear.Resist(type);
             if (type == DamageType.Fire && God == "veyra") pct += GodTier >= 2 ? 60 : GodTier == 1 ? 30 : 0;
+            if (type == DamageType.Poison && God == "mourne" && GodTier >= 2) pct += 30;
             if (type == DamageType.Necrotic && ((God == "nhal" && GodTier >= 1) || (God == "aurel" && GodTier >= 2))) pct += 30;
             return Math.Max(-100, Math.Min(90, pct));
         }

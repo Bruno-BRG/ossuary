@@ -9,7 +9,7 @@ namespace Ossuary.Core.Entities
     /// </summary>
     public sealed class GodDef
     {
-        public string Id, Name, Title, Domain;
+        public string Id, Name, Title, Domain, Rival, Gift;
         public string Likes, Dislikes, Boon, Tier1, Tier2;
         public int BoonCost;
         public Alignment Align;
@@ -23,34 +23,41 @@ namespace Ossuary.Core.Entities
 
         public static readonly GodDef[] All = {
             new GodDef {
-                Id = "aurel", Name = "Aurel", Title = "the Last Lamp", Domain = "light and mercy", Align = Alignment.LawfulGood,
+                Id = "aurel", Rival = "nhal", Gift = "+1 Wis and +6 max HP", Name = "Aurel", Title = "the Last Lamp", Domain = "light and mercy", Align = Alignment.LawfulGood,
                 Likes = "killing the undead; sacred magic", Dislikes = "necromancy; killing the harmless",
                 Boon = "full healing, cleansing and a full measure of mana", BoonCost = 30,
                 Tier1 = "wounds close faster", Tier2 = "necrotic resistance 30%",
             },
             new GodDef {
-                Id = "khorr", Name = "Khorr", Title = "the Hammer Beneath", Domain = "war and stone", Align = Alignment.LawfulNeutral,
+                Id = "khorr", Rival = "sylk", Gift = "+1 Str", Name = "Khorr", Title = "the Hammer Beneath", Domain = "war and stone", Align = Alignment.LawfulNeutral,
                 Likes = "kills, above all of foes stronger than you", Dislikes = "illusions, vanishing and trickery",
                 Boon = "a +1 enchantment on your weapon", BoonCost = 60,
                 Tier1 = "+1 to hit in melee", Tier2 = "+2 melee damage",
             },
             new GodDef {
-                Id = "veyra", Name = "Veyra", Title = "Mother of Ash", Domain = "fire and ruin", Align = Alignment.ChaoticNeutral,
+                Id = "veyra", Rival = "mourne", Gift = "+1 Con", Name = "Veyra", Title = "Mother of Ash", Domain = "fire and ruin", Align = Alignment.ChaoticNeutral,
                 Likes = "killing with fire", Dislikes = "killing with cold",
                 Boon = "a flame that rides your blows for 300 turns", BoonCost = 40,
                 Tier1 = "fire resistance 30%", Tier2 = "fire resistance 60%; your blows burn",
             },
             new GodDef {
-                Id = "nhal", Name = "Nhal", Title = "the Drowned King", Domain = "death and still water", Align = Alignment.NeutralEvil,
+                Id = "nhal", Rival = "aurel", Gift = "+1 Int", Name = "Nhal", Title = "the Drowned King", Domain = "death and still water", Align = Alignment.NeutralEvil,
                 Likes = "killing with death magic; raising the dead", Dislikes = "sacred magic",
                 Boon = "two skeletons to serve you for 200 turns", BoonCost = 40,
                 Tier1 = "necrotic resistance 30%", Tier2 = "every kill restores 2 HP",
             },
             new GodDef {
-                Id = "sylk", Name = "Sylk", Title = "the Quiet One", Domain = "shadow and theft", Align = Alignment.ChaoticNeutral,
+                Id = "sylk", Rival = "khorr", Gift = "+1 Dex", Name = "Sylk", Title = "the Quiet One", Domain = "shadow and theft", Align = Alignment.ChaoticNeutral,
                 Likes = "killing the sleeping and unaware; illusions", Dislikes = "roaring war cries",
                 Boon = "invisibility for 100 turns and a full measure of Vigor", BoonCost = 30,
                 Tier1 = "+2 evasion", Tier2 = "foes notice you from one cell less",
+            },
+            new GodDef {
+                Id = "mourne", Rival = "veyra", Gift = "a mutation that is always a gift",
+                Name = "Mourne", Title = "the Weeping Seam", Domain = "flesh and change", Align = Alignment.ChaoticNeutral,
+                Likes = "every mutation that takes hold; surviving corruption", Dislikes = "purging yourself of the Ossuary",
+                Boon = "a mutation that is always a gift", BoonCost = 50,
+                Tier1 = "mutations are far more often gifts", Tier2 = "poison resistance 30%",
             },
         };
 
