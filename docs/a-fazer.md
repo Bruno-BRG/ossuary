@@ -38,7 +38,6 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Monstros e combate
 
-- [ ] **Facções de monstros** que brigam entre si.
 
 ## Interface e visual
 
@@ -55,6 +54,10 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Facções de monstros** (2026-10-02). `Game.Factions.cs`: *Greenskin* (kobold, orc…) ↔ *Deepfolk* (dwarf, gnome, hobbit) e *Dead* (mortos-vivos) ↔ *Wild* (animais)
+  brigam à vista (`FightRival`, até 6 casas, só quando o herói não é o alvo mais próximo). Aliados, cidadãos, companheiros e chefes não tomam lado.
+  Teste `FactionWar`.
 
 - [x] **Chefes com mecânicas** (2026-10-02). `Game.Bosses.cs`: um chefe no fundo de cada branch (`Bosses.All`; gerado na 1ª visita com Rng privado, longe da escada,
   com a fala de entrada). **Gaoler** (Dungeons 10: corrente que puxa o herói; abaixo de 50% chama cães), **Stone Warden** (Mines 8: pancada no chão que atordoa;

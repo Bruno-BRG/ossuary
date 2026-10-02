@@ -36,6 +36,7 @@ namespace Ossuary.Tests
             Test("gods: Mourne, rivals, sacrifices and trials", GodsExpanded);
             Test("branch monsters have habits of their own", BranchMonsters);
             Test("each branch has a boss with mechanics", BossFights);
+            Test("monster factions fight each other", FactionWar);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -951,6 +952,46 @@ namespace Ossuary.Tests
             Assert(potions != null && potions.Exists(i => i.Def.Name == "potion of full healing"), "and leaves what it guarded");
             rwd.Earned.Clear(); rwd.CheckAchievements();
             Assert(rwd.Earned.Contains("boss-slayer"), "the achievement follows");
+        }
+
+        static void FactionWar()
+        {
+            Assert(Game.FactionOf(new Monster(Bestiary.Find("orc"), new Rng(1))) == Game.Faction.Greenskin, "orcs are greenskins");
+            Assert(Game.FactionOf(new Monster(Bestiary.Find("dwarf"), new Rng(1))) == Game.Faction.Deepfolk, "dwarves are deepfolk");
+            Assert(Game.FactionOf(new Monster(Bestiary.Find("skeleton"), new Rng(1))) == Game.Faction.Dead, "skeletons are the dead");
+            Assert(Game.FactionOf(new Monster(Bestiary.Find("jackal"), new Rng(1))) == Game.Faction.Wild, "jackals are wild");
+            Assert(Game.FactionOf(new Monster(Bestiary.Find("ogre"), new Rng(1))) == Game.Faction.None, "ogres take no side");
+            Assert(Game.AreRivals(Game.Faction.Greenskin, Game.Faction.Deepfolk) && Game.AreRivals(Game.Faction.Wild, Game.Faction.Dead), "the old hatreds");
+            Assert(!Game.AreRivals(Game.Faction.Greenskin, Game.Faction.Wild) && !Game.AreRivals(Game.Faction.None, Game.Faction.Dead), "and no others");
+
+            // An orc and a dwarf, far from the hero, settle it between themselves.
+            var g = Game.NewHero(1600, "Watcher", "human", "fighter");
+            g.Monsters.Clear();
+            int px = g.Player.X, py = g.Player.Y;
+            for (int y = py - 3; y <= py + 3; y++)
+                for (int x = px - 3; x <= px + 22; x++) { g.Map.Set(x, y, TileKind.Floor); g.Map.SetSurface(x, y, SurfaceKind.None); }
+            var orc = new Monster(Bestiary.Find("orc"), g.Rng) { X = px + 18, Y = py, Alert = 0, Energy = 12 };
+            var dwarf = new Monster(Bestiary.Find("dwarf"), g.Rng) { X = px + 20, Y = py, Alert = 0, Energy = 12 };
+            g.Monsters.Add(orc); g.Monsters.Add(dwarf);
+            for (int i = 0; i < 120 && g.Monsters.Count == 2; i++) { g.Player.Nutrient = 1000; g.Wait(); orc.HP = Math.Max(orc.HP, 1); }
+            Assert(g.Monsters.Count == 1 || orc.HP < orc.MaxHP || dwarf.HP < dwarf.MaxHP, "greenskins and deepfolk fight on sight");
+
+            // Allies, townsfolk, bosses and companions take no side.
+            var friend = new Monster(Bestiary.Find("dwarf"), g.Rng) { Ally = true };
+            Assert(Game.FactionOf(friend) == Game.Faction.None, "an ally takes no side");
+            var boss = g.CreateBoss(Bosses.All[2], 3, 3);
+            Assert(Game.FactionOf(boss) == Game.Faction.None, "a boss takes no side");
+
+            // But the hero is always the nearer target.
+            var h = Game.NewHero(1601, "Bait", "human", "fighter");
+            h.Monsters.Clear();
+            int hx = h.Player.X, hy = h.Player.Y;
+            for (int y = hy - 3; y <= hy + 3; y++) for (int x = hx - 3; x <= hx + 6; x++) { h.Map.Set(x, y, TileKind.Floor); h.Map.SetSurface(x, y, SurfaceKind.None); }
+            var wolf = new Monster(Bestiary.Find("jackal"), h.Rng) { X = hx + 2, Y = hy, Alert = 1, Energy = 12 };
+            var zombie = new Monster(Bestiary.Find("human zombie"), h.Rng) { X = hx + 5, Y = hy, Alert = 1, Energy = 12 };
+            h.Monsters.Add(wolf); h.Monsters.Add(zombie);
+            h.Player.AC = 30; h.Wait();
+            Assert(Pathfinder.Chebyshev(wolf.X, wolf.Y, hx, hy) <= 2, "a monster next to the hero does not wander off to fight");
         }
     }
 }

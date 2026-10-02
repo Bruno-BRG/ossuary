@@ -602,6 +602,7 @@ namespace Ossuary.Core
             if (m.IsGuard && Mode != GameMode.TownMap && dist > 24) return;
             if (m.FearTurns > 0) { if (FleeStep(m)) return; }
             else if (dist > 1 && AttackAdjacentAlly(m)) return;
+            if (dist > 1 && m.BossId == null && FightRival(m, dist)) return;
             if (m.BossId != null && BossTurn(m, dist)) return;
             if (m.Def.Trait != null && TraitBeforeAct(m, dist)) return;
 

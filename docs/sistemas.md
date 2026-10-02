@@ -252,6 +252,11 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
   **Classic**: `ProcessHunger` não faz nada. **Hardcore**: `Session.Save(forQuit)` só grava ao sair (Main menu/Quit),
   `QuickSave` e *Save game* recusam, e `Load` apaga o arquivo depois de reproduzir a run.
 
+## Facções de monstros (`Game.Factions.cs`)
+
+- `FactionOf(m)` por nome/flags; `AreRivals`: Greenskin↔Deepfolk, Dead↔Wild. Em `MonsterTurn`, com o herói a mais de 1 casa, `FightRival` ataca o
+  rival adjacente ou se aproxima de um a ≤6 casas se ele estiver mais perto que o herói. Mortes entre monstros não dão XP.
+
 ## Chefes (`Game.Bosses.cs`)
 
 - `BossDef` (dados) + `Game.BossTurn` (hábitos, por `Monster.BossClock` e `BossPhase`). `RaiseBosses` põe o chefe na primeira geração do nível
