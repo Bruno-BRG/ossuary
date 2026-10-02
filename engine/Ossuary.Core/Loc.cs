@@ -193,6 +193,9 @@ namespace Ossuary.Core
         static readonly Dictionary<string, string> Pt = new Dictionary<string, string>
         {
             ["The restless shade is laid to rest at last."] = "A sombra inquieta enfim descansa.",
+            ["Tiles"] = "Tiles", ["Square"] = "Quadrado", ["Narrow"] = "Estreito",
+            ["Each map cell is two columns wide: the world looks square."] = "Cada célula do mapa ocupa duas colunas: o mundo fica quadrado.",
+            ["One column per map cell: the world looks tall and narrow."] = "Uma coluna por célula: o mundo fica alto e estreito.",
             // ---- difficulty modes
             ["Mode"] = "Modo", ["Normal"] = "Normal", ["Classic"] = "Clássico", ["Hardcore"] = "Hardcore",
             ["The standard game."] = "O jogo padrão.", ["No hunger. Food is only a luxury."] = "Sem fome. Comida é só luxo.",

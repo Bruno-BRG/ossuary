@@ -22,6 +22,12 @@ namespace Ossuary.Core
         Rgb[,] _bg;
         bool[,] _bold;
 
+        readonly System.Collections.Generic.List<int> _shimmer = new System.Collections.Generic.List<int>();
+
+        /// <summary>Marks a cell as moving water: the front end shimmers it between frames, without asking the engine for anything.</summary>
+        public void Shimmer(int x, int y) { if (x >= 0 && y >= 0 && x < Width && y < Height) _shimmer.Add(y * Width + x); }
+        public int[] ShimmerCells() => _shimmer.ToArray();
+
         public TextBuilder(int w, int h) { Resize(w, h); }
 
         public void Resize(int w, int h)
@@ -39,6 +45,7 @@ namespace Ossuary.Core
 
         public void Clear(Rgb? bg = null)
         {
+            _shimmer.Clear();
             for (int y = 0; y < Height; y++)
             {
                 for (int x = 0; x < Width; x++)

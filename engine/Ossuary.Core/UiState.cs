@@ -154,7 +154,7 @@ namespace Ossuary.Core
 
 namespace Ossuary.Core
 {
-    public enum MenuRow { Resume, Save, Theme, Crt, Scale, Language, Master, Music, Effects, Controls, Achievements, PastRuns, MainMenu, Quit }
+    public enum MenuRow { Resume, Save, Theme, Crt, Scale, Tiles, Language, Master, Music, Effects, Controls, Achievements, PastRuns, MainMenu, Quit }
 
     /// <summary>Row order of the F2 menu, shared by the panel that draws it and the host that drives it.</summary>
     public static class MenuRows

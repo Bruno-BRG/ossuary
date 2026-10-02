@@ -6,6 +6,7 @@ import { overlayMenu, titleFrame } from './title';
 import { bodyOf, introFrame, introHold, introSpeed, pageLength } from './intro';
 import { t, type Lang } from './i18n';
 import { playCues, unlockAudio } from './audio';
+import { shimmer } from './anim';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#screen')!;
 const launch = document.querySelector<HTMLElement>('#launch')!;
@@ -29,7 +30,7 @@ let introWait = 0;
 let introActive = false;
 let lastStored = '';
 
-const prefs = () => ({ theme: frame.theme, crt: frame.crt, scale: frame.scale, lang: frame.lang });
+const prefs = () => ({ theme: frame.theme, crt: frame.crt, scale: frame.scale, square: frame.square, lang: frame.lang });
 const langOf = (): Lang => (frame?.lang === 'en' ? 'en' : readDisplay().lang);
 
 function applyLabels(lang: Lang) {
@@ -57,7 +58,7 @@ function paint(next: Frame) {
   const scene = introActive ? introFrame(frame, frame.intro!, introPage, introTyped, titleTick, frame.lang, introAge) : onTitle ? titleFrame(frame, titleTick) : frame;
   renderer.draw(menuOnTitle() ? overlayMenu(scene, frame) : scene, size(), devicePixelRatio);
   if (!onTitle && !introActive) playCues(frame.sounds, frame.master, frame.effects);
-  const stored = JSON.stringify({ theme: frame.theme, crt: frame.crt, scale: frame.scale, lang: frame.lang });
+  const stored = JSON.stringify({ theme: frame.theme, crt: frame.crt, scale: frame.scale, square: frame.square, lang: frame.lang });
   if (stored !== lastStored) {
     lastStored = stored;
     try { localStorage.setItem('ossuary.display', stored); } catch { /* Display still works with storage disabled. */ }
@@ -89,7 +90,7 @@ async function send(message: Request) {
     } else if (next.exit) {
       onTitle = true;
       const s = size();
-      paint(await request({ op: 'new', cols: s.cols, rows: s.rows, theme: next.theme, crt: next.crt, scale: next.scale, lang: next.lang }));
+      paint(await request({ op: 'new', cols: s.cols, rows: s.rows, theme: next.theme, crt: next.crt, scale: next.scale, square: next.square, lang: next.lang }));
     }
   } catch (error) { showError(error); if (message.op === 'load') onTitle = true; }
   finally { busy = false; }
@@ -208,6 +209,14 @@ let resizeTimer: ReturnType<typeof setTimeout>;
 window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => void resize(), 80); });
 // Resizes requested during IPC are applied after the request, without simulation ticks.
 setInterval(() => { if (resizePending && !busy && ready) void resize(); }, 100);
+// Water moves between engine frames: the engine only marks the cells (Frame.anim), the glyphs are swapped here.
+let waterTick = 0;
+setInterval(() => {
+  if (onTitle || introActive || !ready || busy || document.hidden || !frame?.anim?.length) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  waterTick++;
+  renderer.draw(shimmer(frame, waterTick), size(), devicePixelRatio);
+}, 380);
 // The title scene is client-only: its embers move without asking the engine for anything.
 setInterval(() => {
   if ((!onTitle && !introActive) || !ready || busy || document.hidden) return;

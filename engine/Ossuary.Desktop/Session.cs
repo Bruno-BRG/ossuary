@@ -533,6 +533,7 @@ namespace Ossuary.Desktop
                 case MenuRow.Theme: settings.CycleTheme(dir); break;
                 case MenuRow.Crt: settings.CycleCrt(dir); break;
                 case MenuRow.Scale: settings.CycleScale(dir); break;
+                case MenuRow.Tiles: settings.CycleSquare(); break;
                 case MenuRow.Language: settings.CycleLanguage(); break;
                 case MenuRow.Master: AudioSettings.Current.Change(0, dir); break;
                 case MenuRow.Music: AudioSettings.Current.Change(1, dir); break;
@@ -665,7 +666,7 @@ namespace Ossuary.Desktop
             {
                 Cols = screen.Width, Rows = screen.Height, Glyphs = glyphs, Fg = fg, Bg = bg, Bold = bold,
                 Seed = Game.Rng.Seed.ToString(), Turn = Game.Turn, Mode = Game.Mode.ToString(),
-                Panel = Game.UiState.Active.ToString(), Theme = (int)s.Preset, Crt = (int)s.Crt, Scale = s.Scale,
+                Panel = Game.UiState.Active.ToString(), Theme = (int)s.Preset, Crt = (int)s.Crt, Scale = s.Scale, Square = s.Square ? 1 : 0,
                 Void = Pack(t.Void), Text = Pack(t.Text), Dim = Pack(t.Dim), Title = Pack(t.Title),
                 Rule = Pack(t.Rule), PanelColor = Pack(t.Panel), Bad = Pack(t.Bad), Exit = ExitRequested,
                 Scanline = scanline, Vignette = vignette, Glow = glow,
@@ -673,6 +674,7 @@ namespace Ossuary.Desktop
                 Started = Started, ToTitle = ToTitle, HasSave = HasSave, SaveInfo = SaveInfo,
                 Lang = Loc.Code(s.Language), Intro = Intro ? Story.Intro() : null,
                 Sounds = _replaying || AtTitle || Intro ? new string[0] : Game.DrainCues(),
+                Anim = AtTitle || Intro || Game.UiState.Active != Panel.None || Game.PendingChoice.Active || Game.Mode == GameMode.GameOver || Game.Mode == GameMode.Won ? new int[0] : screen.ShimmerCells(),
             };
         }
         static int Pack(Rgb c) => (c.R << 16) | (c.G << 8) | c.B;
@@ -693,6 +695,7 @@ namespace Ossuary.Desktop
         public int Theme { get; set; }
         public int Crt { get; set; }
         public int Scale { get; set; }
+        public int Square { get; set; }
         public int Void { get; set; }
         public int Text { get; set; }
         public int Dim { get; set; }
@@ -715,5 +718,7 @@ namespace Ossuary.Desktop
         public string[][] Intro { get; set; }
         /// <summary>Sound cues that happened since the last frame (see Game.DrainCues), strongest first.</summary>
         public string[] Sounds { get; set; }
+        /// <summary>Cells (row * Cols + col) holding moving water, for the front end to shimmer between frames.</summary>
+        public int[] Anim { get; set; }
     }
 }

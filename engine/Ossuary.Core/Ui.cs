@@ -200,9 +200,12 @@ namespace Ossuary.Core
             var theme = Theme.Current;
             var p = _g.Player;
 
+            // Square tiles use two screen columns per map cell, so the window holds half as many cells across.
+            int sq = DisplaySettings.Current.Square ? 2 : 1;
+            int cellsW = Math.Max(1, w / sq);
             // A map smaller than the window sits centred (negative camera offset) instead of
             // hugging the top-left corner; cells outside the map are simply skipped.
-            int cx = map.W <= w ? -((w - map.W) / 2) : Math.Max(0, Math.Min(p.X - w / 2, map.W - w));
+            int cx = map.W <= cellsW ? -((cellsW - map.W) / 2) : Math.Max(0, Math.Min(p.X - cellsW / 2, map.W - cellsW));
             int cy = map.H <= h ? -((h - map.H) / 2) : Math.Max(0, Math.Min(p.Y - h / 2, map.H - h));
             CameraX = cx; CameraY = cy;
 
@@ -214,7 +217,7 @@ namespace Ossuary.Core
             for (int y = 0; y < h; y++)
             {
                 int my = cy + y;
-                for (int x = 0; x < w; x++)
+                for (int x = 0; x < cellsW; x++)
                 {
                     int mx = cx + x;
                     if (!map.InBounds(mx, my)) continue;
@@ -226,7 +229,7 @@ namespace Ossuary.Core
                         // screen alive and shows that the dark is solid, not missing.
                         float fog = Theme.Hash01(mx * 3 + 1, my * 7 + 2);
                         if (fog > 0.88f)
-                            _t.Put(ox + x, oy + y, fog > 0.96f ? '▒' : '·', Rgb.Lerp(theme.Background, theme.Rule, fog > 0.96f ? 0.16f : 0.30f), false, theme.Background);
+                            PutTile(sq, ox + x * sq, oy + y, fog > 0.96f ? '▒' : '·', Rgb.Lerp(theme.Background, theme.Rule, fog > 0.96f ? 0.16f : 0.30f), false, theme.Background, false);
                         continue;
                     }
 
@@ -253,9 +256,11 @@ namespace Ossuary.Core
                         else if (vt == TileKind.WallDark) g = hv < 0.7f ? '#' : '▓';
                     }
 
+                    bool water = false;
                     if (t == TileKind.Floor || t == TileKind.FloorAlt)
                     {
                         var sk = map.SurfaceAt(mx, my);
+                        water = sk == SurfaceKind.Water && vis;
                         if (sk != SurfaceKind.None && (vis || sk != SurfaceKind.Fire))
                         {
                             theme.SurfaceStyle(sk, mx, my, _g.Turn, out char sg, out Rgb sfg, out Rgb sbg);
@@ -268,13 +273,14 @@ namespace Ossuary.Core
                         g = '^'; fg = theme.Warn; bold = true;
                     }
 
+                    bool entity = false;
                     if (vis)
                     {
                         var item = TopItemAt(mx, my);
                         if (item != null)
                         {
                             Rgb ic = theme.ItemRaw(item);
-                            g = item.Def.Glyph; fg = ic; bold = true;
+                            g = item.Def.Glyph; fg = ic; bold = true; entity = true;
                             bg = Rgb.Lerp(bg, ic * 0.35f, 0.45f);
                         }
 
@@ -282,7 +288,7 @@ namespace Ossuary.Core
                         if (m != null)
                         {
                             Rgb mc = Theme.Mon(m.Def.Color);
-                            g = m.Glyph; fg = mc; bold = true;
+                            g = m.Glyph; fg = mc; bold = true; entity = true;
                             bg = Rgb.Lerp(bg, mc * 0.32f, 0.60f);
                         }
                     }
@@ -296,22 +302,34 @@ namespace Ossuary.Core
                     }
                     else if (vis) light = 0.75f;
                     theme.Shade(fg, bg, light, !vis, out Rgb ofg, out Rgb obg);
-                    _t.Put(ox + x, oy + y, g, ofg, bold, obg);
+                    PutTile(sq, ox + x * sq, oy + y, g, ofg, bold, obg, entity);
+                    if (water && g != '@' && _g.MonsterAt(mx, my) == null) { _t.Shimmer(ox + x * sq, oy + y); if (sq == 2) _t.Shimmer(ox + x * sq + 1, oy + y); }
                 }
             }
 
-            int px = ox + (p.X - cx), py = oy + (p.Y - cy);
+            int px = ox + (p.X - cx) * sq, py = oy + (p.Y - cy);
             if (px >= ox && py >= oy && px < ox + w && py < oy + h)
-                _t.Put(px, py, '@', theme.Accent, true, theme.Remap(Rgb.FromHex(0x6A4220), true));
+            {
+                Rgb pbg = theme.Remap(Rgb.FromHex(0x6A4220), true);
+                _t.Put(px, py, '@', theme.Accent, true, pbg);
+                if (sq == 2) _t.Put(px + 1, py, ' ', theme.Accent, false, pbg);
+            }
 
-            DrawCursors(ox, oy, w, h, cx, cy, theme);
+            DrawCursors(ox, oy, w, h, cx, cy, theme, sq);
         }
 
-        void DrawCursors(int ox, int oy, int w, int h, int cx, int cy, Theme theme)
+        void DrawCursors(int ox, int oy, int w, int h, int cx, int cy, Theme theme, int sq = 1)
         {
-            if (State.IsTargeting) PutCursor(ox + (State.TargetX - cx), oy + (State.TargetY - cy), ox, oy, w, h, '◎', theme);
+            if (State.IsTargeting) PutCursor(ox + (State.TargetX - cx) * sq, oy + (State.TargetY - cy), ox, oy, w, h, '◎', theme);
             if (State.Active == Panel.Travel || State.TravelMode)
-                PutCursor(ox + (State.TravelX - cx), oy + (State.TravelY - cy), ox, oy, w, h, '◊', theme);
+                PutCursor(ox + (State.TravelX - cx) * sq, oy + (State.TravelY - cy), ox, oy, w, h, '◊', theme);
+        }
+
+        /// <summary>One map cell: one screen column, or two when tiles are square. Scenery repeats across both, things stand on the left.</summary>
+        void PutTile(int sq, int sx, int sy, char g, Rgb fg, bool bold, Rgb bg, bool entity)
+        {
+            _t.Put(sx, sy, g, fg, bold, bg);
+            if (sq == 2) _t.Put(sx + 1, sy, entity ? ' ' : g, fg, bold && !entity, bg);
         }
 
         // The cursor keeps the cell's own background so the terrain stays readable under it.
@@ -334,14 +352,16 @@ namespace Ossuary.Core
         {
             var world = _g.World;
             var theme = Theme.Current;
-            int cx = world.W <= w ? -((w - world.W) / 2) : Math.Max(0, Math.Min(world.PlayerX - w / 2, world.W - w));
+            int sq = DisplaySettings.Current.Square ? 2 : 1;
+            int cellsW = Math.Max(1, w / sq);
+            int cx = world.W <= cellsW ? -((cellsW - world.W) / 2) : Math.Max(0, Math.Min(world.PlayerX - cellsW / 2, world.W - cellsW));
             int cy = world.H <= h ? -((h - world.H) / 2) : Math.Max(0, Math.Min(world.PlayerY - h / 2, world.H - h));
             CameraX = cx; CameraY = cy;
 
             for (int y = 0; y < h; y++)
             {
                 int my = cy + y;
-                for (int x = 0; x < w; x++)
+                for (int x = 0; x < cellsW; x++)
                 {
                     int mx = cx + x;
                     if (!world.InBounds(mx, my)) continue;
@@ -349,29 +369,31 @@ namespace Ossuary.Core
                     if (!t.Discovered)
                     {
                         float fog = Theme.Hash01(mx * 3 + 1, my * 7 + 2);
-                        if (fog > 0.9f) _t.Put(ox + x, oy + y, '·', Rgb.Lerp(theme.Background, theme.Rule, 0.30f), false, theme.Background);
+                        if (fog > 0.9f) PutTile(sq, ox + x * sq, oy + y, '·', Rgb.Lerp(theme.Background, theme.Rule, 0.30f), false, theme.Background, false);
                         continue;
                     }
                     theme.Terrain(t.Terrain, t.Feature, mx, my, world.Hour, out char g, out Rgb fg, out Rgb bg);
-                    _t.Put(ox + x, oy + y, g, fg, t.Feature != OverworldFeature.None, bg);
+                    PutTile(sq, ox + x * sq, oy + y, g, fg, t.Feature != OverworldFeature.None, bg, t.Feature != OverworldFeature.None);
                 }
             }
 
-            int px = ox + (world.PlayerX - cx), py = oy + (world.PlayerY - cy);
+            int px = ox + (world.PlayerX - cx) * sq, py = oy + (world.PlayerY - cy);
             _t.Put(px, py, '@', theme.Accent, true, _t.BgAt(px, py));
+            if (sq == 2) _t.Put(px + 1, py, ' ', theme.Accent, false, _t.BgAt(px, py));
 
             if (_g.ActiveEncounter && _g.EncounterMonster != null)
             {
-                int ex = ox + (_g.EncounterX - cx), ey = oy + (_g.EncounterY - cy);
+                int ex = ox + (_g.EncounterX - cx) * sq, ey = oy + (_g.EncounterY - cy);
                 if (ex >= ox && ey >= oy && ex < ox + w && ey < oy + h)
                 {
                     var mon = _g.EncounterMonster;
                     _t.Put(ex, ey, mon.Glyph, theme.Remap(Theme.Mon(mon.Def.Color), false), true, _t.BgAt(ex, ey));
+                    if (sq == 2) _t.Put(ex + 1, ey, ' ', theme.Text, false, _t.BgAt(ex, ey));
                     if (ey - 1 >= oy) _t.Put(ex, ey - 1, '▼', theme.Warn, true, _t.BgAt(ex, ey - 1));
                 }
             }
 
-            DrawCursors(ox, oy, w, h, cx, cy, theme);
+            DrawCursors(ox, oy, w, h, cx, cy, theme, sq);
         }
 
         // -------------------------------------------------------------- sidebar
@@ -1649,6 +1671,7 @@ namespace Ossuary.Core
                 case MenuRow.Theme: return Loc.T(DisplaySettings.Describe(DisplaySettings.Current.Preset));
                 case MenuRow.Crt: return DisplaySettings.Current.Crt == CrtLevel.Off ? Loc.T("Flat pixels, no scanlines.") : Loc.T("Curvature, scanlines, phosphor glow.");
                 case MenuRow.Scale: return DisplaySettings.Current.Scale == 0 ? Loc.T("The largest that fits the window.") : (Loc.Current == Lang.Pt ? "Fixo: cada pixel da fonte vale " : "Fixed: each font pixel is ") + DisplaySettings.Current.Scale + "x" + DisplaySettings.Current.Scale + (Loc.Current == Lang.Pt ? " pixels de tela." : " screen pixels.");
+                case MenuRow.Tiles: return Loc.T(DisplaySettings.Current.Square ? "Each map cell is two columns wide: the world looks square." : "One column per map cell: the world looks tall and narrow.");
                 case MenuRow.Language: return Loc.T("Portuguese (Brazil) or English.");
                 case MenuRow.Master: case MenuRow.Effects: return Loc.T("Short square-wave bleeps: hits, kills, wounds, warnings.");
                 case MenuRow.Music: return Loc.T("Music is not written yet.");
@@ -1664,7 +1687,7 @@ namespace Ossuary.Core
         {
             var theme = Theme.Current;
             var set = DisplaySettings.Current;
-            PanelRect(out int px, out int py, out int pw, out int ph, 60, 26, Loc.T("Menu"), Loc.T("Esc resumes"));
+            PanelRect(out int px, out int py, out int pw, out int ph, 60, 27, Loc.T("Menu"), Loc.T("Esc resumes"));
             int x = px + 3, iw = pw - 6;
             int sel = State.SettingsIndex;
             int y = py + 2;
@@ -1709,6 +1732,7 @@ namespace Ossuary.Core
             Row(MenuRow.Theme, "Theme", DisplaySettings.Name(set.Preset), true);
             Row(MenuRow.Crt, "CRT", DisplaySettings.Name(set.Crt), true);
             Row(MenuRow.Scale, "Text size", DisplaySettings.ScaleName(set.Scale), true);
+            Row(MenuRow.Tiles, "Tiles", set.Square ? "Square" : "Narrow", true);
             Row(MenuRow.Language, "Language", Loc.Name(set.Language), true);
             Header("Audio");
             var audio = AudioSettings.Current;

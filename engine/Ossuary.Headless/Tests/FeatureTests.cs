@@ -32,6 +32,7 @@ namespace Ossuary.Tests
             Test("travel finds altars and fountains", FeatureTravel);
             Test("Trained mode: skills are bought with XP", TrainedMode);
             Test("what the game reports can also be heard", SoundCues);
+            Test("square tiles double the map columns", SquareTiles);
             Test("crafting combines the pack and a molotov burns", CraftingFlow);
             Test("artifact sets add up and relics corrupt", SetsAndRelics);
             Test("new spells: ice, steam, oil, bone and purification", NewSpells);
@@ -1399,6 +1400,54 @@ namespace Ossuary.Tests
             mage.DrainCues();
             Assert(Cast(mage, "magic-missile", x, y), "cast");
             Assert(Array.IndexOf(mage.DrainCues(9), "magic") >= 0, "casting is heard");
+        }
+
+        static void SquareTiles()
+        {
+            var g = Game.NewHero(2500, "Square", "human", "fighter");
+            g.Monsters.Clear();
+            var hud = new GameHud(g);
+            hud.Ui.Resize(110, 36);
+            (int x, int y) Find(TextBuilder t, char c, int from = 0)
+            {
+                for (int y = 0; y < t.Height; y++) for (int x = from; x < t.Width; x++) if (t.CharAt(x, y) == c) return (x, y);
+                return (-1, -1);
+            }
+            try
+            {
+                DisplaySettings.Current.Square = false;
+                var narrow = hud.Draw();
+                var (nx, ny) = Find(narrow, '@');
+                Assert(nx >= 0, "the hero is on screen");
+                g.PushTargeting(TargetingMode.Look);
+                for (int i = 0; i < 3; i++) g.NudgeTarget(1, 0);
+                var nt = hud.Draw();
+                var (ncx, ncy) = Find(nt, '◎');
+                Assert(ncx - nx == 3 && ncy == ny, "narrow: a target three cells away is three columns away");
+
+                DisplaySettings.Current.Square = true;
+                var sqr = hud.Draw();
+                var (sx, sy) = Find(sqr, '@');
+                Assert(sx >= 0 && sy >= 0, "square: the hero is still on screen");
+                Assert(sqr.CharAt(sx + 1, sy) == ' ', "and stands on the left of his two columns");
+                var (scx, scy) = Find(sqr, '◎');
+                Assert(scx - sx == 6 && scy == sy, "square: the same target is six columns away, " + (scx - sx));
+                // Scenery repeats across both columns: some wall cell has the same glyph on both sides of its pair.
+                int pairs = 0, same = 0;
+                for (int y = 0; y < sqr.Height; y++)
+                    for (int x = 1; x + 1 < 70; x += 2)
+                    {
+                        char a = sqr.CharAt(x, y), b = sqr.CharAt(x + 1, y);
+                        if (a == '#') { pairs++; if (b == '#') same++; }
+                    }
+                Assert(pairs == 0 || same * 100 / pairs >= 60, "walls fill both columns of their cell, " + same + "/" + pairs);
+            }
+            finally { DisplaySettings.Current.Square = false; g.UiState.Targeting = TargetingMode.None; }
+
+            // The menu has the row, and it flips the setting.
+            Assert(Array.IndexOf(MenuRows.All, MenuRow.Tiles) >= 0, "there is a Tiles menu row");
+            var s = DisplaySettings.Current; int v = s.Version;
+            s.CycleSquare(); Assert(s.Square && s.Version > v, "cycling turns square tiles on"); s.CycleSquare(); Assert(!s.Square, "and off");
         }
     }
 }

@@ -20,6 +20,8 @@ namespace Ossuary.Desktop
         public int Theme { get; set; }
         public int Crt { get; set; } = 1;
         public int Scale { get; set; }
+        /// <summary>1 draws map tiles two columns wide (square on screen).</summary>
+        public int Square { get; set; }
         public bool Create { get; set; }
         /// <summary>With op "new": start today's daily challenge (fixed seed and hero) instead of a normal run.</summary>
         public bool Daily { get; set; }
@@ -91,6 +93,7 @@ namespace Ossuary.Desktop
             var s = DisplaySettings.Current;
             s.Apply((ThemePreset)Math.Clamp(r.Theme, 0, 3), (CrtLevel)Math.Clamp(r.Crt, 0, 2));
             s.Scale = Math.Clamp(r.Scale, 0, 3);
+            s.Square = r.Square != 0;
             if (r.Lang != null) s.SetLanguage(r.Lang == "en" ? Lang.En : Lang.Pt);
         }
     }

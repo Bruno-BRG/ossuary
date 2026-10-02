@@ -10,6 +10,13 @@ namespace Ossuary.Desktop
         {
             if (!condition) throw new Exception("Desktop test failed: " + label);
         }
+        /// <summary>Moves the menu cursor down until it is on the row, whatever rows come before it.</summary>
+        static void Seek(Session s, MenuRow row)
+        {
+            for (int i = 0; i < 40 && MenuRows.All[s.Game.UiState.SettingsIndex] != row; i++) s.Key("ArrowDown");
+            Check(MenuRows.All[s.Game.UiState.SettingsIndex] == row, "test setup: menu row " + row);
+        }
+
         static void Menus()
         {
             var s = new Session(); s.New(31337); s.Resize(110, 36); s.Draw();
@@ -26,7 +33,7 @@ namespace Ossuary.Desktop
             Check(s.Game.UiState.Active == Panel.None, "Escape closes the pause menu");
             // Volume rows clamp and persist as data.
             s.Key("F2"); s.Draw();
-            for (int i = 0; i < 6; i++) s.Key("ArrowDown");
+            Seek(s, MenuRow.Master);
             int master = AudioSettings.Current.Master;
             for (int i = 0; i < 4; i++) s.Key("ArrowRight");
             Check(AudioSettings.Current.Master == Math.Min(AudioSettings.Max, master + 4), "volume changes and clamps");
@@ -35,10 +42,7 @@ namespace Ossuary.Desktop
             AudioSettings.Current.Load("8,6,8");
             s.Key("Escape"); s.Key("Period", "."); s.Draw();   // a real turn, so there is a run to save
             s.Key("F2"); s.Draw();
-            for (int i = 0; i < 10; i++) s.Key("ArrowDown");
-            s.Key("ArrowUp"); s.Key("ArrowUp"); s.Key("ArrowUp"); s.Key("ArrowUp");
-            // Master -> Music -> Effects -> Controls -> Achievements -> Past runs -> Main menu
-            for (int i = 0; i < 6; i++) s.Key("ArrowDown");
+            Seek(s, MenuRow.MainMenu);
             s.Draw();
             s.Key("Enter"); var f = s.Draw();
             Check(f.ToTitle && s.Game != null, "main menu returns to the title");
@@ -86,7 +90,7 @@ namespace Ossuary.Desktop
             b.ResetAll();
             // Rebinding through the Controls panel itself.
             s.Key("F2"); s.Draw();
-            for (int i = 0; i < 9; i++) s.Key("ArrowDown");
+            Seek(s, MenuRow.Controls);
             s.Key("Enter"); s.Draw();
             Check(s.Game.UiState.Active == Panel.Controls, "menu opens the controls panel");
             s.Key("Enter"); s.Draw();
@@ -352,6 +356,24 @@ namespace Ossuary.Desktop
             Check(s.Game.UiState.Runs.TrueForAll(r => r.Daily.Length > 0), "the daily board has only daily runs");
             s.Key("KeyD"); s.Draw();
             Check(!s.Game.UiState.RunsDaily && s.Game.UiState.Runs.Count == all, "D again shows everything");
+        }
+
+        /// <summary>Water cells are marked for the front end to shimmer, and only while the map is what is on screen.</summary>
+        static void WaterAnimates()
+        {
+            var s = new Session(); s.New(4747); s.Resize(110, 36); s.Draw();
+            var g = s.Game; g.Monsters.Clear();
+            int px = g.Player.X, py = g.Player.Y;
+            for (int dx = 1; dx <= 3; dx++) { g.Map.Set(px + dx, py, TileKind.Floor); g.PutSurface(px + dx, py, SurfaceKind.Water, 100); }
+            g.UpdateFov();
+            var f = s.Draw();
+            Check(f.Anim != null && f.Anim.Length >= 3, "visible water is marked, " + (f.Anim?.Length ?? -1));
+            foreach (int i in f.Anim) Check(f.Glyphs[i] == 0x2248, "a marked cell is drawn as water");
+            s.Key("KeyI", "i"); f = s.Draw();
+            Check(f.Anim.Length == 0, "nothing shimmers under an open panel");
+            s.Key("Escape"); s.Draw();
+            var empty = new Session(); empty.New(4748); empty.Resize(110, 36); empty.Game.Monsters.Clear();
+            Check(empty.Draw().Anim.Length == 0 || empty.Game.Map.Surfaces.Count > 0, "no water, nothing to animate");
         }
 
         /// <summary>Modes are picked on the confirm step, survive a save, and Hardcore keeps one save that resuming spends.</summary>
@@ -648,7 +670,7 @@ namespace Ossuary.Desktop
             s.Game.Mode = GameMode.GameOver; s.Draw(); s.Key("Enter"); s.Draw();
             Check(s.Game.Mode == GameMode.Dungeon && s.Game.Turn == 0 && s.Hud.Ui.Width == 110, "death restarts and keeps viewport");
             DisplaySettings.Current.Apply(ThemePreset.Ossuary, CrtLevel.Subtle);
-            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); HeldKeyWalking(); RunRecorded(); BonesFlow(); DifficultyFlow(); DailyFlow(); AchievementsFlow(); TownFlow();
+            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); HeldKeyWalking(); RunRecorded(); BonesFlow(); DifficultyFlow(); DailyFlow(); AchievementsFlow(); WaterAnimates(); TownFlow();
             try { System.IO.Directory.Delete(data, true); } catch { /* temp dir only */ }
             Environment.SetEnvironmentVariable("OSSUARY_DATA", null);
             Console.WriteLine("==== desktop: input, choices, targeting, travel, shop, settings, restart and frame protocol PASS ====");

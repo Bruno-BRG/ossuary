@@ -25,11 +25,10 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 
 ## Geração de níveis
 
-- [ ] Animação de água e tiles de mapa quadrados (já listados como evolução em `alpha.md`).
 
 ## Técnico e qualidade
 
-- [ ] Cobertura de testes headless para cada item novo (padrão do projeto) e `dump panels` para layout.
+- [ ] Cobertura de testes headless para cada item novo (padrão do projeto) e `dump panels` para layout. *(Contínuo: todo item acima veio com teste; `dump panels` mostra Runs, evento de estrada e morgue.)*
 - [ ] Manter `Loc.cs` (EN→PT) em dia a cada texto novo; ver `idiomas.md`.
 
 ---
@@ -37,6 +36,11 @@ lê este arquivo antes de começar e o atualiza ao terminar** (ver `AGENTS.md`).
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Água animada e tiles quadrados** (2026-10-02). *Água*: o Core marca as células de água visíveis (`TextBuilder.Shimmer` → `Frame.Anim`, vazio sob painéis) e o front-end
+  (`desktop/src/anim.ts`) alterna `≈ ~ ≈ -` e o brilho a cada ~380 ms entre frames, sem pedir turno ao motor e respeitando `prefers-reduced-motion`.
+  *Tiles quadrados*: opção **Tiles** no menu (`DisplaySettings.Square`, campo `square` nos três lados do protocolo, salvo em localStorage): cada célula do mapa/overworld usa duas
+  colunas (cenário repete o glifo, coisas ficam à esquerda); câmera e cursores contam em células. Testes `WaterAnimates`, `SquareTiles`, `anim.test.ts`.
 
 - [x] **Efeitos sonoros estilo bip de PC** (2026-10-02). O Core só **nomeia** o que aconteceu (`Game.Sound.cs`: cue por `MessageKind` em `Say`, mais `levelup` e `magic`; `DrainCues` entrega
   no máximo 3, os mais fortes primeiro); `Frame.Sounds` leva os nomes e `desktop/src/audio.ts` toca ondas quadradas curtas (WebAudio), com volume de *Master × Effects* do menu.
