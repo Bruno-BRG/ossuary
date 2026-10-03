@@ -57,8 +57,14 @@ assemblies so the build stays available during the preview.
 
 ## Sound
 
-The Core plays nothing: `Game.Cue/DrainCues` keep names (`hit`, `kill`, `hurt`, `death`, `levelup`, `quest`, `magic`, `warn`, `good`), the host puts them in `Frame.Sounds`
-and `desktop/src/audio.ts` turns them into square-wave beeps. Audio only unlocks after a key press (browser policy).
+Everything is synthesised in `desktop/src/audio.ts` with the Web Audio API: no audio files, no licences. The Core plays nothing: `Game.Cue/DrainCues` keep names
+(`hit`, `kill`, `hurt`, `death`, `levelup`, `quest`, `magic`, `warn`, `good`, `stairs`, `door`, `pickup`), the host puts them in `Frame.Sounds` and the front end turns them into
+square/triangle bleeps with a little noise. Menu blips (`click`, `move`, `confirm`, `cancel`) are the front end's own: they play when a key is pressed inside a panel.
+
+Music is a score as data (`tracks`: bars of notes in beats and MIDI numbers) played by a look-ahead step sequencer with five voices (FM bell, 12.5% pulse, triangle bass, bowed
+saw "cello", detuned-saw pad) plus noise ticks and thuds, all through one shared reverb. `trackFor` picks the track from what is on screen: **title** ("Phosphor & Bone", 24 bars of 6/4
+at 66 BPM in D minor, which also plays during the intro), **dungeon**, **road** (overworld, D Dorian) and **town** (F major); a dead hero hears nothing. Tracks fade in and out. The scores are
+deterministic and the sequencer never touches the simulation RNG. Master × music and master × effects volumes come from the frame. Audio only unlocks after a key press or click (browser policy).
 
 ## Animation
 

@@ -291,6 +291,7 @@ namespace Ossuary.Core
                 p.Inventory.Add(stack[i]);
             }
             GroundItems.RemoveCell(_g.Map.Number, p.X, p.Y);
+            _g.Cue("pickup");
             _g.Map.Version++;
             _g.EndPlayerTurn();
             return true;

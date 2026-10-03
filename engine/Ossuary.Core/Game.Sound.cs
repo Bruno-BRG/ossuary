@@ -10,7 +10,7 @@ namespace Ossuary.Core
     public sealed partial class Game
     {
         /// <summary>Loudest first: when several cues pile up in one frame only the strongest few are played.</summary>
-        static readonly string[] CuePriority = { "death", "levelup", "kill", "hurt", "hit", "quest", "magic", "warn", "good" };
+        static readonly string[] CuePriority = { "death", "levelup", "kill", "hurt", "hit", "quest", "magic", "warn", "good", "stairs", "door", "pickup" };
 
         readonly List<string> _cues = new List<string>();
 

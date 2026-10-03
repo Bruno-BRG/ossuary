@@ -1988,6 +1988,14 @@ namespace Ossuary.Tests
             mage.DrainCues();
             Assert(Cast(mage, "magic-missile", x, y), "cast");
             Assert(Array.IndexOf(mage.DrainCues(9), "magic") >= 0, "casting is heard");
+
+            // Stairs and loose items are heard too.
+            var walker = Game.NewHero(2402, "Steps", "human", "fighter");
+            walker.DrainCues();
+            walker.Cue("stairs"); walker.Cue("door"); walker.Cue("pickup");
+            var world = walker.DrainCues(9);
+            Assert(world.Length == 3 && Array.IndexOf(world, "stairs") >= 0 && Array.IndexOf(world, "door") >= 0 && Array.IndexOf(world, "pickup") >= 0,
+                "stairs, doors and pickups have cues: " + string.Join(",", world));
         }
 
         static void SquareTiles()

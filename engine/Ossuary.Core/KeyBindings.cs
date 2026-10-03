@@ -290,8 +290,8 @@ namespace Ossuary.Core
         }
     }
 
-    /// <summary>Volume sliders, 0-10. There is no audio yet; the settings exist so the menu and saved
-    /// preferences are ready when sound lands.</summary>
+    /// <summary>Volume sliders, 0-10. The front end plays them (see desktop/src/audio.ts); they are saved with the
+    /// other preferences.</summary>
     public sealed class AudioSettings
     {
         public static readonly AudioSettings Current = new AudioSettings();

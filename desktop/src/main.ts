@@ -5,7 +5,7 @@ import { TerminalRenderer } from './renderer';
 import { overlayMenu, titleFrame } from './title';
 import { bodyOf, introFrame, introHold, introSpeed, pageLength } from './intro';
 import { t, type Lang } from './i18n';
-import { playCues, unlockAudio } from './audio';
+import { playCues, playUi, setMusic, trackFor, uiSoundFor, unlockAudio } from './audio';
 import { shimmer } from './anim';
 import { createFxPlayer } from './fx';
 
@@ -64,6 +64,7 @@ function paint(next: Frame) {
   const scene = introActive ? introFrame(frame, frame.intro!, introPage, introTyped, titleTick, frame.lang, introAge) : onTitle ? titleFrame(frame, titleTick) : frame;
   renderer.draw(menuOnTitle() ? overlayMenu(scene, frame) : scene, size(), devicePixelRatio);
   if (!onTitle && !introActive) playCues(frame.sounds, frame.master, frame.effects);
+  setMusic(trackFor({ onTitle, intro: introActive, mode: frame.mode }), frame.master, frame.music);
   if (!onTitle && !introActive && frame !== fxFrame) {
     fxFrame = frame;
     if (frame.fx?.length && !calmMotion()) fxPlayer.start(frame);
@@ -165,6 +166,11 @@ async function beginDaily() {
   canvas.focus();
 }
 
+// Browsers keep audio locked until a gesture: any click or key unlocks it, and the buttons get a blip.
+window.addEventListener('pointerdown', () => unlockAudio());
+const blip = (name: string) => playUi(name, frame?.master ?? 0, frame?.effects ?? 0);
+for (const id of ['#begin', '#daily', '#options']) document.querySelector(id)!.addEventListener('click', () => blip('confirm'));
+resumeButton.addEventListener('click', () => blip('confirm'));
 document.querySelector('#begin')!.addEventListener('click', () => void begin());
 document.querySelector('#daily')!.addEventListener('click', () => void beginDaily());
 document.querySelector('#options')!.addEventListener('click', () => { if (ready && !busy) void send({ op: 'key', code: 'Escape' }); });
@@ -199,7 +205,7 @@ window.addEventListener('keydown', async event => {
     if (event.code === 'Escape' && !busy) { event.preventDefault(); void send({ op: 'key', code: 'Escape' }); return; }
     if (event.code === 'Enter' || event.code === 'NumpadEnter') {
       if (event.target instanceof HTMLButtonElement && event.target.id === 'begin') return;   // the button handles its own Enter
-      event.preventDefault(); void (frame.started || frame.hasSave ? resume() : begin());
+      event.preventDefault(); blip('confirm'); void (frame.started || frame.hasSave ? resume() : begin());
     }
     else if ((event.code === 'F3' || event.code === 'F4') && !busy) {
       event.preventDefault(); await send({ op: 'key', code: event.code });
@@ -211,6 +217,7 @@ window.addEventListener('keydown', async event => {
   if (event.code === 'Tab' || event.code.startsWith('Control') || event.code.startsWith('Shift')) return;
   event.preventDefault();
   if (busy) return;
+  if (frame.panel !== 'None' && !event.repeat) blip(uiSoundFor(event.code));
   await send({ op: 'key', code: event.code, key: event.key, shift: event.shiftKey, ctrl: event.ctrlKey, repeat: event.repeat });
   await resize();
 });

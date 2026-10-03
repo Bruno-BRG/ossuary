@@ -64,6 +64,10 @@ Today (2026-10-03): townsfolk have a role and a line, the Guild board has two jo
 
 ## Done
 
+- [x] **Synthesised sound and music** (2026-10-03). `desktop/src/audio.ts`: effects (now with stairs, doors and pickups), menu blips and looping music built only from Web Audio oscillators and noise
+  (the theme "Phosphor & Bone" plus dungeon, road and town tracks), through one reverb; volumes follow the Audio settings. Engine cues `stairs`, `door`, `pickup`. Tests in `audio.test.ts` and `SoundCues`.
+  Left: boss/death/victory music, detuning with depth, a recorded score.
+
 - [x] **Dungeon level 1 always has a way out** (2026-10-03). `Dungeon.Ensure` stripped the stairs up from depth 1 of *every* branch, so entering a dungeon from the overworld
   at depth 1 left the hero with no exit. Now only side branches (the Annex, left by its portal) lose them. Left: a regression test (`Dungeon.Ensure` depth 1 has `StairsUp`).
 

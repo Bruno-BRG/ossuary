@@ -71,7 +71,7 @@ Any key restarts the run (new seed). `Esc` on death leaves play.
 ## Menu, saves and keys
 
 `F2` (or `Esc` with nothing open) opens the menu: Resume, Save game, Display (theme, CRT,
-text size), Audio (master, music, effects; stored for when sound exists),
+text size), Audio (master, music, effects volumes, 0-10, applied live),
 Controls, Main menu and Quit game.
 
 **Controls** lists every action by group. `Enter` captures the next key,
