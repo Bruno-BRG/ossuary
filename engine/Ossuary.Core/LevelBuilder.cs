@@ -138,9 +138,9 @@ namespace Ossuary.Core
             }
 
             // Each branch hides one named artifact on a fixed level.
-            var art = Artifacts.ForLevel(map.BranchName, levelDepth);
-            if (art != null && TryFindOpenFloor(map, rng, out int ax, out int ay))
-                GroundItems.Add(map.Number, ax, ay, Artifacts.Create(art, rng, GroundItems.NextUid()));
+            foreach (var art in Artifacts.RollForLevel(map.BranchName, levelDepth, rng))
+                if (TryFindOpenFloor(map, rng, out int ax, out int ay))
+                    GroundItems.Add(map.Number, ax, ay, Artifacts.Create(art, rng, GroundItems.NextUid()));
 
             // A treasure cache in roughly one level in five, as a fallback reward
             // for exploring the parts the stairs do not lead to.
@@ -225,26 +225,26 @@ namespace Ossuary.Core
         {
             int roll = rng.Range(0, 100);
             ItemDef def;
-            if (roll < 18) def = Pick(Catalogue.Weapons, rng);
+            if (roll < 18) def = PickDeep(Catalogue.Weapons, rng, depth);
             else if (roll < 32)
             {
                 int piece = rng.Range(0, 100);
-                def = piece < 50 ? Pick(Catalogue.Armor, rng)
-                    : piece < 62 ? Pick(Catalogue.Helms, rng)
-                    : piece < 74 ? Pick(Catalogue.Gloves, rng)
-                    : piece < 86 ? Pick(Catalogue.Boots, rng)
-                    : Pick(Catalogue.Cloaks, rng);
+                def = piece < 50 ? PickDeep(Catalogue.Armor, rng, depth)
+                    : piece < 62 ? PickDeep(Catalogue.Helms, rng, depth)
+                    : piece < 74 ? PickDeep(Catalogue.Gloves, rng, depth)
+                    : piece < 86 ? PickDeep(Catalogue.Boots, rng, depth)
+                    : PickDeep(Catalogue.Cloaks, rng, depth);
             }
-            else if (roll < 38) def = Pick(Catalogue.Shields, rng);
-            else if (roll < 48) def = Pick(Catalogue.Wands, rng);
-            else if (roll < 58) def = Pick(Catalogue.Scrolls, rng);
-            else if (roll < 68) def = Pick(Catalogue.Potions, rng);
-            else if (roll < 74) def = Pick(Catalogue.Rings, rng);
-            else if (roll < 78) def = Pick(Catalogue.Amulets, rng);
+            else if (roll < 38) def = PickDeep(Catalogue.Shields, rng, depth);
+            else if (roll < 48) def = PickDeep(Catalogue.Wands, rng, depth);
+            else if (roll < 58) def = PickDeep(Catalogue.Scrolls, rng, depth);
+            else if (roll < 68) def = PickDeep(Catalogue.Potions, rng, depth);
+            else if (roll < 74) def = PickDeep(Catalogue.Rings, rng, depth);
+            else if (roll < 78) def = PickDeep(Catalogue.Amulets, rng, depth);
             else if (roll < 84) def = Pick(Catalogue.Tools, rng);
             else if (roll < 89) def = Pick(Catalogue.Food, rng);
             else if (roll < 93) def = Pick(Catalogue.Ornaments, rng);
-            else if (roll < 97) def = Pick(Catalogue.Books, rng);
+            else if (roll < 97) def = PickBook(rng, depth);
             else def = GoldDef;
 
             var item = new Item(def, rng, GroundItems.NextUid());
@@ -263,6 +263,24 @@ namespace Ossuary.Core
         static ItemDef Pick(IReadOnlyList<ItemDef> list, Rng rng)
         {
             return list[rng.Range(0, list.Count)];
+        }
+
+        /// <summary>Anything with a tier: the deeper the level, the higher the tier it may be (2 at the top, 5 from depth ~9).</summary>
+        public static ItemDef PickDeep(IReadOnlyList<ItemDef> list, Rng rng, int depth)
+        {
+            int maxTier = Math.Min(5, 2 + depth / 3);
+            var pool = new List<ItemDef>();
+            foreach (var d in list) if (d.Tier <= maxTier) pool.Add(d);
+            return pool.Count == 0 ? list[rng.Range(0, list.Count)] : pool[rng.Range(0, pool.Count)];
+        }
+
+        /// <summary>A book found on a level: the deeper you are, the higher the tier it may be (tier 1 at the top, 5 from depth ~12).</summary>
+        public static ItemDef PickBook(Rng rng, int depth)
+        {
+            int maxTier = Math.Max(1, Math.Min(5, 1 + depth / 3));
+            var pool = new List<ItemDef>();
+            foreach (var b in Catalogue.Books) if (b.Tier <= maxTier) pool.Add(b);
+            return pool[rng.Range(0, pool.Count)];
         }
 
         /// <summary>Puddles in the drowned vaults, dry brush in the warrens, spilled oil in the old forts and the Spire.</summary>

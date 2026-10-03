@@ -104,8 +104,9 @@ namespace Ossuary.Core
         /// <summary>Lifesteal and the elemental die on the wielded weapon, after a melee hit.</summary>
         void MeleeProcs(Monster target, int dealt, bool alive)
         {
-            if (Player.Wielded == null) return;
-            var m = Player.Wielded.Mods;
+            // Everything on you counts: the weapon, spells, rings, the amulet, a mutation.
+            var m = Player.Gear;
+            if (m.LifeSteal == 0 && m.ExtraSides == 0 && Player.BuffTurns("flame") == 0 && !(Player.God == "veyra" && Player.GodTier >= 2)) return;
             if (m.LifeSteal > 0 && dealt > 0 && Player.HP < Player.MaxHP)
                 Player.HP = Math.Min(Player.MaxHP, Player.HP + Math.Max(1, dealt * m.LifeSteal / 100));
             if (alive && (Player.BuffTurns("flame") > 0 || (Player.God == "veyra" && Player.GodTier >= 2)))
@@ -119,6 +120,7 @@ namespace Ossuary.Core
                     case DamageType.Cold: verb = "Frost bites"; break;
                     case DamageType.Poison: verb = "Venom eats into"; break;
                     case DamageType.Lightning: verb = "Sparks arc into"; break;
+                    case DamageType.Holy: verb = "Radiance sears"; break;
                     default: verb = "Dark power strikes"; break;
                 }
                 Hurt(target, Rng.Roll(1, m.ExtraSides, 0), m.ExtraType, verb, false);

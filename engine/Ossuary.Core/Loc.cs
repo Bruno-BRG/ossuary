@@ -11,7 +11,7 @@ namespace Ossuary.Core
     /// untranslated string degrades to English instead of breaking. Dynamic messages (names, numbers)
     /// are matched by <see cref="Rx"/> patterns. Pure data: no UI, no platform.
     /// </summary>
-    public static class Loc
+    public static partial class Loc
     {
         /// <summary>Live language. Core defaults to English so headless tests stay stable; the app sets it from DisplaySettings.</summary>
         public static Lang Current = Lang.En;
@@ -51,6 +51,7 @@ namespace Ossuary.Core
         static Loc()
         {
             AddMutationText();
+            AddSpellText();
             var traps = new[] { ("spike trap", "armadilha de espetos", "uma"), ("hole", "buraco", "um"), ("dart trap", "armadilha de dardos", "uma"),
                                 ("teleport trap", "armadilha de teletransporte", "uma"), ("alarm trap", "armadilha de alarme", "uma"),
                                 ("fire trap", "armadilha de fogo", "uma"), ("web", "teia", "uma") };
@@ -411,6 +412,28 @@ namespace Ossuary.Core
             R(@"You arrive at (.+)\.", "Você chega a $1."),
             R(@"Escaped after (\d+) turns, (\d+) kills, depth (\d+)\. The Ossuary remembers\.", "Fuga após $1 turnos, $2 mortes, profundidade $3. O Ossuary lembra."),
             R(@"Could not save: (.+)", "Não foi possível salvar: $1"),
+            // Spell riders and results.
+            R(@"The (.+) is held fast\.", "$1 está preso."),
+            R(@"The (.+) reels, stunned\.", "$1 cambaleia, atordoado."),
+            R(@"The (.+) slows to a crawl\.", "$1 desacelera até quase parar."),
+            R(@"The (.+) flees in terror!", "$1 foge aterrorizado!"),
+            R(@"The (.+) slumps, asleep\.", "$1 desaba, dormindo."),
+            R(@"The (.+) staggers, confused\.", "$1 cambaleia, confuso."),
+            R(@"The (.+) blunders about, blind\.", "$1 tropeça às cegas."),
+            R(@"The (.+) sickens\.", "$1 adoece."),
+            R(@"The (.+) bleeds freely\.", "$1 sangra muito."),
+            R(@"The (.+) is left open to every blow\.", "$1 fica aberto a todo golpe."),
+            R(@"The (.+) is yours, for now\.", "$1 é seu, por enquanto."),
+            R(@"The (.+) shakes off the spell\.", "$1 se livra da magia."),
+            R(@"The (.+) tears free\.", "$1 se solta."),
+            R(@"The (.+) stays on its feet\.", "$1 se mantém de pé."),
+            R(@"The (.+) is torn away\.", "$1 é arrancado dali."),
+            R(@"You lift (\d+) gold off the (.+)\.", "Você surrupia $1 de ouro de $2."),
+            R(@"(\d+) beasts? lie down and sleep\.", "$1 fera(s) se deita(m) e dorme(m)."),
+            R(@"(\d+) locks? spring open\.", "$1 fechadura(s) se abre(m)."),
+            R(@"The rock crumbles away \((\d+) cells\)\.", "A rocha desmorona ($1 casas)."),
+            R(@"You sense (\d+) traps? nearby\.", "Você sente $1 armadilha(s) por perto."),
+            R(@"You drink in (\d+) life\.", "Você bebe $1 de vida."),
         };
     }
 }

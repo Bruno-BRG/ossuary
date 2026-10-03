@@ -48,6 +48,11 @@ namespace Ossuary.Core
         public int TargetX, TargetY;
         /// <summary>The spell waiting on a target (TargetingMode.Cast).</summary>
         public string CastSpell;
+        /// <summary>The wand or scroll a pending cast comes out of (TargetingMode.Cast), or null for your own spell.</summary>
+        public Items.Item CastItem;
+        public int CastPower;
+        /// <summary>Which school the spell list shows: -1 for all, else a <c>School</c> value.</summary>
+        public int SpellSchool = -1;
         public string PendingAbility;
         /// <summary>Selected row in the spell list.</summary>
         public int SpellIndex;

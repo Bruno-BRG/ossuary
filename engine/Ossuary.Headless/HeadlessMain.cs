@@ -28,9 +28,10 @@ namespace Ossuary.Tools
                 case "dump": return RunDumps(args);
                 case "soak": return RunSoak(args);
                 case "balance": return BalanceBot.Report(args);
+                case "fx": return RunFx(args);
                 default:
                     Console.Error.WriteLine("unknown mode: " + mode);
-                    Console.Error.WriteLine("modes: test | dump | soak | balance");
+                    Console.Error.WriteLine("modes: test | dump | soak | balance | fx <spell-id|all> [steps]");
                     return 2;
             }
         }
@@ -38,6 +39,75 @@ namespace Ossuary.Tools
         static int RunTests(string[] args)
         {
             Ossuary.Tests.TestRunner.RunAll();
+            return 0;
+        }
+
+        /// <summary>
+        /// Plays a spell's animation as ASCII, step by step, over a small room with two ogres: a way to see an effect without the window.
+        /// <c>fx fireball</c>, <c>fx all</c> (one line per spell), <c>fx list</c>.
+        /// </summary>
+        static int RunFx(string[] args)
+        {
+            string which = args.Length > 1 ? args[1] : "list";
+            if (which == "list") { foreach (var sp in Ossuary.Core.Magic.Spells.All) Console.WriteLine($"{sp.Id,-26} {sp.School,-12} L{sp.Level} {sp.Fx}"); return 0; }
+            var ids = new System.Collections.Generic.List<string>();
+            if (which == "all") foreach (var sp in Ossuary.Core.Magic.Spells.All) ids.Add(sp.Id); else ids.Add(which);
+            foreach (string id in ids)
+            {
+                var sp = Ossuary.Core.Magic.Spells.Find(id);
+                if (sp == null) { Console.Error.WriteLine("no such spell: " + id); return 2; }
+                var g = Ossuary.Core.Game.NewHero(77, "Demo", "gnome", "wizard");
+                var p = g.Player;
+                p.Level = 15; p.Int = 21; p.Wis = 21; p.Skills[Ossuary.Core.Entities.Skill.Magic] = 100; p.RecomputeMaxMp();
+                g.Monsters.Clear(); g.FxEnabled = true;
+                int px = p.X, py = p.Y;
+                for (int y = py - 6; y <= py + 6; y++) for (int x = px - 12; x <= px + 12; x++) if (g.Map.InBounds(x, y)) { g.Map.Set(x, y, Ossuary.Core.TileKind.Floor); g.Map.SetSurface(x, y, Ossuary.Core.SurfaceKind.None); }
+                g.UpdateFov();
+                foreach (var (mx, my) in new[] { (px + 1, py), (px + 5, py), (px + 5, py - 2), (px + 6, py + 1) })
+                {
+                    var m = new Ossuary.Core.Entities.Monster(Ossuary.Core.Entities.Bestiary.Find("ogre"), g.Rng) { X = mx, Y = my, Speed = 0 };
+                    m.HP = m.MaxHP = 4000; g.Monsters.Add(m);
+                }
+                if (!p.Spells.Contains(id)) p.Spells.Add(id);
+                int tx = px, ty = py;
+                switch (sp.Target)
+                {
+                    case Ossuary.Core.Magic.SpellTarget.Self: break;
+                    case Ossuary.Core.Magic.SpellTarget.Monster: tx = px + (sp.Range >= 2 ? 5 : 1); break;
+                    case Ossuary.Core.Magic.SpellTarget.Cell: tx = px + Math.Min(6, sp.Range); ty = py + 3; break;
+                    default: tx = px + Math.Min(5, sp.Range); break;
+                }
+                for (int tries = 0; tries < 50; tries++)
+                {
+                    p.Mp = p.MpMax = Math.Max(p.MpMax, 99);
+                    g.DrainFx();
+                    int mp = p.Mp;
+                    if (!g.CastSpell(id, tx, ty)) break;
+                    if (p.Mp <= mp - sp.Cost) break;
+                }
+                var steps = g.DrainFx();
+                Console.WriteLine($"=== {sp.Name} ({sp.Id}) {sp.Fx} {sp.Elem} — {steps.Count} steps ===");
+                if (which == "all") continue;
+                int show = args.Length > 2 ? int.Parse(args[2]) : steps.Count;
+                for (int i = 0; i < steps.Count && i < show; i++)
+                {
+                    Console.WriteLine($"--- step {i} ---");
+                    for (int y = py - 7; y <= py + 7; y++)
+                    {
+                        var line = new System.Text.StringBuilder();
+                        for (int x = px - 13; x <= px + 13; x++)
+                        {
+                            char ch = !g.Map.InBounds(x, y) ? ' ' : Ossuary.Core.Tiles.Walkable(g.Map.Get(x, y)) ? '.' : '#';
+                            var mon = g.MonsterAt(x, y);
+                            if (mon != null) ch = 'O';
+                            if (x == p.X && y == p.Y) ch = '@';
+                            foreach (var c in steps[i]) if (c.X == x && c.Y == y) ch = c.Glyph;
+                            line.Append(ch);
+                        }
+                        Console.WriteLine(line.ToString());
+                    }
+                }
+            }
             return 0;
         }
 
@@ -178,6 +248,14 @@ namespace Ossuary.Tools
             Console.WriteLine();
             Console.WriteLine("===== SPELLS: ashen necromancer =====");
             Console.WriteLine(hud2.Draw().ToAscii());
+            // A deep caster: every spell, school tabs, one school open, and a spell lent by an unique staff.
+            hero.Player.Spells.Clear();
+            foreach (var sp in Ossuary.Core.Magic.Spells.All) hero.Player.Spells.Add(sp.Id);
+            hero.UiState.Active = Panel.Spells; hero.UiState.SpellSchool = (int)Ossuary.Core.Magic.School.Necromancy; hero.UiState.SpellIndex = 4;
+            Console.WriteLine();
+            Console.WriteLine("===== SPELLS: every necromancy spell, school tab =====");
+            Console.WriteLine(hud2.Draw().ToAscii());
+            hero.UiState.SpellSchool = -1; hero.UiState.SpellIndex = 0;
             var knight = Game.NewHero(31337, "Aldric", "dwarf", "paladin");
             knight.Player.Level = 6; knight.Player.PendingAdvances = 2; knight.Player.Vigor -= 4;
             var hud3 = new GameHud(knight); hud3.Ui.Resize(110, 36);

@@ -430,17 +430,32 @@ namespace Ossuary.Core
 
         bool DoPutOnRing()
         {
-            var r = ChooseItem("Put on which ring?", it => it.Def.Kind == ItemKind.Ring);
+            var r = ChooseItem("Put on which ring or amulet?", it => it.Def.Kind == ItemKind.Ring || it.Def.Kind == ItemKind.Amulet);
             if (r == null) return true;
             var p = _g.Player;
+            if (r.Def.Kind == ItemKind.Amulet) { WearAmulet(r); return true; }
             int slot = p.Rings[0] == null ? 0 : (p.Rings[1] == null ? 1 : -1);
             if (slot < 0) { _g.Say("Your hands are already full of rings."); return true; }
             p.Rings[slot] = r;
             p.RingKnown[slot] = false;
             p.Inventory.Remove(r);
+            p.RefreshGear();
+            _g.RevealGear(r);
             _g.Say($"You slip on {r.Name}. It may not do anything.", MessageKind.Neutral);
             _g.EndPlayerTurn();
             return true;
+        }
+
+        void WearAmulet(Item a)
+        {
+            var p = _g.Player;
+            if (p.Amulet != null) { p.Inventory.Add(p.Amulet); _g.Say($"You take off {p.Amulet.Name}.", MessageKind.Neutral); }
+            p.Inventory.Remove(a);
+            p.Amulet = a;
+            p.RefreshGear();
+            _g.RevealGear(a);
+            _g.Say($"You hang {a.Name} around your neck.", MessageKind.Good);
+            _g.EndPlayerTurn();
         }
 
         bool DoRemoveRing()
@@ -453,10 +468,20 @@ namespace Ossuary.Core
                 p.Inventory.Add(p.Rings[i]);
                 p.Rings[i] = null;
                 p.RingKnown[i] = false;
+                p.RefreshGear();
                 _g.EndPlayerTurn();
                 return true;
             }
-            _g.Say("You are not wearing any rings.");
+            if (p.Amulet != null)
+            {
+                _g.Say($"You take off {p.Amulet.Name}.", MessageKind.Neutral);
+                p.Inventory.Add(p.Amulet);
+                p.Amulet = null;
+                p.RefreshGear();
+                _g.EndPlayerTurn();
+                return true;
+            }
+            _g.Say("You are not wearing any rings or amulet.");
             return true;
         }
 
@@ -712,10 +737,13 @@ namespace Ossuary.Core
                 p.Rings[slot] = chosen;
                 p.RingKnown[slot] = false;
                 p.Inventory.Remove(chosen);
+                p.RefreshGear();
+                _g.RevealGear(chosen);
                 _g.Say($"You slip on {chosen.Name}.", MessageKind.Neutral);
                 _g.EndPlayerTurn();
                 return true;
             }
+            if (chosen.Def.Kind == ItemKind.Amulet) { WearAmulet(chosen); return true; }
             if (chosen.Def.Kind == ItemKind.Food)
             {
                 p_Food(chosen);

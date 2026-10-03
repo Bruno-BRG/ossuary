@@ -11,7 +11,7 @@ namespace Ossuary.Core
         void ApplySpell(SpellDef spell, Monster target, int tx, int ty)
         {
             var p = Player;
-            int lvl = p.Level;
+            int lvl = CasterLevel;
             int rank = SkillRanks.Rank(p.Skills[Skill.Magic]);
             switch (spell.Id)
             {
@@ -40,8 +40,8 @@ namespace Ossuary.Core
                     break;
 
                 // ---- Conjuration
-                case "familiar": SummonAllies(lvl < 6 ? "jackal" : "giant rat", 1, 80 + p.Skills[Skill.Magic]); break;
-                case "summon-beast": SummonAllies(lvl < 5 ? "cave spider" : lvl < 9 ? "jackal warden" : "ogre", 1, 60 + p.Skills[Skill.Magic]); break;
+                case "familiar": SummonAllies(lvl < 6 ? "jackal" : "giant rat", 1, 80 + p.Skills[Skill.Magic], Elem.Nature); break;
+                case "summon-beast": SummonAllies(lvl < 5 ? "cave spider" : lvl < 9 ? "jackal warden" : "ogre", 1, 60 + p.Skills[Skill.Magic], Elem.Nature); break;
                 case "create-oil":
                     for (int dy = -spell.Radius; dy <= spell.Radius; dy++)
                         for (int dx = -spell.Radius; dx <= spell.Radius; dx++)
@@ -122,7 +122,7 @@ namespace Ossuary.Core
                         }
                         break;
                     }
-                case "raise-skeleton": SummonAllies("skeleton", 1, 150); break;
+                case "raise-skeleton": SummonAllies("skeleton", 1, 150, Elem.Necrotic); break;
                 case "ossify":
                     p.SetBuff("ossify", 50 + p.Skills[Skill.Magic] / 2);
                     Say("Bone creeps over your skin. (AC +4)", MessageKind.Good);
@@ -136,7 +136,7 @@ namespace Ossuary.Core
                     Hurt(target, Rng.Roll(4 + lvl / 3, 6, rank), DamageType.Necrotic, "A marrow spike drives into");
                     AddCorruption(2, null);
                     break;
-                case "army-of-bones": SummonAllies("skeleton", 3, 120); break;
+                case "army-of-bones": SummonAllies("skeleton", 3, 120, Elem.Necrotic); break;
                 case "fear":
                     if (target.Def.Undead || target.Def.Mindless) Say($"The {target.TheName} knows no fear.", MessageKind.Info);
                     else if (Resists(target, 20)) Say($"The {target.TheName} stands firm.", MessageKind.Info);
@@ -182,6 +182,10 @@ namespace Ossuary.Core
                     p.SetBuff("revive", 300);
                     Say("Your soul is bound to this flesh. (the next death is undone)", MessageKind.Good);
                     break;
+
+                default:
+                    if (!ApplyRecipe(spell, target, tx, ty)) Say("The spell fades with no effect.", MessageKind.Info);
+                    break;
             }
         }
 
@@ -209,7 +213,8 @@ namespace Ossuary.Core
             if (type == DamageType.Holy && m.Def.Undead) dmg *= 2;
             int res = MonsterResist(m, type);
             if (res >= 100) { Say($"The {m.TheName} is unharmed.", MessageKind.Info); return 0; }
-            dmg = Math.Max(1, dmg + (spell ? 2 * Player.PerkRank("spell-power") : 0));
+            dmg = Math.Max(1, dmg + (spell ? 2 * Player.PerkRank("spell-power") + Player.Gear.SpellPower : 0));
+            if (m.VulnTurns > 0) dmg = dmg * 5 / 4;
             if (res != 0) dmg = Math.Max(1, dmg * (100 - res) / 100);
             if (m.WetTurns > 0 && (type == DamageType.Cold || type == DamageType.Lightning)) dmg = dmg * 3 / 2;
             m.HP -= dmg;
@@ -310,10 +315,12 @@ namespace Ossuary.Core
         {
             var struck = new HashSet<Monster>();
             var cur = first;
+            var points = new List<(int x, int y)> { (Player.X, Player.Y) };
             for (int jump = 0; jump < 4 && cur != null; jump++)
             {
                 struck.Add(cur);
                 int px = cur.X, py = cur.Y;
+                points.Add((px, py));
                 Hurt(cur, Rng.Roll(dice, 6, rank), DamageType.Lightning, jump == 0 ? "Lightning strikes" : "The lightning leaps to");
                 Monster next = null; int best = int.MaxValue;
                 foreach (var m in Monsters)
@@ -324,6 +331,7 @@ namespace Ossuary.Core
                 }
                 cur = next;
             }
+            Fx((tl, s) => FxLib.Chain(tl, s, points, Elem.Lightning));
         }
 
         // ------------------------------------------------------------ allies
@@ -344,7 +352,7 @@ namespace Ossuary.Core
         bool FreeCell(int x, int y) =>
             Map.InBounds(x, y) && Tiles.Walkable(Map.Get(x, y)) && MonsterAt(x, y) == null && !(x == Player.X && y == Player.Y);
 
-        void SummonAllies(string defName, int count, int turns)
+        void SummonAllies(string defName, int count, int turns, Elem look = Elem.Arcane)
         {
             int placed = 0;
             for (int ring = 1; ring <= 2 && placed < count; ring++)
@@ -358,6 +366,8 @@ namespace Ossuary.Core
                         MakeAlly(m, turns, "allied ");
                         Monsters.Add(m);
                         placed++;
+                        int fx = x, fy = y;
+                        Fx((tl, s) => FxLib.Summon(tl, s, fx, fy, look));
                     }
             Say(placed == 1 ? $"A {Bestiary.Find(defName).Name} answers your call." : $"{placed} {Bestiary.Find(defName).Name}s answer your call.", MessageKind.Good);
         }
@@ -446,6 +456,19 @@ namespace Ossuary.Core
         {
             if (m.Def.Trait != null) TraitTick(m);
             if (m.SlowTurns > 0 && --m.SlowTurns == 0) m.Speed = m.Def.Speed;
+            if (m.VulnTurns > 0) m.VulnTurns--;
+            if (m.DotTurns > 0)
+            {
+                m.DotTurns--;
+                m.HP -= Math.Max(1, m.DotDmg);
+                if (m.HP <= 0)
+                {
+                    Say($"The {m.TheName} succumbs to {(m.DotType == DamageType.Poison ? "the poison" : "its wounds")}.", MessageKind.Kill);
+                    _killType = m.DotType; _killSneak = false;
+                    KillMonster(m);
+                    return;
+                }
+            }
             if (m.FearTurns > 0) m.FearTurns--;
             if (m.Ally && m.SummonTurns > 0 && --m.SummonTurns == 0)
             {

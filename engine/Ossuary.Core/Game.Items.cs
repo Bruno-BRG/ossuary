@@ -2,14 +2,30 @@ using System;
 using System.Collections.Generic;
 using Ossuary.Core.Entities;
 using Ossuary.Core.Items;
+using Ossuary.Core.Magic;
 
 namespace Ossuary.Core
 {
     /// <summary>Item-use verbs. Split from the main Game partial so combat and movement stay readable.</summary>
     public sealed partial class Game
     {
+        /// <summary>A wand, scroll or potion backed by a spell: self spells go off at once, the rest ask where. Nothing is spent until the spell lands.</summary>
+        void UseSpellItem(Item it, MagicItemDef md)
+        {
+            var sp = Spells.Find(md.Spell);
+            if (sp == null || Map == null) return;
+            if (it.Def.Kind == ItemKind.Wand && it.RemainingCharges <= 0) { Say("The wand is spent."); return; }
+            if (Player.Asleep || Player.Stunned) { Say("You cannot focus."); return; }
+            if (sp.Target == SpellTarget.Self) { CastFromItem(it, md.Spell, Player.X, Player.Y, md.Power); return; }
+            UiState.CastSpell = md.Spell; UiState.CastItem = it; UiState.CastPower = md.Power;
+            PushTargeting(TargetingMode.Cast);
+            var near = NearestVisibleHostile(sp.Range);
+            if (near != null) { UiState.TargetX = near.X; UiState.TargetY = near.Y; }
+        }
+
         public void UseScroll(Item scroll)
         {
+            if (scroll.RemainingCharges > 0 && ItemSpells.TryGet(scroll.Def.Name, out var scrollSpell)) { UseSpellItem(scroll, scrollSpell); return; }
             if (scroll.RemainingCharges <= 0) { Say("The scroll is blank."); return; }
             scroll.ChargesUsed++;
             scroll.Identified = true;
@@ -131,6 +147,7 @@ namespace Ossuary.Core
         public void UseWand(Item wand)
         {
             if (wand.RemainingCharges <= 0) { Say("The wand is spent."); return; }
+            if (ItemSpells.TryGet(wand.Def.Name, out var wandSpell)) { UseSpellItem(wand, wandSpell); return; }
             wand.ChargesUsed++;
             wand.Identified = true;
             var p = Player;
@@ -218,7 +235,9 @@ namespace Ossuary.Core
                 int x = Rng.Range(1, Map.W - 1), y = Rng.Range(1, Map.H - 1);
                 if (!Map.Walkable(x, y)) continue;
                 if (MonsterAt(x, y) != null) continue;
+                int fromX = Player.X, fromY = Player.Y;
                 Player.X = x; Player.Y = y;
+                Fx((tl, s) => FxLib.Teleport(tl, s, fromX, fromY, x, y, Elem.Arcane));
                 UpdateFov();
                 return;
             }

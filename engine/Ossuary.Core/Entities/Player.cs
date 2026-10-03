@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Ossuary.Core.Items;
+using Ossuary.Core.Magic;
 
 namespace Ossuary.Core.Entities
 {
@@ -32,7 +33,35 @@ namespace Ossuary.Core.Entities
         /// <summary>Timed spell effects by id (ward, haste, ...): turns left.</summary>
         public readonly Dictionary<string, int> Buffs = new Dictionary<string, int>();
         public int BuffTurns(string id) => Buffs.TryGetValue(id, out int t) ? t : 0;
-        public void SetBuff(string id, int turns) { if (turns > 0) Buffs[id] = turns; else Buffs.Remove(id); }
+        public void SetBuff(string id, int turns)
+        {
+            if (turns > 0) Buffs[id] = turns; else Buffs.Remove(id);
+            if (SpellBuffs.Find(id) != null) RefreshGear();
+        }
+
+        /// <summary>What the rings and the amulet add up to.</summary>
+        public ItemMods AccessoryMods
+        {
+            get
+            {
+                var m = new ItemMods();
+                for (int i = 0; i < Rings.Length; i++) if (Rings[i] != null) m.Add(Rings[i].Mods);
+                if (Amulet != null) m.Add(Amulet.Mods);
+                return m;
+            }
+        }
+
+        /// <summary>What the spells on you add up to (the same numbers an item would give), and the part of it that is not stats.</summary>
+        public ItemMods BuffMods
+        {
+            get
+            {
+                var m = new ItemMods();
+                if (Buffs.Count == 0) return m;
+                foreach (var kv in Buffs) { var b = SpellBuffs.Find(kv.Key); if (b != null) m.Add(b.Mods); }
+                return m;
+            }
+        }
         public int WardTurns { get => BuffTurns("ward"); set => SetBuff("ward", value); }
 
         /// <summary>Satiety pool, NetHack style. Drains one per turn; food refills it.</summary>
@@ -360,6 +389,8 @@ namespace Ossuary.Core.Entities
                 foreach (var it in WornPieces()) g.Add(it.Mods);
                 foreach (string id in Mutated) { var mu = MutationTable.Find(id); if (mu != null) g.Add(mu.Mods); }
                 g.Add(ArtifactSets.Bonus(this));
+                g.Add(BuffMods);
+                g.Add(AccessoryMods);
                 return g;
             }
         }
@@ -393,6 +424,8 @@ namespace Ossuary.Core.Entities
             if (WornArmor != null) ac -= PerkRank("aura");
             if (BuffTurns("stone-skin") > 0) ac -= 6;
             if (BuffTurns("ossify") > 0) ac -= 4;
+            if (Buffs.Count > 0) ac -= BuffMods.Ac;
+            ac -= AccessoryMods.Ac;
             int dexAdj = Dex >= 10 ? (Dex - 10) / 2 : -((10 - Dex) / 2);
             ac -= dexAdj;
             if (WornArmor != null && (WornArmor.Def.Flags & ItemFlags.Cursed) != 0) ac += 2;

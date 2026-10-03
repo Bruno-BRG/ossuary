@@ -204,6 +204,7 @@ namespace Ossuary.Desktop
         public void Key(string code, string key = "", bool shift = false, bool ctrl = false, bool bindingsApplied = false)
         {
             _walkCalm = false;
+            Game.FxEnabled = !_replaying;
             var ui = Game.UiState;
             ToTitle = false;
             if (Intro) { if (!_replaying) Started = true; Intro = false; return; }
@@ -313,7 +314,7 @@ namespace Ossuary.Desktop
             {
                 if (Input.Step(code, out int dx, out int dy)) Game.NudgeTarget(dx, dy);
                 else if (Accept(code)) Game.ResolveTargeting(ui.TargetX, ui.TargetY);
-                else if (code == "Escape") ui.Targeting = TargetingMode.None;
+                else if (code == "Escape") { ui.Targeting = TargetingMode.None; ui.CastItem = null; }
                 return;
             }
             if (ui.Active == Panel.Shop)
@@ -383,14 +384,32 @@ namespace Ossuary.Desktop
         void SpellsKey(string code)
         {
             var ui = Game.UiState;
-            var known = Game.Player.Spells;
-            if (known.Count == 0 || code == "Escape" || code == "KeyZ") { ui.Active = Panel.None; return; }
+            if (Game.CastableSpells().Count == 0 || code == "Escape" || code == "KeyZ") { ui.Active = Panel.None; return; }
+            // Left and right (or Tab) change the school shown; up and down move; a letter or Enter casts.
+            if (code == "ArrowLeft" || code == "ArrowRight" || code == "Tab")
+            {
+                int step = code == "ArrowLeft" ? -1 : 1;
+                int s = ui.SpellSchool;
+                for (int tries = 0; tries < 10; tries++)
+                {
+                    s = s + step; if (s > 7) s = -1; if (s < -1) s = 7;
+                    if (s < 0 || Game.SpellCount(s) > 0) break;
+                }
+                ui.SpellSchool = s; ui.SpellIndex = 0;
+                return;
+            }
+            var known = Game.SpellsShown();
+            if (known.Count == 0) { ui.SpellSchool = -1; ui.SpellIndex = 0; return; }
             ui.SpellIndex = Math.Clamp(ui.SpellIndex, 0, known.Count - 1);
             int pick = -1;
             if (code.Length == 4 && code.StartsWith("Key") && code[3] >= 'A' && code[3] <= 'Z') pick = code[3] - 'A';
+            if (code == "PageDown") { ui.SpellIndex = Math.Min(known.Count - 1, ui.SpellIndex + 8); return; }
+            if (code == "PageUp") { ui.SpellIndex = Math.Max(0, ui.SpellIndex - 8); return; }
+            if (code == "Home") { ui.SpellIndex = 0; return; }
+            if (code == "End") { ui.SpellIndex = known.Count - 1; return; }
             if (Input.Step(code, out int dx, out int dy) && pick < 0)
             {
-                if (code.StartsWith("Arrow") || code.StartsWith("Numpad")) ui.SpellIndex = Wrap(ui.SpellIndex + dx + dy, known.Count);
+                if (code == "ArrowUp" || code == "ArrowDown" || code.StartsWith("Numpad")) ui.SpellIndex = Wrap(ui.SpellIndex + dx + dy, known.Count);
                 return;
             }
             if (pick >= 0 && pick < known.Count) ui.SpellIndex = pick;
@@ -674,10 +693,39 @@ namespace Ossuary.Desktop
                 Started = Started, ToTitle = ToTitle, HasSave = HasSave, SaveInfo = SaveInfo,
                 Lang = Loc.Code(s.Language), Intro = Intro ? Story.Intro() : null,
                 Sounds = _replaying || AtTitle || Intro ? new string[0] : Game.DrainCues(),
+                Fx = BuildFx(screen.Width), FxMs = FxTimeline.StepMs,
                 Anim = AtTitle || Intro || Game.UiState.Active != Panel.None || Game.PendingChoice.Active || Game.Mode == GameMode.GameOver || Game.Mode == GameMode.Won ? new int[0] : screen.ShimmerCells(),
             };
         }
         static int Pack(Rgb c) => (c.R << 16) | (c.G << 8) | c.B;
+
+        /// <summary>
+        /// The animation recorded since the last frame, placed on the screen grid: one array per step of [cell, glyph, fg, bg] quadruples
+        /// (bg is -1 to keep the cell's own). Dropped while a panel covers the map, in replays and at the title.
+        /// </summary>
+        int[][] BuildFx(int cols)
+        {
+            var steps = Game.DrainFx();
+            var ui = Hud.Ui;
+            if (steps.Count == 0 || _replaying || AtTitle || Intro || Game.UiState.Active != Panel.None || Game.PendingChoice.Active || ui.MapViewW <= 0) return new int[0][];
+            var theme = Theme.Current;
+            int sq = ui.MapSq;
+            var result = new int[steps.Count][];
+            for (int i = 0; i < steps.Count; i++)
+            {
+                var q = new List<int>();
+                foreach (var c in steps[i])
+                {
+                    int sx = ui.MapOx + (c.X - ui.CameraX) * sq, sy = ui.MapOy + (c.Y - ui.CameraY);
+                    if (sx < ui.MapOx || sy < ui.MapOy || sx + sq > ui.MapOx + ui.MapViewW || sy >= ui.MapOy + ui.MapViewH) continue;
+                    int fg = Pack(theme.Remap(c.Fg, false)), bg = c.HasBg ? Pack(theme.Remap(c.Bg, true)) : -1;
+                    q.Add(sy * cols + sx); q.Add(c.Glyph); q.Add(fg); q.Add(bg);
+                    if (sq == 2) { q.Add(sy * cols + sx + 1); q.Add("─░▒".IndexOf(c.Glyph) >= 0 ? c.Glyph : ' '); q.Add(fg); q.Add(bg); }
+                }
+                result[i] = q.ToArray();
+            }
+            return result;
+        }
     }
 
     public sealed class Frame
@@ -720,5 +768,8 @@ namespace Ossuary.Desktop
         public string[] Sounds { get; set; }
         /// <summary>Cells (row * Cols + col) holding moving water, for the front end to shimmer between frames.</summary>
         public int[] Anim { get; set; }
+        /// <summary>A spell or ability animation to play over this frame: steps of [cell, glyph, fg, bg] quadruples, FxMs apart.</summary>
+        public int[][] Fx { get; set; }
+        public int FxMs { get; set; }
     }
 }

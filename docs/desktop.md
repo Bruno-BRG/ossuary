@@ -88,5 +88,6 @@ Após empacotar, `desktop.ps1 build` inicia o executável com `--smoke-test`, em
 Operações: `new`, `load`, `key`, `resize`, `display`, `frame`. `load` reconstrói a run
 salva (semente + log de teclas) e devolve o frame. O frame traz `started` (há run em
 andamento), `hasSave`, `saveInfo`, `toTitle` (um frame só, após "Main menu") e os volumes
-`master`/`music`/`effects`. O Rust só repassa; a lógica de save, binds e menu vive no
+`master`/`music`/`effects`, mais `sounds` (cues do turno), `anim` (células de água) e `fx`/`fxMs` (animação de magia: um array por passo de
+quadruplas [célula, glifo, fg, bg], ver `magia-e-itens.md`). O Rust só repassa; a lógica de save, binds e menu vive no
 Core e em `engine/Ossuary.Desktop` (`Session`, `SaveStore`).

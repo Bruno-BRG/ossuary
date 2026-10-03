@@ -12,6 +12,8 @@ export interface Frame extends Display {
   intro: string[][] | null;
   sounds?: string[];
   anim?: number[];
+  fx?: number[][];
+  fxMs?: number;
 }
 export interface Request {
   op: 'new' | 'load' | 'title' | 'play' | 'key' | 'resize' | 'display' | 'frame';

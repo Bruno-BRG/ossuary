@@ -15,6 +15,10 @@ namespace Ossuary.Core.Items
         public int ToHit, Dmg, Ac, Evasion;
         public int Str, Dex, Con, Int, Wis;
         public int Mp, Hp, Vigor;
+        /// <summary>Spell damage added to every spell, percent off failure (positive = fewer fizzles), and squares of Vision taken off what monsters notice.</summary>
+        public int SpellPower, SpellFocus, Stealth;
+        /// <summary>Resistance to holy light (percent); the rest of the elements are above.</summary>
+        public int ResHoly;
         public int ResFire, ResCold, ResLightning, ResPoison, ResNecrotic;
         /// <summary>One extra die of this type and size added to every melee hit (0 = none).</summary>
         public DamageType ExtraType;
@@ -27,6 +31,7 @@ namespace Ossuary.Core.Items
             ToHit += o.ToHit; Dmg += o.Dmg; Ac += o.Ac; Evasion += o.Evasion;
             Str += o.Str; Dex += o.Dex; Con += o.Con; Int += o.Int; Wis += o.Wis;
             Mp += o.Mp; Hp += o.Hp; Vigor += o.Vigor;
+            SpellPower += o.SpellPower; SpellFocus += o.SpellFocus; Stealth += o.Stealth; ResHoly += o.ResHoly;
             ResFire += o.ResFire; ResCold += o.ResCold; ResLightning += o.ResLightning; ResPoison += o.ResPoison; ResNecrotic += o.ResNecrotic;
             if (o.ExtraSides > ExtraSides) { ExtraSides = o.ExtraSides; ExtraType = o.ExtraType; }
             LifeSteal += o.LifeSteal;
@@ -41,6 +46,7 @@ namespace Ossuary.Core.Items
                 case DamageType.Lightning: return ResLightning;
                 case DamageType.Poison: return ResPoison;
                 case DamageType.Necrotic: return ResNecrotic;
+                case DamageType.Holy: return ResHoly;
                 default: return 0;
             }
         }
@@ -53,11 +59,13 @@ namespace Ossuary.Core.Items
             A("to hit", ToHit); A("damage", Dmg); A("AC", Ac); A("evasion", Evasion);
             A("Str", Str); A("Dex", Dex); A("Con", Con); A("Int", Int); A("Wis", Wis);
             A("Mp", Mp); A("HP", Hp); A("Vigor", Vigor);
+            A("spell power", SpellPower); A("spell focus", SpellFocus); A("stealth", Stealth);
             if (ResFire != 0) l.Add($"fire {ResFire}%");
             if (ResCold != 0) l.Add($"cold {ResCold}%");
             if (ResLightning != 0) l.Add($"lightning {ResLightning}%");
             if (ResPoison != 0) l.Add($"poison {ResPoison}%");
             if (ResNecrotic != 0) l.Add($"necrotic {ResNecrotic}%");
+            if (ResHoly != 0) l.Add($"holy {ResHoly}%");
             if (ExtraSides > 0) l.Add($"+1d{ExtraSides} {ExtraType.ToString().ToLowerInvariant()}");
             if (LifeSteal != 0) l.Add($"{LifeSteal}% life steal");
             return l;
@@ -102,6 +110,43 @@ namespace Ossuary.Core.Items
             A("of-vigor", "of vigor", false, 8, new ItemMods { Vigor = 8 }),
             A("of-shadows", "of shadows", false, 7, new ItemMods { Evasion = 2 }),
             W("of-ruin", "of ruin", false, 6, new ItemMods { Dmg = 3, ToHit = -1 }),
+
+            // More weapon prefixes: other elements, and weapons for casters.
+            W("shocking", "shocking", true, 5, new ItemMods { ExtraType = DamageType.Lightning, ExtraSides = 4 }),
+            W("radiant", "radiant", true, 4, new ItemMods { ExtraType = DamageType.Holy, ExtraSides = 4 }),
+            W("rotting", "rotting", true, 4, new ItemMods { ExtraType = DamageType.Necrotic, ExtraSides = 4 }),
+            W("thundering", "thundering", true, 3, new ItemMods { Dmg = 1, ExtraType = DamageType.Lightning, ExtraSides = 3 }),
+            W("searing", "searing", true, 2, new ItemMods { ExtraType = DamageType.Fire, ExtraSides = 6 }),
+            W("holy", "holy", true, 2, new ItemMods { ExtraType = DamageType.Holy, ExtraSides = 6 }),
+            W("draining", "draining", true, 3, new ItemMods { LifeSteal = 12, ExtraType = DamageType.Necrotic, ExtraSides = 3 }),
+            W("masterwork", "masterwork", true, 4, new ItemMods { ToHit = 2, Dmg = 1 }),
+            W("razor-edged", "razor-edged", true, 6, new ItemMods { ToHit = 1, Dmg = 1 }),
+            W("arcane", "arcane", true, 5, new ItemMods { SpellPower = 2, Mp = 3 }),
+            // More armour prefixes.
+            A("mage-woven", "mage-woven", true, 6, new ItemMods { Mp = 5, SpellFocus = 5 }),
+            A("shadowed", "shadowed", true, 6, new ItemMods { Stealth = 1, Evasion = 1 }),
+            A("grave-warded", "grave-warded", true, 6, new ItemMods { ResNecrotic = 30 }),
+            A("mithril-lined", "mithril-lined", true, 3, new ItemMods { Ac = 2 }),
+            A("rune-etched", "rune-etched", true, 5, new ItemMods { SpellPower = 1, SpellFocus = 5 }),
+            A("troll-hide", "troll-hide", true, 5, new ItemMods { Hp = 8 }),
+            A("dragon-warded", "dragon-warded", true, 3, new ItemMods { ResFire = 20, ResCold = 20 }),
+            A("fortified", "fortified", true, 5, new ItemMods { Ac = 2, Evasion = -1 }),
+            // More suffixes.
+            B("of-the-wolf", "of the wolf", false, 8, new ItemMods { Str = 1, Dex = 1 }),
+            B("of-the-lion", "of the lion", false, 5, new ItemMods { Str = 2, Hp = 6 }),
+            B("of-the-sphinx", "of the sphinx", false, 6, new ItemMods { Int = 1, Wis = 1, Mp = 4 }),
+            B("of-stealth", "of stealth", false, 7, new ItemMods { Stealth = 2 }),
+            B("of-brilliance", "of brilliance", false, 6, new ItemMods { SpellFocus = 12 }),
+            B("of-the-archmage", "of the archmage", false, 2, new ItemMods { SpellPower = 2, Mp = 6 }),
+            A("of-fire", "of fire", false, 6, new ItemMods { ResFire = 35 }),
+            A("of-frost", "of frost", false, 6, new ItemMods { ResCold = 35 }),
+            A("of-storms", "of storms", false, 5, new ItemMods { ResLightning = 35 }),
+            A("of-the-grave", "of the grave", false, 5, new ItemMods { ResNecrotic = 40 }),
+            A("of-vitality", "of vitality", false, 7, new ItemMods { Hp = 14 }),
+            W("of-precision", "of precision", false, 7, new ItemMods { ToHit = 2 }),
+            W("of-might", "of might", false, 7, new ItemMods { Dmg = 2 }),
+            W("of-the-hunter", "of the hunter", false, 5, new ItemMods { ToHit = 1, Stealth = 1 }),
+            W("of-slaying", "of slaying", false, 2, new ItemMods { ToHit = 2, Dmg = 3 }),
         };
 
         public static AffixDef Find(string id)
@@ -136,6 +181,10 @@ namespace Ossuary.Core.Items
         public string Set;
         /// <summary>A relic: strong, but every 25 turns it is carried it presses a point of corruption into you.</summary>
         public bool Corrupts;
+        /// <summary>Spells the item lets you cast while you wear or wield it (ids from <see cref="Magic.Spells"/>).</summary>
+        public string[] Grants;
+        /// <summary>Percent chance it is on its level (default: always). Several uniques may share a level; the first that rolls is placed.</summary>
+        public int Chance = 100;
     }
 
     /// <summary>A named set of artifacts. Wearing two pieces grants the first bonus, three the second as well.</summary>
@@ -151,6 +200,10 @@ namespace Ossuary.Core.Items
         {
             new ArtifactSetDef { Id = "drowned-court", Name = "The Drowned Court", Two = new ItemMods { ResCold = 20, Wis = 1 }, Three = new ItemMods { Mp = 10, ResLightning = 30 } },
             new ArtifactSetDef { Id = "ashen-regalia", Name = "The Ashen Regalia", Two = new ItemMods { ResFire = 20, Ac = 1 }, Three = new ItemMods { Dmg = 2, ResFire = 20 } },
+            new ArtifactSetDef { Id = "lich-queen", Name = "The Lich-Queen's Panoply", Two = new ItemMods { SpellPower = 2, ResNecrotic = 30 }, Three = new ItemMods { Mp = 20, Int = 2, SpellPower = 1 } },
+            new ArtifactSetDef { Id = "stormcaller", Name = "The Stormcaller's Regalia", Two = new ItemMods { ResLightning = 40, SpellPower = 1 }, Three = new ItemMods { Mp = 15, SpellPower = 2 } },
+            new ArtifactSetDef { Id = "verdant-court", Name = "The Verdant Court", Two = new ItemMods { Wis = 1, Stealth = 1, ResPoison = 30 }, Three = new ItemMods { Hp = 20, Mp = 10 } },
+            new ArtifactSetDef { Id = "midnight-cabal", Name = "The Midnight Cabal", Two = new ItemMods { Stealth = 2, Evasion = 2 }, Three = new ItemMods { Dex = 2, ExtraType = DamageType.Necrotic, ExtraSides = 4 } },
         };
 
         public static ArtifactSetDef Find(string id)
@@ -166,6 +219,8 @@ namespace Ossuary.Core.Items
             int n = 0;
             if (p.Wielded != null && Artifacts.Find(p.Wielded.ArtifactId)?.Set == setId) n++;
             foreach (var piece in p.WornPieces()) if (Artifacts.Find(piece.ArtifactId)?.Set == setId) n++;
+            for (int i = 0; i < p.Rings.Length; i++) if (p.Rings[i] != null && Artifacts.Find(p.Rings[i].ArtifactId)?.Set == setId) n++;
+            if (p.Amulet != null && Artifacts.Find(p.Amulet.ArtifactId)?.Set == setId) n++;
             return n;
         }
 
@@ -183,9 +238,9 @@ namespace Ossuary.Core.Items
         }
     }
 
-    public static class Artifacts
+    public static partial class Artifacts
     {
-        public static readonly ArtifactDef[] All = {
+        static readonly ArtifactDef[] Original = {
             new ArtifactDef { Id = "veil-first-cell", Name = "Veil of the First Cell", Base = "cloak", Branch = "The Dungeons", Depth = 8, Enchant = 2,
                 Lore = "Woven by the first prisoner, from the shirts of the ones who never came back.", Mods = new ItemMods { Evasion = 3, Dex = 1 } },
             new ArtifactDef { Id = "dwarfdeep-cleaver", Name = "Dwarfdeep Cleaver", Base = "battle axe", Branch = "The Mines of Dwarfdeep", Depth = 6, Enchant = 3,
@@ -222,23 +277,56 @@ namespace Ossuary.Core.Items
                 Lore = "The Rat King's thoughts still crawl in the lining. They are clever. They are hungry.", Mods = new ItemMods { Int = 3, Mp = 10, Evasion = 1 } },
         };
 
+        static ArtifactDef[] _all;
+        static Dictionary<string, ArtifactDef> _byId;
+
+        /// <summary>Every unique item: the first thirteen, and the many that came after (Artifacts.More.cs).</summary>
+        public static ArtifactDef[] All
+        {
+            get
+            {
+                if (_all == null)
+                {
+                    var l = new List<ArtifactDef>(Original); l.AddRange(More());
+                    var d = new Dictionary<string, ArtifactDef>();
+                    foreach (var a in l) d[a.Id] = a;
+                    _all = l.ToArray(); _byId = d;
+                }
+                return _all;
+            }
+        }
+
         public static ArtifactDef Find(string id)
         {
             if (string.IsNullOrEmpty(id)) return null;
-            for (int i = 0; i < All.Length; i++) if (All[i].Id == id) return All[i];
+            var _ = All;
+            return _byId.TryGetValue(id, out var a) ? a : null;
+        }
+
+        /// <summary>The first unique placed on a level by rule (always-there ones only); kept for callers that do not roll.</summary>
+        public static ArtifactDef ForLevel(string branch, int depth)
+        {
+            for (int i = 0; i < All.Length; i++) if (All[i].Branch == branch && All[i].Depth == depth && All[i].Chance >= 100) return All[i];
             return null;
         }
 
-        public static ArtifactDef ForLevel(string branch, int depth)
+        /// <summary>The uniques this level holds: each one that belongs here rolls its own chance (the first thirteen always succeed).</summary>
+        public static List<ArtifactDef> RollForLevel(string branch, int depth, Rng rng)
         {
-            for (int i = 0; i < All.Length; i++) if (All[i].Branch == branch && All[i].Depth == depth) return All[i];
-            return null;
+            var here = new List<ArtifactDef>();
+            for (int i = 0; i < All.Length; i++)
+            {
+                var a = All[i];
+                if (a.Branch != branch || a.Depth != depth) continue;
+                if (a.Chance >= 100 || rng.Chance(a.Chance)) here.Add(a);
+            }
+            return here;
         }
 
         public static Item Create(ArtifactDef def, Rng rng, long uid)
         {
             ItemDef baseDef = default; bool found = false;
-            foreach (var list in new[] { Catalogue.Weapons, Catalogue.Armor, Catalogue.Helms, Catalogue.Gloves, Catalogue.Boots, Catalogue.Cloaks, Catalogue.Shields })
+            foreach (var list in new[] { Catalogue.Weapons, Catalogue.Armor, Catalogue.Helms, Catalogue.Gloves, Catalogue.Boots, Catalogue.Cloaks, Catalogue.Shields, Catalogue.Rings, Catalogue.Amulets })
             {
                 foreach (var d in list) if (d.Name == def.Base) { baseDef = d; found = true; break; }
                 if (found) break;

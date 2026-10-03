@@ -120,6 +120,8 @@ namespace Ossuary.Core
             if (--what.Quantity <= 0) Player.Inventory.Remove(what);
             MakeNoise(2);
             Say("The molotov bursts into flame!", MessageKind.Combat);
+            int fromX = Player.X, fromY = Player.Y;
+            Fx((tl, s) => { int land = FxLib.Bolt(tl, s, fromX, fromY, x, y, Elem.Fire, 'o', 2); return FxLib.Burst(tl, land, x, y, 1, Elem.Fire); });
             foreach (var d in new[] { (0, 0), (1, 0), (-1, 0), (0, 1), (0, -1) })
             {
                 int cx = x + d.Item1, cy = y + d.Item2;

@@ -4,16 +4,22 @@ using Ossuary.Core.Entities;
 
 namespace Ossuary.Core.Magic
 {
-    public enum School { Evocation, Conjuration, Alteration, Illusion, Necromancy, Sacred }
+    public enum School { Evocation, Conjuration, Alteration, Illusion, Necromancy, Sacred, Nature, Shadow }
 
     /// <summary>
     /// What a spell aims at. Self: no cursor. Monster: a hostile creature. Cell: an empty floor
     /// cell. Area: any visible cell (the effect spreads from it). Line: a direction; the effect
-    /// runs from you through the cell.
+    /// runs from you through the cell. Cone: a direction; the effect fans out from you.
     /// </summary>
-    public enum SpellTarget { Self, Monster, Cell, Area, Line }
+    public enum SpellTarget { Self, Monster, Cell, Area, Line, Cone }
 
-    /// <summary>A spell as data. Effects live in Game.Magic.cs / Game.Magic.Effects.cs, keyed by <see cref="Id"/>.</summary>
+    /// <summary>Who a recipe spell hits: the target, everything around a cell, a piercing line, a cone, everything around you, a chain of hops, or a few random targets in view.</summary>
+    public enum Shape { None, Single, Ball, Line, Cone, Nova, Chain, Scatter }
+
+    /// <summary>What a recipe spell does to the creatures it hits besides damage.</summary>
+    public enum Rider { None, Burn, Slow, Fear, Sleep, Confuse, Blind, Stun, Root, Poison, Bleed, Weaken, Charm }
+
+    /// <summary>A spell as data. Effects live in Game.Magic.cs / Game.Magic.Effects.cs / Game.Magic.Recipes.cs, keyed by <see cref="Id"/>.</summary>
     public sealed class SpellDef
     {
         public string Id, Name, Blurb;
@@ -22,92 +28,110 @@ namespace Ossuary.Core.Magic
         public int Cost;           // Mp
         public SpellTarget Target;
         public int Range;          // cells, for every target but Self
-        public int Radius;         // Area spells
+        public int Radius;         // Area/Cone/Nova size
         public int Summons;        // creatures called; the cast is refused without room for them
+
+        // ---- Recipe: what the spell does, as numbers. Spells with a hand-written effect leave these empty.
+        public DamageType Type = DamageType.Physical;
+        public int Dice, Sides = 6, Div = 3, Flat;      // damage: (Dice + level / Div) d Sides + Flat (+ Magic rank)
+        public string Verb;                             // "Fire engulfs"
+        public Rider Rider; public int RiderPct = 100, RiderTurns = 6;
+        public int HealDice, HealSides, HealFlat;
+        public string Buff; public int BuffTurns;
+        public string SummonDef; public int SummonTurns = 80;
+        public SurfaceKind Surface; public int SurfaceTurns;
+        public bool HasSurface;
+        public int Push;                                // cells knocked back (negative: pulled in)
+        public int DrainPct;                            // percent of the damage dealt that you heal
+        public int Hops;                                // chain length
+        public int Hits;                                // scatter: how many strikes
+        public int Corrupt;                             // corruption the cast costs
+        public string Special;                          // a hand-coded effect, by name (Game.Magic.Recipes.cs)
+
+        // ---- Look: how the cast is animated (see Fx.cs). HitFx is the strike on each victim for Scatter.
+        public FxKind Fx = FxKind.None;
+        public Elem Elem = Elem.Arcane;
+        public char Glyph = '*';
+        public FxKind HitFx = FxKind.None;
+
+        public Shape Shape
+        {
+            get
+            {
+                if (Hops > 0) return Shape.Chain;
+                if (Hits > 0) return Shape.Scatter;
+                switch (Target)
+                {
+                    case SpellTarget.Monster: return Shape.Single;
+                    case SpellTarget.Area: return Shape.Ball;
+                    case SpellTarget.Line: return Shape.Line;
+                    case SpellTarget.Cone: return Shape.Cone;
+                    case SpellTarget.Self: return Radius > 0 && (Dice > 0 || Rider != Rider.None || Push != 0) ? Shape.Nova : Shape.None;
+                }
+                return Shape.None;
+            }
+        }
+
+        public SpellDef Dmg(DamageType type, int dice, int sides, int div = 3, int flat = 0, string verb = null) { Type = type; Dice = dice; Sides = sides; Div = div; Flat = flat; Verb = verb; return this; }
+        public SpellDef Ride(Rider r, int pct = 100, int turns = 6) { Rider = r; RiderPct = pct; RiderTurns = turns; return this; }
+        public SpellDef Heal(int dice, int sides, int flat = 0) { HealDice = dice; HealSides = sides; HealFlat = flat; return this; }
+        public SpellDef Aura(string buff, int turns) { Buff = buff; BuffTurns = turns; return this; }
+        public SpellDef Call(string def, int count, int turns) { SummonDef = def; Summons = count; SummonTurns = turns; return this; }
+        public SpellDef Surf(SurfaceKind kind, int turns = 0) { Surface = kind; SurfaceTurns = turns; HasSurface = true; return this; }
+        public SpellDef Shove(int cells) { Push = cells; return this; }
+        public SpellDef Drain(int pct) { DrainPct = pct; return this; }
+        public SpellDef Chain(int hops) { Hops = hops; return this; }
+        public SpellDef Scatter(int hits, FxKind hitFx) { Hits = hits; HitFx = hitFx; return this; }
+        public SpellDef Taint(int n) { Corrupt = n; return this; }
+        public SpellDef Spec(string id) { Special = id; return this; }
+        public SpellDef Look(FxKind fx, Elem elem, char glyph = '*') { Fx = fx; Elem = elem; Glyph = glyph; return this; }
+        public SpellDef Say(string verb) { Verb = verb; return this; }
     }
 
-    public static class Spells
+    public static partial class Spells
     {
         static SpellDef S(string id, string name, int level, School school, int cost, SpellTarget target, int range, string blurb, int radius = 0, int summons = 0)
             => new SpellDef { Id = id, Name = name, Level = level, School = school, Cost = cost, Target = target, Range = range, Blurb = blurb, Radius = radius, Summons = summons };
 
-        public static readonly SpellDef[] All = {
-            // ---- Evocation
-            S("magic-missile", "Magic Missile", 1, School.Evocation, 2, SpellTarget.Monster, 8, "Unerring bolts of force. Dice grow with level."),
-            S("shocking-grasp", "Shocking Grasp", 1, School.Evocation, 2, SpellTarget.Monster, 1, "Lightning through your touch. Adjacent only; hits hard."),
-            S("frost-ray", "Frost Ray", 2, School.Evocation, 4, SpellTarget.Monster, 8, "A beam of cold. Heavy damage, needs a clear line."),
-            S("fireball", "Fireball", 3, School.Evocation, 7, SpellTarget.Area, 8, "Bursts where you aim, burning everything within 2 cells.", 2),
-            S("lightning-bolt", "Lightning Bolt", 3, School.Evocation, 6, SpellTarget.Line, 8, "A bolt that pierces every creature along its line."),
-            S("chain-lightning", "Chain Lightning", 4, School.Evocation, 10, SpellTarget.Monster, 8, "Strikes a target, then leaps to up to three more nearby."),
-            S("wall-of-fire", "Wall of Fire", 4, School.Evocation, 9, SpellTarget.Area, 7, "A burning cross on the floor. Spreads through brush and oil; creatures in it catch fire.", 1),
-            S("meteor", "Meteor", 5, School.Evocation, 15, SpellTarget.Area, 8, "A burning rock from nowhere. Devastates 3 cells around.", 3),
-            S("ice-lance", "Ice Lance", 2, School.Evocation, 4, SpellTarget.Monster, 8, "A spear of ice. Chills the target and freezes any water it stands in."),
-            S("steam-burst", "Steam Burst", 3, School.Evocation, 6, SpellTarget.Area, 7, "Boils water into scalding steam: heavy damage to anything wet within 2 cells, and the water is gone. Dry ground only hisses.", 2),
-            // ---- Conjuration
-            S("familiar", "Familiar", 1, School.Conjuration, 3, SpellTarget.Self, 0, "Calls a small beast to fight for you for a time.", 0, 1),
-            S("summon-beast", "Summon Beast", 2, School.Conjuration, 5, SpellTarget.Self, 0, "Calls a stronger beast as your level grows.", 0, 1),
-            S("create-water", "Create Water", 2, School.Conjuration, 4, SpellTarget.Area, 7, "Floods the floor around a spot. The wet burn less and conduct lightning; frost turns it to ice.", 2),
-            S("create-oil", "Create Oil", 1, School.Conjuration, 3, SpellTarget.Area, 6, "Slicks the floor around a spot with oil. It burns long and slides the unwary. Mind your torches.", 1),
-            S("blink", "Blink", 3, School.Conjuration, 5, SpellTarget.Cell, 6, "Step through space to a spot you can see."),
-            S("teleport", "Teleport", 4, School.Conjuration, 9, SpellTarget.Self, 0, "Throws you to a random place on this level."),
-            // ---- Alteration
-            S("ward", "Ward", 1, School.Alteration, 2, SpellTarget.Self, 0, "A shimmering shield: AC +3 for a while."),
-            S("haste", "Haste", 3, School.Alteration, 6, SpellTarget.Self, 0, "You act twice as often as everything else, briefly."),
-            S("slow", "Slow", 3, School.Alteration, 5, SpellTarget.Monster, 6, "Halves a creature's speed for a time. Strong ones resist."),
-            S("clairvoyance", "Clairvoyance", 3, School.Alteration, 7, SpellTarget.Self, 0, "The whole level unfolds in your mind."),
-            S("stone-skin", "Stone Skin", 4, School.Alteration, 9, SpellTarget.Self, 0, "Your skin hardens: AC +6 for a long while."),
-            // ---- Illusion
-            S("sleep", "Sleep", 2, School.Illusion, 4, SpellTarget.Monster, 6, "Puts a living foe to sleep. Strong ones resist; damage wakes it."),
-            S("confuse", "Confuse", 2, School.Illusion, 4, SpellTarget.Monster, 6, "The target staggers about at random."),
-            S("invisibility", "Invisibility", 2, School.Illusion, 5, SpellTarget.Self, 0, "Foes lose track of you and strike at you worse."),
-            S("charm", "Charm Monster", 4, School.Illusion, 10, SpellTarget.Monster, 6, "A living foe fights for you for a while. Hard on strong ones."),
-            // ---- Necromancy
-            S("drain-life", "Drain Life", 3, School.Necromancy, 5, SpellTarget.Monster, 6, "Steals life: damages the target, heals you by half. Not the dead."),
-            S("raise-skeleton", "Raise Skeleton", 3, School.Necromancy, 6, SpellTarget.Self, 0, "A skeleton claws out of the floor to serve you.", 0, 1),
-            S("ossify", "Ossify", 3, School.Necromancy, 5, SpellTarget.Self, 0, "Bone creeps over your skin: AC +4 for a while. The Ossuary takes a little of you for it."),
-            S("reshape-flesh", "Reshape Flesh", 3, School.Necromancy, 8, SpellTarget.Self, 0, "Asks the Ossuary for a gift. You get a mutation, and it gets a share of you."),
-            S("marrow-bolt", "Marrow Bolt", 4, School.Necromancy, 7, SpellTarget.Monster, 7, "A spike of grave-cold marrow. Hits hard; the Ossuary takes a little of you each time. Not the dead."),
-            S("fear", "Fear", 4, School.Necromancy, 8, SpellTarget.Monster, 6, "The target flees in terror. Mindless things do not fear."),
-            S("finger-of-death", "Finger of Death", 5, School.Necromancy, 15, SpellTarget.Monster, 6, "Unmakes the living with a point of the hand."),
-            S("army-of-bones", "Army of Bones", 5, School.Necromancy, 14, SpellTarget.Self, 0, "Three skeletons rise to guard you.", 0, 3),
-            // ---- Sacred
-            S("cure-wounds", "Cure Wounds", 1, School.Sacred, 3, SpellTarget.Self, 0, "Mends your flesh: 2d6 plus Wisdom and level."),
-            S("bless", "Bless", 1, School.Sacred, 3, SpellTarget.Self, 0, "A steadier hand: +2 to hit for a long while."),
-            S("smite", "Smite", 2, School.Sacred, 4, SpellTarget.Monster, 7, "Radiant wrath. The undead take double."),
-            S("cleanse", "Cleanse", 2, School.Sacred, 3, SpellTarget.Self, 0, "Burns away poison, confusion, blindness and visions."),
-            S("turn-undead", "Turn Undead", 2, School.Sacred, 5, SpellTarget.Self, 0, "Every undead in sight burns and flees."),
-            S("greater-heal", "Greater Heal", 3, School.Sacred, 8, SpellTarget.Self, 0, "A great mending: 4d8 plus Wisdom and level."),
-            S("purify", "Purify", 4, School.Sacred, 10, SpellTarget.Self, 0, "Burns 15 points of the Ossuary's corruption out of you. Mutations stay."),
-            S("revive", "Revive", 5, School.Sacred, 15, SpellTarget.Self, 0, "Wards your soul: the next death within 300 turns is undone."),
-        };
+        static SpellDef[] _all;
+        static Dictionary<string, SpellDef> _byId;
 
-        /// <summary>Spells taught by each book, by item name. Other books carry only lore.</summary>
-        static readonly Dictionary<string, string[]> Books = new Dictionary<string, string[]>
+        /// <summary>Every spell, grouped by school. Built once from the per-school tables.</summary>
+        public static SpellDef[] All
         {
-            { "a spellbook", new[] { "magic-missile", "shocking-grasp", "ward", "frost-ray", "familiar" } },
-            { "a tome of evocation", new[] { "magic-missile", "frost-ray", "ice-lance", "fireball", "steam-burst", "lightning-bolt", "wall-of-fire" } },
-            { "a codex of storms", new[] { "lightning-bolt", "fireball", "wall-of-fire", "chain-lightning", "meteor" } },
-            { "a tome of conjuration", new[] { "familiar", "summon-beast", "create-water", "create-oil", "blink", "teleport" } },
-            { "a book of wards", new[] { "ward", "haste", "slow", "clairvoyance", "stone-skin" } },
-            { "a book of illusions", new[] { "sleep", "confuse", "invisibility", "charm" } },
-            { "a book of shadows", new[] { "sleep", "blink", "drain-life", "raise-skeleton", "fear" } },
-            { "a grimoire of the dead", new[] { "raise-skeleton", "ossify", "reshape-flesh", "drain-life", "marrow-bolt", "fear", "finger-of-death", "army-of-bones" } },
-            { "a book of prayers", new[] { "cure-wounds", "ward", "bless", "cleanse" } },
-            { "a book of mercy", new[] { "smite", "turn-undead", "greater-heal", "purify", "revive" } },
-        };
+            get
+            {
+                if (_all == null)
+                {
+                    var l = new List<SpellDef>();
+                    l.AddRange(Evocation()); l.AddRange(Conjuration()); l.AddRange(Alteration()); l.AddRange(Illusion());
+                    l.AddRange(Necromancy()); l.AddRange(Sacred()); l.AddRange(Nature()); l.AddRange(Shadow());
+                    _all = l.ToArray();
+                    var d = new Dictionary<string, SpellDef>();
+                    foreach (var sp in _all) d[sp.Id] = sp;
+                    _byId = d;
+                }
+                return _all;
+            }
+        }
 
         public static SpellDef Find(string id)
         {
-            for (int i = 0; i < All.Length; i++) if (All[i].Id == id) return All[i];
-            return null;
+            var _ = All;
+            return id != null && _byId.TryGetValue(id, out var sp) ? sp : null;
         }
 
-        public static string[] InBook(string bookName) =>
-            bookName != null && Books.TryGetValue(bookName, out var ids) ? ids : new string[0];
+        public static string[] InBook(string bookName)
+        {
+            foreach (var b in BookList) if (b.Name == bookName) return b.Spells;
+            return new string[0];
+        }
 
         /// <summary>Buff ids a spell leaves on the player, for the status bar and expiry messages.</summary>
         public static string BuffLabel(string id)
         {
+            var bd = SpellBuffs.Find(id);
+            if (bd != null) return bd.Label;
             switch (id)
             {
                 case "ward": return "Ward";
@@ -129,7 +153,7 @@ namespace Ossuary.Core.Magic
         public static int FailPct(Player p, SpellDef s)
         {
             int pct = 20 + 10 * s.Level - 3 * (Stat(p) - 10) - p.Skills[Skill.Magic] / 4;
-            pct -= 5 * p.PerkRank("focus");
+            pct -= 5 * p.PerkRank("focus") + p.Gear.SpellFocus;
             if (p.WornArmor != null) pct += p.WornArmor.Def.AC * 2;
             if (p.WornShield != null) pct += p.WornShield.Def.AC * 3;
             return Math.Max(0, Math.Min(95, pct));

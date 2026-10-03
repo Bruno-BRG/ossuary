@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Ossuary.Core.Entities;
 using Ossuary.Core.Items;
 
@@ -720,7 +721,7 @@ namespace Ossuary.Core
                 case ShopKind.Weapon: Basics(shop, rng, Catalogue.Weapons, 3); break;
                 case ShopKind.Armor: Basics(shop, rng, Catalogue.Armor, 2); Basics(shop, rng, Catalogue.Shields, 1); break;
                 case ShopKind.Wand: Basics(shop, rng, Catalogue.Scrolls, 3); Basics(shop, rng, Catalogue.Wands, 2); break;
-                case ShopKind.Book: Basics(shop, rng, Catalogue.Books, 3); break;
+                case ShopKind.Book: Basics(shop, rng, Catalogue.Books.Where(b => b.Tier <= 2).ToList(), 3); break;
                 case ShopKind.General: Basics(shop, rng, Catalogue.Tools, 3); Basics(shop, rng, Catalogue.Food, 2); break;
                 case ShopKind.Jewel: Basics(shop, rng, Catalogue.Rings, 2); Basics(shop, rng, Catalogue.Ornaments, 2); break;
             }

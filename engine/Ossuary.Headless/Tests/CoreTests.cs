@@ -103,6 +103,7 @@ namespace Ossuary.Tests
             Test("every class stays within the balance band", BalanceBand);
             Test("quest victory", WinTests.Run);
             Test("tracked features (docs/a-fazer.md)", FeatureTests.Run);
+            Test("spells, items and animations (docs/magia-e-itens.md)", ArsenalTests.Run);
 
             Console.WriteLine();
             Console.WriteLine($"==== {(_fail == 0 ? "PASS" : "FAIL")}: {_pass} passed, {_fail} failed ====");
@@ -1588,10 +1589,10 @@ namespace Ossuary.Tests
 
         static void SpellCatalogue()
         {
-            Assert(Spells.All.Length >= 30, "catalogue should hold 30+ spells, has " + Spells.All.Length);
+            Assert(Spells.All.Length >= 250, "catalogue should hold 250+ spells, has " + Spells.All.Length);
             var schools = new HashSet<School>();
             foreach (var s in Spells.All) schools.Add(s.School);
-            Assert(schools.Count == 6, "all six schools should be represented");
+            Assert(schools.Count == 8, "all eight schools should be represented");
 
             // Direct damage, one spell at a time.
             foreach (var id in new[] { "magic-missile", "frost-ray", "chain-lightning", "finger-of-death", "smite", "drain-life" })
@@ -2247,10 +2248,12 @@ namespace Ossuary.Tests
                         var list = GroundItems.At(map.Number, x, y);
                         if (list != null) foreach (var it in list) if (it.ArtifactId == art.Id) found++;
                     }
-                Assert(found == 1, $"{art.Name} should lie once on {art.Branch} {art.Depth}, found {found}");
+                // The first thirteen are always there; the rest each have their chance, and never lie twice.
+                if (art.Chance >= 100) Assert(found == 1, $"{art.Name} should lie once on {art.Branch} {art.Depth}, found {found}");
+                else Assert(found <= 1, $"{art.Name} lies {found} times on {art.Branch} {art.Depth}");
             }
-            // Other levels carry none.
-            var other = dungeon.Ensure("The Dungeons", 2, out _, out _, out _);
+            // Levels with nothing assigned carry none.
+            var other = dungeon.Ensure("The Dungeons", 1, out _, out _, out _);
             for (int y = 0; y < other.H; y++)
                 for (int x = 0; x < other.W; x++)
                 {
@@ -2966,7 +2969,7 @@ namespace Ossuary.Tests
             {
                 double d = 0, a = 0; int n = 0;
                 foreach (string race in new[] { "human", "orc" })
-                    for (int s = 0; s < 2; s++)
+                    for (int s = 0; s < 4; s++)
                     {
                         var r = Ossuary.Tools.BalanceBot.Play((ulong)(1000 + s * 7919 + role.Id.Length * 13), race, role.Id, 1800, false);
                         d += r.Depth; a += r.Died ? 0 : 1; n++;
@@ -2977,7 +2980,7 @@ namespace Ossuary.Tests
             foreach (var role in Roles.All)
             {
                 Assert(alive[role.Id] >= 0.5, $"{role.Id} survives too rarely ({alive[role.Id]:0.00})");
-                // 0.55, not 0.6: the necromancer rests for mana and leans on its servants, so it sits near 0.6 of the best by design, and four runs per class is noisy.
+                // 0.55, not 0.6: the necromancer rests for mana and leans on its servants, so it sits near 0.6 of the best by design, and eight runs per class are still noisy.
                 Assert(depth[role.Id] >= best * 0.55, $"{role.Id} falls behind: depth {depth[role.Id]:0.0} vs best {best:0.0}");
             }
         }

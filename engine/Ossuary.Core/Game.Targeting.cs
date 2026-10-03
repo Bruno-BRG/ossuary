@@ -22,7 +22,13 @@ namespace Ossuary.Core
                 case TargetingMode.Shoot: ShootAt(tx, ty); break;
                 case TargetingMode.Throw: ThrowAt(UiState.ThrowItem, tx, ty); UiState.ThrowItem = null; break;
                 case TargetingMode.Swap: SwapWith(tx, ty); break;
-                case TargetingMode.Cast: CastSpell(UiState.CastSpell, tx, ty); break;
+                case TargetingMode.Cast:
+                    {
+                        var src = UiState.CastItem; UiState.CastItem = null;
+                        if (src != null) CastFromItem(src, UiState.CastSpell, tx, ty, UiState.CastPower);
+                        else CastSpell(UiState.CastSpell, tx, ty);
+                        break;
+                    }
                 case TargetingMode.Ability: UseAbility(UiState.PendingAbility, tx, ty); break;
             }
         }
@@ -74,6 +80,8 @@ namespace Ossuary.Core
 
             int dist = Pathfinder.Chebyshev(Player.X, Player.Y, x, y);
             bool crit;
+            int fromX = Player.X, fromY = Player.Y;
+            Fx((tl, s) => FxLib.Bolt(tl, s, fromX, fromY, x, y, Elem.Wind, '\0', 3));
             var res = Battles.PlayerRanged(Player, m, dist, Rng, out crit);
             if (res.Hit) m.Asleep = false;
             Say(res.Message, res.Killed ? MessageKind.Kill : MessageKind.Combat);

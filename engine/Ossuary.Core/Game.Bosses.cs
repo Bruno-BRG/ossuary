@@ -132,6 +132,8 @@ namespace Ossuary.Core
                     {
                         int dmg = Player.ResistDamage(Rng.Roll(2, 8, 0), DamageType.Physical);
                         Say("The Stone Warden slams the floor. The ground jumps.", MessageKind.Combat);
+                        int wx = m.X, wy = m.Y;
+                        Fx((tl, s) => FxLib.Eruption(tl, s, wx, wy, 2, Elem.Earth, '^'));
                         if (dist <= 2) { Player.HP -= dmg; HurtBy("the Stone Warden"); Say($"The shockwave throws you down. (-{dmg})", MessageKind.Bad); Player.StunTurns = Math.Max(Player.StunTurns, 1); Player.Stunned = true; CheckDeath(); }
                         return true;
                     }
@@ -149,6 +151,8 @@ namespace Ossuary.Core
                                 if (Map.InBounds(x, y) && (Map.Get(x, y) == TileKind.Floor || Map.Get(x, y) == TileKind.FloorAlt) && Map.SurfaceAt(x, y) != SurfaceKind.Fire) PutSurface(x, y, SurfaceKind.Water, 30);
                             }
                         Say("The Drowned King beats his trident on the stone. Black water spreads.", MessageKind.Warn);
+                        int fx0 = Player.X, fy0 = Player.Y;
+                        Fx((tl, s) => FxLib.Rain(tl, s, fx0, fy0, 2, Elem.Water, '\'', 6));
                         return true;
                     }
                     if (clock % 3 == 0 && seen && Map.SurfaceAt(Player.X, Player.Y) == SurfaceKind.Water && dist <= 7)
@@ -156,6 +160,8 @@ namespace Ossuary.Core
                         int dmg = Player.ResistDamage(Rng.Roll(2, 6, 0), DamageType.Lightning);
                         Player.HP -= dmg; HurtBy("the Drowned King");
                         Say($"Lightning leaps from the Drowned King's trident into the water at your feet. (-{dmg})", MessageKind.Bad);
+                        int kx = m.X, ky = m.Y;
+                        Fx((tl, s) => FxLib.Zap(tl, s, kx, ky, Player.X, Player.Y, Elem.Lightning));
                         CheckDeath();
                         return true;
                     }
@@ -167,6 +173,8 @@ namespace Ossuary.Core
                         Player.HP -= dmg; HurtBy("the Annex Warden");
                         m.HP = Math.Min(m.MaxHP, m.HP + dmg);
                         Say($"The Warden reads out a debt of yours, and takes it in blood. (-{dmg})", MessageKind.Bad);
+                        int ax = m.X, ay = m.Y;
+                        Fx((tl, s) => FxLib.Drain(tl, s, Player.X, Player.Y, ax, ay, Elem.Blood));
                         AddCorruption(1, null);
                         CheckDeath();
                         return true;
@@ -183,6 +191,8 @@ namespace Ossuary.Core
                                 if (Map.InBounds(x, y) && Tiles.Walkable(Map.Get(x, y)) && Map.SurfaceAt(x, y) != SurfaceKind.Water) PutSurface(x, y, SurfaceKind.Fire, 4);
                             }
                         Say("The Ashen Regent exhales. The floor around it ignites.", MessageKind.Warn);
+                        int rx = m.X, ry = m.Y;
+                        Fx((tl, s) => FxLib.Burst(tl, s, rx, ry, 2, Elem.Fire));
                         if (dist <= 2) { int dmg = Player.ResistDamage(Rng.Roll(2, 6, 0), DamageType.Fire); Player.HP -= dmg; HurtBy("the Ashen Regent"); Say($"The blast sears you. (-{dmg})", MessageKind.Bad); SetAlight(Player); CheckDeath(); }
                         return true;
                     }
@@ -206,6 +216,8 @@ namespace Ossuary.Core
             if (bx < 0) return false;
             Player.X = bx; Player.Y = by;
             Say("The Gaoler's chain bites into you and drags you in!", MessageKind.Bad);
+            int gx = m.X, gy = m.Y, hx = Player.X, hy = Player.Y;
+            Fx((tl, s) => FxLib.Beam(tl, s, gx, gy, hx, hy, Elem.Shadow, 2));
             Map.Version++;
             UpdateFov();
             return true;
@@ -233,6 +245,8 @@ namespace Ossuary.Core
                         var m = new Monster(def, Rng) { X = x, Y = y, HomeX = x, HomeY = y, Depth = boss.Depth, Alert = 1 };
                         Monsters.Add(m);
                         placed++;
+                        int sx = x, sy = y;
+                        Fx((tl, s) => FxLib.Summon(tl, s, sx, sy, Elem.Shadow));
                     }
             if (placed > 0) Say($"{(placed == 1 ? "A " + kind : placed + " " + kind + "s")} answer{(placed == 1 ? "s" : "")} the {boss.Name}.", MessageKind.Warn);
             Map.Version++;
