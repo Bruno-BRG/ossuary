@@ -64,6 +64,9 @@ Today (2026-10-03): townsfolk have a role and a line, the Guild board has two jo
 
 ## Done
 
+- [x] **Dungeon level 1 always has a way out** (2026-10-03). `Dungeon.Ensure` stripped the stairs up from depth 1 of *every* branch, so entering a dungeon from the overworld
+  at depth 1 left the hero with no exit. Now only side branches (the Annex, left by its portal) lose them. Left: a regression test (`Dungeon.Ensure` depth 1 has `StairsUp`).
+
 _(move here, with a date, whatever is completed)_
 
 - [x] **Documentation converted to English** (2026-10-03). Every doc under `docs/` and `AGENTS.md` is now English, with English file names

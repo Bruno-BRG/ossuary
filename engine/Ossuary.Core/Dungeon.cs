@@ -151,14 +151,14 @@ namespace Ossuary.Core
             if (branchName == Game.QuestBranch && depth == b.MaxDepth)
                 Game.PlaceQuestAmulet(map, levelRng, GroundItems.NextUid());
 
-            // Depth 1 with stairs-up would be an entrance from nowhere; drop it.
-            if (depth == 1)
+            // A side branch is entered by a portal, and left by the same one: you arrive standing on it,
+            // so its depth 1 has no stairs up. Every other branch keeps them: they lead to daylight.
+            if (depth == 1 && b.Parent != null)
             {
                 for (int y = 0; y < map.H; y++)
                     for (int x = 0; x < map.W; x++)
                         if (map.Get(x, y) == TileKind.StairsUp) map.Set(x, y, TileKind.Floor);
-                // A side branch is entered by a portal, and left by the same one: you arrive standing on it.
-                if (b.Parent != null) map.Set(sx, sy, TileKind.Portal);
+                map.Set(sx, sy, TileKind.Portal);
             }
 
             _levels[k] = map;
