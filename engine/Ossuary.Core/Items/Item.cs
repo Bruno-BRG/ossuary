@@ -89,7 +89,7 @@ namespace Ossuary.Core.Items
         {
             get
             {
-                var m = new ItemMods();
+                var m = ItemEffects.For(Def.Name);
                 var pre = Affixes.Find(Prefix); if (pre != null) m.Add(pre.Mods);
                 var suf = Affixes.Find(Suffix); if (suf != null) m.Add(suf.Mods);
                 var art = Artifacts.Find(ArtifactId); if (art != null) m.Add(art.Mods);
@@ -107,6 +107,7 @@ namespace Ossuary.Core.Items
         {
             get
             {
+                if (Rarity == Rarity.Artifact) return Def.Cost * 12 + 1000;
                 if (!Def.Kind.IsGear()) return Def.Cost;
                 int affixes = (Prefix != null ? 1 : 0) + (Suffix != null ? 1 : 0);
                 int v = Def.Cost * (4 + Math.Max(0, Enchant) * 3 + affixes * 5) / 4;

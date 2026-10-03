@@ -26,6 +26,8 @@ namespace Ossuary.Core
         public bool TitleBackdrop;
         public string CenterTitle = "";
         public int CameraX, CameraY;
+        /// <summary>Where the dungeon map sits on screen this frame (origin, size in columns/rows, columns per cell); lets effects be placed on it.</summary>
+        public int MapOx, MapOy, MapViewW, MapViewH, MapSq = 1;
         public int MapX, MapY, MapW, MapH;
 
         /// <summary>Journal height including its rule row.</summary>
@@ -208,10 +210,12 @@ namespace Ossuary.Core
             int cx = map.W <= cellsW ? -((cellsW - map.W) / 2) : Math.Max(0, Math.Min(p.X - cellsW / 2, map.W - cellsW));
             int cy = map.H <= h ? -((h - map.H) / 2) : Math.Max(0, Math.Min(p.Y - h / 2, map.H - h));
             CameraX = cx; CameraY = cy;
+            MapOx = ox; MapOy = oy; MapViewW = w; MapViewH = h; MapSq = sq;
 
             // Towns are daylit outside the night hours; everything else is torchlit.
             bool daylight = _g.Mode == GameMode.TownMap && _g.World != null && !_g.World.IsNight;
             bool inDungeon = _g.Mode == GameMode.Dungeon;
+            bool sense = p.BuffTurns("sense") > 0 || (p.Amulet != null && p.Amulet.Def.Name == "amulet of ESP");
             Theme.DepthTint(p.CurrentDepth, out Rgb tintFg, out Rgb tintBg, out float tintAmt);
 
             for (int y = 0; y < h; y++)
@@ -290,6 +294,17 @@ namespace Ossuary.Core
                             Rgb mc = Theme.Mon(m.Def.Color);
                             g = m.Glyph; fg = mc; bold = true; entity = true;
                             bg = Rgb.Lerp(bg, mc * 0.32f, 0.60f);
+                        }
+                    }
+                    else if (sense && Math.Abs(mx - p.X) <= 12 && Math.Abs(my - p.Y) <= 12)
+                    {
+                        // Sense Life and the amulet of ESP: living things nearby show through the walls, dimly.
+                        var sm = _g.MonsterAt(mx, my);
+                        if (sm != null && !sm.Dormant)
+                        {
+                            Rgb mc = Theme.Mon(sm.Def.Color);
+                            g = sm.Glyph; fg = mc; bold = true; entity = true;
+                            bg = Rgb.Lerp(bg, mc * 0.2f, 0.4f);
                         }
                     }
 
@@ -550,7 +565,7 @@ namespace Ossuary.Core
         {
             var p = _g.Player;
             int pieces = 0; foreach (var _ in p.WornPieces()) pieces++;
-            int need = 3 + (pieces > 0 ? pieces - 1 : 0) + (p.Rings[0] != null ? 1 : 0) + (p.Rings[1] != null ? 1 : 0);
+            int need = 3 + (pieces > 0 ? pieces - 1 : 0) + (p.Rings[0] != null ? 1 : 0) + (p.Rings[1] != null ? 1 : 0) + (p.Amulet != null ? 1 : 0);
             if (y + need > last) return y;
             y = Section(x, y, iw, "Worn", theme);
             if (p.Wielded != null)
@@ -574,6 +589,11 @@ namespace Ossuary.Core
                 if (p.Rings[i] == null) continue;
                 _t.Put(x, y, '=', theme.ItemColor(p.Rings[i]), true, theme.Panel);
                 _t.WriteClipped(x + 2, y++, p.Rings[i].Name, theme.Text, iw - 2, false, theme.Panel);
+            }
+            if (p.Amulet != null)
+            {
+                _t.Put(x, y, '"', theme.ItemColor(p.Amulet), true, theme.Panel);
+                _t.WriteClipped(x + 2, y++, p.Amulet.Name, theme.Text, iw - 2, false, theme.Panel);
             }
             return y;
         }
@@ -1086,6 +1106,7 @@ namespace Ossuary.Core
             foreach (var piece in p.WornPieces()) { anyWorn = true; ry = EquipLine(rx, ry, rw, piece, "", theme); }
             if (!anyWorn) ry = EquipLine(rx, ry, rw, null, "no armour", theme);
             for (int i = 0; i < 2; i++) if (p.Rings[i] != null) ry = EquipLine(rx, ry, rw, p.Rings[i], "", theme);
+            if (p.Amulet != null) ry = EquipLine(rx, ry, rw, p.Amulet, "", theme);
             ry++;
             _t.Write(rx, ry++, "Carrying", theme.Label, false, theme.Panel);
             int wt = p.WeightCarried(), cap = Math.Max(1, p.CarryingCapacity());
@@ -1380,50 +1401,74 @@ namespace Ossuary.Core
             if (line.Length > 0) yield return line.ToString();
         }
 
+        static readonly string[] SchoolTabs = { "Evo", "Con", "Alt", "Ill", "Nec", "Sac", "Nat", "Sha" };
+
         void DrawSpellsPanel()
         {
             var theme = Theme.Current;
             var p = _g.Player;
-            PanelRect(out int px, out int py, out int pw, out int ph, 72, 24, "Spells", "Up/Down  Enter casts  Esc closes");
+            PanelRect(out int px, out int py, out int pw, out int ph, 72, 26, "Spells", "Up/Down  Left/Right school  Enter casts  Esc closes");
             int x = px + 3, iw = pw - 6, y = py + 2;
             _t.Write(x, y, $"Mana {p.Mp}/{p.MpMax}", theme.Magic, true, theme.Panel);
             _t.Write(x + 16, y, "Lv  School        Cost  Fail", theme.Label, false, theme.Panel);
+            y++;
+            // School tabs: the one shown is lit, schools you know nothing of are dim.
+            int tx = x;
+            for (int t = -1; t < SchoolTabs.Length; t++)
+            {
+                string name = Loc.T(t < 0 ? "All" : SchoolTabs[t]);
+                int n = _g.SpellCount(t);
+                bool on = State.SpellSchool == t;
+                Rgb fg = on ? theme.Accent : n > 0 ? theme.Text : theme.Dim;
+                string label = name + (n > 0 ? n.ToString() : "");
+                _t.Write(tx, y, on ? "[" + label + "]" : " " + label + " ", fg, on, theme.Panel);
+                tx += label.Length + 2;
+            }
             y += 2;
-            if (p.Spells.Count == 0)
+            if (_g.CastableSpells().Count == 0)
             {
                 _t.WriteClipped(x, y++, "You know no spells.", theme.Dim, iw, false, theme.Panel);
                 _t.WriteClipped(x, y++, "Read a spellbook (r) away from enemies to learn from it.", theme.Dim, iw, false, theme.Panel);
                 return;
             }
-            int sel = System.Math.Max(0, System.Math.Min(State.SpellIndex, p.Spells.Count - 1));
-            int rows = System.Math.Max(1, ph - 9);
-            int first = System.Math.Max(0, System.Math.Min(sel - rows / 2, p.Spells.Count - rows));
+            var list = _g.SpellsShown();
+            if (list.Count == 0) { _t.WriteClipped(x, y, "Nothing known in this school.", theme.Dim, iw, false, theme.Panel); return; }
+            int sel = System.Math.Max(0, System.Math.Min(State.SpellIndex, list.Count - 1));
+            int rows = System.Math.Max(1, ph - 12);
+            int first = System.Math.Max(0, System.Math.Min(sel - rows / 2, list.Count - rows));
             if (first > 0) _t.Put(px + pw - 4, y - 1, '▲', theme.Dim, false, theme.Panel);
-            if (first + rows < p.Spells.Count) _t.Put(px + pw - 4, y + rows, '▼', theme.Dim, false, theme.Panel);
-            for (int i = first; i < p.Spells.Count && i < first + rows; i++, y++)
+            if (first + rows < list.Count) _t.Put(px + pw - 4, y + rows, '▼', theme.Dim, false, theme.Panel);
+            for (int i = first; i < list.Count && i < first + rows; i++, y++)
             {
-                var s = Spells.Find(p.Spells[i]);
+                var s = Spells.Find(list[i]);
                 if (s == null) continue;
                 bool on = i == sel, afford = p.Mp >= s.Cost;
                 Rgb bg = on ? theme.PanelHi : theme.Panel;
                 if (on) RowBar(px + 1, y, pw - 2, theme);
                 Rgb fg = !afford ? theme.Dim : on ? theme.Accent : theme.Text;
                 _t.Put(px + 2, y, on ? '▶' : ' ', theme.Accent, true, bg);
-                _t.Write(x, y, ((char)('a' + i)).ToString(), theme.Title, true, bg);
+                _t.Write(x, y, i < 26 ? ((char)('a' + i)).ToString() : " ", theme.Title, true, bg);
+                if (!p.Spells.Contains(s.Id)) _t.Put(x + 1, y, '◆', theme.Magic, true, bg);   // lent by what you wear or wield
                 _t.Write(x + 3, y, s.Name, fg, on, bg);
-                _t.Write(x + 16, y, s.Level.ToString(), fg, false, bg);
-                _t.Write(x + 20, y, s.School.ToString(), fg, false, bg);
-                _t.Write(x + 34, y, s.Cost.ToString(), afford ? theme.Magic : theme.Bad, false, bg);
-                _t.Write(x + 40, y, Spells.FailPct(p, s) + "%", fg, false, bg);
+                _t.Write(x + 25, y, s.Level.ToString(), fg, false, bg);
+                _t.Write(x + 29, y, s.School.ToString(), fg, false, bg);
+                _t.Write(x + 41, y, s.Cost.ToString(), afford ? theme.Magic : theme.Bad, false, bg);
+                _t.Write(x + 47, y, Spells.FailPct(p, s) + "%", fg, false, bg);
             }
-            var cur = Spells.Find(p.Spells[sel]);
+            var cur = Spells.Find(list[sel]);
             if (cur != null)
             {
-                int by = py + ph - 4;
+                int by = py + ph - 6;
                 _t.HLine(px + 2, by - 1, pw - 4, theme.Rule);
-                _t.WriteClipped(x, by, cur.Blurb, theme.Text, iw, false, theme.Panel);
-                string tgt = cur.Target == SpellTarget.Self ? "Self" : $"Range {cur.Range}";
-                _t.WriteClipped(x, by + 1, $"{tgt}.  Casting stat {(Roles.Find(p.RoleId).MpStat == 'W' ? "Wis" : "Int")}; armour and shield raise failure.", theme.Dim, iw, false, theme.Panel);
+                var blurb = new System.Collections.Generic.List<string>(Wrap(Loc.U(cur.Blurb), iw));
+                for (int bl = 0; bl < 2; bl++) if (bl < blurb.Count) _t.Write(x, by + bl, blurb[bl], theme.Text, false, theme.Panel);
+                by++;
+                string R = Loc.T("Range");
+                string tgt = cur.Target == SpellTarget.Self ? (cur.Radius > 0 && cur.Shape == Shape.Nova ? $"{Loc.T("Around you")}, {cur.Radius} {Loc.T("cells")}" : Loc.T("Self")) : cur.Target == SpellTarget.Cone ? $"Cone {cur.Radius}, {Loc.T("aim within")} {cur.Range}" : cur.Shape == Shape.Ball ? $"{R} {cur.Range}, {Loc.T("radius")} {cur.Radius}" : $"{R} {cur.Range}";
+                _t.WriteClipped(x, by + 1, $"{tgt}.  {Loc.T("Casting stat")} {Loc.T(Roles.Find(p.RoleId).MpStat == 'W' ? "Wis" : "Int")}; {Loc.T("armour and shield raise failure.")}", theme.Dim, iw, false, theme.Panel);
+                string dmg = cur.Dice > 0 ? $"{Loc.T("Damage")} {cur.Dice}d{cur.Sides}+{Loc.T("level")}/{System.Math.Max(1, cur.Div)} {Loc.T("dice")}, {Loc.T(cur.Type.ToString().ToLowerInvariant())}." : "";
+                if (cur.Rider != Rider.None) dmg += $" {Loc.T("Rider")}: {Loc.T(cur.Rider.ToString().ToLowerInvariant())} ({cur.RiderPct}%).";
+                if (dmg.Length > 0) _t.WriteClipped(x, by + 2, dmg.Trim(), theme.Dim, iw, false, theme.Panel);
             }
         }
 

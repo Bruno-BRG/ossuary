@@ -27,7 +27,7 @@ namespace Ossuary.Core
 
         /// <summary>Squares of Vision the hero's stealth takes off every monster (Stealth 25 per square, light feet, Sylk).</summary>
         public int StealthReduction() =>
-            Player.Skills[Skill.Stealth] / 25 + 2 * Player.PerkRank("light-feet") + (Player.God == "sylk" && Player.GodTier >= 2 ? 1 : 0);
+            Player.Skills[Skill.Stealth] / 25 + Player.Gear.Stealth + 2 * Player.PerkRank("light-feet") + (Player.God == "sylk" && Player.GodTier >= 2 ? 1 : 0);
 
         /// <summary>Called once per turn, before the monsters move: turns this turn's actions into a notice shift.</summary>
         void ResolveNoise()

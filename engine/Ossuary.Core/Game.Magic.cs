@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Ossuary.Core.Entities;
 using Ossuary.Core.Items;
 using Ossuary.Core.Magic;
@@ -10,6 +11,60 @@ namespace Ossuary.Core
     {
         public void PushSpells() => UiRequests.Spells = true;
 
+        /// <summary>The spells a worn or wielded unique item lets you cast while you hold it.</summary>
+        public List<string> GrantedSpells()
+        {
+            var ids = new List<string>();
+            void From(Item it)
+            {
+                var art = it != null ? Artifacts.Find(it.ArtifactId) : null;
+                if (art?.Grants != null) foreach (string id in art.Grants) if (!ids.Contains(id)) ids.Add(id);
+            }
+            From(Player.Wielded);
+            foreach (var piece in Player.WornPieces()) From(piece);
+            for (int i = 0; i < 2; i++) From(Player.Rings[i]);
+            From(Player.Amulet);
+            return ids;
+        }
+
+        /// <summary>Spells you may cast now: the ones you learned, and the ones your equipment lends you.</summary>
+        public List<string> CastableSpells()
+        {
+            var ids = new List<string>(Player.Spells);
+            foreach (string id in GrantedSpells()) if (!ids.Contains(id)) ids.Add(id);
+            return ids;
+        }
+
+        public bool Knows(string id) => Player.Spells.Contains(id) || GrantedSpells().Contains(id);
+
+        /// <summary>The spells the list panel shows: every known spell (or one school's), sorted by school, level and name.</summary>
+        public List<string> SpellsShown()
+        {
+            var ids = new List<string>();
+            foreach (string id in CastableSpells())
+            {
+                var sp = Spells.Find(id);
+                if (sp != null && (UiState.SpellSchool < 0 || (int)sp.School == UiState.SpellSchool)) ids.Add(id);
+            }
+            ids.Sort((a, b) =>
+            {
+                var x = Spells.Find(a); var y = Spells.Find(b);
+                int c = UiState.SpellSchool < 0 ? ((int)x.School).CompareTo((int)y.School) : 0;
+                if (c == 0) c = x.Level.CompareTo(y.Level);
+                if (c == 0) c = string.CompareOrdinal(x.Name, y.Name);
+                return c;
+            });
+            return ids;
+        }
+
+        /// <summary>How many known spells are in a school (-1: all).</summary>
+        public int SpellCount(int school)
+        {
+            int n = 0;
+            foreach (string id in CastableSpells()) { var sp = Spells.Find(id); if (sp != null && (school < 0 || (int)sp.School == school)) n++; }
+            return n;
+        }
+
         /// <summary>
         /// Starts a cast: self spells fire at once, the rest open the targeting cursor
         /// (first on the nearest visible hostile). Costs nothing until the spell resolves.
@@ -17,13 +72,13 @@ namespace Ossuary.Core
         public bool BeginCast(string id)
         {
             var spell = Spells.Find(id);
-            if (spell == null || !Player.Spells.Contains(id)) { Say("You do not know that spell."); return false; }
+            if (spell == null || !Knows(id)) { Say("You do not know that spell."); return false; }
             if (Map == null) { Say("There is no place to cast here."); return false; }
             if (Player.Asleep || Player.Stunned) { Say("You cannot focus."); return false; }
             if (Player.Mp < spell.Cost) { Say($"You need {spell.Cost} mana for {spell.Name} (you have {Player.Mp}).", MessageKind.Warn); return false; }
             if (spell.Target == SpellTarget.Self) return CastSpell(id, Player.X, Player.Y);
 
-            UiState.CastSpell = id;
+            UiState.CastSpell = id; UiState.CastItem = null;
             PushTargeting(TargetingMode.Cast);
             var near = NearestVisibleHostile(spell.Range);
             if (near != null) { UiState.TargetX = near.X; UiState.TargetY = near.Y; }
@@ -43,12 +98,39 @@ namespace Ossuary.Core
         }
 
         /// <summary>Resolves a cast at a cell. Returns true when a turn passed.</summary>
-        public bool CastSpell(string id, int tx, int ty)
+        public bool CastSpell(string id, int tx, int ty) => CastCore(id, tx, ty, null, 0);
+
+        /// <summary>
+        /// Casts a spell out of a wand, scroll or potion: no mana, no failure, at no less than <paramref name="power"/> as a caster level,
+        /// and the item is spent (a charge, a scroll, a dose) only once the spell has taken effect.
+        /// </summary>
+        public bool CastFromItem(Item source, string id, int tx, int ty, int power)
+        {
+            _itemPower = power;
+            try
+            {
+                if (!CastCore(id, tx, ty, source, power)) return false;
+            }
+            finally { _itemPower = 0; }
+            source.Identified = true;
+            if (source.Def.Kind == ItemKind.Wand) source.ChargesUsed++;
+            else if (source.Def.Kind == ItemKind.Scroll) { source.ChargesUsed++; if (source.RemainingCharges <= 0) Player.Inventory.Remove(source); }
+            else if (--source.Quantity <= 0) Player.Inventory.Remove(source);
+            return true;
+        }
+
+        int _itemPower;
+
+        /// <summary>The level a spell is cast at: yours, or the item's if that is higher.</summary>
+        int CasterLevel => Math.Max(Player.Level, _itemPower);
+
+        bool CastCore(string id, int tx, int ty, Item source, int power)
         {
             var spell = Spells.Find(id);
             var p = Player;
-            if (spell == null || !p.Spells.Contains(id) || Map == null) return false;
-            if (p.Mp < spell.Cost) { Say("You do not have the mana."); return false; }
+            bool free = source != null;
+            if (spell == null || (!free && !Knows(id)) || Map == null) return false;
+            if (!free && p.Mp < spell.Cost) { Say("You do not have the mana."); return false; }
             MakeNoise(2);
 
             Monster target = null;
@@ -68,29 +150,31 @@ namespace Ossuary.Core
                         if (!Tiles.Walkable(Map.Get(tx, ty)) || MonsterAt(tx, ty) != null || (tx == p.X && ty == p.Y)) { Say("You cannot go there."); return false; }
                         break;
                     case SpellTarget.Line:
+                    case SpellTarget.Cone:
                         if (tx == p.X && ty == p.Y) { Say("Pick a direction."); return false; }
                         break;
                 }
             }
             if (spell.Summons > 0 && CountFreeCellsNear(spell.Summons) < spell.Summons) { Say("There is no room to call anything here."); return false; }
 
-            int fail = Spells.FailPct(p, spell);
-            if (Rng.Dice(100) <= fail)
+            int fail = free ? 0 : Spells.FailPct(p, spell);
+            if (!free && Rng.Dice(100) <= fail)
             {
                 p.Mp -= (spell.Cost + 1) / 2;
                 Say($"Your {spell.Name} fizzles. ({fail}% to fail)", MessageKind.Warn);
                 p.GainSkill(Skill.Magic, 1);
+                Fx((tl, s) => FxLib.Flash(tl, s, p.X, p.Y, Elem.Shadow));
                 EndPlayerTurn();
                 return true;
             }
 
-            p.Mp -= spell.Cost;
-            p.MpTimer = 0;
+            if (!free) { p.Mp -= spell.Cost; p.MpTimer = 0; }
             Cue("magic");
+            PlaySpellFx(spell, tx, ty);
             ApplySpell(spell, target, tx, ty);
-            GodsOnCast(spell);
-            if (spell.School == School.Necromancy && spell.Level >= 4 && p.Corruption < 40) AddCorruption(1, null);   // the greater rites leave a mark, but only so far
-            p.GainSkill(Skill.Magic, spell.Level >= 2 ? 2 : 1);
+            if (!free) GodsOnCast(spell);
+            if (!free && spell.School == School.Necromancy && spell.Level >= 4 && p.Corruption < 40) AddCorruption(1, null);   // the greater rites leave a mark, but only so far
+            p.GainSkill(Skill.Magic, free ? 1 : spell.Level >= 2 ? 2 : 1);
             if (target != null && !target.IsDead && !target.Ally) { target.Alert = 1; target.Dormant = false; }
             Map.Version++;
             EndPlayerTurn();

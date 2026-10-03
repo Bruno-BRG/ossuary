@@ -72,8 +72,9 @@ namespace Ossuary.Core
             int toHit = 2 + (player.Dex - 10) / 2 + SkillRanks.Rank(player.Skills[Skill.Combat]) + (player.BuffTurns("bless") > 0 ? 2 : 0)
                 + player.PerkRank("weapon-master") + hitBonus;
             var wmods = player.Wielded != null ? player.Wielded.Mods : default(ItemMods);
-            toHit += wmods.ToHit + player.GodMeleeHit;
-            int dmgBonus = player.PerkRank("weapon-master") + wmods.Dmg + player.GodMeleeDmg, dice = 1, sides = 4;
+            var bmods = player.BuffMods; var amods = player.AccessoryMods;
+            toHit += wmods.ToHit + bmods.ToHit + amods.ToHit + player.GodMeleeHit;
+            int dmgBonus = player.PerkRank("weapon-master") + wmods.Dmg + bmods.Dmg + amods.Dmg + player.GodMeleeDmg, dice = 1, sides = 4;
 
             if (player.Wielded != null)
             {

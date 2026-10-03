@@ -7,6 +7,7 @@ import { bodyOf, introFrame, introHold, introSpeed, pageLength } from './intro';
 import { t, type Lang } from './i18n';
 import { playCues, unlockAudio } from './audio';
 import { shimmer } from './anim';
+import { createFxPlayer } from './fx';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#screen')!;
 const launch = document.querySelector<HTMLElement>('#launch')!;
@@ -29,6 +30,10 @@ let introAge = 0;
 let introWait = 0;
 let introActive = false;
 let lastStored = '';
+let fxFrame: Frame | null = null;
+// Spell animations play over the frame that carries them; whatever draws next (a key, a resize) cuts them short.
+const fxPlayer = createFxPlayer(f => renderer.draw(f, size(), devicePixelRatio), () => renderer.draw(frame, size(), devicePixelRatio));
+const calmMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const prefs = () => ({ theme: frame.theme, crt: frame.crt, scale: frame.scale, square: frame.square, lang: frame.lang });
 const langOf = (): Lang => (frame?.lang === 'en' ? 'en' : readDisplay().lang);
@@ -51,6 +56,7 @@ function menuOnTitle() { return onTitle && (frame.panel === 'Settings' || frame.
 
 function paint(next: Frame) {
   const wasIntro = introActive;
+  if (next !== frame) fxPlayer.stop();
   frame = next;
   introActive = !!frame.intro;
   if (introActive && !wasIntro) { introPage = 0; introTyped = 0; introAge = 0; introWait = 0; }
@@ -58,6 +64,10 @@ function paint(next: Frame) {
   const scene = introActive ? introFrame(frame, frame.intro!, introPage, introTyped, titleTick, frame.lang, introAge) : onTitle ? titleFrame(frame, titleTick) : frame;
   renderer.draw(menuOnTitle() ? overlayMenu(scene, frame) : scene, size(), devicePixelRatio);
   if (!onTitle && !introActive) playCues(frame.sounds, frame.master, frame.effects);
+  if (!onTitle && !introActive && frame !== fxFrame) {
+    fxFrame = frame;
+    if (frame.fx?.length && !calmMotion()) fxPlayer.start(frame);
+  }
   const stored = JSON.stringify({ theme: frame.theme, crt: frame.crt, scale: frame.scale, square: frame.square, lang: frame.lang });
   if (stored !== lastStored) {
     lastStored = stored;
@@ -212,7 +222,7 @@ setInterval(() => { if (resizePending && !busy && ready) void resize(); }, 100);
 // Water moves between engine frames: the engine only marks the cells (Frame.anim), the glyphs are swapped here.
 let waterTick = 0;
 setInterval(() => {
-  if (onTitle || introActive || !ready || busy || document.hidden || !frame?.anim?.length) return;
+  if (onTitle || introActive || !ready || busy || document.hidden || !frame?.anim?.length || fxPlayer.playing) return;
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   waterTick++;
   renderer.draw(shimmer(frame, waterTick), size(), devicePixelRatio);

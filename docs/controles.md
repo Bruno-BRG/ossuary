@@ -112,8 +112,12 @@ Itens mágicos mostram só "magical ..." até serem empunhados/vestidos ou ident
 
 ## Magia
 
-`Shift+Z` abre a lista de magias (setas ou letra para escolher, `Enter` conjura, `Esc` fecha).
-Magias com alvo abrem a mira; `Enter` confirma. `r` num livro de magias tenta aprendê-las.
+`Shift+Z` abre a lista de magias: `←`/`→` trocam a **escola** (Tudo, Evo, Con, Alt, Ilu, Nec, Sag, Nat, Som), `↑`/`↓` movem, `PageUp`/`PageDown`/`Home`/`End`
+rolam, uma letra (a–z, dentro da aba) ou `Enter` conjura, `Esc` fecha. Magia com `◆` é emprestada por um item que você segura.
+Magias com alvo abrem a mira (monstro mais próximo já marcado); `Enter` confirma. `r` num livro de magias tenta aprendê-las.
+Varinhas (`z`), pergaminhos (`r`) e poções (`q`) que são magias também pedem a mira; `Esc` cancela sem gastar nada.
+`P` veste anel **ou amuleto**; `R` tira anel, depois amuleto.
+Qualquer tecla corta uma animação de magia em curso.
 
 ## Criação de personagem
 

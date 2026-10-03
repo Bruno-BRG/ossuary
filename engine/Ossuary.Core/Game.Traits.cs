@@ -59,6 +59,8 @@ namespace Ossuary.Core
                     if (Map.InBounds(x, y) && Tiles.Walkable(Map.Get(x, y)) && Map.SurfaceAt(x, y) != SurfaceKind.Water) PutSurface(x, y, SurfaceKind.Fire, 4);
                 }
             Say($"The {m.Name} bursts into flame!", MessageKind.Combat);
+            int wx = m.X, wy = m.Y;
+            Fx((tl, s) => FxLib.Burst(tl, s, wx, wy, 1, Elem.Fire));
             if (Pathfinder.Chebyshev(m.X, m.Y, Player.X, Player.Y) <= 1) SetAlight(Player);
         }
 

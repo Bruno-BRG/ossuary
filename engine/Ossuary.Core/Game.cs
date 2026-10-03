@@ -372,6 +372,8 @@ namespace Ossuary.Core
                     break;
                 case Traps.Alarm:
                     Say("A shrill alarm echoes!", MessageKind.Bad);
+                    int alx = Player.X, aly = Player.Y;
+                    Fx((tl, s) => FxLib.Nova(tl, s, alx, aly, 4, Elem.Wind));
                     AlertMonsters(14);
                     break;
                 case Traps.Web:
@@ -380,6 +382,8 @@ namespace Ossuary.Core
                     break;
                 case Traps.Fire:
                     Say("Flames flare around you!", MessageKind.Bad);
+                    int trx = Player.X, try0 = Player.Y;
+                    Fx((tl, s) => FxLib.Burst(tl, s, trx, try0, 1, Elem.Fire));
                     Player.HP -= Player.ResistDamage(Rng.Range(1, 4), DamageType.Fire);
                     PutSurface(Player.X, Player.Y, SurfaceKind.Fire, 3);
                     SetAlight(Player);
@@ -495,6 +499,13 @@ namespace Ossuary.Core
                 Say("A white light drags you back from the dark!", MessageKind.Good);
                 return;
             }
+            if (Player.Amulet != null && Player.Amulet.Def.Name == "amulet of life saving")
+            {
+                Player.Amulet = null; Player.RefreshGear();
+                Player.HP = Math.Max(1, Player.MaxHP);
+                Say("The amulet blazes, shatters, and you wake whole.", MessageKind.Good);
+                return;
+            }
             Mode = GameMode.GameOver;
             DeathCause = CauseOfDeath();
             Say("You die...", MessageKind.Death);
@@ -571,7 +582,14 @@ namespace Ossuary.Core
                     if (--Player.Buffs[id] > 0) continue;
                     Player.Buffs.Remove(id);
                     if (id == "invisibility") Player.Invisible = false;
+                    if (SpellBuffs.Find(id) != null) Player.RefreshGear();
                     Say($"Your {Spells.BuffLabel(id).ToLowerInvariant()} fades.", MessageKind.Info);
+                }
+            if (Player.Buffs.Count > 0)
+                foreach (var kv in Player.Buffs)
+                {
+                    var bd = SpellBuffs.Find(kv.Key);
+                    if (bd != null && bd.Regen > 0 && Player.HP < Player.MaxHP) Player.HP = Math.Min(Player.MaxHP, Player.HP + bd.Regen);
                 }
             if (Player.StunTurns > 0) Player.StunTurns--;
             if (Player.ConfusionTurns > 0)
@@ -612,7 +630,8 @@ namespace Ossuary.Core
                 var m = Monsters[i];
                 if (m.IsDead) { Monsters.RemoveAt(i); continue; }
                 TickMonsterEffects(m);
-                if (m.IsDead) { Monsters.RemoveAt(i); continue; }
+                if (m.IsDead) { Monsters.Remove(m); continue; }   // (a spell's damage over time may already have removed it)
+                if (m.HeldTurns > 0) { m.HeldTurns--; continue; }
 
                 if (m.Asleep && m.SleepTurns > 0 && --m.SleepTurns == 0) { m.Asleep = false; m.Alert = 1; }
                 if (m.Asleep) { m.Energy += m.Speed / 2; if (m.Energy < 12) continue; m.Energy -= 12; continue; }
@@ -648,12 +667,15 @@ namespace Ossuary.Core
 
             if (dist == 1)
             {
+                if (Player.BuffTurns("sanctuary") > 0 && Rng.Chance(70)) return;   // a hush: it cannot bring itself to strike
                 if (m.Def.Explodes)
                 {
                     int dmg = Rng.Range(4, 12);
                     Player.HP -= dmg;
                     HurtBy(Article(m));
                     Say($"The {m.Name} explodes for {dmg} damage!", MessageKind.Bad);
+                    int ex = m.X, ey = m.Y;
+                    Fx((tl, s) => FxLib.Burst(tl, s, ex, ey, 1, Elem.Fire));
                     Monsters.Remove(m);
                     Map.Version++;
                     CheckDeath();
@@ -662,6 +684,7 @@ namespace Ossuary.Core
                 HurtBy(Article(m));
                 var res = Battles.MeleeAttack(m, Player, Rng);
                 Say(res.Message, res.Killed ? MessageKind.Death : MessageKind.Combat);
+                if (res.Hit && !res.Killed && Player.Buffs.Count > 0) Retaliate(m);
                 if (m.Def.Trait != null) TraitAfterHit(m, res);
                 Map.Version++;
                 CheckDeath();

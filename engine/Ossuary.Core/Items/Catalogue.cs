@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Ossuary.Core.Items
 {
     /// <summary>The static catalogue. Everything the world can hold is defined here.</summary>
-    public static class Catalogue
+    public static partial class Catalogue
     {
         static ItemDef[] _helms, _gloves, _boots, _cloaks;
         static ItemDef[] _weapons, _armor, _shields, _rings, _amulets, _wands, _scrolls, _potions, _food, _tools, _misc, _corpses, _books, _ornaments;
@@ -162,11 +162,17 @@ namespace Ossuary.Core.Items
                 M("potion of levitation",   '!', 200),
                 M("potion of acid",         '!', 200),
                 M("potion of oil",          '!', 250),
+                M("potion of the mind",     '!', 220),
                 M("potion of see invisible",'!', 200),
                 M("potion of gain ability", '!', 300),
                 M("potion of gain level",   '!', 500, ItemFlags.Special),
                 M("potion of mutation",     '!', 300, ItemFlags.Special),
             };
+
+            // Wands, scrolls and potions that are spells in a container (ItemSpells.cs) join the older, hand-written ones.
+            _wands = WithSpellItems(_wands, ItemSpells.Wands, '/');
+            _scrolls = WithSpellItems(_scrolls, ItemSpells.Scrolls, '?');
+            _potions = WithSpellItems(_potions, ItemSpells.Potions, '!');
 
             // F(name, glyph, cost, nutrition, weight). The weights are per ration and are
             // deliberately small: they are compared against CarryingCapacity(), which
@@ -198,20 +204,13 @@ namespace Ossuary.Core.Items
                 T("unicorn horn",      '(', 100, 20, ItemClass.None, ItemFlags.Special),
             };
 
-            _books = new[] {
-                B("a book of prayers",     '+', 100),
-                B("a book of shadows",     '+', 150),
-                B("a spellbook",           '+', 250),
-                B("a tome of evocation",   '+', 300),
-                B("a codex of storms",      '+', 600),
-                B("a tome of conjuration",  '+', 350),
-                B("a book of wards",        '+', 300),
-                B("a book of illusions",    '+', 300),
-                B("a grimoire of the dead", '+', 600),
-                B("a book of mercy",         '+', 400),
-                B("a book of stone lore",  '+', 120),
-                B("a guidebook to the deep",'+', 80),
-            };
+            AddMoreItems();
+
+            var books = new List<ItemDef>();
+            foreach (var bk in Magic.Spells.BookList) books.Add(new ItemDef { Name = bk.Name, Glyph = '+', Kind = ItemKind.Book, Cost = bk.Cost, Weight = 40, Tier = bk.Tier, Flags = ItemFlags.Uncursed });
+            books.Add(B("a book of stone lore",  '+', 120));
+            books.Add(B("a guidebook to the deep",'+', 80));
+            _books = books.ToArray();
 
             _ornaments = new[] {
                 O("valuable necklace",  '"', 600),
@@ -256,6 +255,20 @@ namespace Ossuary.Core.Items
 
         static ItemDef T(string n, char g, int cost, int wt, ItemClass c, ItemFlags f = 0)
             => new ItemDef { Name = n, Glyph = g, Kind = ItemKind.Tool, Cost = cost, Weight = wt, Class = c, Tier = 0, Flags = f | ItemFlags.Uncursed };
+
+        static ItemDef[] WithSpellItems(ItemDef[] old, MagicItemDef[] more, char glyph)
+        {
+            var list = new List<ItemDef>(old);
+            foreach (var m in more)
+            {
+                int at = list.FindIndex(d => d.Name == m.Name);
+                if (at >= 0) { var d = list[at]; d.Tier = m.Tier; list[at] = d; continue; }   // an older item: keep it, take the tier
+                var def = M(m.Name, glyph, m.Cost);
+                def.Tier = m.Tier;
+                list.Add(def);
+            }
+            return list.ToArray();
+        }
 
         static ItemDef B(string n, char g, int cost)
             => new ItemDef { Name = n, Glyph = g, Kind = ItemKind.Book, Cost = cost, Weight = 40, Tier = 1, Flags = ItemFlags.Uncursed };

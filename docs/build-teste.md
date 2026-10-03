@@ -19,6 +19,7 @@ distribuído como executável autocontido.
 .\headless.ps1 test              # Core + fluxo desktop
 .\headless.ps1 dump panels       # UI em ASCII
 .\headless.ps1 dump town         # cidade
+.\headless.ps1 fx fireball       # a animação de uma magia, passo a passo em ASCII (fx list | fx all)
 .\headless.ps1 soak 50 500        # 25 mil turnos
 .\check.ps1                      # frontend, IPC, Rust e testes de simulação
 ```

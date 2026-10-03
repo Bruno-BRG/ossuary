@@ -38,6 +38,10 @@ Intensidade de scanline, vinheta e glow continua vindo do Core
 renderer cai para Canvas 2D com blur + overlay CSS. A animação roda a ~30 fps
 só com CRT ligado e é desativada com `prefers-reduced-motion`.
 
+**Animações de magia** (`fx.ts`): o quadro pode trazer `fx` (um array por passo de [célula, glifo, fg, bg]) e `fxMs`; o front-end toca por cima do quadro
+pronto, ~45 ms por passo, sem pedir turno ao motor, com a mesma regra de `prefers-reduced-motion` da água. Uma tecla nova ou um novo quadro corta a
+animação. Ver [`magia-e-itens.md`](magia-e-itens.md#animações).
+
 O título (`title.ts`) é cena só do cliente: céu, ruínas, brasas e logo com
 gradiente; as brasas se movem por tick local e nunca consultam o motor.
 

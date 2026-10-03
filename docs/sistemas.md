@@ -186,42 +186,35 @@ Onde mora cada um (tudo sob `engine/Ossuary.Core/`):
   (`RoleDef.StartPerks`: Fighter power-strike, Rogue backstab, Ranger aimed-shot, Paladin lay-on-hands).
 - Painel Character mostra perks com rank; saves passam à versão 4.
 
-## Magia (`Magic/Spells.cs`, `Game.Magic.cs`)
+## Magia (`Magic/Spells*.cs`, `Game.Magic*.cs`)
 
-- `SpellDef` é dado (id, nível 1–5, escola, custo Mp, alvo, alcance, raio, invocações);
-  efeitos em `Game.Magic.Effects.cs` por id (`ApplySpell`). **39 magias em 6 escolas** (as 7 mais novas — Ice Lance, Steam Burst, Create Oil, Ossify, Reshape Flesh, Marrow Bolt, Purify — ligam magia, superfícies e corrupção):
-  - **Evocation**: Magic Missile, Shocking Grasp (adjacente), Frost Ray, Fireball
-    (área r2), Lightning Bolt (perfura a linha), Chain Lightning (salta até 3), Meteor (área r3).
-  - **Conjuration**: Familiar, Summon Beast (escala com nível), Blink, Teleport.
-  - **Alteration**: Ward (AC+3), Haste (monstros agem em turnos alternados), Slow,
-    Clairvoyance (revela o mapa), Stone Skin (AC+6).
-  - **Illusion**: Sleep, Confuse, Invisibility, Charm Monster (vira aliado temporário).
-  - **Necromancy**: Drain Life (cura metade), Raise Skeleton, Fear, Finger of Death, Army of Bones (3 esqueletos).
-  - **Sacred**: Cure Wounds, Bless (+2 acerto), Smite (morto-vivo ×2), Cleanse, Turn Undead, Greater Heal, Revive (desfaz a próxima morte, 300 turnos).
-  - Alvos: `Self`, `Monster` (hostil), `Cell` (célula vazia), `Area` (célula visível),
-    `Line` (a partir de você, parado por paredes). Mortos-vivos ignoram dano necrótico.
-- **Buffs** (`Player.Buffs`, id → turnos): ward, stone-skin, haste, bless,
-  invisibility, revive; aparecem como pílulas na barra de status.
-- **Aliados** (`Monster.Ally`, `SummonTurns`; `AllyTurn`): atacam o hostil visível
-  mais próximo, senão seguem você; andar contra um aliado troca de lugar; hostis adjacentes a um
-  aliado (e longe de você) atacam o aliado. Invocados somem ao expirar (`charmed` volta hostil);
-  sumem ao mudar de nível. Magias hostis recusam aliados. Kills de aliados dão XP ao jogador.
-- **Medo/lentidão** em monstros (`FearTurns`, `SlowTurns`): fugir do jogador / velocidade pela metade.
-- `Player.Spells` guarda as magias aprendidas; cada papel tem `StartSpells`
-  (Wizard: magic-missile, ward; Cleric/Paladin: cure-wounds; Necromancer: sleep).
-- **Conjurar**: `Shift+Z` abre o painel (`Panel.Spells`; setas ou letra a–z, Enter,
-  Esc). Magia com alvo abre a mira (`TargetingMode.Cast`) já no monstro visível
-  mais próximo. Sem mana, alvo inválido ou sem linha: recusa **sem gastar turno**.
-- **Falha** (`Spells.FailPct`): 20 + 10×nível − 3×(Int/Wis−10) − Magic/4 + 2×AC da
-  armadura + 3×AC do escudo (0–95%). Falhou: gasta metade do Mp, 1 turno.
-- **Aprender** (`r` num livro → `StudyBook`): uma tentativa por magia
-  desconhecida, 2×nível turnos cada; chance `Spells.LearnPct`; falha = tontura
-  (confusão), nunca dano. Recusa com inimigo à vista; classes sem Mp não aprendem.
-  10 livros (`Spells.Books`): *a spellbook* (inicial do mago), *a book of prayers*,
-  *a book of shadows*, e como loot *a tome of evocation*, *a codex of storms*, *a tome of conjuration*,
-  *a book of wards*, *a book of illusions*, *a grimoire of the dead*, *a book of mercy*.
-- Teclas do painel de magias passam **sem** o mapa de atalhos (letras viram
-  seleção, não movimento) e entram no log do replay normalmente.
+Catálogo completo, receitas, animações e itens em [`magia-e-itens.md`](magia-e-itens.md). Resumo:
+
+- `SpellDef` é dado (id, nível 1–5, escola, custo Mp, alvo, alcance, raio, invocações) **e receita** (dano, riders, buff, cura,
+  invocação, superfície, empurrão, dreno, cadeia, golpes aleatórios, corrupção, especial) **e aparência** (`FxKind`, `Elem`, glifo).
+  Magias antigas têm método próprio em `Game.Magic.Effects.cs` (`ApplySpell`); as demais são resolvidas por `Game.Magic.Recipes.cs`.
+  **262 magias em 8 escolas**: Evocation (29), Conjuration (20), Alteration (25), Illusion (14), Necromancy (42), Sacred (43), Nature (50), Shadow (39).
+- Alvos: `Self`, `Monster` (hostil), `Cell` (célula vazia), `Area` (célula visível), `Line` (a partir de você, perfura, parada por paredes),
+  `Cone` (a partir de você, abre com a distância). Formas derivadas: Single, Ball, Line, Cone, Nova (ao redor de você), Chain, Scatter.
+  Mortos-vivos ignoram dano necrótico e veneno; sagrado dobra neles.
+- **Buffs** (`Player.Buffs`, id → turnos; `SpellBuffs.cs`): somam em `Gear`, ajustam CA, regeneram, retaliam e aparecem como pílulas na barra de status.
+- **Estados de monstro** vindos de magias: medo, lentidão, sono, confusão (e cegueira), **imóvel/atordoado** (`HeldTurns`), **dano ao longo do tempo**
+  (veneno, sangramento: `DotTurns`), **vulnerável** (`VulnTurns`, +25% de dano de magia).
+- **Aliados** (`Monster.Ally`, `SummonTurns`; `AllyTurn`): atacam o hostil visível mais próximo, senão seguem você; andar contra um aliado troca de lugar;
+  hostis adjacentes a um aliado (e longe de você) atacam o aliado. Invocados somem ao expirar (`charmed` volta hostil) e ao mudar de nível.
+  21 criaturas só de invocação (`Ally(...)` no bestiário, ramo `~summon`: nunca aparecem sozinhas). Kills de aliados dão XP ao jogador.
+- `Player.Spells` guarda as magias aprendidas; itens únicos **emprestam** outras enquanto em uso (`Game.CastableSpells`, `Game.Knows`).
+  Papéis com Mp começam com magias e livro: Wizard magic-missile/ward, Cleric/Paladin cure-wounds, Necromancer drain-life/raise-skeleton,
+  **Ranger** thorn-dart/barkskin (*a druid's handbook*), **Rogue** throwing-knives/hex (*a cutpurse's primer*).
+- **Conjurar**: `Shift+Z` abre o painel com **abas por escola** (`Panel.Spells`; `←`/`→`, setas, letra a–z, `Enter`, `Esc`). Magia com alvo abre a mira
+  (`TargetingMode.Cast`) já no monstro visível mais próximo. Sem mana, alvo inválido ou sem linha: recusa **sem gastar turno**.
+- **Falha** (`Spells.FailPct`): 20 + 10×nível − 3×(Int/Wis−10) − Magic/4 − foco + 2×AC da armadura + 3×AC do escudo (0–95%). Falhou: gasta metade do Mp, 1 turno
+  (e um clarão de sombra). Itens (`CastFromItem`) nunca falham e não gastam Mp.
+- **Aprender** (`r` num livro → `StudyBook`): uma tentativa por magia desconhecida, 2×nível turnos cada; chance `Spells.LearnPct`; falha = tontura
+  (confusão), nunca dano. Recusa com inimigo à vista; classes sem Mp não aprendem. **39 livros** (`Spells.BookList`), em 5 níveis de profundidade.
+- **Animações** (`Fx.cs`, `Game.Fx.cs`, `desktop/src/fx.ts`): todo efeito grava uma `FxTimeline` que vai no quadro (`Frame.fx`) e é tocada pelo front-end.
+  Ver [`magia-e-itens.md`](magia-e-itens.md#animações) e [`renderer.md`](renderer.md).
+- Teclas do painel de magias passam **sem** o mapa de atalhos (letras viram seleção, não movimento) e entram no log do replay normalmente.
 
 ## Andar sozinho (`Game.Explore.cs`, `Game.Repeat.cs`, `Commands.DoAutoWalk`)
 

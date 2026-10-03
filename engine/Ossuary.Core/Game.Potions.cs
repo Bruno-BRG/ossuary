@@ -11,10 +11,12 @@ namespace Ossuary.Core
         {
             if (potion == null || potion.Def.Kind != ItemKind.Potion) return;
             var p = Player;
+            if (ItemSpells.TryGet(potion.Def.Name, out var potionSpell)) { UseSpellItem(potion, potionSpell); return; }
             potion.Identified = true;
             if (--potion.Quantity <= 0) p.Inventory.Remove(potion);
             string n = potion.Def.Name;
 
+            if (n.Contains("healing")) { int hx = p.X, hy = p.Y; Fx((tl, s) => FxLib.Rise(tl, s, hx, hy, Elem.Nature, 3, '+')); }
             if (n.Contains("full healing")) { p.BonusMaxHP += 2; p.RecomputeMaxHP(); p.HP = p.MaxHP; p.PoisonResist = 0; Say("You feel completely whole. (+2 max HP)", MessageKind.Good); }
             else if (n.Contains("extra healing")) Heal(Rng.Roll(6, 8, 0));
             else if (n.Contains("healing")) Heal(Rng.Roll(6, 4, 0));
@@ -42,6 +44,7 @@ namespace Ossuary.Core
                     for (int dx = -1; dx <= 1; dx++) PutSurface(p.X + dx, p.Y + dy, SurfaceKind.Oil);
                 Say("Oil slops over the floor around you.", MessageKind.Info);
             }
+            else if (n.Contains("the mind")) { p.Mp = p.MpMax; Say("Your thoughts clear and the well of mana fills.", MessageKind.Good); }
             else if (n.Contains("see invisible")) Say("Your eyes tingle. Nothing new is revealed.", MessageKind.Info);
             else if (n.Contains("gain ability"))
             {

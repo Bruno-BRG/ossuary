@@ -20,7 +20,8 @@ namespace Ossuary.Core
             "─│┌┐└┘├┤┬┴┼═║╔╗╚╝╠╣╦╩╬╡╞╭╮╰╯" +
             "←↑→↓▲▼◀▶►◄◎◊" +
             "·•…°±≈≡∩∞ⁿ♣♠♥♦♪☺☻♂♀πΩΠ‡†¥Φ⌠⌡≥≤√«»×÷" +
-            "◐◑◒◓★☆▁▂▃▄▅▆▇◢◣◤◥⇧";
+            "◐◑◒◓★☆▁▂▃▄▅▆▇◢◣◤◥⇧" +
+            "╱╲╳◦¤✵◌◉△▽";   // effects (Fx.cs): rays, sparks, rings
 
         public static bool Contains(char c)
         {

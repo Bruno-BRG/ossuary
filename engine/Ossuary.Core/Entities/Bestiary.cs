@@ -156,6 +156,33 @@ namespace Ossuary.Core.Entities
             M("ash wraith", 'W', 0xB0A090, 11, 50, 5, 12, 700, 6, 15, AiKind.Hunt, Alignment.ChaoticEvil,
               new[] { AttackKind.Touch }, new[] { 1 }, new[] { 8 }, new[] { 6 }, 9, 10, 9, undead: true, branch: Spi, trait: "ashen");
 
+            // --- called creatures: spell summons only. Their "branch" matches no level, so they never spawn on their own.
+            const string Sm = "~summon";
+            void Ally(string name, char g, int color, int level, int hp, int ac, int speed, AttackKind atk, int dice, int sides, bool undead = false, bool mindless = false, bool skel = false, bool flys = false)
+                => M(name, g, color, level, hp, ac, speed, 300, 99, 99, AiKind.Hunt, Alignment.Neutral, new[] { atk }, new[] { dice }, new[] { sides }, new[] { level / 2 + 3 },
+                     8, 2, 0, undead: undead, mindless: mindless, skel: skel, flys: flys, branch: Sm);
+            Ally("spectral blade", '/', 0x9CE8FF, 3, 10, 4, 18, AttackKind.Hit, 1, 8, mindless: true, flys: true);
+            Ally("summoned bat", 'B', 0x8C6A8C, 1, 4, 8, 20, AttackKind.Bite, 1, 4, flys: true);
+            Ally("mirror image", '@', 0xB090FF, 1, 1, 9, 12, AttackKind.Touch, 1, 2, mindless: true);
+            Ally("fire elemental", 'E', 0xFF8A30, 8, 38, 4, 12, AttackKind.Touch, 2, 6, mindless: true);
+            Ally("water elemental", 'E', 0x4A9CE8, 8, 44, 4, 10, AttackKind.Hit, 2, 6, mindless: true);
+            Ally("earth elemental", 'E', 0xC8A868, 9, 60, 2, 8, AttackKind.Hit, 2, 8, mindless: true);
+            Ally("air elemental", 'E', 0xC0E8E0, 8, 30, 3, 20, AttackKind.Hit, 1, 10, mindless: true, flys: true);
+            Ally("ghoul", 'Z', 0x90B070, 5, 24, 7, 11, AttackKind.ClawOrBite, 1, 6, undead: true);
+            Ally("wight", 'W', 0xB0B0D0, 8, 36, 5, 12, AttackKind.Touch, 1, 8, undead: true);
+            Ally("bone golem", 'g', 0xE0E0C0, 9, 70, 3, 9, AttackKind.Hit, 2, 8, undead: true, mindless: true, skel: true);
+            Ally("wraith thrall", 'W', 0x8070C0, 11, 45, 4, 14, AttackKind.Touch, 2, 6, undead: true, flys: true);
+            Ally("bone hound", 'd', 0xE0E0C0, 3, 14, 6, 16, AttackKind.Bite, 1, 6, undead: true, mindless: true, skel: true);
+            Ally("spiritual weapon", '/', 0xFFF0A0, 5, 16, 3, 16, AttackKind.Hit, 2, 6, mindless: true, flys: true);
+            Ally("guardian angel", 'A', 0xFFF0A0, 14, 90, 0, 14, AttackKind.Hit, 3, 8, flys: true);
+            Ally("spirit wolf", 'd', 0xC0E8FF, 4, 18, 6, 16, AttackKind.Bite, 1, 8);
+            Ally("spirit bear", 'q', 0xC8A868, 8, 50, 5, 11, AttackKind.ClawOrBite, 2, 6);
+            Ally("spirit hawk", 'B', 0xF0FFFF, 2, 8, 7, 22, AttackKind.Pierce, 1, 6, flys: true);
+            Ally("treant", 'T', 0x3C9840, 12, 100, 3, 8, AttackKind.Hit, 3, 8, mindless: true);
+            Ally("spirit spider", 'S', 0x78D860, 5, 20, 6, 14, AttackKind.Bite, 1, 6);
+            Ally("spirit boar", 'q', 0xB08A4A, 5, 30, 6, 14, AttackKind.Butt, 2, 6);
+            Ally("shadow double", '@', 0x5A4290, 5, 22, 5, 14, AttackKind.Hit, 2, 6, mindless: true);
+
             return d.ToArray();
         }
 

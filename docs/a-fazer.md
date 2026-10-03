@@ -22,8 +22,13 @@ Tudo o que estava listado foi implementado (ver *Feito*). O que sobrou são exte
 - [ ] **Pontos de viagem marcados pelo jogador** (hoje o `~` vai a altar/fonte lembrados e o `` ` `` à escada).
 - [ ] **Companheiros**: ordens (ficar/seguir), inventário compartilhado, mais de um, arqueiros.
 - [ ] **Desafio Pacifista** e mais conquistas (por classe, por deus, por branch).
-- [ ] **Magia**: uma sétima escola; interação gelo × raio; tradução PT dos nomes/descrições de magias e dos textos de altar (hoje em inglês).
-- [ ] **Novos conjuntos de artefatos** e mais relíquias; segundo portal opcional em outra branch.
+- [ ] **Magia**: interação gelo × raio; tradução PT dos textos de altar e das mensagens de combate (nomes e descrições de magias já estão em PT).
+- [ ] **Técnicas marciais** para o Guerreiro (hoje sem Mp): um "livro" de golpes com Vigor no mesmo painel, com as mesmas animações.
+- [ ] **Animações**: monstros que lançam magias (feiticeiros, chefes novos) e o dano chegando *com* o projétil (hoje a magia já foi resolvida quando a animação toca);
+  som por elemento; tecla para pular a animação inteira.
+- [ ] **Bot de balanceamento** que use as 260 magias (hoje conhece as ~40 antigas): ver docs/balance.md.
+- [ ] **Segundo portal opcional em outra branch**; mais relíquias que corrompem.
+- [ ] **Itens**: identificar varinhas/poções/pergaminhos por uso (hoje nascem identificados pelo nome), recarregar varinhas na loja, amuletos amaldiçoados novos.
 
 ## Técnico e qualidade
 
@@ -35,6 +40,20 @@ Tudo o que estava listado foi implementado (ver *Feito*). O que sobrou são exte
 ## Feito
 
 _(mova para cá, com data, o que for concluído)_
+
+- [x] **Magias, livros, itens mágicos, únicos e animações** (2026-10-03). Detalhes em [`magia-e-itens.md`](magia-e-itens.md). Salvamento passa à **versão 11**.
+  - **Animações de magia** (`Fx.cs`, `Game.Fx.cs`, `desktop/src/fx.ts`): o motor grava uma `FxTimeline` (23 peças: projétil com rastro, raio, relâmpago denteado, cadeia,
+    cone, explosão, nova, chuva, erupção, pilar, meteoro, enxame de partículas, teleporte…) que vai em `Frame.fx` e é tocada pelo front-end por cima do quadro, sem pedir turno.
+    Geometria compartilhada com o dano (`Shapes`), cores por elemento passando pelo tema, nada de Rng. Também animam varinhas, pergaminhos, poções, tiro de arco, molotov,
+    armadilhas, explosões e os ataques dos chefes. `headless.ps1 fx <magia>` mostra o resultado em ASCII.
+  - **262 magias em 8 escolas** (eram 39 em 6): 220 novas como **receitas** (`SpellDef` com dano, riders, buffs, invocações, superfícies, empurrão, dreno, cadeia, golpes aleatórios,
+    especiais) em `Game.Magic.Recipes.cs`. Escolas novas **Natureza** (Patrulheiro) e **Sombra** (Ladino); Necromante, Clérigo/Paladino e Mago ganham ~40 cada.
+    Novos estados de monstro (imóvel, dano ao longo do tempo, vulnerável), 47 buffs (`SpellBuffs`), 21 criaturas invocáveis, alvo em **cone**.
+  - **39 livros** em 5 níveis de profundidade (loot e livraria respeitam), painel de magias com **abas por escola**, tradução PT de todas as magias, buffs e riders.
+  - **Itens**: 26 armas, 14 armaduras, 30 peças de elmo/luva/bota/capa, 6 escudos, 24 anéis e 12 amuletos novos (`ItemEffects`: números por base); anéis e amuletos agora **valem**
+    (e amuletos podem ser vestidos); 33 afixos novos; 38 varinhas, 34 pergaminhos e 18 poções que lançam magias de verdade; loot por profundidade (`PickDeep`).
+  - **43 itens únicos novos** em todos os ramos, com chance por nível, 38 que **emprestam magias** enquanto em uso, e 4 conjuntos novos.
+  - Corrigido: `RunMonsters` quebrava se um monstro morresse dentro do próprio turno de efeitos. Testes `ArsenalTests` (14) e `fx.test.ts`.
 
 - [x] **Água animada e tiles quadrados** (2026-10-02). *Água*: o Core marca as células de água visíveis (`TextBuilder.Shimmer` → `Frame.Anim`, vazio sob painéis) e o front-end
   (`desktop/src/anim.ts`) alterna `≈ ~ ≈ -` e o brilho a cada ~380 ms entre frames, sem pedir turno ao motor e respeitando `prefers-reduced-motion`.

@@ -588,7 +588,7 @@ namespace Ossuary.Tests
             var seen = new HashSet<string>();
             foreach (var a in Artifacts.All)
             {
-                Assert(seen.Add(a.Branch + "@" + a.Depth), "two artifacts on one level: " + a.Branch + " " + a.Depth);
+                if (a.Chance >= 100) Assert(seen.Add(a.Branch + "@" + a.Depth), "two sure artifacts on one level: " + a.Branch + " " + a.Depth);
                 Assert(a.Set == null || ArtifactSets.Find(a.Set) != null, "known set for " + a.Id);
             }
             Assert(Artifacts.All.Length >= 12, "a real roster of artifacts");
