@@ -93,6 +93,7 @@ namespace Ossuary.Core
         public bool CheckVictory()
         {
             if (!HasAmulet()) return false;
+            if (BeginEnding()) return true;   // a hero who read the Seal chooses what to do with it first
             Mode = GameMode.Won;
             UiState.Active = Panel.Win;
             Say("You emerge into the open air, the Amulet of Yendor blazing against your chest.", MessageKind.Quest);

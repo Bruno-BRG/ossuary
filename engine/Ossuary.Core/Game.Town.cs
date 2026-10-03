@@ -51,6 +51,8 @@ namespace Ossuary.Core
             UpdateFov();
             Say($"You arrive in {name}. Some {Town.Population} people live here.", MessageKind.Narrative);
             Say(TownText.SizeBlurb(town.Size), MessageKind.Info);
+            var today = TownEventToday();
+            if (today != TownEventKind.None) Say(EventAnnouncement(today), MessageKind.Quest);
         }
 
         public void LeaveTown()
@@ -111,6 +113,10 @@ namespace Ossuary.Core
         /// </summary>
         void TownsfolkTurn(Monster m)
         {
+            if (m.DownUntilDay > Today) return;
+            if (CurrentDialogue != null && Talking == m) return;   // someone you are talking to waits for you
+            if (m.HostileUntil > Turn && HostileTurn(m)) return;
+            if (m.IsGuard && GuardWatch(m)) return;
             if (m.Leash <= 0) return;
             if (GoHomeAtNight(m)) return;
             uint h = Mix((uint)(m.Voice * 31 + m.X), (uint)(m.Y * 7 + Turn), (uint)m.Floor + 11u);
@@ -149,12 +155,22 @@ namespace Ossuary.Core
         public void TalkTo(Monster m)
         {
             if (m == null || !m.Townsperson) return;
+            if (m.DownUntilDay > Today) { Say($"{m.Name} is out cold.", MessageKind.Neutral); return; }
+            MetPerson(m);
             if (m.Home != null && m.Home.Keeper == m) { OpenCounter(m.Home, m); return; }
-            string line = TownText.Reaction(m, RepOf(Houses.Watch), RepOf(Houses.Temple), RepOf(Houses.Guild), Player.Corruption, Player.Mutated.Count, Companions.Count > 0)
+            if (m.Role == TownRole.Pet) { Say(TownText.LineFor(m, _talkCount++), MessageKind.Neutral); EndPlayerTurn(); return; }
+            // Everyone else opens a conversation box and stays put until it ends (no turn passes while you talk).
+            Talking = m; TalkBuilding = null; StartDialogue(m);
+        }
+
+        /// <summary>What this person says when you simply greet them: what they remember of you, what the town is going through, or their own line.</summary>
+        public string SmallTalkLine(Monster m)
+        {
+            return TownText.Reaction(m, RepOf(Houses.Watch), RepOf(Houses.Temple), RepOf(Houses.Guild), Player.Corruption, Player.Mutated.Count, Companions.Count > 0)
+                          ?? (TownEventToday() != TownEventKind.None && m.Role != TownRole.Pet && (m.Voice + _talkCount) % 4 == 1 ? TownText.EventLine(TownEventToday(), m.Voice + _talkCount) : null)
+                          ?? TruthLine(m)
+                          ?? (Town != null && m.Role != TownRole.Pet && MurdersIn(Town.Name) > 0 && (m.Voice + _talkCount) % 3 == 0 ? TownText.Grief : null)
                           ?? TownText.LineFor(m, _talkCount++);
-            if (m.Role == TownRole.Pet) Say(line, MessageKind.Neutral);
-            else Say($"{m.Name} ({Loc.T(TownText.RoleTitle(m.Role))}): \"{Loc.T(line)}\"", MessageKind.Narrative);
-            EndPlayerTurn();
         }
 
         /// <summary>Bumping a counter, notice board or altar: whoever works there answers.</summary>
@@ -162,13 +178,15 @@ namespace Ossuary.Core
         {
             var b = Town?.BuildingAt(x, y, TownZ);
             if (b == null) return;
-            if (b.Keeper == null || b.Keeper.Floor != TownZ) { Say("There is no one here."); return; }
+            if (b.Keeper == null || b.Keeper.Floor != TownZ || b.Keeper.IsDead) { Say("There is no one here."); return; }
+            if (b.Keeper.DownUntilDay > Today) { Say("They are out cold; no one is serving."); return; }
+            if (b.Keeper.HostileUntil > Turn) { Say("They will not serve you now.", MessageKind.Warn); return; }
             OpenCounter(b, b.Keeper);
         }
 
         void OpenCounter(Building b, Monster keeper)
         {
-            CurrentEvent = null;
+            CurrentEvent = null; CurrentDialogue = null;
             Talking = keeper; TalkBuilding = b;
             ServiceNote = TownText.Reaction(keeper, RepOf(Houses.Watch), RepOf(Houses.Temple), RepOf(Houses.Guild), Player.Corruption, Player.Mutated.Count, false) is string said
                 ? Loc.T(said) : TownText.Greeting(keeper);
@@ -207,10 +225,11 @@ namespace Ossuary.Core
             var b = TalkBuilding;
             if (b == null) return rows;
             if (CurrentEvent != null) return CurrentEvent.Rows;
+            if (CurrentDialogue != null) return DialogueRows();
             var s = b.Services;
             int gold = Player.Gold;
             void Add(string id, string label, int price, bool ok = true) =>
-                rows.Add(new ServiceRow { Id = id, Label = label, Price = price, Enabled = ok && gold >= price });
+                rows.Add(new ServiceRow { Id = id, Label = label, Price = price, Enabled = ok && gold >= price && !EventBlocks(id) });
 
             if (b.Shop != null) Add("browse", "Browse the wares", 0);
             if ((s & Service.Rest) != 0) Add("rest", RepOf(Houses.Watch) <= -25 ? "Rest until morning (they know your face)" : "Rest until morning", RestPrice, RepOf(Houses.Watch) > -25);
@@ -241,6 +260,7 @@ namespace Ossuary.Core
                     Add("turnin:" + i, $"Report: {Contracts[i].Describe()} ({Math.Min(Contracts[i].Done, Contracts[i].Count)}/{Contracts[i].Count})", 0, Contracts[i].Complete);
             }
             if ((s & Service.Rumor) != 0 && (s & Service.Quest) == 0) Add("rumor", "Ask for news", (s & Service.Ale) != 0 ? 4 : 0);
+            if (Talking != null && CanTalk(Talking)) Add("talk", "Talk", 0);
             Add("leave", "Take my leave", 0);
             return rows;
         }
@@ -265,6 +285,8 @@ namespace Ossuary.Core
             var b = TalkBuilding;
             if (b == null) return true;
             if (CurrentEvent != null) return EventAction(id);
+            if (CurrentDialogue != null) return DialogueAction(id);
+            if (id == "talk") { StartDialogue(Talking); return false; }
             if (id.StartsWith("offer:") || id.StartsWith("turnin:")) return ContractAction(id);
             switch (id)
             {
@@ -359,7 +381,7 @@ namespace Ossuary.Core
                 case "board":
                 case "rumor":
                     if (id == "rumor" && !Pay((b.Services & Service.Ale) != 0 ? 4 : 0)) return false;
-                    Tell(TownText.Rumor(_talkCount++ + (Talking?.Voice ?? 0)), MessageKind.Narrative);
+                    Tell(HearRumour(), MessageKind.Narrative);
                     return false;
             }
             return false;

@@ -43,6 +43,17 @@ namespace Ossuary.Tests
             Test("reputation, haggling and guild jobs", ReputationAndJobs);
             Test("road events offer choices with prices", RoadEvents);
             Test("townsfolk keep hours and remember you", TownRoutine);
+            Test("townsfolk have personas, memory and a ledger of deeds", PersonaAndLedger);
+            Test("key people hold real conversations with gated choices", Conversations);
+            Test("quests run from data: steps, counters, rewards, deadlines", QuestEngine);
+            Test("townsfolk ask for favours from their wants and remember them", PersonalErrands);
+            Test("rumours point at real things and depend on who tells them", RumoursWithTeeth);
+            Test("crime: witnesses, bounty by region, arrest, jail, murder, essentials", CrimeAndTheWatch);
+            Test("town events: schedule, prices, closed doors, a job for the Watch", TownEvents);
+            Test("travellers on the road: pilgrim, peddler, refugees, delver", RoadTravellers);
+            Test("main questline: documents, the Reader, truths, endings, new cycle", MainQuestline);
+            Test("a rival party races the hero down the Dungeons", RivalRace);
+            Test("the Cult's dark mirror: a vial for the Drowned", CultTrack);
             Test("vaults are carved out of unused rock and need a key", VaultsAndKeys);
             Test("overworld entrances lead into every branch", EntrancesReachBranches);
             Test("the Annex: a portal, hard floors, a warden and a mantle", AnnexFlow);
@@ -1155,6 +1166,583 @@ namespace Ossuary.Tests
                 if (walk.Mode == GameMode.TownMap || walk.Mode == GameMode.Dungeon) { walk.LeaveToOverworld(); }
             }
             Assert(seen >= 1, "walking the road eventually raises an event, saw " + seen);
+        }
+
+        static string PersonaSig(Game g)
+        {
+            var sb = new System.Text.StringBuilder();
+            foreach (var n in g.Town.Npcs) sb.Append(n.Persona.Trait).Append(n.Persona.Second).Append(n.Persona.Want).Append(n.Persona.Essential ? "!" : ".").Append(',');
+            return sb.ToString();
+        }
+
+        static Ossuary.Core.Items.Item DocItem(string name) =>
+            new Ossuary.Core.Items.Item(new Ossuary.Core.Items.ItemDef { Name = name, Glyph = ':', Kind = Ossuary.Core.Items.ItemKind.Ornament, Flags = Ossuary.Core.Items.ItemFlags.QuestItem }, new Rng(5), 777000 + name.Length) { Identified = true };
+
+        static bool DocOnFloor(Game g, string name)
+        {
+            for (int y = 0; y < g.Map.H; y++) for (int x = 0; x < g.Map.W; x++)
+            {
+                var s = GroundItems.At(g.Map.Number, x, y);
+                if (s != null) for (int i = 0; i < s.Count; i++) if (s[i].Def.Name == name) return true;
+            }
+            return false;
+        }
+
+        static void GiveAmulet(Game g) => g.Player.Inventory.Add(new Ossuary.Core.Items.Item(Game.QuestAmuletDef, new Rng(9), 888001) { Identified = true });
+
+        static void MainQuestline()
+        {
+            var g = new Game(6006); g.LeaveToOverworld();
+            g.DescendTo("The Dungeons", 5);
+            Assert(DocOnFloor(g, Game.DocLedger), "the warden's page waits on level 5 of The Dungeons");
+            var twin = new Game(6006); twin.LeaveToOverworld(); twin.DescendTo("The Dungeons", 5);
+            Assert(DocOnFloor(twin, Game.DocLedger), "and in the same seed too");
+
+            // The Reader turns a document into a truth, and the quest follows.
+            g.StartQuest("main.seal");
+            g.Flags.Add("elder.warned"); g.QuestCheck();
+            Assert(g.QuestOf("main.seal").Step == 1, "the Seal waits for the page");
+            g.Player.Inventory.Add(DocItem(Game.DocLedger)); g.QuestCheck();
+            Assert(g.QuestOf("main.seal").Step == 2, "holding the page moves the Seal on");
+            var reader = Teller(TownRole.Scholar, Trait.Curious);
+            g.Talking = reader; g.OpenDialogue(Dialogues.For(reader), reader);
+            Pick(g, "warden's ledger page");
+            Assert(g.Flags.Contains("truth.seal") && !g.HasItem(Game.DocLedger), "the Reader takes the page and the hero learns the seal");
+            Assert(g.QuestOf("main.seal").Step == 3 && reader.Memory.Has(NpcMemory.Helped), "and the Reader remembers");
+            g.CurrentDialogue = null; g.UiState.Active = Panel.None;
+
+            // Walking out with the Amulet asks what to do with it; what is open depends on what the hero learned and who they served.
+            GiveAmulet(g);
+            Assert(g.CheckVictory() && g.Mode != GameMode.Won && g.CurrentDialogue != null, "a hero who read the Seal chooses first");
+            int pay = RowIdx(g, "Give it to the League"), shut = RowIdx(g, "bury it"), stamp = RowIdx(g, "stamp it");
+            var rows = g.ServiceRows();
+            Assert(rows[pay].Enabled && !rows[shut].Enabled && !rows[stamp].Enabled, "only the League's offer is open without standing or truths");
+            g.ServiceAction(rows[pay].Id);
+            Assert(g.Mode == GameMode.Won && g.EndingId == "pay", "the League's ending wins the run");
+            Assert(g.DeedCount("ending", "pay") == 1, "the ledger records the ending");
+
+            // With every truth and the Temple's trust, the better endings open; the Stamp starts a new cycle instead of ending.
+            var h = new Game(6007); h.LeaveToOverworld();
+            foreach (var f in new[] { "truth.seal", "truth.vote", "truth.entry", "truth.order" }) h.Flags.Add(f);
+            h.AddRep(Houses.Temple, 40, null);
+            GiveAmulet(h);
+            Assert(h.CheckVictory(), "the ending opens");
+            rows = h.ServiceRows();
+            Assert(rows[RowIdx(h, "bury it")].Enabled && rows[RowIdx(h, "stamp it")].Enabled, "the Temple's burial and the Stamp are open");
+            h.ServiceAction(rows[RowIdx(h, "stamp it")].Id);
+            Assert(h.Mode != GameMode.Won && h.Cycle == 1 && !h.HasAmulet() && h.Flags.Contains("legend"), "the Stamp starts a new cycle without ending the run");
+            Assert(h.Ledger.Count > 0 && h.Flags.Contains("truth.vote"), "the deeds and truths carry over");
+
+            // The short path is untouched: no Seal read, the Amulet still wins at once.
+            var s = new Game(6008); s.LeaveToOverworld(); GiveAmulet(s);
+            Assert(s.CheckVictory() && s.Mode == GameMode.Won, "the short path wins immediately");
+
+            // What the hero learned is felt: the Holds charge more once the Vote is known.
+            var w = new Game(6009); w.LeaveToOverworld(); w.EnterTown("Ironhold");
+            foreach (var r in w.World.Regions) if (r.Name == "The Iron Hills") { w.World.PlayerX = r.X + r.W / 2; w.World.PlayerY = r.Y + r.H / 2; }
+            int before = w.Haggle(100, Houses.Guild);
+            w.Flags.Add("truth.vote");
+            Assert(w.Haggle(100, Houses.Guild) > before, "the Iron Holds charge a hero who knows the Vote");
+        }
+
+        static void CultTrack()
+        {
+            var g = new Game(777); g.LeaveToOverworld();
+            var beggar = Teller(TownRole.Beggar, Trait.Weary);
+            g.Talking = beggar; g.OpenDialogue(Dialogues.For(beggar), beggar);
+            Assert(RowIdx(g, "What work") >= 0 && !g.ServiceRows()[RowIdx(g, "What work")].Enabled, "the Cult's work is closed to strangers");
+            g.UiState.Active = Panel.None;
+
+            g.AddRep(Houses.Cult, 20, null);
+            g.Talking = beggar; g.OpenDialogue(Dialogues.For(beggar), beggar);
+            Pick(g, "What work");
+            Assert(g.QuestActive("cult.vial"), "the vial job starts");
+            g.CurrentDialogue = null; g.UiState.Active = Panel.None;
+            g.Player.Inventory.Add(new Ossuary.Core.Items.Item(System.Linq.Enumerable.First(Ossuary.Core.Items.Catalogue.Potions, d => d.Name == "potion of mutation"), new Rng(4), 123456) { Identified = true });
+            g.QuestCheck();
+            Assert(g.QuestOf("cult.vial").Step == 1, "holding the vial moves it on");
+            int cult = g.RepOf(Houses.Cult), temple = g.RepOf(Houses.Temple), corruption = g.Player.Corruption;
+            g.Talking = beggar; g.OpenDialogue(Dialogues.For(beggar), beggar);
+            Pick(g, "I have the vial");
+            Assert(g.QuestDone("cult.vial") && !g.HasItem("potion of mutation"), "handing it over finishes the job");
+            Assert(g.RepOf(Houses.Cult) > cult && g.RepOf(Houses.Temple) < temple && g.Player.Corruption > corruption, "the Cult gains, the Temple and the body pay");
+        }
+
+        static void RivalRace()
+        {
+            Assert(Game.RivalDepthOn(2) == 0 && Game.RivalDepthOn(7) == 1 && Game.RivalDepthOn(43) == 10 && Game.RivalDepthOn(400) == 10, "the rival descends one level every four days from day 3");
+            var g = new Game(515); g.LeaveToOverworld(); g.EnterTown("Racetown");
+            g.World.Day = 1;
+            string early = g.RivalReport();
+            g.World.Day = 20;
+            Assert(g.RivalReport() != early, "the report changes as they descend");
+            Assert(g.StartQuest(g.RivalQuest()) && g.QuestActive("rival.race"), "the race starts");
+            Assert(g.QuestOf("rival.race").Def.Deadline == Game.RivalDayAt(Game.RivalRaceDepth) - 20, "the clock ends when they would arrive");
+            g.World.AdvanceTime(24 * 40); g.QuestCheck();
+            Assert(g.QuestOf("rival.race").Status == QStatus.Failed && g.Flags.Contains("rival.won"), "losing the race is remembered");
+            Assert(g.RivalReport().Contains("before you"), "and the tavern says so");
+
+            var h = new Game(516); h.LeaveToOverworld(); h.World.Day = 5;
+            h.StartQuest(h.RivalQuest());
+            h.DescendTo("The Dungeons", Game.RivalRaceDepth);
+            Assert(h.QuestDone("rival.race") && h.Flags.Contains("rival.beaten"), "reaching level 7 first wins it");
+        }
+
+        static void RoadTravellers()
+        {
+            Game Road() { var g = new Game(8080); g.LeaveToOverworld(); g.Player.Gold = 300; return g; }
+
+            var a = Road();
+            a.OpenEvent("delver", "A wounded delver", "x");
+            Assert(!a.ServiceRows().Find(r => r.Id == "heal").Enabled, "no potion, no help");
+            a.OpenEvent("delver", "A wounded delver", "x");
+            a.Player.Inventory.Add(new Ossuary.Core.Items.Item(System.Linq.Enumerable.First(Ossuary.Core.Items.Catalogue.Potions, d => d.Name == "potion of healing"), new Rng(2), 4321) { Identified = true });
+            a.OpenEvent("delver", "A wounded delver", "x");
+            int gold = a.Player.Gold, helped = a.DeedCount(Deed.Helped);
+            a.ServiceAction("heal");
+            Assert(a.Player.Gold == gold + 40 && a.Flags.Contains("delver.saved") && a.DeedCount(Deed.Helped) == helped + 1, "saving the delver pays, is flagged and remembered");
+            Assert(!a.HasItem("potion of healing"), "the potion is spent");
+
+            var b = Road();
+            b.OpenEvent("refugee", "Refugees", "x");
+            int temple = b.RepOf(Houses.Temple);
+            b.ServiceAction("rob");
+            Assert(b.RepOf(Houses.Temple) < temple && b.DeedCount(Deed.Struck, "refugees") == 1, "robbing refugees costs standing and is remembered");
+
+            var c = Road();
+            c.OpenEvent("peddler", "A peddler", "x");
+            int seen = c.RegionsSeen();
+            c.ServiceAction("map");
+            Assert(c.Player.Gold == 300 - c.Haggle(30, Houses.Guild) && c.RegionsSeen() >= seen, "the map fragment costs gold and reveals the land");
+
+            var d = Road();
+            d.OpenEvent("pilgrim", "A pilgrim", "x");
+            int rep = d.RepOf(Houses.Temple);
+            d.ServiceAction("water");
+            Assert(d.RepOf(Houses.Temple) > rep, "sharing water earns the Temple's regard");
+
+            // The new events can actually come up on the road.
+            var seenIds = new System.Collections.Generic.HashSet<string>();
+            for (ulong seed = 1; seed < 400 && seenIds.Count < 4; seed++)
+            {
+                var g = new Game(seed); g.LeaveToOverworld();
+                for (int i = 0; i < 60 && seenIds.Count < 4; i++)
+                {
+                    g.OverworldMove(1, 0); g.OverworldMove(-1, 0);
+                    if (g.CurrentEvent != null && (g.CurrentEvent.Id == "pilgrim" || g.CurrentEvent.Id == "peddler" || g.CurrentEvent.Id == "refugee" || g.CurrentEvent.Id == "delver")) seenIds.Add(g.CurrentEvent.Id);
+                    g.CurrentEvent = null; g.UiState.Active = Panel.None; g.ActiveEncounter = false;
+                }
+            }
+            Assert(seenIds.Count >= 2, "the new travellers should turn up on the road, saw " + seenIds.Count);
+        }
+
+        static void TownEvents()
+        {
+            var g = new Game(1357); g.LeaveToOverworld(); g.EnterTown("Festivalton");
+            var days = new System.Collections.Generic.Dictionary<TownEventKind, int>();
+            int quiet = -1;
+            for (int d = 1; d <= 400; d++)
+            {
+                g.World.Day = d;
+                var k = g.TownEventToday();
+                if (k == TownEventKind.None) { if (quiet < 0) quiet = d; }
+                else if (!days.ContainsKey(k)) days[k] = d;
+            }
+            Assert(quiet > 0 && days.Count == 5, "a town should see quiet days and all five kinds in 400 days, got " + days.Count);
+
+            var twin = new Game(1357); twin.LeaveToOverworld(); twin.EnterTown("Festivalton");
+            foreach (var kv in days) { twin.World.Day = kv.Value; Assert(twin.TownEventToday() == kv.Key, "the schedule is a pure function of seed, town and day"); }
+            g.World.Day = days[TownEventKind.Market] ; int market = g.Haggle(100, Houses.Guild);
+            g.World.Day = quiet; int normal = g.Haggle(100, Houses.Guild);
+            Assert(market < normal, "market day prices are lower (" + market + " vs " + normal + ")");
+            g.World.Day = days[TownEventKind.Festival]; Assert(g.Haggle(100, Houses.Guild) < market, "a festival is cheaper still");
+
+            // A funeral shuts the temple's healing; the plague shuts the inn.
+            var priest = FindRole(g, TownRole.Priest);
+            if (priest != null)
+            {
+                g.World.Day = days[TownEventKind.Funeral]; g.Player.HP = 1; g.Player.Gold = 500;
+                g.TalkTo(priest);
+                int heal = RowIdx(g, "Heal");
+                Assert(heal >= 0 && !g.ServiceRows()[heal].Enabled, "healing is refused during a funeral");
+                g.UiState.Active = Panel.None;
+                g.World.Day = quiet; g.TalkTo(priest);
+                heal = RowIdx(g, "Heal");
+                Assert(heal >= 0 && g.ServiceRows()[heal].Enabled, "and open again on a quiet day");
+                g.UiState.Active = Panel.None;
+            }
+
+            // A robbery gives the Watch a job, and it can be taken once.
+            var captain = FindRole(g, TownRole.Captain);
+            if (captain != null)
+            {
+                g.World.Day = days[TownEventKind.Theft];
+                g.TalkTo(captain);
+                Pick(g, "Talk");
+                Pick(g, "robbery");
+                Assert(g.QuestActive(g.TheftQuest().Id), "the robbery job should start");
+                var q = g.QuestOf(g.TheftQuest().Id);
+                Assert(q.Def.Deadline == 6, "the job is on a clock");
+                g.UiState.Active = Panel.None;
+            }
+        }
+
+        static void PlaceBeside(Game g, Monster target)
+        {
+            for (int d = 0; d < 8; d++)
+            {
+                int x = target.X + Pathfinder.Dx8[d], y = target.Y + Pathfinder.Dy8[d];
+                var t = g.Map.Get(x, y);
+                if ((t == TileKind.Floor || t == TileKind.FloorAlt) && g.MonsterAt(x, y) == null) { g.Player.X = x; g.Player.Y = y; g.UpdateFov(); return; }
+            }
+            Assert(false, "no free cell beside " + target.Name);
+        }
+
+        static void CrimeAndTheWatch()
+        {
+            var g = new Game(2468); g.LeaveToOverworld(); g.EnterTown("Crimeford");
+            Monster citizen = null, guard = null;
+            foreach (var n in g.Town.Npcs)
+            {
+                if (citizen == null && n.Role == TownRole.Citizen && n.Floor == 0) citizen = n;
+                if (guard == null && n.Role == TownRole.Guard && n.Floor == 0) guard = n;
+            }
+            Assert(citizen != null && guard != null, "the town needs a citizen and a guard");
+            g.Player.Gold = 5000;
+
+            // A blow somebody saw earns a bounty that follows the damage, and turns the victim and the guards against the hero.
+            PlaceBeside(g, citizen);
+            citizen.HP = 999;
+            Assert(g.BountyHere() == 0, "no bounty yet");
+            g.Attack(citizen);
+            int bounty = g.BountyHere();
+            Assert(bounty >= 17 && bounty <= 150, "a seen blow adds a bounty by damage, got " + bounty);
+            Assert(citizen.HostileUntil > g.Turn, "the victim turns hostile");
+            foreach (var m in g.Monsters) if (m.Townsperson && m.IsGuard) Assert(m.HostileUntil > g.Turn, "the guards converge");
+
+            // Neighbouring regions know half of it; far regions know nothing.
+            string here = g.World.RegionAt(g.World.PlayerX, g.World.PlayerY).Name;
+            var near = g.NeighbourRegions(here);
+            Assert(near.Count > 0, "a region should have neighbours");
+            g.Bounties[here] = 600;
+            int px = g.World.PlayerX, py = g.World.PlayerY;
+            bool sawFar = false;
+            foreach (var r in g.World.Regions)
+            {
+                if (r.Name == here) continue;
+                g.World.PlayerX = r.X + r.W / 2; g.World.PlayerY = r.Y + r.H / 2;
+                if (near.Contains(r.Name)) Assert(g.BountyHere() == 300, "a neighbour holds half the bounty, got " + g.BountyHere());
+                else { Assert(g.BountyHere() == 0, "a far region knows nothing"); sawFar = true; }
+            }
+            g.World.PlayerX = px; g.World.PlayerY = py;
+            Assert(sawFar || g.World.Regions.Count <= near.Count + 1, "there should be a region that is not a neighbour");
+
+            // Time and sight calm the street, but the Watch keeps the crime: a guard who sees the hero arrests them.
+            g.Bounties[here] = 250;
+            foreach (var m in g.Monsters) m.HostileUntil = 0;
+            PlaceBeside(g, guard);
+            for (int i = 0; i < 14 && g.CurrentDialogue == null; i++) g.EndPlayerTurn();
+            Assert(g.CurrentDialogue != null && g.UiState.Active == Panel.Service, "a guard should call for the hero");
+            Assert(g.ServiceNote.Contains("250"), "the arrest says how much is owed");
+            int gold = g.Player.Gold;
+            Pick(g, "Pay the fine");
+            Assert(g.BountyHere() == 0 && g.Player.Gold == gold - 250, "paying clears the bounty");
+            g.UiState.Active = Panel.None; g.CurrentDialogue = null;
+
+            // Serving the sentence takes days and clears the name.
+            g.Bounties[here] = 250;
+            int day = g.World.Day;
+            for (int i = 0; i < 20 && g.CurrentDialogue == null; i++) { g.EndPlayerTurn(); }
+            Assert(g.CurrentDialogue != null, "the guard comes back for the next bounty");
+            Pick(g, "Go quietly");
+            Assert(g.World.Day >= day + g.SentenceDays(250) && g.BountyHere() == 0, "jail passes days and clears the name");
+            Assert(g.DeedCount(Deed.Jailed) == 1, "the ledger remembers the cells");
+            g.UiState.Active = Panel.None; g.CurrentDialogue = null;
+
+            // Killing a citizen is murder: the town remembers (even for the ones who are not there to see it).
+            Monster victim = null;
+            foreach (var n in g.Town.Npcs) if (n != citizen && n.Role == TownRole.Citizen && n.Floor == 0 && !n.IsDead) { victim = n; break; }
+            Assert(victim != null, "no second citizen");
+            PlaceBeside(g, victim);
+            victim.HP = 1;
+            for (int i = 0; i < 40 && !victim.IsDead; i++) g.Attack(victim);
+            Assert(victim.IsDead && g.MurdersIn("Crimeford") == 1, "the citizen should die and be counted");
+            Assert(g.DeedCount(Deed.Killed, victim.Name) == 1, "the ledger records the killing");
+            Assert(g.BountyHere() >= 1000, "a witnessed murder carries the heavy price, got " + g.BountyHere());
+
+            // The people the story leans on are knocked out, never killed.
+            var elder = FindRole(g, TownRole.Elder);
+            if (elder != null)
+            {
+                PlaceBeside(g, elder);
+                elder.HP = 1;
+                for (int i = 0; i < 40 && elder.DownUntilDay <= g.World.Day; i++) g.Attack(elder);
+                Assert(!elder.IsDead && elder.DownUntilDay > g.World.Day, "an essential person is knocked out, not killed");
+            }
+        }
+
+        static Monster Teller(TownRole role, Trait trait)
+        {
+            var m = new Monster(Bestiary.Find("hobbit"), new Rng(1)) { Townsperson = true, Role = role };
+            m.Persona = new Persona { Trait = trait, Second = trait }; m.Memory = new NpcMemory();
+            return m;
+        }
+
+        static void RumoursWithTeeth()
+        {
+            Game Fresh() { var g = new Game(4242); g.LeaveToOverworld(); g.EnterTown("Rumourford"); return g; }
+            var a = Fresh(); var b = Fresh();
+            var ta = Rumours.Tell(a, Teller(TownRole.Citizen, Trait.Kind), 5);
+            var tb = Rumours.Tell(b, Teller(TownRole.Citizen, Trait.Kind), 5);
+            Assert(ta != null && ta.Text == tb.Text && ta.Truth == tb.Truth, "the same seed, town and question give the same rumour");
+
+            int wrongDrunk = 0, wrongScholar = 0, bossHooks = 0, marked = 0;
+            var gd = Fresh(); var gs = Fresh();
+            for (int n = 0; n < 60; n++)
+            {
+                var d = Rumours.Tell(gd, Teller(TownRole.Drunk, Trait.Weary), n);
+                var s = Rumours.Tell(gs, Teller(TownRole.Scholar, Trait.Curious), n);
+                if (d != null && d.Truth == RTruth.False) wrongDrunk++;
+                if (s != null && s.Truth == RTruth.False) wrongScholar++;
+            }
+            Assert(wrongDrunk > wrongScholar + 10, "drunks should be wrong far more often than scholars (" + wrongDrunk + " vs " + wrongScholar + ")");
+            foreach (var r in gs.LearnedRumours)
+            {
+                if (r.Id.StartsWith("boss.") && r.Truth != RTruth.False) { bossHooks++; Assert(gs.QuestOf("region.boss." + r.Id.Substring(5)) != null, "a boss rumour should open a Region quest"); }
+                if (r.Id.StartsWith("place.") && r.Truth == RTruth.True) { marked++; Assert(gs.World.Tiles[int.Parse(r.Id.Substring(6))].Discovered, "a true place rumour should mark the map"); }
+                if (r.Id.StartsWith("boss.") && r.Truth == RTruth.False) Assert(gs.QuestOf("region.boss." + r.Id.Substring(5)) == null || bossHooks > 0, "a wrong boss rumour should not start anything on its own");
+            }
+            Assert(bossHooks + marked > 0, "a reliable teller should have hit at least one real fact");
+            Assert(gs.LearnedRumours.Count > 0, "the hero should keep what they learned");
+
+            // A Region quest from a rumour completes when its boss falls (the flag BossFalls raises).
+            QuestState hook = null;
+            foreach (var qs in gs.Quests) if (qs.Def.Track == QuestDef.Region) { hook = qs; break; }
+            if (hook != null)
+            {
+                string bossId = hook.Def.Id.Substring("region.boss.".Length);
+                hook.Step = 1;   // as if the hero had already reached the lair
+                gs.Flags.Add("boss.slain." + bossId); gs.QuestCheck();
+                Assert(hook.Status == QStatus.Done, "felling the boss should finish its Region quest");
+            }
+        }
+
+        static int RowIdx(Game g, string label) => g.ServiceRows().FindIndex(r => r.Label.Contains(label));
+
+        static void Pick(Game g, string label)
+        {
+            int i = RowIdx(g, label);
+            Assert(i >= 0, "no row '" + label + "' (note: " + g.ServiceNote + ")");
+            var row = g.ServiceRows()[i];
+            Assert(row.Enabled, "row '" + label + "' is disabled");
+            g.ServiceAction(row.Id);
+        }
+
+        static void PersonalErrands()
+        {
+            var found = new System.Collections.Generic.Dictionary<Want, (Game, Monster)>();
+            for (int seed = 1; seed <= 60 && found.Count < 4; seed++)
+            {
+                var g = new Game((ulong)(7000 + seed)); g.LeaveToOverworld(); g.EnterTown("Errandton" + seed);
+                foreach (var n in g.Town.Npcs)
+                    if (n.Persona.Troubled && !found.ContainsKey(n.Persona.Want) && n.Floor == 0 && n.Role != TownRole.Bard && n.Role != TownRole.Scholar) found[n.Persona.Want] = (g, n);
+            }
+            Assert(found.Count >= 3, "towns should have troubled people of at least three kinds, got " + found.Count);
+
+            foreach (var kv in found)
+            {
+                var (g, m) = kv.Value;
+                string id = PersonalQuests.Id(g, m);
+                g.Player.Gold = 200;
+                g.TalkTo(m);
+                Assert(g.CurrentDialogue != null && g.UiState.Active == Panel.Service, kv.Key + ": a troubled person opens a conversation");
+                Pick(g, "troubling");
+                Pick(g, "I will help");
+                Assert(g.QuestActive(id), kv.Key + ": agreeing starts the errand");
+                g.ServiceAction("d:end");
+
+                switch (kv.Key)
+                {
+                    case Want.Debt: break;
+                    case Want.Revenge:
+                        for (int i = 0; i < 3; i++) g.KillMonster(new Ossuary.Core.Entities.Monster(Ossuary.Core.Entities.Bestiary.Find("kobold"), new Rng((ulong)(i + 5))));
+                        Assert(g.QuestOf(id).Step == 1, "three kobolds finish the hunt");
+                        break;
+                    case Want.RareItem:
+                        foreach (var d in Ossuary.Core.Items.Catalogue.Potions)
+                            if (d.Name == "potion of healing") g.Player.Inventory.Add(new Ossuary.Core.Items.Item(d, new Rng(3), 987654) { Identified = true });
+                        g.QuestCheck();
+                        Assert(g.QuestOf(id).Step == 1, "holding the potion moves the errand on");
+                        break;
+                    case Want.KinLost:
+                        Monster kin = null;
+                        foreach (var n in g.Town.Npcs) if (n.Memory.Flags.Contains("kin.of." + id)) kin = n;
+                        Assert(kin != null, "a kin should be chosen");
+                        g.TalkTo(kin); g.UiState.Active = Panel.None; g.CurrentDialogue = null;
+                        Assert(g.QuestOf(id).Step == 1, "meeting the kin moves the errand on");
+                        Assert(TownText.Reaction(kin, 0, 0, 0, 0, 0, false).Contains("looking for me"), "the kin should know someone is looking");
+                        break;
+                }
+                g.TalkTo(m);
+                int gold = g.Player.Gold;
+                Pick(g, "About that favour");
+                string label = kv.Key == Want.Debt ? "Pay the debt" : kv.Key == Want.RareItem ? "Give the healing potion" : kv.Key == Want.Revenge ? "It is done" : "I found them";
+                Pick(g, label);
+                Assert(g.QuestDone(id), kv.Key + ": settling it completes the errand");
+                Assert(m.Memory.Has(NpcMemory.Helped) && m.Memory.Disposition >= 40, kv.Key + ": the person should remember the favour");
+                Assert(g.DeedCount(Deed.Helped, m.Name) >= 1, kv.Key + ": the ledger records the favour");
+                if (kv.Key == Want.Debt) Assert(g.Player.Gold == gold - 40, "the debt costs forty gold");
+                g.UiState.Active = Panel.None; g.CurrentDialogue = null;
+            }
+        }
+
+        static void QuestEngine()
+        {
+            var g = new Game(909); g.LeaveToOverworld(); g.EnterTown("Questford");
+            Assert(g.Quests.Count == 0 && !g.StartQuest("no.such.quest"), "no quests at the start, unknown ids ignored");
+
+            // A quest starts once, counts kills of its target only, advances by flag and pays out.
+            Assert(g.StartQuest("watch.bandits") && g.QuestActive("watch.bandits"), "the Watch job should start");
+            Assert(!g.StartQuest("watch.bandits"), "a quest never starts twice");
+            var q = g.QuestOf("watch.bandits");
+            var def = Ossuary.Core.Entities.Bestiary.Find("orc");
+            for (int i = 0; i < 3; i++)
+            {
+                Assert(q.Step == 0, "still on the kill step after " + i + " orcs");
+                g.KillMonster(new Ossuary.Core.Entities.Monster(def, new Rng((ulong)(i + 1))));
+            }
+            Assert(q.Step == 1 && g.QuestActive("watch.bandits"), "three orcs should move it to the report step");
+            g.KillMonster(new Ossuary.Core.Entities.Monster(Ossuary.Core.Entities.Bestiary.Find("jackal"), new Rng(9)));
+            Assert(q.Step == 1, "other kills do not count");
+            int gold = g.Player.Gold, rep = g.RepOf(Houses.Watch);
+            g.Flags.Add("watch.bandits.report"); g.QuestCheck();
+            Assert(g.QuestDone("watch.bandits") && g.Player.Gold == gold + 60, "the report should pay sixty gold");
+            Assert(g.RepOf(Houses.Watch) > rep, "and the Watch should think better of the hero");
+            Assert(g.DeedCount(Deed.Quest, "watch.bandits.done") == 1, "the ledger should remember it");
+
+            // The clock can fail a quest that has a deadline; the failure costs reputation and is remembered.
+            var h = new Game(910); h.LeaveToOverworld(); h.EnterTown("Lateton");
+            h.StartQuest("watch.bandits");
+            int r0 = h.RepOf(Houses.Watch);
+            h.World.AdvanceTime(24 * 20);
+            h.QuestCheck();
+            Assert(h.QuestOf("watch.bandits").Status == QStatus.Failed, "twenty days should fail a fourteen-day job");
+            Assert(h.RepOf(Houses.Watch) < r0 && h.DeedCount(Deed.Failed, "watch.bandits") == 1, "failing should cost standing and be recorded");
+
+            // The Main quest follows the Elder's flag and the depth reached.
+            var m = new Game(911); m.LeaveToOverworld(); m.EnterTown("Mainton");
+            m.StartQuest("main.seal");
+            Assert(m.QuestOf("main.seal").Step == 0, "the Seal waits for the Elder");
+            m.Flags.Add("elder.warned"); m.QuestCheck();
+            Assert(m.QuestOf("main.seal").Step == 1, "asking the Elder moves the Seal on");
+        }
+
+        static Monster FindRole(Game g, TownRole role)
+        {
+            foreach (var n in g.Town.Npcs) if (n.Role == role && n.Floor == 0 && !n.IsDead) return n;
+            return null;
+        }
+
+        static void Conversations()
+        {
+            Game g = null; Monster elder = null;
+            foreach (var name in new[] { "Talkton", "Chatford", "Speakhaven", "Wordbrook", "Gossipmoor", "Elderhollow" })
+            {
+                g = new Game(555); g.LeaveToOverworld(); g.EnterTown(name);
+                elder = FindRole(g, TownRole.Elder);
+                if (elder != null) break;
+            }
+            Assert(elder != null, "no town with a Guild elder to test");
+
+            // The counter gets a Talk row; talking walks the graph and sets a flag.
+            g.TalkTo(elder);
+            Assert(g.UiState.Active == Panel.Service && g.Talking == elder, "the elder's counter should open");
+            Assert(g.ServiceRows().Exists(r => r.Id == "talk"), "the counter should offer Talk");
+            Assert(!g.ServiceAction("talk") && g.CurrentDialogue != null, "Talk should open the conversation and keep the panel");
+            Assert(g.ServiceRows().Count >= 4, "the conversation should offer choices");
+            Assert(!g.ServiceAction("d:0") && g.Flags.Contains("elder.warned"), "choosing a question should answer it and set the flag");
+            Assert(g.ServiceNote.Contains("seal"), "the amulet answer should speak of the seal");
+
+            // A gated choice stays shut until the Guild trusts you, then pays once.
+            g.ServiceAction("d:0");   // back to the start
+            var rows = g.ServiceRows();
+            int favour = rows.FindIndex(r => r.Label.Contains("favour"));
+            Assert(favour >= 0 && !rows[favour].Enabled, "the favour needs the Guild's trust");
+            g.AddRep(Houses.Guild, 30, null);
+            rows = g.ServiceRows();
+            Assert(rows[favour].Enabled, "trust should open the favour");
+            int gold = g.Player.Gold;
+            g.ServiceAction(rows[favour].Id);
+            Assert(g.Player.Gold == gold + 40 && g.Flags.Contains("elder.favour"), "the favour should pay forty gold");
+            Assert(elder.Memory.Has(NpcMemory.Helped), "the elder should remember helping");
+            g.ServiceAction("d:end");
+            Assert(g.CurrentDialogue == null, "leaving ends the conversation and returns to the menu");
+
+            // Talking holds the person in place: no turn passes in the box, and even if time runs they wait for you.
+            var talker = FindRole(g, TownRole.Citizen);
+            if (talker != null)
+            {
+                g.Talking = talker; g.OpenDialogue(Dialogues.For(talker), talker);
+                int tx = talker.X, ty = talker.Y;
+                for (int i = 0; i < 60; i++) g.EndPlayerTurn();
+                Assert(talker.X == tx && talker.Y == ty, "someone you are talking to does not walk away");
+                Assert(g.CurrentDialogue != null && g.ServiceRows().Count >= 3, "an ordinary citizen offers a few things to say");
+                Pick(g, "Ask what they have heard");
+                Assert(g.ServiceNote.Length > 0 && g.CurrentDialogue != null, "asking keeps the box open");
+                g.ServiceAction("d:end");
+                g.CurrentDialogue = null; g.UiState.Active = Panel.None;
+            }
+
+            // A person you struck will not talk, and the grudge shows in what they say.
+            var bard = FindRole(g, TownRole.Bard);
+            if (bard != null)
+            {
+                bard.HP = 999;
+                g.Attack(bard);
+                g.TalkTo(bard);
+                Assert(g.CurrentDialogue != null && g.ServiceRows().Count == 1, "a grudge leaves only the way out");
+                g.ServiceAction("d:end");
+            }
+        }
+
+        static void PersonaAndLedger()
+        {
+            var g = new Game(31337); g.LeaveToOverworld(); g.EnterTown("Personaton");
+            long calls = g.Rng.Calls;
+            string sig = PersonaSig(g);
+            var other = new Game(31337); other.LeaveToOverworld(); other.EnterTown("Personaton");
+            Assert(PersonaSig(other) == sig, "the same seed must give the same personas");
+            foreach (var n in g.Town.Npcs) Assert(n.Persona != null && n.Memory != null, "every townsperson needs a persona and a memory");
+            Assert(g.Rng.Calls == calls, "personas must not touch the simulation's stream");
+
+            // Essentials are the people the story leans on, and only them.
+            bool anyEssential = false;
+            foreach (var n in g.Town.Npcs)
+                if (n.Persona.Essential) { anyEssential = true; Assert(Persona.IsEssentialRole(n.Role), "a non-story role is marked essential"); }
+                else Assert(!Persona.IsEssentialRole(n.Role), "a story role is not essential");
+            Assert(anyEssential, "a town should have at least one essential person");
+
+            // Different people say different things: traits reach the small talk.
+            var seen = new System.Collections.Generic.HashSet<string>();
+            foreach (var n in g.Town.Npcs) if (n.Role == TownRole.Citizen) for (int i = 0; i < 6; i++) seen.Add(TownText.LineFor(n, i));
+            Assert(seen.Count >= 5, "citizens should not all say the same few lines");
+
+            // A blow is remembered: by the person, by the Watch and by the ledger; the line changes.
+            Monster victim = null;
+            foreach (var n in g.Town.Npcs) if (n.Role == TownRole.Citizen && n.Floor == 0) { victim = n; break; }
+            Assert(victim != null, "no citizen to test with");
+            int watch = g.RepOf(Houses.Watch), struck = g.DeedCount(Deed.Struck);
+            victim.HP = 999;
+            g.Attack(victim);
+            Assert(victim.Memory.Has(NpcMemory.Struck) && victim.Memory.Disposition < 0, "the person should remember the blow");
+            Assert(g.RepOf(Houses.Watch) < watch, "the Watch should hear of it");
+            Assert(g.DeedCount(Deed.Struck) == struck + 1, "the ledger should record it");
+            string line = TownText.Reaction(victim, 0, 0, 0, 0, 0, false);
+            Assert(line != null && (line.Contains("hand to me") || line.Contains("Keep away")), "their line should mention it");
+            int rep = g.RepOf(Houses.Watch);
+            g.Attack(victim);
+            Assert(g.RepOf(Houses.Watch) == rep, "the Watch is told once per person, not per blow");
+            Assert(Loc.T(line) != null, "the line needs a translation path");
         }
 
         static void TownRoutine()

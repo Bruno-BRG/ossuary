@@ -78,6 +78,7 @@ namespace Ossuary.Core
             if (!c.Complete || !Contracts.Remove(c)) return false;
             Player.Gold += c.Reward;
             ContractsDone++;
+            RecordDeed(Deed.Contract, c.Describe(), 1);
             AddRep(c.Giver, 10, null);
             Tell($"Job done: {c.Describe()}. You are paid {c.Reward} gold.", MessageKind.Good);
             return true;

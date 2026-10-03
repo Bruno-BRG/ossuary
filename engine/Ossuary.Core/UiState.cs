@@ -29,6 +29,7 @@ namespace Ossuary.Core
         Service,
         Runs,
         Achievements,
+        Journal,
     }
 
     /// <summary>
@@ -147,12 +148,13 @@ namespace Ossuary.Core
         public bool Abilities;
         public bool Advance;
         public bool Altar;
+        public bool Journal;
 
         public void Clear()
         {
             Inventory = false; Help = false; HelpLong = false;
             History = false; Discoveries = false; Character = false; Travel = false;
-            Settings = false; Spells = false; Abilities = false; Advance = false; Altar = false;
+            Settings = false; Spells = false; Abilities = false; Advance = false; Altar = false; Journal = false;
         }
     }
 }

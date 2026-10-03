@@ -90,6 +90,10 @@ namespace Ossuary.Core.Entities
         public int Voice;            // picks which of the role's lines it says
         public Shop Shop;            // set on shopkeepers
         public Building Home;
+        public Persona Persona;      // who they are (traits, want, essential); null on everything that is not a townsperson
+        public NpcMemory Memory;     // what they remember about the hero
+        public int HostileUntil;     // Game.Turn until which this person is against the hero (extended while they can see them)
+        public int DownUntilDay;     // knocked out (never killed, if essential) until this world day
 
         public Monster(MonsterDef def, Rng rng)
         {

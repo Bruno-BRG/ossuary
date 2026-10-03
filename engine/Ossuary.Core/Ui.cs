@@ -183,6 +183,7 @@ namespace Ossuary.Core
             if (Requests.HelpLong) { State.Active = Panel.Help; State.ScrollOffset = 8; }
             if (Requests.History) { State.Active = Panel.History; State.ScrollOffset = 0; }
             if (Requests.Discoveries) { State.Active = Panel.Discoveries; State.ScrollOffset = 0; }
+            if (Requests.Journal) { State.Active = Panel.Journal; State.ScrollOffset = 0; }
             if (Requests.Character) { State.Active = Panel.Character; State.ScrollOffset = 0; }
             if (Requests.Travel) { State.Active = Panel.Travel; State.ScrollOffset = 0; }
             if (Requests.Altar) { State.Active = Panel.Altar; State.AltarIndex = 0; }
@@ -974,6 +975,7 @@ namespace Ossuary.Core
                 case Panel.Help: DrawHelpPanel(); break;
                 case Panel.History: DrawHistoryPanel(); break;
                 case Panel.Discoveries: DrawDiscoveriesPanel(); break;
+                case Panel.Journal: DrawJournalPanel(); break;
                 case Panel.Character: DrawCharacterPanel(); break;
                 case Panel.Travel: DrawTravelPanel(); break;
                 case Panel.Shop: DrawShopPanel(); break;
@@ -1236,6 +1238,58 @@ namespace Ossuary.Core
             KeyValue(x, y++, "Levels mapped", _g.Dungeon.LevelCount.ToString(), theme.Text, theme);
             KeyValue(x, y++, "Regions seen", _g.RegionsSeen().ToString(), theme.Text, theme);
             KeyValue(x, y++, "Seed", _g.Rng.Seed.ToString(), theme.Dim, theme);
+        }
+
+        /// <summary>Every quest by track: where you stand in it, where to go, how long you have. Guild jobs sit under their track too.</summary>
+        void DrawJournalPanel()
+        {
+            var theme = Theme.Current;
+            PanelRect(out int px, out int py, out int pw, out int ph, 70, 26, "Journal", "any key closes");
+            int x = px + 3, iw = pw - 6, y = py + 2, bottom = py + ph - 2;
+            int today = _g.World != null ? _g.World.Day : 0;
+            bool any = false;
+            int wanted = _g.World != null ? _g.BountyHere() : 0;
+            if (wanted > 0) { any = true; _t.WriteClipped(x, y++, $"Wanted: {wanted} gold", theme.Bad, iw, true, theme.Panel); y++; }
+            var today_ = _g.Mode == GameMode.TownMap ? _g.TownEventToday() : TownEventKind.None;
+            if (today_ != TownEventKind.None) { any = true; _t.Write(x, y, "Today", theme.Label, true, theme.Panel); _t.WriteClipped(x + 8, y++, Game.EventTitle(today_), theme.Quest, iw - 8, true, theme.Panel); y++; }
+            foreach (string track in new[] { QuestDef.Main, QuestDef.Guild, QuestDef.Watch, QuestDef.Temple, QuestDef.Cult, QuestDef.Personal, QuestDef.Rival, QuestDef.Region })
+            {
+                var open = new System.Collections.Generic.List<QuestState>();
+                foreach (var q in _g.Quests) if (q.Def.Track == track && q.Status == QStatus.Active) open.Add(q);
+                bool jobs = track == QuestDef.Guild && _g.Contracts.Count > 0;
+                if (open.Count == 0 && !jobs) continue;
+                any = true;
+                if (y >= bottom) break;
+                _t.Write(x, y++, track, theme.Label, true, theme.Panel);
+                foreach (var q in open)
+                {
+                    if (y >= bottom) break;
+                    int left = q.DaysLeft(today);
+                    _t.WriteClipped(x + 2, y++, q.Def.Title + (left >= 0 ? $"  ({left}d)" : ""), theme.Title, iw - 2, true, theme.Panel);
+                    var s = q.Current;
+                    if (s != null && y < bottom)
+                    {
+                        string prog = s.Kind == ObjKind.Kill && s.Count > 1 ? $" {q.Progress}/{s.Count}" : "";
+                        _t.WriteClipped(x + 4, y++, s.Text + prog, theme.Text, iw - 4, false, theme.Panel);
+                        if (s.Hint != null && y < bottom) _t.WriteClipped(x + 4, y++, s.Hint, theme.Dim, iw - 4, false, theme.Panel);
+                    }
+                }
+                if (jobs)
+                    foreach (var c in _g.Contracts)
+                        if (y < bottom) _t.WriteClipped(x + 2, y++, $"{c.Describe()}  {System.Math.Min(c.Done, c.Count)}/{c.Count}", c.Complete ? theme.Good : theme.Text, iw - 2, false, theme.Panel);
+                y++;
+            }
+            if (_g.LearnedRumours.Count > 0 && y < bottom - 1)
+            {
+                any = true;
+                _t.Write(x, y++, "Rumours", theme.Label, true, theme.Panel);
+                for (int i = _g.LearnedRumours.Count - 1, shown = 0; i >= 0 && shown < 4 && y < bottom; i--, shown++)
+                    _t.WriteClipped(x + 2, y++, _g.LearnedRumours[i].Text, theme.Dim, iw - 2, false, theme.Panel);
+            }
+            if (!any) _t.WriteClipped(x, y, "No open quests. Speak to the people of the town.", theme.Dim, iw, false, theme.Panel);
+            int done = 0, failed = 0;
+            foreach (var q in _g.Quests) { if (q.Status == QStatus.Done) done++; else if (q.Status == QStatus.Failed) failed++; }
+            if (done + failed > 0) _t.WriteClipped(x, py + ph - 2, $"Done {done}   Failed {failed}", theme.Dim, iw, false, theme.Panel);
         }
 
         void DrawCharacterPanel()
@@ -1516,8 +1570,43 @@ namespace Ossuary.Core
         }
 
         /// <summary>The menu of whoever you bumped at a counter: browse, rest, heal, appraise, hear the news.</summary>
+        /// <summary>A conversation: who is speaking, what they say (several lines, wrapped), and the choices numbered below.</summary>
+        void DrawDialoguePanel()
+        {
+            var theme = Theme.Current;
+            var who = _g.Talking;
+            var rows = _g.ServiceRows();
+            var note = new System.Collections.Generic.List<string>(Wrap(Loc.U(_g.ServiceNote ?? ""), 70));
+            if (note.Count > 10) note.RemoveRange(10, note.Count - 10);
+            int want = 9 + rows.Count + note.Count;
+            PanelRect(out int px, out int py, out int pw, out int ph, 78, want, who != null ? who.Name : "", "Up/Down  Enter chooses  Esc leaves");
+            int x = px + 3, iw = pw - 6, y = py + 2;
+            if (who != null) _t.WriteClipped(x, y, Loc.U(TownText.RoleTitle(who.Role)), theme.Label, iw, false, theme.Panel);
+            y++;
+            _t.HLine(px + 1, y, pw - 2, theme.Rule);
+            y += 2;
+            foreach (string line in note) _t.WriteClipped(x, y++, line, theme.Narrative, iw, false, theme.Panel);
+            y++;
+
+            int sel = Math.Max(0, Math.Min(State.ServiceIndex, rows.Count - 1));
+            for (int i = 0; i < rows.Count && y < py + ph - 1; i++, y++)
+            {
+                bool on = i == sel;
+                Rgb bg = on ? theme.PanelHi : theme.Panel;
+                if (on) RowBar(px + 1, y, pw - 2, theme);
+                Rgb fg = !rows[i].Enabled ? theme.Dim : on ? theme.Accent : theme.Text;
+                _t.Put(px + 2, y, on ? '▶' : ' ', theme.Accent, true, bg);
+                _t.Write(x, y, ((char)('a' + i)).ToString(), theme.Title, true, bg);
+                string price = rows[i].Price > 0 ? rows[i].Price + "g" : "";
+                int priceX = px + pw - 3 - price.Length;
+                _t.WriteClipped(x + 3, y, rows[i].Label, fg, Math.Max(1, priceX - (x + 3) - 1), on, bg);
+                if (price.Length > 0) _t.Write(priceX, y, price, _g.CarryingGold() >= rows[i].Price ? theme.Gold : theme.Dim, on, bg);
+            }
+        }
+
         void DrawServicePanel()
         {
+            if (_g.CurrentDialogue != null && _g.Talking != null) { DrawDialoguePanel(); return; }
             var theme = Theme.Current;
             var b = _g.TalkBuilding;
             if (b == null) { PanelRect(out _, out _, out _, out _, 60, 8, "Town", "Esc leaves"); return; }

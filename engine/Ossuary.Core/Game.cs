@@ -126,6 +126,7 @@ namespace Ossuary.Core
             Player.CurrentDepth = depth;
             if (depth > Player.MaxDepth) Player.MaxDepth = depth;
             ContractDepth();
+            QuestDepth();
 
             var map = Dungeon.Ensure(branchName, depth, out var spawns, out int sx, out int sy);
             Map = map;
@@ -149,6 +150,7 @@ namespace Ossuary.Core
             if (spawns != null) RaiseBones(spawns, sx, sy);
             if (spawns != null) RaiseBosses(spawns, sx, sy);
             EnsureQuestAmulet(); // fallback: levels generated before the quest still get their amulet
+            PlaceMainDocs();
 
             Say($"You arrive at {Map.LevelName}.", MessageKind.Narrative);
             if (depth == 1) Say(Dungeon.Get(branchName).EntryText, MessageKind.Narrative);
@@ -428,7 +430,7 @@ namespace Ossuary.Core
             MakeNoise(3);
             if (target.Townsperson)
             {
-                Say("Not here. The Watch would hang you, and the dead would laugh.", MessageKind.Warn);
+                Assault(target);
                 return true;
             }
             if (target.Ally)
@@ -466,6 +468,8 @@ namespace Ossuary.Core
             Monsters.Remove(m);
             if (m.Def.Trait != null) TraitOnDeath(m);
             ContractKill(m);
+            QuestKill(m);
+            if (m.BossId != null || m.Unique) RecordDeed(Deed.Killed, m.Name, m.BossId != null ? 3 : 2);
             if (m.BossId != null) BossFalls(m);
             if (m.BonesKey != null) { LaidToRest.Add(m.BonesKey); Say("The restless shade is laid to rest at last.", MessageKind.Good); }
             Player.Kills++;
@@ -529,6 +533,7 @@ namespace Ossuary.Core
             CheckDeath();
             ReapCompanions();
             CheckAchievements();
+            QuestCheck();
         }
 
         /// <summary>

@@ -85,6 +85,7 @@ namespace Ossuary.Core
             new KeyAction("character", "Character sheet", "Windows", "KeyC", new[] { "KeyC" }),
             new KeyAction("advance", "Spend advancements", "Windows", "Shift+KeyC", new[] { "Shift+KeyC" }),
             new KeyAction("discoveries", "Discoveries", "Windows", "F6", new[] { "F6" }),
+            new KeyAction("journal", "Quest journal", "Windows", "F7", new[] { "F7" }),
             new KeyAction("history", "Message history", "Windows", "Shift+KeyH", new[] { "Shift+KeyH" }),
             new KeyAction("minimap", "Toggle minimap", "Windows", "KeyM", new[] { "KeyM" }),
             new KeyAction("help", "Help", "Windows", "Slash", new[] { "Slash", "Shift+Slash", "IntlRo", "Shift+IntlRo" }),

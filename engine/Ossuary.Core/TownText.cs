@@ -15,7 +15,7 @@ namespace Ossuary.Core
         public static readonly Dictionary<string, string> Pt = new Dictionary<string, string>();
         public static readonly List<(Regex, string)> Rx = new List<(Regex, string)>();
 
-        static string L(string en, string pt) { Pt[en] = pt; return en; }
+        internal static string L(string en, string pt) { Pt[en] = pt; return en; }
         static void R(string pattern, string replacement) => Rx.Add((new Regex("^" + pattern + "$", RegexOptions.CultureInvariant), replacement));
 
         // ---------------------------------------------------------------- names
@@ -200,15 +200,110 @@ namespace Ossuary.Core
             },
         };
 
+        /// <summary>What a person's temperament adds to small talk, whatever their job. Every second line they say comes from here.</summary>
+        static readonly Dictionary<Trait, string[]> TraitLines = new Dictionary<Trait, string[]>
+        {
+            [Trait.Kind] = new[]
+            {
+                L("Mind the cellars, friend. I would hate to see another empty stool.", "Cuidado com os porões, amigo. Eu odiaria ver outro banco vazio."),
+                L("If you are hungry, the kitchen never closes to someone who looks like you.", "Se estiver com fome, a cozinha nunca fecha para alguém com a sua cara."),
+            },
+            [Trait.Bitter] = new[]
+            {
+                L("Everyone who goes down says they will be back. I have counted the ones who were right.", "Todo mundo que desce diz que volta. Eu contei quem estava certo."),
+                L("Spare me the speech. The pit takes the brave and the stupid alike.", "Poupe-me do discurso. O poço leva os bravos e os burros do mesmo jeito."),
+            },
+            [Trait.Proud] = new[]
+            {
+                L("My family has lived by this wall for six generations. The wall has not fallen once.", "Minha família vive junto a este muro há seis gerações. O muro nunca caiu."),
+                L("Wipe your boots. This is an honest town and it shows.", "Limpe as botas. Esta é uma cidade honesta e isso se vê."),
+            },
+            [Trait.Coward] = new[]
+            {
+                L("Did you hear that? From below? No. No, it was nothing. Probably.", "Ouviu aquilo? Lá de baixo? Não. Não, não foi nada. Provavelmente."),
+                L("I keep my door barred at night. You should too, if you can afford a bar.", "Eu tranco minha porta de noite. Você também deveria, se puder pagar uma tranca."),
+            },
+            [Trait.Greedy] = new[]
+            {
+                L("Everything has a price down there. Bring back anything shiny and I will not ask where.", "Tudo tem preço lá embaixo. Traga qualquer coisa brilhante e eu não pergunto de onde veio."),
+                L("Coins talk louder than prayers. I know which one answers.", "Moedas falam mais alto que preces. Eu sei qual delas responde."),
+            },
+            [Trait.Pious] = new[]
+            {
+                L("I light a candle for each of you who goes down. The candles burn out faster than they used to.", "Acendo uma vela para cada um que desce. As velas acabam mais rápido que antes."),
+                L("The dead are only lost until someone remembers them. Do not forget the ones you meet.", "Os mortos só estão perdidos até alguém lembrar deles. Não esqueça os que encontrar."),
+            },
+            [Trait.Curious] = new[]
+            {
+                L("What did you see down there? Everything. Leave nothing out.", "O que você viu lá embaixo? Tudo. Não deixe nada de fora."),
+                L("I keep a list of every odd thing that comes out of the pit. It is getting long.", "Mantenho uma lista de toda coisa estranha que sai do poço. Está ficando longa."),
+            },
+            [Trait.Weary] = new[]
+            {
+                L("Another day. Another stair. Another face I will forget.", "Mais um dia. Mais uma escada. Mais um rosto que vou esquecer."),
+                L("I stopped asking what is down there. I only ask if it is quiet tonight.", "Parei de perguntar o que há lá embaixo. Só pergunto se está quieto esta noite."),
+            },
+        };
+
         public static string LineFor(Monster m, int n)
         {
             if (m.Role == TownRole.Pet)
                 return m.Name == "cat" ? L("The cat ignores you, magnificently.", "O gato ignora você, magnificamente.") : L("The dog wags its tail and leans against your leg.", "O cão balança o rabo e se encosta na sua perna.");
+            if (m.Persona != null && m.Role != TownRole.Child && (m.Voice + n) % 2 == 1)
+            {
+                // Every second line is theirs, not their job's: the trait first, then the second trait when they have one.
+                var t = (n / 2) % 2 == 1 && m.Persona.Second != m.Persona.Trait ? m.Persona.Second : m.Persona.Trait;
+                var tp = TraitLines[t];
+                return tp[((m.Voice / 7) + n) % tp.Length];
+            }
             var pool = Lines.TryGetValue(m.Role, out var p) ? p : Lines[TownRole.Citizen];
             return pool[(m.Voice + n) % pool.Length];
         }
 
         // ------------------------------------------------------------- they remember you
+
+        static readonly string RStruck = L("You raised a hand to me. I have not forgotten, and neither will the Watch.", "Você levantou a mão contra mim. Eu não esqueci, e a Guarda também não vai esquecer.");
+        static readonly string RStruckCoward = L("Please. Keep away from me. I will not say a word, I swear it.", "Por favor. Fique longe de mim. Não digo uma palavra, juro.");
+        static readonly Dictionary<TownEventKind, string[]> EventLines = new Dictionary<TownEventKind, string[]>
+        {
+            [TownEventKind.Market] = new[]
+            {
+                L("Market day! Everything is a little cheaper, and a little more likely to be stolen.", "Dia de feira! Tudo está um pouco mais barato, e um pouco mais fácil de ser roubado."),
+                L("Try the cheese. Do not ask what it is made from.", "Experimente o queijo. Não pergunte do que é feito."),
+            },
+            [TownEventKind.Festival] = new[]
+            {
+                L("Have you heard the bard? Nine songs, and not one of them ends well.", "Você ouviu o bardo? Nove canções, e nenhuma termina bem."),
+                L("The ale is nearly honest today. Drink up before they notice.", "A cerveja está quase honesta hoje. Beba antes que percebam."),
+            },
+            [TownEventKind.Funeral] = new[]
+            {
+                L("We bury one of ours today. The temple will not hear anything else.", "Enterramos um dos nossos hoje. O templo não ouve mais nada."),
+                L("Keep your voice low. The grieving are near.", "Fale baixo. Os enlutados estão perto."),
+            },
+            [TownEventKind.Theft] = new[]
+            {
+                L("Someone emptied the till last night. The Captain is not pleased.", "Alguém esvaziou o caixa ontem à noite. O Capitão não está contente."),
+                L("They say a kobold fenced the goods. The Watch is asking who will hunt it.", "Dizem que um kobold revendeu o saque. A Guarda pergunta quem vai caçá-lo."),
+            },
+            [TownEventKind.Plague] = new[]
+            {
+                L("A fever is going round. Keep your distance, friend.", "Há uma febre por aí. Mantenha distância, amigo."),
+                L("The inn is shut for the sick. Find a barn if you must sleep.", "A estalagem fechou por causa dos doentes. Ache um celeiro se precisar dormir."),
+            },
+        };
+
+        public static string EventLine(TownEventKind k, int n)
+        {
+            var pool = EventLines[k];
+            return pool[((n % pool.Length) + pool.Length) % pool.Length];
+        }
+
+        public static readonly string VoteLine = L("They say you read the council's tally. We do not speak of that vote here. Move along.", "Dizem que você leu a contagem do conselho. Aqui não falamos daquela votação. Siga em frente.");
+        public static readonly string OrderLine = L("There are rumours about who paid for the Spire. The council would like to know where you heard them.", "Há boatos sobre quem pagou pela Torre. O conselho gostaria de saber onde você ouviu.");
+        public static readonly string Grief = L("Someone was killed here. Nobody says who did it, and everybody knows it was not the cold.", "Alguém foi morto aqui. Ninguém diz quem foi, e todo mundo sabe que não foi o frio.");
+        static readonly string RKin = L("Someone is looking for me? Tell them I am well, and that I will come home when I can.", "Alguém está me procurando? Diga que estou bem, e que volto para casa quando puder.");
+        static readonly string RHelped = L("You again. I owe you, and I do not forget what I owe.", "Você de novo. Eu lhe devo, e não esqueço o que devo.");
 
         static readonly string RGuardFriend = L("Well met. The Watch has not forgotten what you did on the roads.", "Bem-vindo. A Guarda não esqueceu o que você fez nas estradas.");
         static readonly string RGuardFoe = L("I know your face. Keep your hands where I can see them.", "Conheço seu rosto. Mantenha as mãos onde eu possa ver.");
@@ -226,6 +321,12 @@ namespace Ossuary.Core
         /// </summary>
         public static string Reaction(Monster m, int watch, int temple, int guild, int corruption, int mutations, bool companion)
         {
+            if (m.Memory != null && m.Role != TownRole.Pet)
+            {
+                if (m.Memory.Has(NpcMemory.Struck)) return m.Persona != null && m.Persona.Has(Trait.Coward) ? RStruckCoward : RStruck;
+                foreach (string f in m.Memory.Flags) if (f.StartsWith("kin.of.")) return RKin;
+                if (m.Memory.Has(NpcMemory.Helped)) return RHelped;
+            }
             switch (m.Role)
             {
                 case TownRole.Guard: case TownRole.Captain:
@@ -331,9 +432,32 @@ namespace Ossuary.Core
                 ["bump"] = "esbarrar", ["Enter K  R"] = "Enter K  R",
                 ["attack"] = "atacar", ["flee"] = "fugir", ["talk"] = "falar", ["Up/Down  Enter chooses  Esc leaves"] = "↑↓  Enter escolhe  Esc sai",
                 ["Wealth"] = "Riqueza", ["Gold"] = "Ouro", ["Floor"] = "Andar", ["street"] = "rua", ["cellar"] = "porão", ["upstairs"] = "andar de cima",
+                ["New quest"] = "Nova missão", ["Quest"] = "Missão", ["Quest complete"] = "Missão cumprida", ["Quest failed"] = "Missão falhou",
+                ["No open quests. Speak to the people of the town."] = "Nenhuma missão aberta. Fale com o povo da cidade.",
+                ["They will not serve you now."] = "Eles não vão atender você agora.", ["They are out cold; no one is serving."] = "Está desmaiado; ninguém atende.",
+                ["Someone shouts for the Watch!"] = "Alguém grita pela Guarda!", ["Someone cries out in the street!"] = "Alguém grita na rua!",
+                ["You struck a citizen."] = "Você agrediu um cidadão.", ["You killed a citizen."] = "Você matou um cidadão.", ["You killed a guard."] = "Você matou um guarda.",
+                ["You killed a priest."] = "Você matou um sacerdote.", ["You resisted arrest."] = "Você resistiu à prisão.",
+                ["You laid hands on someone the town leans on."] = "Você pôs as mãos em alguém de quem a cidade depende.",
+                ["No one saw it. The town will still know someone is gone."] = "Ninguém viu. A cidade vai saber que alguém sumiu.",
+                ["\"Halt! In the name of the Watch!\""] = "\"Alto! Em nome da Guarda!\"",
+                ["Journal"] = "Diário", ["Rumours"] = "Rumores", ["You mark it on your map."] = "Você marca no seu mapa.", ["Quest journal"] = "Diário de missões",
+                ["Main"] = "Principal", ["Guild"] = "Guilda", ["Watch"] = "Guarda", ["Temple"] = "Templo", ["Cult"] = "Culto",
+                ["Personal"] = "Pessoal", ["Rival"] = "Rival", ["Region"] = "Região",
                 ["It costs"] = "Custa", ["Leave"] = "Sair", ["Service"] = "Serviço", ["Talk"] = "Conversa",
             }) Pt[kv.Key] = kv.Value;
 
+            Rumours.Translations(R);
+            R(@"Halt! You are wanted: (\d+) gold\. Pay, serve, or be taken\.", "Alto! Você é procurado: $1 de ouro. Pague, cumpra pena, ou será levado.");
+            R(@"The Watch holds (\d+) gold against you here\. There are ways to settle it\.", "A Guarda exige $1 de ouro de você aqui. Há maneiras de resolver isso.");
+            R(@"(.+) \(\+(\d+)\)\. The Watch of (.+) wants (\d+) gold\.", "$1 (+$2). A Guarda de $3 quer $4 de ouro.");
+            R(@"(.+) crumples, out cold\. They will wake in a few days\.", "$1 desmaia. Vai acordar em alguns dias.");
+            R(@"You serve (\d+) day\(s\) in the cells\. The Watch strikes your name from its book\.", "Você cumpre $1 dia(s) nas celas. A Guarda risca seu nome do livro.");
+            R(@"(.+) is out cold\.", "$1 está desmaiado.");
+            R(@"(.+) came back from the dark a step behind you, and the whole tavern knows it\.", "$1 voltou do escuro um passo atrás de você, e a taverna inteira sabe.");
+            R(@"(.+) reached level (\d+) before you, and they buy rounds in your name\.", "$1 chegou ao nível $2 antes de você, e paga rodadas em seu nome.");
+            R(@"(.+) are buying rope and arguing about the stairs\. They have not set out yet\.", "$1 estão comprando corda e discutindo sobre as escadas. Ainda não partiram.");
+            R(@"(.+) went down the Dungeons and were last seen on level (\d+)\.", "$1 desceu às Masmorras e foi visto pela última vez no nível $2.");
             R(@"You step up to (.+)\.", "Você se aproxima de $1.");
             R(@"The edge is true again\. (.+) is better than it was\.", "O fio está firme de novo. $1 está melhor do que antes.");
             R(@"Fresh rivets and a new lining\. (.+) will turn a blow better now\.", "Rebites novos e forro novo. $1 vai aparar melhor os golpes agora.");

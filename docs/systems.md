@@ -376,6 +376,21 @@ The header shows `▲2`/`▼1`; the map title becomes the building's name.
   `DesktopTests.TownFlow`. `headless.ps1 dump town` shows the town, each floor
   of the buildings and the services panel.
 
+## Living world: personas, dialogue, quests, ledger (`Persona.cs`, `Dialogue.cs`, `Dialogues.cs`, `Quests.cs`, `QuestBook.cs`, `Game.Ledger.cs`)
+
+Plan in `living-world.md` and `main-quest.md`.
+- **Persona / NpcMemory**: every townsperson has traits, a want and an `Essential` flag (Elder, Scholar, Captain, Priest), generated from a private `Rng` forked off the town seed, so layout and other people never move. Memory holds a disposition and flags (`met`, `struck`, `helped`). Small talk alternates job lines and trait lines (`TownText.TraitLines`).
+- **WorldLedger** (`Game.Ledger.cs`): append-only `Deed` list (killed uniques/bosses, strikes, contracts, quests, failures, favours) written from the game's own choke points; read by lines, prices and later bounty/epilogue. Pure function of seed and keys, no save of its own.
+- **Conversation box**: bumping any person (pets excepted) opens a dedicated dialogue box (name and role on top, several wrapped lines, lettered choices below, `DrawDialoguePanel`); the person stands still while it is open and no turn passes. Anyone without a written conversation gets a short chat (*what have you heard*, *how are you*), so every talk offers choices.
+- **Dialogue**: nodes with gated, priced choices and effects, written in C# (`Dialogues.cs`, EN with PT beside it). It rides on the service panel (a *Talk* row on counters; direct for the Bard), so there is no protocol change. A person you struck only gives the cold line.
+- **Quest engine**: `QuestDef` (track, steps, reward, optional `Deadline` in days) in `QuestBook`; `Game.Quests.cs` counts kills, depth, flags, items, talk and waits, advances steps, pays out and fails by the clock. `Game.Flags` holds story flags. `F7` opens the **Journal** (quests by track, hints and days left, today's town event, the bounty, learned rumours; Guild jobs listed under Guild).
+- **Personal errands** (`PersonalQuests.cs`): a troubled person's want (revenge, debt, cure, lost kin) becomes a quest on the spot; finishing it sets `Helped`, +40 disposition, a ledger deed and Guild standing.
+- **Rumours** (`Rumours.cs`): a real fact (a branch boss or a named place), told true, vague or wrong by the teller's temperament; true places are marked on the map, bosses open a Region quest.
+- **Crime and the Watch** (`Game.Crime.cs`): `k` strikes the person in front; witnesses by line of sight; bounty by harm (assault 15+2×damage, murder 1000, guard or priest 1500) kept per region, neighbours hold half; the victim and guards turn hostile while they see the hero, then calm; a guard who sees a wanted hero arrests (pay, cells, bribe, resist); cells pass days; the Captain clears names for gold or a favour; essentials are knocked out, never killed; a murdered town grieves in its small talk.
+- **Town events** (`Game.TownEvents.cs`): a deterministic two-day schedule (market, festival, funeral, robbery, fever) with prices, closed doors, lines and a Watch job.
+- **Travellers and the rival** (`Game.Travellers.cs`, `Game.Rival.cs`): pilgrim, peddler, refugee and delver road events; a hired sword who comments on new depths; a named rival party that descends on its own clock and can be raced.
+- **Main questline** (`Game.Main.cs`): four documents placed with their own seeded Rng, the Reader, the truths (which make the Holds and the League charge more), and six endings chosen when the hero walks out with the Amulet after reading the Seal; the Stamp starts a new cycle. The short path (take the Amulet and leave) is unchanged.
+
 ## UI (`GameHud.cs`, `Ui.cs`, `UiState.cs`, `TextBuilder.cs`)
 
 - Frame: map + sidebar (Health/Energy, Depth/Turn, equipment, AC/gold),
