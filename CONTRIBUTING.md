@@ -3,7 +3,7 @@
 **English** · [Português (Brasil)](CONTRIBUTING.pt-BR.md)
 
 Thanks for wanting to help. This guide explains **how the project is organised**, **what not to break**, and **how to add the most common things**
-(spells, items, animations, translations) in a few lines. Code and commits may be in English or Portuguese; the documentation in `docs/` is in Portuguese.
+(spells, items, animations, translations) in a few lines. Code and commits may be in English or Portuguese; the documentation in `docs/` is in English.
 
 > **Version and license.** The game is at **Version 11** (`0.11.0` in the manifests). The project is under the [MIT license](LICENSE): by contributing you agree
 > that your code is distributed under it. The `unscii-16` font has its own attribution ([assets/fonts/NOTICE.md](assets/fonts/NOTICE.md)).
@@ -23,8 +23,8 @@ Thanks for wanting to help. This guide explains **how the project is organised**
 
 ## Before you start
 
-- Read the [README](README.md), [`docs/visao-geral.md`](docs/visao-geral.md) and [`docs/arquitetura.md`](docs/arquitetura.md) (Portuguese).
-- **Read [`docs/a-fazer.md`](docs/a-fazer.md)**: the living backlog (what is missing, what is done). If your idea is there, great; if not, add it under the right category.
+- Read the [README](README.md), [`docs/overview.md`](docs/overview.md) and [`docs/architecture.md`](docs/architecture.md).
+- **Read [`docs/todo.md`](docs/todo.md)**: the living backlog (what is missing, what is done). If your idea is there, great; if not, add it under the right category.
 - [`AGENTS.md`](AGENTS.md) sums up the rules for coding agents; they apply to people too.
 - For anything big (a new system, a rules change, a protocol change), **open an issue first**.
 
@@ -48,7 +48,7 @@ cd ossuary
 .\desktop.ps1 web       # the same engine in a browser (loopback)
 ```
 
-Details and troubleshooting: [INSTALL.md](INSTALL.md) and [`docs/build-teste.md`](docs/build-teste.md).
+Details and troubleshooting: [INSTALL.md](INSTALL.md) and [`docs/build-and-test.md`](docs/build-and-test.md).
 The engine and its tests (`engine/`) only need the .NET SDK, so you can work on game rules without Rust or Tauri.
 
 ## Golden rules
@@ -72,7 +72,7 @@ The engine and its tests (`engine/`) only need the .NET SDK, so you can work on 
 2. Run **`.\headless.ps1 test` before** touching the Core (to know the baseline) and **after**.
 3. Keep changes small and focused; type-check while editing (`.\fastcheck.ps1`).
 4. Update the documentation when you change a system, controls, features or the pipeline (`docs/`).
-5. **Update [`docs/a-fazer.md`](docs/a-fazer.md)** when done: mark `[x]` with a date and where it lives, `[~]` if partial, and note new ideas under the right category.
+5. **Update [`docs/todo.md`](docs/todo.md)** when done: mark `[x]` with a date and where it lives, `[~]` if partial, and note new ideas under the right category.
 6. Run the full suite (`.\check.ps1`) before opening the PR, and a build (`.\desktop.ps1 build`) if you changed something that ships.
 
 Code style: write like the neighbouring code (names, comment density, language). Comments explain **why**.
@@ -85,7 +85,7 @@ Code style: write like the neighbouring code (names, comment density, language).
 
 ## Recipes: adding things
 
-Everything is data wherever possible. The full catalogue and the details are in [`docs/magia-e-itens.md`](docs/magia-e-itens.md) (Portuguese).
+Everything is data wherever possible. The full catalogue and the details are in [`docs/spells-and-items.md`](docs/spells-and-items.md).
 
 ### A spell
 
@@ -113,11 +113,11 @@ If your spell is legitimately silent in an empty arena (light, find traps…), a
 ### An animation
 
 One piece in `FxLib` (`engine/Ossuary.Core/Fx.cs`) that writes steps of map cells and returns the step where it ends. Use the per-element ramps (`FxLib.Pal`),
-never a fixed colour, and the shared geometry (`Shapes`) so what you see matches what was hit. Details in [`docs/magia-e-itens.md`](docs/magia-e-itens.md#animações).
+never a fixed colour, and the shared geometry (`Shapes`) so what you see matches what was hit. Details in [`docs/spells-and-items.md`](docs/spells-and-items.md#animations).
 
 ### A monster, boss, god, race…
 
-See [`docs/sistemas.md`](docs/sistemas.md) and [`docs/rpg.md`](docs/rpg.md): nearly everything is a table in `engine/Ossuary.Core/Entities/`.
+See [`docs/systems.md`](docs/systems.md) and [`docs/rpg.md`](docs/rpg.md): nearly everything is a table in `engine/Ossuary.Core/Entities/`.
 
 ## Tests
 
@@ -139,7 +139,7 @@ cd desktop; npm test             # frontend vitest
 ## Text and translations
 
 - Player-visible text **is born in English** and gets a Portuguese translation in `Loc.cs` (or `Loc.Spells.cs` for spells). `Say` and `TextBuilder` already translate; the Core never picks the language itself.
-- Dynamic messages (names and numbers) match `Rx` patterns in `Loc.cs`. See [`docs/idiomas.md`](docs/idiomas.md).
+- Dynamic messages (names and numbers) match `Rx` patterns in `Loc.cs`. See [`docs/languages.md`](docs/languages.md).
 - Portuguese spell and buff names must fit the list (≤ 26 columns); the tests check.
 
 ## Visuals

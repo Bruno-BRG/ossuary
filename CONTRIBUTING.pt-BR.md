@@ -23,8 +23,8 @@ Obrigado por querer ajudar. Este guia diz **como o projeto é organizado**, **o 
 
 ## Antes de começar
 
-- Leia o [README](README.pt-BR.md), [`docs/visao-geral.md`](docs/visao-geral.md) e [`docs/arquitetura.md`](docs/arquitetura.md).
-- **Leia [`docs/a-fazer.md`](docs/a-fazer.md)**: é o backlog vivo (o que falta e o que já foi feito). Se a sua ideia já está lá, ótimo; se não, acrescente-a na categoria certa.
+- Leia o [README](README.pt-BR.md), [`docs/overview.md`](docs/overview.md) e [`docs/architecture.md`](docs/architecture.md).
+- **Leia [`docs/todo.md`](docs/todo.md)**: é o backlog vivo (o que falta e o que já foi feito). Se a sua ideia já está lá, ótimo; se não, acrescente-a na categoria certa.
 - [`AGENTS.md`](AGENTS.md) resume as regras para agentes de código; vale para pessoas também.
 - Para algo grande (sistema novo, mudança de regra, mudança de protocolo), **abra uma issue antes** de escrever muito código.
 
@@ -48,7 +48,7 @@ cd ossuary
 .\desktop.ps1 web       # o mesmo motor no navegador (loopback)
 ```
 
-Detalhes e solução de problemas em [INSTALL.pt-BR.md](INSTALL.pt-BR.md) e [`docs/build-teste.md`](docs/build-teste.md).
+Detalhes e solução de problemas em [INSTALL.pt-BR.md](INSTALL.pt-BR.md) e [`docs/build-and-test.md`](docs/build-and-test.md).
 O motor e os testes (`engine/`) só precisam do SDK .NET; dá para mexer nas regras do jogo sem Rust nem Tauri.
 
 ## Regras de ouro
@@ -72,7 +72,7 @@ O motor e os testes (`engine/`) só precisam do SDK .NET; dá para mexer nas reg
 2. Rode **`.\headless.ps1 test` antes** de mexer no Core (para saber o estado) e **depois**.
 3. Faça mudanças pequenas e focadas; type-check durante a edição (`.\fastcheck.ps1`).
 4. Atualize a documentação quando mudar sistema, controles, recursos ou pipeline (`docs/`).
-5. **Atualize [`docs/a-fazer.md`](docs/a-fazer.md)** ao terminar: marque `[x]` com data e onde mora, `[~]` se parcial, e anote ideias novas na categoria certa.
+5. **Atualize [`docs/todo.md`](docs/todo.md)** ao terminar: marque `[x]` com data e onde mora, `[~]` se parcial, e anote ideias novas na categoria certa.
 6. Suite completa (`.\check.ps1`) antes de abrir o PR; build (`.\desktop.ps1 build`) se mudou algo distribuível.
 
 Convenções de código: escreva como o código vizinho (nomes, densidade de comentários, idioma). Comentários explicam o **porquê**.
@@ -85,7 +85,7 @@ Convenções de código: escreva como o código vizinho (nomes, densidade de com
 
 ## Receitas: adicionar coisas
 
-Tudo é dado sempre que possível. O catálogo completo e os detalhes estão em [`docs/magia-e-itens.md`](docs/magia-e-itens.md).
+Tudo é dado sempre que possível. O catálogo completo e os detalhes estão em [`docs/spells-and-items.md`](docs/spells-and-items.md).
 
 ### Uma magia
 
@@ -113,11 +113,11 @@ Se a sua magia é legitimamente silenciosa numa arena vazia (luz, achar armadilh
 ### Uma animação
 
 Uma peça em `FxLib` (`engine/Ossuary.Core/Fx.cs`) que escreve passos de células no mapa e devolve o passo em que termina. Use as rampas por elemento (`FxLib.Pal`),
-nada de cor fixa, e a geometria compartilhada (`Shapes`) para o que você vê coincidir com o que foi atingido. Detalhes em [`docs/magia-e-itens.md`](docs/magia-e-itens.md#animações).
+nada de cor fixa, e a geometria compartilhada (`Shapes`) para o que você vê coincidir com o que foi atingido. Detalhes em [`docs/spells-and-items.md`](docs/spells-and-items.md#animations).
 
 ### Um monstro, chefe, deus, raça…
 
-Veja [`docs/sistemas.md`](docs/sistemas.md) e [`docs/rpg.md`](docs/rpg.md): quase tudo é uma tabela em `engine/Ossuary.Core/Entities/`.
+Veja [`docs/systems.md`](docs/systems.md) e [`docs/rpg.md`](docs/rpg.md): quase tudo é uma tabela em `engine/Ossuary.Core/Entities/`.
 
 ## Testes
 
@@ -139,7 +139,7 @@ cd desktop; npm test             # vitest do frontend
 ## Textos e traduções
 
 - Texto visível ao jogador **nasce em inglês** e ganha tradução PT em `Loc.cs` (ou `Loc.Spells.cs` para magias). `Say` e `TextBuilder` já traduzem; o Core nunca decide o idioma sozinho.
-- Mensagens dinâmicas (com nomes e números) casam por padrões `Rx` em `Loc.cs`. Veja [`docs/idiomas.md`](docs/idiomas.md).
+- Mensagens dinâmicas (com nomes e números) casam por padrões `Rx` em `Loc.cs`. Veja [`docs/languages.md`](docs/languages.md).
 - Nomes de magias e buffs em PT precisam caber na lista (≤ 26 colunas); os testes conferem.
 
 ## Visual

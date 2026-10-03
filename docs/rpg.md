@@ -1,201 +1,204 @@
-# RPG — pesquisa, catálogo e roteiro
+# RPG — research, catalog and roadmap
 
-Notas de design para expandir o lado RPG do Ossuary: personagem, magia,
-habilidades, itens e progressão. Este documento é o **mapa**; cada parte
-implementada vira seção em [sistemas.md](sistemas.md) e o status fica na
-tabela de roteiro (§7).
+Design notes for expanding Ossuary's RPG side: character, magic,
+abilities, items and progression. This document is the **map**; each implemented
+part becomes a section in [systems.md](systems.md) and its status lives in the
+roadmap table (§7).
 
-## 1. Estado atual (base)
+## 1. Current state (baseline)
 
-- 6 atributos NetHack (3..18, Str com fração 18/xx), HP, Energy (turnos).
-- 5 papéis (`Roles.cs`): Adventurer, Fighter, Rogue, Cleric, Wizard — viés
-  de atributo, kit, HP/nível, skills iniciais, 4 títulos.
-- 6 skills 0..100 que sobem por uso (Combat, Dodging, Stealth, Magic,
-  Survival, Search). Magic hoje **não faz nada** além de número.
-- Level-up: HP/XP automático + 1 pick (`Progression`: 7 opções, todas
-  incrementos planos).
-- Itens: armas/armaduras/anéis/amuletos/varinhas/pergaminhos/poções/livros.
-  `a spellbook` e `a book of prayers` são só decoração. Sem mana, sem magias.
-- Sem **nome**, sem **raça**. Salvamento é replay (seed + teclas): qualquer
-  escolha de criação precisa entrar no `SaveData`.
+- 6 NetHack attributes (3..18, Str with an 18/xx fraction), HP, Energy (turns).
+- 5 roles (`Roles.cs`): Adventurer, Fighter, Rogue, Cleric, Wizard — attribute
+  bias, kit, HP/level, starting skills, 4 titles.
+- 6 skills 0..100 that rise with use (Combat, Dodging, Stealth, Magic,
+  Survival, Search). Magic currently **does nothing** beyond a number.
+- Level-up: automatic HP/XP + 1 pick (`Progression`: 7 options, all
+  flat increments).
+- Items: weapons/armor/rings/amulets/wands/scrolls/potions/books.
+  `a spellbook` and `a book of prayers` are only decoration. No mana, no spells.
+- No **name**, no **race**. Saving is replay (seed + keys): any
+  creation choice must enter `SaveData`.
 
-## 2. Pesquisa — o que cada jogo ensina
+## 2. Research — what each game teaches
 
 ### Roguelikes
 
-| Jogo | Ideia aproveitável | Cabe no Ossuary? |
+| Game | Usable idea | Fits Ossuary? |
 |---|---|---|
-| **DCSS** | Espécie dá *aptidões* (custo de XP por skill) e HP/MP por nível; background só define o começo (nada é proibido). Escolas de magia: magia tem até 3 escolas e falha por skill + armadura. Deuses com piedade. | **Sim**, núcleo. Aptidão por raça, falha de magia, deuses |
-| **NetHack** | Papéis com ranks, alinhamento, oração, skills por *uso* com teto por classe, identificação por uso, livros com nível e chance de falha, Pw regenera por Wis/XL. | Já é a base; adotar teto de skill por classe e falha de livro |
-| **Brogue** | Zero classe: o poder vem dos itens (enchant scrolls num único item). Sem XP. | Inspirar o sistema de *enchant* e itens com identidade |
-| **Caves of Qud** | Mutações (70+) em vez de classe, aleatoriedade controlada, skill trees por domínio, mutações físicas vs mentais. | Parte 5: "mutações/bênçãos" raras como perks |
-| **Tales of Maj'Eyal** | Talentos com cooldown, recursos distintos por classe (mana, stamina, vim, hate), árvores mistas. | Recursos por classe: Mana, Vigor, Sangue/Piedade |
-| **Cogmind/Sil/Angband** | Sil: skills compradas com XP (sem nível), stealth sério. Angband: magia por livros de nível, falha por Int/armadura, resistências elementares. | Resistências, XP gasto em skills (opção) |
+| **DCSS** | Species grant *aptitudes* (XP cost per skill) and HP/MP per level; background only sets the start (nothing is forbidden). Schools of magic: a spell has up to 3 schools and fails by skill + armor. Gods with piety. | **Yes**, core. Per-race aptitude, spell failure, gods |
+| **NetHack** | Roles with ranks, alignment, prayer, skills by *use* capped per class, identification by use, books with level and failure chance, Pw regenerates by Wis/XL. | Already the base; adopt per-class skill cap and book failure |
+| **Brogue** | No class: power comes from items (enchant scrolls into a single item). No XP. | Inspire the *enchant* system and items with identity |
+| **Caves of Qud** | Mutations (70+) instead of class, controlled randomness, skill trees per domain, physical vs mental mutations. | Part 5: rare "mutations/blessings" as perks |
+| **Tales of Maj'Eyal** | Talents with cooldown, distinct per-class resources (mana, stamina, vim, hate), mixed trees. | Per-class resources: Mana, Vigor, Blood/Piety |
+| **Cogmind/Sil/Angband** | Sil: skills bought with XP (no levels), serious stealth. Angband: magic by level books, failure by Int/armor, elemental resistances. | Resistances, XP spent on skills (option) |
 
-### Mesa
+### Tabletop
 
-| Sistema | Ideia aproveitável |
+| System | Usable idea |
 |---|---|
-| **D&D 5e** | Raça + classe + background; bônus de proficiência por nível; salvaguardas; spell slots; concentração; descanso curto/longo; vantagem/desvantagem. |
-| **Pathfinder 2e** | ABC (ancestry, background, class); heritage dentro da raça; talentos de classe a cada nível par; proficiência em 4 graus (Treinado→Lendário); *focus spells* que recarregam rápido. |
-| **GURPS/Savage Worlds** | Vantagens/desvantagens (perks e defeitos pontuados); skills por custo. |
-| **Call of Cthulhu/Dark Souls tabletop** | Sanidade/corrupção como recurso — encaixa na lore (necromancia). |
+| **D&D 5e** | Race + class + background; proficiency bonus by level; saving throws; spell slots; concentration; short/long rest; advantage/disadvantage. |
+| **Pathfinder 2e** | ABC (ancestry, background, class); heritage within a race; class feats every even level; proficiency in 4 ranks (Trained→Legendary); *focus spells* that recharge quickly. |
+| **GURPS/Savage Worlds** | Advantages/disadvantages (scored perks and flaws); skills by cost. |
+| **Call of Cthulhu/Dark Souls tabletop** | Sanity/corruption as a resource — fits the lore (necromancy). |
 
-### Videogames de magia
+### Magic video games
 
-| Jogo | Ideia |
+| Game | Idea |
 |---|---|
-| **Baldur's Gate 3** | Slots por nível, *upcast*, concentração, ação bônus, superfícies elementais interagindo (fogo+óleo, água+raio), vantagem por terreno/altura. |
-| **Skyrim** | Skills por uso e *perks* a cada nível; 5 escolas; mana + custo; encantamento ligado a gemas de alma; pergaminhos; shouts com cooldown. |
-| **Diablo/PoE** | Afixos de itens (prefixo/sufixo), raridade, gemas de suporte, sockets. |
-| **Dark Souls** | Atributos que destravam magia/armas, catalisadores, piromancia vs milagres. |
-| **Divinity: OS2** | Superfícies, status por combinação, scrolls como parte do sistema. |
+| **Baldur's Gate 3** | Slots per level, *upcast*, concentration, bonus action, interacting elemental surfaces (fire+oil, water+lightning), advantage from terrain/height. |
+| **Skyrim** | Skills by use and *perks* every level; 5 schools; mana + cost; enchanting tied to soul gems; scrolls; shouts with cooldown. |
+| **Diablo/PoE** | Item affixes (prefix/suffix), rarity, support gems, sockets. |
+| **Dark Souls** | Attributes that unlock spells/weapons, catalysts, pyromancy vs miracles. |
+| **Divinity: OS2** | Surfaces, status by combination, scrolls as part of the system. |
 
-## 3. Decisões de design (o que adotamos)
+## 3. Design decisions (what we adopted)
 
-1. **Dois eixos de identidade**: Raça (corpo, aptidões, traços) × Classe
-   (função, kit, árvore de habilidades). Background fica de fora por ora.
-2. **Poder por uso + escolha**: skills sobem usando (já existe, estilo
-   NetHack/Skyrim); a cada nível, **1 perk** de uma lista curta (substitui
-   os incrementos planos).
-3. **Mana único** (`Mp`/`MpMax`) para magia arcana; Clérigo e Paladino
-   gastam o mesmo pool (rotulado "Fé") — sem Vancian, sem recarga por
-   descanso: regen por turno ligada a Int/Wis/Magic, mais poções.
-4. **Magias vêm de livros** (aprender = custa turnos, pode falhar por
-   Int/nível, estilo NetHack), organizadas por **escola**.
-5. **Falha de magia** por armadura pesada e skill (estilo DCSS/NetHack);
-   mago de armadura de placa é uma escolha, não um bug.
-6. **Resistências e tipos de dano** (físico, fogo, gelo, raio, veneno,
-   necrótico, sagrado) — a base para raças, itens e inimigos conversarem.
-7. **Determinismo**: todo RNG novo vem de `Game.Rng`; desenho usa hash(x,y).
-   Tudo novo precisa de teste headless e entrar no replay.
-8. **Core puro**: mecânica em `Game.<Assunto>.cs`, telas como `TextBuilder`.
+1. **Two identity axes**: Race (body, aptitudes, traits) × Class
+   (role, kit, ability tree). Background is left out for now.
+2. **Power by use + choice**: skills rise by use (already exists, NetHack/Skyrim
+   style); each level, **1 perk** from a short list (replaces
+   the flat increments).
+3. **Single mana** (`Mp`/`MpMax`) for arcane magic; Cleric and Paladin
+   spend the same pool (labeled "Faith") — no Vancian, no recharge by
+   resting: per-turn regen tied to Int/Wis/Magic, plus potions.
+4. **Spells come from books** (learning costs turns, may fail by
+   Int/level, NetHack style), organized by **school**.
+5. **Spell failure** by heavy armor and skill (DCSS/NetHack style);
+   a plate-armored mage is a choice, not a bug.
+6. **Resistances and damage types** (physical, fire, ice, lightning, poison,
+   necrotic, holy) — the basis for races, items and enemies to talk to each other.
+7. **Determinism**: all new RNG comes from `Game.Rng`; drawing uses hash(x,y).
+   Everything new needs a headless test and must enter the replay.
+8. **Pure Core**: mechanics in `Game.<Subject>.cs`, screens as `TextBuilder`.
 
-## 4. Catálogo — personagem
+## 4. Catalog — character
 
-### Raças (traço + aptidões; HP/MP base por raça)
+### Races (trait + aptitudes; base HP/MP per race)
 
-Todas valem a **mesma rolagem 3d6** da seed; só o viés muda (padrão atual).
+All use the **same 3d6 roll** from the seed; only the bias changes (current default).
 
-| Raça | Atributos | Traço | Ligação com a lore |
+| Race | Attributes | Trait | Tie to the lore |
 |---|---|---|---|
-| **Humano** | sem viés | Versátil (parte 2: +1 perk extra no nível 1) | O vagabundo padrão |
-| **Anão** | Con+2, Str+1, Cha-1, Dex-1 | Resiste veneno; vê ouro/veios; infravisão curta | Mines of Dwarfdeep |
-| **Elfo** | Dex+2, Int+1, Con-2 | Mana +25%; sono resistido; arcos +1 | Era das Cidades |
-| **Halfling** | Dex+2, Cha+1, Str-2 | Furtividade +10; sorte (crit contra você reduzido); come menos | Taberneiros-hobbits |
-| **Orc** | Str+2, Con+1, Int-1, Cha-2 | Regenera HP (lento); fúria <25% HP | Quartéis do Dungeons |
-| **Gnomo** | Int+2, Con+1, Str-2 | Mana +15%; engenhocas: varinhas gastam menos carga | Gnome mummies dos Vaults |
-| **Cinzento** (humano tocado pela Spire) | Wis+1, Con+1, Cha-2 | Resiste fogo; curado por necrótico em parte; calor | Ashen Spire, Emberdown |
-| **Ossário** (morto-vivo, desbloqueável) | Con+2, Cha-3 | Imune a veneno/fome (!); cura só por magia/dano causado | Premissa: o buraco devolve |
+| **Human** | no bias | Versatile (part 2: +1 extra perk at level 1) | The default drifter |
+| **Dwarf** | Con+2, Str+1, Cha-1, Dex-1 | Resists poison; sees gold/veins; short infravision | Mines of Dwarfdeep |
+| **Elf** | Dex+2, Int+1, Con-2 | Mana +25%; resists sleep; bows +1 | Age of the Cities |
+| **Halfling** | Dex+2, Cha+1, Str-2 | Stealth +10; luck (crits against you reduced); eats less | Hobbit innkeepers |
+| **Orc** | Str+2, Con+1, Int-1, Cha-2 | Regenerates HP (slowly); fury <25% HP | Barracks of the Dungeons |
+| **Gnome** | Int+2, Con+1, Str-2 | Mana +15%; gadgets: wands spend fewer charges | Gnome mummies of the Vaults |
+| **Ashen** (human touched by the Spire) | Wis+1, Con+1, Cha-2 | Resists fire; partly healed by necrotic; heat | Ashen Spire, Emberdown |
+| **Ossuarian** (undead, unlockable) | Con+2, Cha-3 | Immune to poison/hunger (!); heals only by magic/damage dealt | Premise: the pit gives back |
 
-Ordem de implementação: Humano, Anão, Elfo, Halfling, Orc, Gnomo, Cinzento.
-Ossário depois (desbloqueio por vitória).
+Implementation order: Human, Dwarf, Elf, Halfling, Orc, Gnome, Ashen.
+Ossuarian later (unlocked by victory).
 
-### Classes (função + recurso + assinatura)
+### Classes (role + resource + signature)
 
-| Classe | Papel | Recurso | Assinatura |
+| Class | Role | Resource | Signature |
 |---|---|---|---|
-| **Guerreiro** *(existe)* | Linha de frente | Vigor | Golpe poderoso, segundo fôlego |
-| **Ladino** *(existe)* | Dano furtivo | — | Ataque pelas costas x3, desarmar armadilhas |
-| **Clérigo** *(existe)* | Suporte/anti-morto | Fé (Mp) | Curar, expulsar mortos-vivos, bênção |
-| **Mago** *(existe)* | Dano à distância | Mana | Magias de livros, escolas arcanas |
-| **Patrulheiro** | Arco, sobrevivência | Vigor | Tiro mirado, armadilhas, rastrear |
-| **Paladino** | Tanque sagrado | Fé | Aura, punição sagrada, cura pela imposição |
-| **Necromante** | Invocador | Mana + Corrupção | Levantar mortos, drenar, ossos |
-| **Bárbaro** | Dano bruto | Fúria | Fúria, imunidade a medo, HP alto |
-| **Monge** | Desarmado | Vigor | Artes marciais, esquiva, sem armadura |
-| **Bruxo/Pactário** | Dano com custo | HP/Corrupção | Pacto: poder por preço |
+| **Fighter** *(exists)* | Front line | Vigor | Power strike, second wind |
+| **Rogue** *(exists)* | Sneak damage | — | Backstab x3, disarm traps |
+| **Cleric** *(exists)* | Support/anti-undead | Faith (Mp) | Heal, turn undead, blessing |
+| **Wizard** *(exists)* | Ranged damage | Mana | Spells from books, arcane schools |
+| **Ranger** | Bow, survival | Vigor | Aimed shot, traps, tracking |
+| **Paladin** | Holy tank | Faith | Aura, holy smite, healing by laying on hands |
+| **Necromancer** | Summoner | Mana + Corruption | Raise the dead, drain, bones |
+| **Barbarian** | Brute damage | Fury | Rage, fear immunity, high HP |
+| **Monk** | Unarmed | Vigor | Martial arts, dodge, no armor |
+| **Warlock/Pactbound** | Damage at a cost | HP/Corruption | Pact: power for a price |
 
-Ordem: Patrulheiro, Paladino, Necromante primeiro (encaixam na lore e usam o
-sistema de magia), depois Bárbaro, Monge, Pactário.
+Order: Ranger, Paladin, Necromancer first (they fit the lore and use the
+magic system), then Barbarian, Monk, Pactbound.
 
-### Atributos derivados (a implementar)
+### Derived attributes (to implement)
 
-- **Mp máx** = base raça/classe + Int/Wis×k + nível×k. **Regen** por turno.
-- **Acerto/Dano/Crítico** por Combat + Str/Dex (hoje parcialmente).
-- **Salvaguardas** (Fort/Refl/Will) a partir de Con/Dex/Wis: veneno, armadilhas, controle.
-- **Carga** (já há `CarryingCapacity`) afeta Evasion.
+- **Max Mp** = race/class base + Int/Wis×k + level×k. **Regen** per turn.
+- **Hit/Damage/Crit** by Combat + Str/Dex (partly today).
+- **Saves** (Fort/Refl/Will) from Con/Dex/Wis: poison, traps, control.
+- **Load** (`CarryingCapacity` already exists) affects Evasion.
 
-### Progressão
+### Progression
 
-- XP: curva atual `×1.35+10`. Manter. Bônus de XP por primeiro encontro
-  com espécie (descoberta, estilo Qud/Skyrim) — opcional.
-- **Skills**: manter 0..100 por uso; adicionar **graus** (Novato,
-  Treinado, Perito, Mestre, Lendário) a 0/25/50/75/100 com bônus em cada
-  grau; **teto por classe** (DCSS/NetHack).
-- **Perks**: 1 por nível (+1 extra nos níveis 5/10), de um pool filtrado
-  por classe/raça/pré-requisito de skill. Exemplos:
-  - Guerreiro: *Segundo Fôlego, Golpe Poderoso, Parede de Escudos, Fúria de Aço*
-  - Ladino: *Punhalada, Passos Leves, Mãos Rápidas, Olho de Gatuno*
-  - Mago: *Mente Vasta (+Mp), Foco (-falha), Conjuração Rápida*
-  - Clérigo: *Fé Inabalável, Cura Maior, Aura de Proteção*
-  - Gerais: *Resistente, Sortudo, Olhos Abertos, Pés no Chão*
+- XP: current curve `×1.35+10`. Keep. First-encounter XP bonus per
+  species (discovery, Qud/Skyrim style) — optional.
+- **Skills**: keep 0..100 by use; add **ranks** (Novice,
+  Trained, Expert, Master, Legendary) at 0/25/50/75/100 with a bonus at each
+  rank; **per-class cap** (DCSS/NetHack).
+- **Perks**: 1 per level (+1 extra at levels 5/10), from a pool filtered
+  by class/race/skill prerequisite. Examples:
+  - Fighter: *Second Wind, Power Strike, Shield Wall, Steel Fury*
+  - Rogue: *Backstab, Light Steps, Quick Hands, Thief's Eye*
+  - Wizard: *Vast Mind (+Mp), Focus (-failure), Quick Casting*
+  - Cleric: *Unshaken Faith, Greater Heal, Aura of Protection*
+  - General: *Hardy, Lucky, Open Eyes, Grounded*
 
-## 5. Catálogo — magia
+## 5. Catalog — magic
 
-### Escolas (6, com a skill de cada uma)
+### Schools (6, with a skill for each)
 
-`Evocação` (dano), `Conjuração` (invocar/portais), `Alteração` (buff/utilitário),
-`Ilusão` (furtivo/confusão), `Necromancia` (drenar/mortos), `Sagrada`
-(cura/proteção). *Skill por escola é fase 4; no início só `Magic`.*
+`Evocation` (damage), `Conjuration` (summon/portals), `Alteration` (buff/utility),
+`Illusion` (stealth/confusion), `Necromancy` (drain/dead), `Holy`
+(heal/protection). *Per-school skill is phase 4; at first only `Magic`.*
 
-### Lista inicial (30 magias, círculos 1–5)
+### Initial list (30 spells, circles 1–5)
 
-| Círculo | Magias |
+| Circle | Spells |
 |---|---|
-| 1 | Seta Arcana (dano, mira) · Luz · Detectar Magia · Curar Ferimentos · Proteger (CA) · Toque Gélido |
-| 2 | Bola de Fogo Menor · Raio de Gelo · Invisibilidade · Abrir/Trancar · Sono · Esconjurar Mortos |
-| 3 | Relâmpago · Teletransporte Curto · Cura em Massa · Levantar Esqueleto · Revelar Mapa · Lentidão |
-| 4 | Parede de Fogo (terreno) · Pele de Pedra · Drenar Vida · Medo · Dissipar |
-| 5 | Meteoro · Portal · Morte · Ressurreição (1x) · Chuva de Ossos |
+| 1 | Arcane Bolt (damage, aim) · Light · Detect Magic · Cure Wounds · Protect (AC) · Chill Touch |
+| 2 | Lesser Fireball · Frost Ray · Invisibility · Open/Lock · Sleep · Turn Undead |
+| 3 | Lightning · Short Teleport · Mass Heal · Raise Skeleton · Reveal Map · Slow |
+| 4 | Wall of Fire (terrain) · Stoneskin · Drain Life · Fear · Dispel |
+| 5 | Meteor · Portal · Death · Resurrection (1x) · Rain of Bones |
 
-Mecânicas associadas: custo de Mp, falha %, alcance/área reaproveitando
-`Game.Targeting`, **duração/concentração** de buffs (um só ativo),
-**superfícies** (fogo queima grama/óleo, gelo congela água, raio em poça)
-como fase tardia, estilo BG3/Divinity.
+Associated mechanics: Mp cost, failure %, range/area reusing
+`Game.Targeting`, buff **duration/concentration** (one active),
+**surfaces** (fire burns grass/oil, ice freezes water, lightning in a puddle)
+as a late phase, BG3/Divinity style.
 
-### Fontes de magia
+### Sources of magic
 
-- Livros (aprender permanente, nível/falha), pergaminhos (uso único, sem
-  mana, já existem), varinhas (cargas), cajados (cargas que recarregam),
-  altares/deuses (preces), poções.
+- Books (permanent learning, level/failure), scrolls (single use, no
+  mana, already exist), wands (charges), staves (recharging charges),
+  altars/gods (prayers), potions.
 
-## 6. Catálogo — itens e encantamentos
+## 6. Catalog — items and enchantments
 
-- **Raridade**: Comum, Incomum (+1..+2), Raro (afixo), Épico/Artefato (nome
-  fixo + lore), Amaldiçoado (já existe `Cursed`).
-- **Afixos** (Diablo/PoE): prefixos (`Afiada +1`, `Flamejante` +1d4 fogo,
-  `Venenosa`, `Vampírica`, `Gélida`) e sufixos (`da Raposa` +Dex, `do
-  Urso` +Str, `da Coruja` +Int/Mp, `do Mago` +Mp regen, `da Ruína` +crit).
-- **Encantar** (Brogue/Skyrim): pergaminho *Enchant* +1 em item; **gema
-  de alma**/osso-alma recarrega cajado ou encanta arma (tema Ossuary).
-- **Identificação** por uso (já parcial) + pergaminho de identificar.
-- **Conjuntos/artefatos**: *Coroa do Rei Afogado*, *Machado de Dwarfdeep*,
-  *Cinzas da Spire*, ligados às branches.
-- **Slots** novos: elmo, botas, luvas, capa, amuleto, 2 anéis — hoje há
-  Armor/Shield/2 anéis/amuleto; separar slots é a parte 6.
-- **Resistências** em itens e inimigos (listadas em §3.6).
+- **Rarity**: Common, Uncommon (+1..+2), Rare (affix), Epic/Artifact (fixed
+  name + lore), Cursed (`Cursed` already exists).
+- **Affixes** (Diablo/PoE): prefixes (`Sharp +1`, `Flaming` +1d4 fire,
+  `Venomous`, `Vampiric`, `Frigid`) and suffixes (`of the Fox` +Dex, `of the
+  Bear` +Str, `of the Owl` +Int/Mp, `of the Mage` +Mp regen, `of Ruin` +crit).
+- **Enchanting** (Brogue/Skyrim): *Enchant* scroll +1 on an item; **soul
+  gem**/bone-soul recharges a staff or enchants a weapon (Ossuary theme).
+- **Identification** by use (already partial) + scroll of identify.
+- **Sets/artifacts**: *Crown of the Drowned King*, *Axe of Dwarfdeep*,
+  *Ashes of the Spire*, tied to the branches.
+- New **slots**: helm, boots, gloves, cloak, amulet, 2 rings — today there are
+  Armor/Shield/2 rings/amulet; splitting slots is part 6.
+- **Resistances** on items and enemies (listed in §3.6).
 
-## 7. Roteiro de implementação
+## 7. Implementation roadmap
 
-Cada parte fecha com: testes headless novos, `fastcheck`, `docs/sistemas.md`
-atualizado e suite completa. Uma parte por vez.
+Each part closes with: new headless tests, `fastcheck`, `docs/systems.md`
+updated and the full suite. One part at a time.
 
-| # | Parte | Entrega | Status |
+| # | Part | Deliverable | Status |
 |---|---|---|---|
-| 1 | **Identidade** | Nome, raça (7), classe (+Patrulheiro, Paladino, Necromante), tela de criação, `SaveData` com personagem, título/painel Character | **feito** (traços ativos das raças ficam p/ a parte 2) |
-| 2 | **Atributos derivados** | Mp/regen, traços raciais ativos, graus e teto de skill, resistências base | **feito** (salvaguardas ficam p/ quando houver o que salvar) |
-| 3 | **Núcleo da magia** | Mp na HUD, verbo `Z` conjurar, livros, aprender, falha, 6 magias de partida, mira reaproveitada | **feito** |
-| 4 | **Catálogo de magias** | 32 magias em 6 escolas, buffs com duração, invocados/aliados | **feito** |
-| 5 | **Perks e habilidades de classe** | Substitui `Progression`; habilidades ativas pagas em Vigor | **feito** (Fúria/cooldowns ficam para as classes Bárbaro/Monge/Pactário) |
-| 6 | **Itens** | Raridade, afixos, enchant, slots novos, artefatos, gemas de alma | **feito** (gemas de alma ficam para depois do sistema de cajados) |
-| 7 | **Deuses e piedade** | Altares, preces, favor (clérigo/paladino) | **feito** (templos com sacerdote ficam para depois) |
-| 8 | **Superfícies e status** | Fogo/gelo/raio no terreno, resistências ativas | **feito** (sangramento/veneno como condições ficam para a revisão de combate) |
-| 9 | **Balanceamento** | Soak por classe×raça, curvas de dano/Mp, docs finais | **feito** ([balance.md](balance.md)) |
+| 1 | **Identity** | Name, race (7), class (+Ranger, Paladin, Necromancer), creation screen, `SaveData` with character, title/Character panel | **done** (active racial traits wait for part 2) |
+| 2 | **Derived attributes** | Mp/regen, active racial traits, skill ranks and cap, base resistances | **done** (saves wait until there is something to save against) |
+| 3 | **Magic core** | Mp in the HUD, `Z` cast verb, books, learning, failure, 6 starting spells, reused aiming | **done** |
+| 4 | **Spell catalog** | 32 spells in 6 schools, timed buffs, summons/allies | **done** |
+| 5 | **Perks and class abilities** | Replaces `Progression`; active abilities paid in Vigor | **done** (Fury/cooldowns wait for the Barbarian/Monk/Pactbound classes) |
+| 6 | **Items** | Rarity, affixes, enchant, new slots, artifacts, soul gems | **done** (soul gems wait for after the staff system) |
+| 7 | **Gods and piety** | Altars, prayers, favor (cleric/paladin) | **done** (temples with a priest wait for later) |
+| 8 | **Surfaces and status** | Fire/ice/lightning on terrain, active resistances | **done** (bleeding/poison as conditions wait for the combat review) |
+| 9 | **Balance** | Soak per class×race, damage/Mp curves, final docs | **done** ([balance.md](balance.md)) |
 
-## 8. Fontes
+The catalog has since grown well past this roadmap: 322 spells in 8 schools, 55 books and
+a large pool of magic and unique items. See [spells-and-items.md](spells-and-items.md).
 
-- [DCSS — espécies, backgrounds, escolas](https://crawl.develz.org/wordpress/0-31-the-alchemy-of-forms) · [manual](https://mitjafelicijan.com/assets/notes/dcss_manual.pdf)
+## 8. Sources
+
+- [DCSS — species, backgrounds, schools](https://crawl.develz.org/wordpress/0-31-the-alchemy-of-forms) · [manual](https://mitjafelicijan.com/assets/notes/dcss_manual.pdf)
 - [Caves of Qud (RogueBasin)](https://www.roguebasin.com/index.php/Caves_of_Qud) · [Tales of Maj'Eyal](https://en.wikipedia.org/wiki/Tales_of_Maj%27Eyal)
 - [D&D 5e vs Pathfinder 2e](https://www.dnddiceroller.com/blog/pathfinder-2e-vs-dnd-5e/)
-- NetHack, Brogue, Angband, Sil, Baldur's Gate 3, Skyrim, Divinity: OS2, Diablo: conhecimento de domínio.
+- NetHack, Brogue, Angband, Sil, Baldur's Gate 3, Skyrim, Divinity: OS2, Diablo: domain knowledge.

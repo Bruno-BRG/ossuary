@@ -1,36 +1,36 @@
-# Balanceamento — método e medidas
+# Balance — method and measurements
 
-O sistema RPG (raças, classes, magia, perks, itens, deuses, superfícies) foi balanceado com um **bot
-determinístico** em vez de números de cabeça. Este documento diz como rodar, o que ele mede, o que foi
-ajustado e o que ele **não** consegue dizer.
+The RPG system (races, classes, magic, perks, items, gods, surfaces) was balanced with a **deterministic
+bot** instead of gut-feel numbers. This document says how to run it, what it measures, what was
+adjusted and what it **cannot** tell you.
 
-## Como rodar
+## How to run
 
 ```powershell
-.\headless.ps1 balance 10 2500            # 10 sementes por combinação, 2500 turnos, política "cautious"
-.\headless.ps1 balance 10 2500 dive       # política "dive": desce sem se preocupar com nível
-.\headless.ps1 balance 4 3000 role=wizard race=elf trace   # uma combinação, com log a cada 50 turnos
+.\headless.ps1 balance 10 2500            # 10 seeds per combination, 2500 turns, "cautious" policy
+.\headless.ps1 balance 10 2500 dive       # "dive" policy: descends without caring about level
+.\headless.ps1 balance 4 3000 role=wizard race=elf trace   # one combination, logging every 50 turns
 ```
 
-560 execuções (8 classes × 7 raças × 10 sementes) levam cerca de um minuto. A saída mostra sobrevivência,
-profundidade média, nível, mortes e morte-mais-comum, por classe, por raça e na matriz classe × raça.
+560 runs (8 classes × 7 races × 10 seeds) take about a minute. The output shows survival,
+average depth, level, deaths and most common death, per class, per race and in the class × race matrix.
 
-## O bot (`engine/Ossuary.Headless/Balance.cs`)
+## The bot (`engine/Ossuary.Headless/Balance.cs`)
 
-Igual para todos, de propósito: estuda os livros que tem, gasta perks por uma lista por classe, equipa a
-melhor armadura e arma que acha, lê *enchant*, bebe poções de ganho, cura quando o HP cai de 40%, invoca e
-usa buff antes de lutar, usa a melhor magia ou habilidade da classe (Cleave com 2+ vizinhos, Fireball em
-grupos, Aimed Shot a distância), descansa antes de seguir (HP 75%, Mp 80%), come, recolhe itens e desce.
-Anda pelo mapa real (BFS, abre portas com o verbo de porta). **Não** reza em altares, não compra nada, não
-usa varinhas nem pergaminhos desconhecidos e não troca de branch: mede classe, raça, nível e habilidades,
-não a esperteza de quem joga.
+The same for everyone, on purpose: it studies the books it has, spends perks from a per-class list, equips the
+best armor and weapon it finds, reads *enchant*, drinks gain potions, heals when HP drops below 40%, summons and
+buffs before fighting, uses the class's best spell or ability (Cleave with 2+ neighbors, Fireball on
+groups, Aimed Shot at range), rests before moving on (HP 75%, Mp 80%), eats, picks up items and descends.
+It walks the real map (BFS, opens doors with the door verb). It does **not** pray at altars, buy anything,
+use unknown wands or scrolls, or switch branches: it measures class, race, level and abilities,
+not the player's cleverness.
 
-`BalanceBand` (nos testes) é uma trava, não uma meta: nenhuma classe pode sobreviver menos de 50% nem ficar
-abaixo de 60% da profundidade da melhor.
+`BalanceBand` (in the tests) is a guard rail, not a goal: no class may survive less than 50% or fall
+below 60% of the best one's depth.
 
-## Linha de base (10 sementes, 2500 turnos, "cautious")
+## Baseline (10 seeds, 2500 turns, "cautious")
 
-| Classe | Sobrev. | Prof. | Nível | Mortes de monstros |
+| Class | Surv. | Depth | Level | Monster kills |
 |---|---|---|---|---|
 | fighter | 100% | 7.7 | 7.8 | 62.6 |
 | ranger | 100% | 7.6 | 7.8 | 62.4 |
@@ -41,43 +41,43 @@ abaixo de 60% da profundidade da melhor.
 | wizard | 100% | 6.9 | 7.0 | 52.5 |
 | necromancer | 100% | 6.5 | 6.6 | 46.5 |
 
-Média geral: profundidade 7.2, nível 7.3. As classes ficam dentro de −10% / +7% da média; as raças dentro de
-±5% (human/orc 7.4, dwarf 7.0). Na política "dive" a média chega a 9.1 de 10 com 99% de sobrevivência.
+Overall average: depth 7.2, level 7.3. Classes stay within −10% / +7% of the average; races within
+±5% (human/orc 7.4, dwarf 7.0). Under the "dive" policy the average reaches 9.1 of 10 with 99% survival.
 
-## O que foi ajustado (e por quê)
+## What was adjusted (and why)
 
-- **O bot veio primeiro.** As primeiras execuções "morriam" 15–40% por defeitos do bot (ficava preso em portas,
-  ignorava lesmas, achava que estava preso em combate). Só depois de corrigir é que os números dizem algo.
-- **Casters morriam e andavam devagar**: Wizard 3→4 HP/nível, Mp base 6→8; Necromancer 3→4 HP/nível, Mp base 5→9,
-  começa com *Drain Life* e *Raise Skeleton* (antes só *Sleep*, sem ataque); *Drain Life* 6→5 Mp e
-  *Raise Skeleton* 7→6. Regeneração de Mp mais rápida (`14 − stat − Magic/15`, antes `16 − stat − Magic/20`).
-- **Adventurer**: 4→5 HP/nível e começa com *Power Strike* (era "média em tudo" sem nenhuma habilidade).
-- **Fighter**: 6→5 HP/nível (dominava com 98–100% e a maior profundidade).
-- **Regeneração de HP** mais lenta (6–20 → 10–30 turnos por ponto): descansar custa comida de verdade.
-- **Densidade de monstros**: `área/90 + prof/2` → `área/70 + prof×2/3` por nível.
-- **Poções e pergaminhos** eram quase inúteis: poções não podiam ser bebidas (agora `Shift+Q`, 14 efeitos) e
-  tanto poções quanto pergaminhos tinham 4–12 "cargas" (um *enchant* dava +12). Agora são de uso único.
+- **The bot came first.** The first runs "died" 15–40% of the time from bot defects (stuck on doors,
+  ignoring slugs, thinking it was locked in combat). Only after fixing those do the numbers mean anything.
+- **Casters died and were slow**: Wizard 3→4 HP/level, base Mp 6→8; Necromancer 3→4 HP/level, base Mp 5→9,
+  starts with *Drain Life* and *Raise Skeleton* (before, only *Sleep*, with no attack); *Drain Life* 6→5 Mp and
+  *Raise Skeleton* 7→6. Faster Mp regeneration (`14 − stat − Magic/15`, before `16 − stat − Magic/20`).
+- **Adventurer**: 4→5 HP/level and starts with *Power Strike* (was "average at everything" with no ability).
+- **Fighter**: 6→5 HP/level (dominated with 98–100% and the greatest depth).
+- **HP regeneration** slower (6–20 → 10–30 turns per point): resting costs real food.
+- **Monster density**: `area/90 + depth/2` → `area/70 + depth×2/3` per level.
+- **Potions and scrolls** were nearly useless: potions could not be drunk (now `Shift+Q`, 14 effects) and
+  both potions and scrolls had 4–12 "charges" (one *enchant* gave +12). They are now single-use.
 
-## O que isto NÃO mede
+## What this does NOT measure
 
-- **Dificuldade absoluta.** Um bot que descansa sempre e cura a 40% quase nunca morre nos Dungeons (10 níveis).
-  A pressão real vem da **fome** (cerca de 2400 turnos de ração, mais o que se acha) e dos branches fundos.
-  Falta um bot que entre nos outros branches e uma revisão de combate (monstros com status, à distância,
-  veneno/sangramento). Isso é a próxima volta de balanceamento, e só jogando de verdade dá para decidir o tom.
-- **Altares, lojas, varinhas e artefatos.** Fora da política do bot.
-- **Dados são 0-based.** `Rng.Dice(n)` devolve `0..n−1`, então `NdS` rende em média `N×(S−1)/2`, não
-  `N×(S+1)/2`. É a convenção do motor desde o começo (acerto e CA já a assumem); os números deste documento
-  e das magias foram calibrados com ela.
+- **Absolute difficulty.** A bot that always rests and heals at 40% almost never dies in the Dungeons (10 levels).
+  Real pressure comes from **hunger** (about 2400 turns of rations, plus what you find) and the deep branches.
+  Still missing: a bot that enters the other branches and a combat review (monsters with status, ranged,
+  poison/bleeding). That is the next balance round, and only real play can settle the tone.
+- **Altars, shops, wands and artifacts.** Outside the bot's policy.
+- **Dice are 0-based.** `Rng.Dice(n)` returns `0..n−1`, so `NdS` yields on average `N×(S−1)/2`, not
+  `N×(S+1)/2`. It is the engine's convention from the start (hit and AC already assume it); the numbers in this document
+  and in the spells were calibrated with it.
 
-## Botões de ajuste (onde mexer)
+## Tuning knobs (where to tweak)
 
-| O quê | Onde |
+| What | Where |
 |---|---|
-| HP/nível, Mp base e por nível, tetos de skill, perks e magias iniciais | `Entities/Roles.cs` |
-| Atributos, HP/nível, resistências e traços da raça | `Entities/Races.cs` |
-| Custo, alcance e dados de cada magia | `Magic/Spells.cs`, `Game.Magic.Effects.cs` |
-| Custo e efeito de habilidades; Vigor | `Entities/Abilities.cs`, `Game.Abilities.cs`, `Player.RecomputeMaxVigor` |
-| Regeneração de HP, Mp e Vigor | `Player.HpRegenInterval/MpRegenInterval/VigorRegenInterval` |
-| Chance de itens mágicos e afixos | `Items/Affixes.cs` (`ItemRoller`) |
-| Monstros por nível e espalhamento | `LevelBuilder.SpawnMonsters`, `Entities/Bestiary.cs` |
-| Piedade, dádivas e bônus dos deuses | `Entities/Gods.cs`, `Game.Gods.cs` |
+| HP/level, base and per-level Mp, skill caps, perks and starting spells | `Entities/Roles.cs` |
+| Attributes, HP/level, resistances and race traits | `Entities/Races.cs` |
+| Cost, range and dice of each spell | `Magic/Spells.cs`, `Game.Magic.Effects.cs` |
+| Ability cost and effect; Vigor | `Entities/Abilities.cs`, `Game.Abilities.cs`, `Player.RecomputeMaxVigor` |
+| HP, Mp and Vigor regeneration | `Player.HpRegenInterval/MpRegenInterval/VigorRegenInterval` |
+| Chance of magic items and affixes | `Items/Affixes.cs` (`ItemRoller`) |
+| Monsters per level and spread | `LevelBuilder.SpawnMonsters`, `Entities/Bestiary.cs` |
+| Piety, boons and god bonuses | `Entities/Gods.cs`, `Game.Gods.cs` |

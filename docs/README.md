@@ -1,24 +1,24 @@
-# Ossuary — docs do sistema
+# Ossuary — system docs
 
-Pasta de documentação do jogo. Fonte da verdade operacional está no
-`AGENTS.md` da raiz (comandos, regras, fluxo). Aqui vai o *conhecimento*:
-o que o jogo é, como cada sistema funciona e onde mora no código.
+The game's documentation folder. The operational source of truth (commands, rules,
+workflow) is `AGENTS.md` at the repo root. Here lives the *knowledge*: what the game is,
+how each system works and where it lives in the code.
 
-## Índice
+## Index
 
-- [`desktop.md`](desktop.md) — runtime Tauri, arquitetura, protocolo e distribuição
-- [`visao-geral.md`](visao-geral.md) — o que é o Ossuary, pilares, loop do jogo
-- [`arquitetura.md`](arquitetura.md) — camadas, classes, regras de dependência
-- [`sistemas.md`](sistemas.md) — dungeon, overworld, cidades, combate, itens, FOV…
-- [`rpg.md`](rpg.md) — pesquisa, catálogo e roteiro do sistema RPG (raças, classes, magia, itens)
-- [`magia-e-itens.md`](magia-e-itens.md) — 322 magias, 55 livros, itens mágicos e únicos, e as **animações** das magias
-- [`balance.md`](balance.md) — bot de balanceamento, linha de base e botões de ajuste
-- [`visual.md`](visual.md) — direção de arte "Fósforo & Osso": paleta, fonte, glifos e layout
-- [`renderer.md`](renderer.md) — fonte bitmap, Canvas, CRT, temas, FOV, como verificar
-- [`controles.md`](controles.md) — teclado completo (vi-keys + verbos)
-- [`build-teste.md`](build-teste.md) — pipeline: scripts, CLI, builds, shots
-- [`a-fazer.md`](a-fazer.md) — **backlog e acompanhamento de progresso** (o que falta, o que já foi feito)
-- [`alpha.md`](alpha.md) — estado do alpha jogável + roadmap
-- [`../CONTRIBUTING.pt-BR.md`](../CONTRIBUTING.pt-BR.md) — como contribuir; [`../CHANGELOG.pt-BR.md`](../CHANGELOG.pt-BR.md) — o que mudou em cada versão
-- [`lore.md`](lore.md) — bíblia de worldbuilding (tom, Ossuary, facções, Yendor)
-- [`idiomas.md`](idiomas.md) — português/inglês, como traduzir e a história de abertura
+- [`desktop.md`](desktop.md) — Tauri runtime, architecture, protocol and distribution
+- [`overview.md`](overview.md) — what Ossuary is, pillars, game loop
+- [`architecture.md`](architecture.md) — layers, classes, dependency rules
+- [`systems.md`](systems.md) — dungeon, overworld, towns, combat, items, FOV…
+- [`rpg.md`](rpg.md) — research, catalog and roadmap of the RPG system (races, classes, magic, items)
+- [`spells-and-items.md`](spells-and-items.md) — 322 spells, 55 books, magic and unique items, and the spell **animations**
+- [`balance.md`](balance.md) — balance bot, baseline and tuning knobs
+- [`visual.md`](visual.md) — "Phosphor & Bone" art direction: palette, font, glyphs and layout
+- [`renderer.md`](renderer.md) — bitmap font, Canvas, CRT, themes, FOV, how to verify
+- [`controls.md`](controls.md) — full keyboard (vi-keys + verbs)
+- [`build-and-test.md`](build-and-test.md) — pipeline: scripts, CLI, builds, shots
+- [`todo.md`](todo.md) — **backlog and progress tracking** (what is left, what is done)
+- [`alpha.md`](alpha.md) — state of the playable alpha + roadmap
+- [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — how to contribute; [`../CHANGELOG.md`](../CHANGELOG.md) — what changed in each version
+- [`lore.md`](lore.md) — worldbuilding bible (tone, the Ossuary, factions, Yendor)
+- [`languages.md`](languages.md) — English/Portuguese, how to translate and the opening story

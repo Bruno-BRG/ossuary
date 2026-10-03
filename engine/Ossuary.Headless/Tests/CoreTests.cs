@@ -102,8 +102,8 @@ namespace Ossuary.Tests
             Test("the balance bot is deterministic", BotDeterminism);
             Test("every class stays within the balance band", BalanceBand);
             Test("quest victory", WinTests.Run);
-            Test("tracked features (docs/a-fazer.md)", FeatureTests.Run);
-            Test("spells, items and animations (docs/magia-e-itens.md)", ArsenalTests.Run);
+            Test("tracked features (docs/todo.md)", FeatureTests.Run);
+            Test("spells, items and animations (docs/spells-and-items.md)", ArsenalTests.Run);
 
             Console.WriteLine();
             Console.WriteLine($"==== {(_fail == 0 ? "PASS" : "FAIL")}: {_pass} passed, {_fail} failed ====");
