@@ -2,7 +2,7 @@
 
 ## Players
 
-1. Get `Ossuary_0.1.0_x64-setup.exe` (Windows x64).
+1. Get `Ossuary_0.11.0_x64-setup.exe` (Windows x64).
 2. Run it and follow the installer.
 3. Launch **Ossuary**. Both `ossuary.exe` and its engine `ossuary-engine.exe` are installed
    side by side; no .NET install is needed.
@@ -47,7 +47,7 @@ Other modes:
 ### Build outputs
 
 - `desktop/src-tauri/target/release/ossuary.exe`
-- `desktop/src-tauri/target/release/bundle/nsis/Ossuary_0.1.0_x64-setup.exe`
+- `desktop/src-tauri/target/release/bundle/nsis/Ossuary_0.11.0_x64-setup.exe`
 
 Distribute the installer, or both executables together.
 
