@@ -5,6 +5,25 @@
 As versões do Ossuary são numeradas só com **um número** (Versão 11, Versão 12…), como no *Project Zomboid*. Nos manifestos (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) e no nome do instalador a versão aparece como `0.N.0`. O **salvamento** (`SaveData.Version`) usa o mesmo número: mudou regra, sobe o número, saves antigos deixam de carregar.
 
+## Versão 12 — Um mundo que lembra
+
+### Pessoas
+- **Moradores têm personalidade e memória.** Cada um tem uma persona e lembra o que você fez com ele; um registro de feitos acompanha o herói de cidade em cidade. Eles ficam parados enquanto você conversa, numa caixa de diálogo própria.
+- **Missões com prazo**, um diário em `F7`, e trilhas pessoais, da Guarda, do Templo e do Culto.
+- **Rumores** que apontam para chefes e lugares reais.
+- **Eventos na cidade** e **viajantes na estrada**: um peregrino, um mascate com um fragmento de mapa, refugiados e um explorador ferido, com escolhas que o mundo lembra. A espada de aluguel comenta pelo caminho, e um **grupo rival** disputa com você a descida das Masmorras.
+
+### Crime e a Guarda
+- Testemunhas, recompensa por região, prisão, celas e assassinato. NPCs essenciais são nocauteados em vez de mortos.
+
+### A trama principal
+- **"O Selo"**: documentos, o Leitor, verdades, seis finais e um novo ciclo.
+
+### Correções
+- **Entrar numa masmorra pelo mapa-múndi no nível 1 não deixava caminho de volta.** A escada de subida era removida do nível 1 de toda ramificação; agora só as ramificações laterais (o Anexo, que se sai pelo portal) a perdem.
+
+### Salvamento
+- **Formato de save 12.** Saves da Versão 11 deixam de carregar.
 ## Versão 11 — Magia que se vê
 
 ### Magias e animações
