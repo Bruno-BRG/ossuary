@@ -4,7 +4,7 @@
 
 ## Jogadores
 
-1. Baixe `Ossuary_0.11.0_x64-setup.exe` (Windows x64), da página de [releases](https://github.com/Bruno-BRG/ossuary/releases) ou da saída do build.
+1. Baixe `Ossuary_0.12.0_x64-setup.exe` (Windows x64), da página de [releases](https://github.com/Bruno-BRG/ossuary/releases) ou da saída do build.
 2. Execute e siga o instalador.
 3. Abra o **Ossuary**. O `ossuary.exe` e o motor `ossuary-engine.exe` são instalados lado a lado; não é preciso instalar o .NET.
 
@@ -48,7 +48,7 @@ Outros modos:
 ### Saídas do build
 
 - `desktop/src-tauri/target/release/ossuary.exe`
-- `desktop/src-tauri/target/release/bundle/nsis/Ossuary_0.11.0_x64-setup.exe`
+- `desktop/src-tauri/target/release/bundle/nsis/Ossuary_0.12.0_x64-setup.exe`
 
 Distribua o instalador, ou os dois executáveis juntos.
 

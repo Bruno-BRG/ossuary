@@ -5,6 +5,25 @@
 Ossuary versions are a **single number** (Version 11, Version 12…), as in *Project Zomboid*. In the manifests (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) and in the installer name the version appears as `0.N.0`. The **save format** (`SaveData.Version`) uses the same number: change a rule, bump it, old saves stop loading.
 
+## Version 12 — A world that remembers
+
+### People
+- **Townsfolk have personalities and memory.** Every resident has a persona and remembers what you did to them; a ledger of deeds follows the hero across towns. They stand still while you talk, in a proper conversation box.
+- **Quests with deadlines**, a journal on `F7`, and personal, Watch, Temple and Cult tracks.
+- **Rumours** that point at real bosses and places.
+- **Town events** and **road travellers**: a pilgrim, a peddler with a map fragment, refugees and a wounded delver, with choices the world remembers. The hired sword comments as you go, and a **rival party** races you down the Dungeons.
+
+### Crime and the Watch
+- Witnesses, a bounty per region, arrest, cells and murder. Essential NPCs are knocked out instead of killed.
+
+### The main questline
+- **"The Seal"**: documents, the Reader, truths, six endings and a new cycle.
+
+### Fixes
+- **Entering a dungeon from the overworld at level 1 left no way back up.** The stairs up were removed from level 1 of every branch; now only side branches (the Annex, left by its portal) lose them.
+
+### Saves
+- **Save format 12.** Version 11 saves no longer load.
 ## Version 11 — Magic you can see
 
 ### Spells and animations

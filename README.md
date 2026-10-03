@@ -5,7 +5,7 @@
 **A dark-fantasy ASCII roguelike.** The world threw its dead, its kings and its gods into one pit.
 You climb down to steal what is left.
 
-![Version 11](https://img.shields.io/badge/version-11-c8a050?style=flat-square)
+![Version 12](https://img.shields.io/badge/version-12-c8a050?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-5fa85f?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-Windows%20x64-4a6ea8?style=flat-square)
 ![Engine](https://img.shields.io/badge/engine-C%23%20.NET%2010-7c4dff?style=flat-square)
@@ -26,7 +26,7 @@ Descend through the Ossuary, take the **Amulet of Yendor**, and bring it back to
 fixed 8×16 bitmap font on a CRT-style terminal; the world is a turn-based dungeon crawl with a living overworld above it.
 The seed *is* the save: same seed, same keys, same run.
 
-### What is in **version 11**
+### What is in **version 12**
 
 | | |
 |---|---|
@@ -36,6 +36,7 @@ The seed *is* the save: same seed, same keys, same run.
 | 🗡️ **43 unique items & 4 sets** | Named relics across every branch, many lending you a spell while you hold them. |
 | 🧪 **Wands, scrolls and potions that are spells** | Same effects, same animations, no mana. |
 | 🏰 **The world** | Five branches and a portal branch, a nine-region overworld, vertical towns, bosses, factions, reputation, corruption and mutations, companions, crafting. |
+| 🕯️ **A world that remembers** | Townsfolk with personalities and memory, dialogue, quests with deadlines (journal on `F7`), crime and the Watch, rumours, road travellers and the main questline *The Seal*, with six endings. |
 | 🌍 **Two languages** | Portuguese (Brazil) and English, switchable any time with `F2`. |
 
 <details>
@@ -60,10 +61,10 @@ The seed *is* the save: same seed, same keys, same run.
 
 ## Install (players)
 
-Download the installer `Ossuary_0.11.0_x64-setup.exe` (Windows x64) from a [release](https://github.com/Bruno-BRG/ossuary/releases)
+Download the installer `Ossuary_0.12.0_x64-setup.exe` (Windows x64) from a [release](https://github.com/Bruno-BRG/ossuary/releases)
 or the build output, and run it. No SDK is needed. WebView2 is required (preinstalled on Windows 11).
 
-> The public name of a release is just **Version N** (this one is **Version 11**). Installers and manifests use the matching
+> The public name of a release is just **Version N** (this one is **Version 12**). Installers and manifests use the matching
 > `0.N.0`, because Windows installers and npm/Cargo want three numbers.
 
 ## Build from source
