@@ -1,6 +1,7 @@
 [package]
 name = "ossuary"
 version = "0.11.0"
+license = "MIT"
 description = "Ossuary — Fósforo & Osso"
 edition = "2021"
 
