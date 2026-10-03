@@ -1,121 +1,123 @@
 <div align="center">
 
-# 🦴 Ossuary — Fósforo & Osso
+# 🦴 Ossuary — Phosphor & Bone
 
-**Um roguelike ASCII de fantasia sombria.** O mundo jogou seus mortos, seus reis e seus deuses num só poço.
-Você desce para roubar o que sobrou.
+**A dark-fantasy ASCII roguelike.** The world threw its dead, its kings and its gods into one pit.
+You climb down to steal what is left.
 
-![Versão 11](https://img.shields.io/badge/vers%C3%A3o-11-c8a050?style=flat-square)
-![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-5fa85f?style=flat-square)
-![Plataforma](https://img.shields.io/badge/plataforma-Windows%20x64-4a6ea8?style=flat-square)
-![Motor](https://img.shields.io/badge/motor-C%23%20.NET%2010-7c4dff?style=flat-square)
-![Casca](https://img.shields.io/badge/casca-Tauri%202%20%2B%20Rust-e0802a?style=flat-square)
+![Version 11](https://img.shields.io/badge/version-11-c8a050?style=flat-square)
+![License](https://img.shields.io/badge/license-MIT-5fa85f?style=flat-square)
+![Platform](https://img.shields.io/badge/platform-Windows%20x64-4a6ea8?style=flat-square)
+![Engine](https://img.shields.io/badge/engine-C%23%20.NET%2010-7c4dff?style=flat-square)
+![Shell](https://img.shields.io/badge/shell-Tauri%202%20%2B%20Rust-e0802a?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-headless%20%2B%20vitest-5fa85f?style=flat-square)
 
-[English](README.en.md) · **Português (Brasil)** · [Como contribuir](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [Docs](docs/README.md)
+**English** · [Português (Brasil)](README.pt-BR.md) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [Docs (pt-BR)](docs/README.md)
 
-<img src="docs/shots/tauri-dungeon.jpg" alt="Ossuary: um andar da masmorra no terminal de fósforo" width="760">
+<img src="docs/shots/tauri-dungeon.jpg" alt="Ossuary: a dungeon level in the phosphor terminal" width="760">
 
 </div>
 
 ---
 
-## O jogo
+## The game
 
-Desça pelo Ossuary, pegue o **Amuleto de Yendor** e traga de volta à luz do dia. Tudo é desenhado com uma única fonte bitmap 8×16
-num terminal estilo CRT; o jogo é uma exploração de masmorras por turnos com um mundo vivo na superfície.
-A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
+Descend through the Ossuary, take the **Amulet of Yendor**, and bring it back to daylight. Everything is drawn with one
+fixed 8×16 bitmap font on a CRT-style terminal; the world is a turn-based dungeon crawl with a living overworld above it.
+The seed *is* the save: same seed, same keys, same run.
 
-### O que há na **versão 11**
+### What is in **version 11**
 
 | | |
 |---|---|
-| ✨ **Magias que você vê** | 322 magias em 8 escolas, todas animadas: a bola de fogo é uma bola de fogo que voa e explode, o raio se bifurca, o meteoro cai. |
-| 📖 **55 livros** | Mago, necromante, clérigo/paladino, patrulheiro (natureza) e ladino (sombra) têm cerca de cinquenta magias cada, em cinco níveis de profundidade. |
-| ⚔️ **Itens com uma magia dentro** | O equipamento mágico aleatório vem imbuído com uma magia que combina com ele: espadas carregam ataques, armaduras carregam proteções, botas carregam saltos. E disparam sozinhos. |
-| 🗡️ **43 itens únicos e 4 conjuntos** | Relíquias nomeadas em todos os ramos; muitas emprestam uma magia enquanto você as segura. |
-| 🧪 **Varinhas, pergaminhos e poções que são magias** | Mesmos efeitos, mesmas animações, sem mana. |
-| 🏰 **O mundo** | Cinco ramos e um ramo-portal, overworld de nove regiões, cidades verticais, chefes, facções, reputação, corrupção e mutações, companheiros, criação. |
-| 🌍 **Dois idiomas** | Português (Brasil) e inglês, trocáveis a qualquer hora com `F2`. |
+| ✨ **Spells you can see** | 322 spells in 8 schools, and every one is animated: a fireball is a ball of fire that flies and bursts, lightning forks, meteors fall. |
+| 📖 **55 spellbooks** | Wizard, necromancer, cleric/paladin, ranger (nature) and rogue (shadow) each have about fifty spells to find, in five depth tiers. |
+| ⚔️ **Items with a spell inside** | Random magic gear is imbued with a spell that fits what it is: swords carry attacks, armour carries wards, boots carry leaps. They fire on their own, too. |
+| 🗡️ **43 unique items & 4 sets** | Named relics across every branch, many lending you a spell while you hold them. |
+| 🧪 **Wands, scrolls and potions that are spells** | Same effects, same animations, no mana. |
+| 🏰 **The world** | Five branches and a portal branch, a nine-region overworld, vertical towns, bosses, factions, reputation, corruption and mutations, companions, crafting. |
+| 🌍 **Two languages** | Portuguese (Brazil) and English, switchable any time with `F2`. |
 
 <details>
-<summary><b>Todo o resto</b></summary>
+<summary><b>Everything else</b></summary>
 
-- Masmorras por turnos em cinco ramos, com overworld de nove regiões, estradas, relógio de dia e noite, encontros e viagem.
-- **Cidades verticais**: povoados murados com torres, sótãos, criptas e porões. Ferreiro, armeiro, alquimista, torre de magos, taverna, estalagem, templo, guilda, biblioteca, quartel, bancas, e as pessoas que vivem neles.
-- Sete raças, oito classes, habilidades, talentos, seis deuses (com rivais, provações e sacrifícios) e altares.
-- Chefes por ramo, monstros nativos com hábitos, facções de monstros, cofres, caches armadilhados e chaves de latão; o ramo-portal opcional **O Anexo**.
-- **Corrupção e mutações**, companheiros contratados, criação leve (molotovs, lâminas de osso), conjuntos de artefatos e relíquias que corrompem.
-- Um mundo vivo: reputação com quatro casas, contratos da Guilda, eventos de estrada, moradores com rotina que lembram de você.
-- Explorar sozinho, viajar até escadas e altares, descansar, andar segurando a tecla, furtividade e ruído, armadilhas para achar e desarmar.
-- Modos: Normal, Clássico (sem fome), Hardcore, Mergulho, Pelado, Treinado; desafio diário com placar local; conquistas, morgue, expedições passadas e ossos de heróis mortos.
-- Efeitos sonoros de onda quadrada, água animada, tiles quadrados opcionais, abertura animada.
-- Temas CRT / âmbar / fósforo verde, fonte bitmap fixa 8×16, escala inteira.
+- Turn-based dungeon crawling across five branches, with an overworld of nine regions, roads, a day/night clock, random road encounters and travel.
+- **Vertical towns**: walled settlements with towers, lofts, crypts and cellars. Smith, armourer, alchemist, mage tower, tavern, inn, temple, guild, library, barracks, market stalls, and the people who live in them.
+- Seven races, eight classes, abilities, perks, six gods (with rivals, trials and sacrifices) and altars.
+- Branch bosses, native monsters with habits, monster factions, vaults, rigged caches and brass keys; the optional portal branch **The Annex**.
+- **Corruption and mutations**, hired companions, light crafting (molotovs, bone blades), artifact sets and corrupting relics.
+- A living world: reputation with four houses, Guild jobs, road events, townsfolk who keep hours and remember you.
+- Auto-explore, travel to stairs/altars, rest until healed, held-key walking, stealth and noise, traps you can find and disarm.
+- Modes: Normal, Classic (no hunger), Hardcore, Dive, Naked, Trained; a daily challenge with a local board; achievements, morgue files, past runs and bones of dead heroes.
+- Short square-wave sound effects, animated water, optional square tiles, an animated opening story.
+- CRT / amber / green-phosphor themes, fixed 8×16 bitmap font, integer scaling.
 
 </details>
 
 <div align="center">
-<img src="docs/shots/tauri-title.jpg" alt="Tela de título" width="370"> <img src="docs/shots/tauri-options.jpg" alt="Opções" width="370">
+<img src="docs/shots/tauri-title.jpg" alt="Title screen" width="370"> <img src="docs/shots/tauri-options.jpg" alt="Options" width="370">
 </div>
 
-## Instalar (jogadores)
+## Install (players)
 
-Baixe o instalador `Ossuary_0.11.0_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
-ou na saída do build, e execute. Não precisa de SDK. É preciso o WebView2 (já vem no Windows 11).
+Download the installer `Ossuary_0.11.0_x64-setup.exe` (Windows x64) from a [release](https://github.com/Bruno-BRG/ossuary/releases)
+or the build output, and run it. No SDK is needed. WebView2 is required (preinstalled on Windows 11).
 
-> O nome público de uma versão é só **Versão N** (esta é a **Versão 11**), como em *Project Zomboid*. Instaladores e manifestos usam o
-> `0.N.0` correspondente, porque instalador do Windows, npm e Cargo pedem três números.
+> The public name of a release is just **Version N** (this one is **Version 11**). Installers and manifests use the matching
+> `0.N.0`, because Windows installers and npm/Cargo want three numbers.
 
-## Compilar do código
+## Build from source
 
-O guia completo está em [INSTALL.md](INSTALL.md). Começo rápido (Windows x64):
-
-```powershell
-.\desktop.ps1 setup    # SDK .NET 10 local + pacotes npm
-.\desktop.ps1 dev      # abre o app Tauri com recarga do frontend
-.\desktop.ps1 web      # o mesmo motor no navegador, só em loopback
-.\desktop.ps1 build    # executável de release + instalador NSIS
-```
-
-## Controles
-
-Setas, teclado numérico ou `hjkl` movem; `yubn` são as diagonais. `i` inventário, `c` personagem, `g` pegar, `>` / `<` escadas,
-`Shift+Z` magias, `r` ler, `z` usar varinha, `q` beber, `P` vestir anel ou amuleto, `?` ajuda, `F2` opções, `F3` CRT, `F4` paleta, `F11` tela cheia.
-
-- Nas cidades, esbarre numa pessoa para conversar, e num balcão, quadro de avisos ou altar para negociar.
-- Na lista de magias, `←`/`→` trocam a escola, uma letra ou `Enter` conjura, `◆` marca magias emprestadas pelo equipamento.
-
-A lista completa está em [docs/controles.md](docs/controles.md).
-
-## Como é feito
-
-```
-engine/Ossuary.Core      simulação + telas como dados   (sem UI, sem plataforma: a "regra de ouro")
-engine/Ossuary.Desktop   host local: entrada, modais, protocolo JSON por stdin/stdout
-engine/Ossuary.Headless  testes, dumps ASCII, bots de soak e balanceamento
-desktop/                 janela Tauri (Rust), terminal TypeScript/Canvas, empacotamento
-assets/fonts             a fonte bitmap canônica e sua atribuição
-docs/                    arquitetura, sistemas, magias e itens, lore
-```
-
-A simulação vive só em C#; o frontend desenha a grade que o motor manda e toca as animações que o motor grava.
-Comece por [docs/arquitetura.md](docs/arquitetura.md) e [docs/magia-e-itens.md](docs/magia-e-itens.md).
-
-## Testes
+The full guide is in [INSTALL.md](INSTALL.md) ([pt-BR](INSTALL.pt-BR.md)). Quick start (Windows x64):
 
 ```powershell
-.\fastcheck.ps1                 # type-check de C# e TypeScript
-.\headless.ps1 test             # simulação + fluxo do desktop
-.\headless.ps1 fx fireball      # a animação de uma magia, passo a passo em ASCII
-.\headless.ps1 dump panels      # UI em ASCII
-.\headless.ps1 soak 50 500      # bot aleatório
-.\check.ps1                     # tudo: motor, frontend, IPC empacotado, Rust
+.\desktop.ps1 setup    # local .NET 10 SDK + npm packages
+.\desktop.ps1 dev      # run the Tauri app with frontend hot reload
+.\desktop.ps1 web      # same engine in a browser, loopback only
+.\desktop.ps1 build    # release executable + NSIS installer
 ```
 
-## Contribuir
+## Controls
 
-Relatos de bug, magias, itens, traduções e notas de balanceamento são bem-vindos. Leia o [CONTRIBUTING.md](CONTRIBUTING.md) primeiro:
-ele explica a estrutura, as regras e como adicionar uma magia ou um item em poucas linhas.
+Arrow keys, numpad or `hjkl` move; `yubn` are diagonals. `i` inventory, `c` character, `g` pick up, `>` / `<` stairs,
+`Shift+Z` spells, `r` read, `z` zap a wand, `q` quaff, `P` put on a ring or amulet, `?` help, `F2` options, `F3` CRT, `F4` palette, `F11` fullscreen.
 
-## Licença
+- In towns, bump into a person to talk, and into a counter, notice board or altar to trade.
+- In the spell list, `←`/`→` switch school, a letter or `Enter` casts, `◆` marks spells lent by your gear.
+- When a monster blocks the road: `Enter`, `Space`, `K` or `F` fight; `R` or `<` flee.
 
-O código é distribuído sob a [licença MIT](LICENSE). A fonte **unscii-16** (viznut, domínio público) tem atribuição própria em [assets/fonts/NOTICE.md](assets/fonts/NOTICE.md).
+The complete list is in [docs/controles.md](docs/controles.md) (Portuguese).
+
+## How it is built
+
+```
+engine/Ossuary.Core      simulation + screens as data   (no UI, no platform: the "golden rule")
+engine/Ossuary.Desktop   local host: input, modals, JSON protocol over stdin/stdout
+engine/Ossuary.Headless  tests, ASCII dumps, soak and balance bots
+desktop/                 Tauri window (Rust), TypeScript/Canvas terminal, packaging
+assets/fonts             the canonical bitmap font and its attribution
+docs/                    architecture, systems, spells and items, lore (Portuguese)
+```
+
+The simulation lives only in C#; the front end draws the grid the engine sends and plays animations the engine records.
+Start with [docs/arquitetura.md](docs/arquitetura.md) and [docs/magia-e-itens.md](docs/magia-e-itens.md).
+
+## Testing
+
+```powershell
+.\fastcheck.ps1                 # type-check C# and TypeScript
+.\headless.ps1 test             # simulation + desktop-flow suite
+.\headless.ps1 fx fireball      # a spell's animation, step by step, in ASCII
+.\headless.ps1 dump panels      # UI as ASCII
+.\headless.ps1 soak 50 500      # random-bot soak
+.\check.ps1                     # everything: engine, frontend, packaged IPC, Rust
+```
+
+## Contributing
+
+Bug reports, spells, items, translations and balance notes are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first;
+it explains the layout, the rules and how to add a spell or an item in a few lines.
+
+## License
+
+The code is released under the [MIT license](LICENSE). The **unscii-16** font (viznut, public domain) has its own attribution in [assets/fonts/NOTICE.md](assets/fonts/NOTICE.md).

@@ -1,163 +1,165 @@
-# Como contribuir com o Ossuary
+# Contributing to Ossuary
 
-Obrigado por querer ajudar. Este guia diz **como o projeto é organizado**, **o que não quebrar** e **como adicionar as coisas mais comuns**
-(magias, itens, animações, traduções) em poucas linhas. O código e os commits ficam em inglês/português à vontade; a documentação em `docs/` é em português.
+**English** · [Português (Brasil)](CONTRIBUTING.pt-BR.md)
 
-> **Versão e licença.** O jogo está na **Versão 11** (nos manifestos: `0.11.0`). O projeto usa a [licença MIT](LICENSE): ao contribuir,
-> você concorda que o seu código seja distribuído sob ela. A fonte `unscii-16` tem atribuição própria ([assets/fonts/NOTICE.md](assets/fonts/NOTICE.md)).
+Thanks for wanting to help. This guide explains **how the project is organised**, **what not to break**, and **how to add the most common things**
+(spells, items, animations, translations) in a few lines. Code and commits may be in English or Portuguese; the documentation in `docs/` is in Portuguese.
 
-## Sumário
+> **Version and license.** The game is at **Version 11** (`0.11.0` in the manifests). The project is under the [MIT license](LICENSE): by contributing you agree
+> that your code is distributed under it. The `unscii-16` font has its own attribution ([assets/fonts/NOTICE.md](assets/fonts/NOTICE.md)).
 
-1. [Antes de começar](#antes-de-começar)
-2. [Preparar o ambiente](#preparar-o-ambiente)
-3. [Regras de ouro](#regras-de-ouro)
-4. [Fluxo de trabalho](#fluxo-de-trabalho)
-5. [Receitas: adicionar coisas](#receitas-adicionar-coisas)
-6. [Testes](#testes)
-7. [Textos e traduções](#textos-e-traduções)
-8. [Visual](#visual)
+## Contents
+
+1. [Before you start](#before-you-start)
+2. [Set up](#set-up)
+3. [Golden rules](#golden-rules)
+4. [Workflow](#workflow)
+5. [Recipes: adding things](#recipes-adding-things)
+6. [Tests](#tests)
+7. [Text and translations](#text-and-translations)
+8. [Visuals](#visuals)
 9. [Pull requests](#pull-requests)
-10. [Reportar bugs e sugerir ideias](#reportar-bugs-e-sugerir-ideias)
+10. [Bugs and ideas](#bugs-and-ideas)
 
-## Antes de começar
+## Before you start
 
-- Leia o [README](README.md), [`docs/visao-geral.md`](docs/visao-geral.md) e [`docs/arquitetura.md`](docs/arquitetura.md).
-- **Leia [`docs/a-fazer.md`](docs/a-fazer.md)**: é o backlog vivo (o que falta e o que já foi feito). Se a sua ideia já está lá, ótimo; se não, acrescente-a na categoria certa.
-- [`AGENTS.md`](AGENTS.md) resume as regras para agentes de código; vale para pessoas também.
-- Para algo grande (sistema novo, mudança de regra, mudança de protocolo), **abra uma issue antes** de escrever muito código.
+- Read the [README](README.md), [`docs/visao-geral.md`](docs/visao-geral.md) and [`docs/arquitetura.md`](docs/arquitetura.md) (Portuguese).
+- **Read [`docs/a-fazer.md`](docs/a-fazer.md)**: the living backlog (what is missing, what is done). If your idea is there, great; if not, add it under the right category.
+- [`AGENTS.md`](AGENTS.md) sums up the rules for coding agents; they apply to people too.
+- For anything big (a new system, a rules change, a protocol change), **open an issue first**.
 
-## Preparar o ambiente
+## Set up
 
-Alvo: **Windows x64**. Os scripts são PowerShell (`.ps1`).
+Target: **Windows x64**. Scripts are PowerShell (`.ps1`).
 
-| Ferramenta | Observação |
+| Tool | Notes |
 |---|---|
-| Git, PowerShell | scripts com `-ExecutionPolicy Bypass` se estiverem bloqueados |
-| Node.js | 22.12+ ou 24+ |
-| Rust | stable, toolchain MSVC |
-| Visual Studio Build Tools | "Desenvolvimento para desktop com C++" + SDK do Windows |
-| .NET 10 SDK | instalado **localmente** em `.tools/` pelo `setup` |
+| Git, PowerShell | use `-ExecutionPolicy Bypass` if scripts are blocked |
+| Node.js | 22.12+ or 24+ |
+| Rust | stable, MSVC toolchain |
+| Visual Studio Build Tools | "Desktop development with C++" + Windows SDK |
+| .NET 10 SDK | installed **locally** into `.tools/` by `setup` |
 
 ```powershell
 git clone https://github.com/Bruno-BRG/ossuary.git
 cd ossuary
-.\desktop.ps1 setup     # SDK .NET 10 local + pacotes npm
-.\desktop.ps1 dev       # app Tauri com recarga do frontend
-.\desktop.ps1 web       # o mesmo motor no navegador (loopback)
+.\desktop.ps1 setup     # local .NET 10 SDK + npm packages
+.\desktop.ps1 dev       # Tauri app with frontend hot reload
+.\desktop.ps1 web       # the same engine in a browser (loopback)
 ```
 
-Detalhes e solução de problemas em [INSTALL.md](INSTALL.md) e [`docs/build-teste.md`](docs/build-teste.md).
-O motor e os testes (`engine/`) só precisam do SDK .NET; dá para mexer nas regras do jogo sem Rust nem Tauri.
+Details and troubleshooting: [INSTALL.md](INSTALL.md) and [`docs/build-teste.md`](docs/build-teste.md).
+The engine and its tests (`engine/`) only need the .NET SDK, so you can work on game rules without Rust or Tauri.
 
-## Regras de ouro
+## Golden rules
 
-1. **O Core só tem simulação e UI como dados.** `engine/Ossuary.Core` não pode depender de Tauri, DOM, renderização, plataforma nem janelas.
-   Todos os verbos vivem em `Commands`; toda tela é composta como `TextBuilder`.
-2. **Não duplique a simulação em TypeScript nem em Rust.** O frontend só desenha a grade que o motor manda e toca animações que o motor grava.
-3. **A semente é o save.** Um save é semente + teclas. Tudo que afeta a simulação precisa ser determinístico: use o `Rng` do jogo, nunca `System.Random`, hora ou ordem de dicionário.
-   Variações **visuais** usam `hash(x, y)` (veja `Shapes.Hash`), nunca o `Rng` da simulação, senão gravar uma animação mudaria o jogo.
-4. **Mudou regra, mudou o save.** Se uma mudança altera o resultado de uma semente, suba `SaveData.Version` em `engine/Ossuary.Desktop/SaveStore.cs` (saves antigos deixam de carregar de propósito).
-5. **Campo novo no protocolo JSON** exige mexer nos **três lados**: `Request` em `engine/Ossuary.Desktop/Program.cs`, `desktop/src/protocol.ts`
-   e a struct `Request` em `desktop/src-tauri/src/main.rs` (usa `deny_unknown_fields`: um campo esquecido faz o app empacotado recusar toda requisição).
-   Campos novos só no *frame* de resposta (como `fx`) não precisam do Rust.
-6. **stdout é do protocolo.** Erros de diagnóstico vão para `stderr`.
-7. **Uma ação por vez.** O frontend não avança turnos ao desenhar, redimensionar ou salvar preferências.
-8. **Preserve o trabalho dos outros.** Não reverta mudanças que você não entende; pergunte.
+1. **The Core holds only simulation and UI-as-data.** `engine/Ossuary.Core` must not depend on Tauri, the DOM, rendering, the platform or windowing.
+   Every verb lives in `Commands`; every screen is composed as a `TextBuilder`.
+2. **Do not duplicate the simulation in TypeScript or Rust.** The front end only draws the grid the engine sends and plays animations the engine records.
+3. **The seed is the save.** A save is seed + keys, so anything that affects the simulation must be deterministic: use the game's `Rng`, never `System.Random`, the clock or dictionary order.
+   **Visual** variation uses `hash(x, y)` (see `Shapes.Hash`), never the simulation's `Rng`, otherwise recording an animation would change the game.
+4. **Changed a rule, change the save.** If a change alters what a seed produces, bump `SaveData.Version` in `engine/Ossuary.Desktop/SaveStore.cs` (old saves stop loading on purpose).
+5. **A new field in the JSON protocol** must be added on **all three sides**: `Request` in `engine/Ossuary.Desktop/Program.cs`, `desktop/src/protocol.ts`
+   and the `Request` struct in `desktop/src-tauri/src/main.rs` (it uses `deny_unknown_fields`: a forgotten field makes the packaged app refuse every request).
+   Fields only in the response *frame* (like `fx`) do not need the Rust side.
+6. **stdout belongs to the protocol.** Diagnostics go to `stderr`.
+7. **One action at a time.** The front end never advances turns when drawing, resizing or saving preferences.
+8. **Preserve other people's work.** Do not revert changes you do not understand; ask.
 
-## Fluxo de trabalho
+## Workflow
 
-1. Crie uma branch a partir da `main` (`feature/…`, `fix/…`, `docs/…`).
-2. Rode **`.\headless.ps1 test` antes** de mexer no Core (para saber o estado) e **depois**.
-3. Faça mudanças pequenas e focadas; type-check durante a edição (`.\fastcheck.ps1`).
-4. Atualize a documentação quando mudar sistema, controles, recursos ou pipeline (`docs/`).
-5. **Atualize [`docs/a-fazer.md`](docs/a-fazer.md)** ao terminar: marque `[x]` com data e onde mora, `[~]` se parcial, e anote ideias novas na categoria certa.
-6. Suite completa (`.\check.ps1`) antes de abrir o PR; build (`.\desktop.ps1 build`) se mudou algo distribuível.
+1. Branch from `main` (`feature/…`, `fix/…`, `docs/…`).
+2. Run **`.\headless.ps1 test` before** touching the Core (to know the baseline) and **after**.
+3. Keep changes small and focused; type-check while editing (`.\fastcheck.ps1`).
+4. Update the documentation when you change a system, controls, features or the pipeline (`docs/`).
+5. **Update [`docs/a-fazer.md`](docs/a-fazer.md)** when done: mark `[x]` with a date and where it lives, `[~]` if partial, and note new ideas under the right category.
+6. Run the full suite (`.\check.ps1`) before opening the PR, and a build (`.\desktop.ps1 build`) if you changed something that ships.
 
-Convenções de código: escreva como o código vizinho (nomes, densidade de comentários, idioma). Comentários explicam o **porquê**.
+Code style: write like the neighbouring code (names, comment density, language). Comments explain **why**.
 
-- `Game` é `partial`: mecânica nova ganha `Game.<Assunto>.cs`.
-- Verbo novo: um `case` em `Commands.Execute` + um método `Do*`; strings curtas.
-- `Input` não guarda estado; modais e prioridade de entrada vivem em `Session.Key`.
-- `Session.Draw` compõe o frame; `TerminalRenderer.draw` só consome a grade.
-- Semente `uint64` viaja no JSON como **string decimal**, nunca como `Number`.
+- `Game` is `partial`: a new mechanic gets a `Game.<Subject>.cs`.
+- A new verb is a `case` in `Commands.Execute` plus a `Do*` method; keep strings short.
+- `Input` is stateless; modals and input priority live in `Session.Key`.
+- `Session.Draw` composes the frame; `TerminalRenderer.draw` only consumes the grid.
+- A `uint64` seed travels in JSON as a **decimal string**, never a `Number`.
 
-## Receitas: adicionar coisas
+## Recipes: adding things
 
-Tudo é dado sempre que possível. O catálogo completo e os detalhes estão em [`docs/magia-e-itens.md`](docs/magia-e-itens.md).
+Everything is data wherever possible. The full catalogue and the details are in [`docs/magia-e-itens.md`](docs/magia-e-itens.md) (Portuguese).
 
-### Uma magia
+### A spell
 
-1. Uma linha em `engine/Ossuary.Core/Magic/Spells.*.cs`. Exemplo:
+1. One line in `engine/Ossuary.Core/Magic/Spells.*.cs`. Example:
    ```csharp
    S("cone-of-cold", "Cone of Cold", 4, E, 10, Cn, 5, "A cone of killing frost…", 5)
        .Dmg(Cold, 4, 6).Ride(Rider.Slow, 70, 8).Look(FxKind.Cone, Elem.Cold)
    ```
-   `Dmg` (dano), `Ride` (efeito: paralisar, veneno, medo…), `Aura` (buff), `Call` (invocação), `Surf` (superfície), `Shove`, `Drain`, `Chain`, `Scatter`, `Taint`, `Spec` (efeito de código) e `Look` (a animação).
-2. A **animação**: `.Look(FxKind, Elem, glifo)`. Veja o resultado sem abrir a janela: `.\headless.ps1 fx cone-of-cold`.
-3. O id num **livro** (`Magic/Spells.Books.cs`) e a **tradução** PT em `Loc.Spells.cs`.
-4. Se for um buff novo: uma linha em `Magic/SpellBuffs.cs` (+ tradução). Criatura invocada nova: `Ally(...)` no fim de `Entities/Bestiary.cs`.
+   `Dmg` (damage), `Ride` (status: hold, poison, fear…), `Aura` (buff), `Call` (summon), `Surf` (surface), `Shove`, `Drain`, `Chain`, `Scatter`, `Taint`, `Spec` (hand-coded effect) and `Look` (the animation).
+2. The **animation**: `.Look(FxKind, Elem, glyph)`. See the result without opening the window: `.\headless.ps1 fx cone-of-cold`.
+3. Add the id to a **book** (`Magic/Spells.Books.cs`) and the Portuguese **translation** in `Loc.Spells.cs`.
+4. A new buff is one line in `Magic/SpellBuffs.cs` (plus its translation). A new summoned creature is an `Ally(...)` at the end of `Entities/Bestiary.cs`.
 
-O teste `ArsenalTests` varre o catálogo: toda magia está num livro, tem animação e tradução, lança sem erro e muda alguma coisa no mundo.
-Se a sua magia é legitimamente silenciosa numa arena vazia (luz, achar armadilhas…), acrescente-a à lista `Quiet` do teste.
+The `ArsenalTests` suite sweeps the catalogue: every spell is in a book, has an animation and a translation, casts without error and changes something in the world.
+If your spell is legitimately silent in an empty arena (light, find traps…), add it to the test's `Quiet` list.
 
-### Um item
+### An item
 
-- **Base** (arma, armadura, anel…): `Items/Catalogue.More.cs`; números de bônus em `Items/ItemEffects.cs`.
-- **Afixo** (prefixo/sufixo): `Items/Affixes.cs`. **Único**: uma linha em `Items/Artifacts.More.cs` (ramo, nível, chance, magias que empresta).
-- **Varinha, pergaminho ou poção** que lança uma magia: uma linha em `Items/ItemSpells.cs`.
-- Magias que combinam com cada tipo de item (itens imbuídos): `Magic/SpellFit.cs`.
-- Glifo novo passa por `GlyphSet` e pelos testes `GlyphCoverage` / `GlyphsInFont`.
+- **Base** (weapon, armour, ring…): `Items/Catalogue.More.cs`; bonus numbers in `Items/ItemEffects.cs`.
+- **Affix** (prefix/suffix): `Items/Affixes.cs`. **Unique**: one line in `Items/Artifacts.More.cs` (branch, level, chance, spells it lends).
+- **Wand, scroll or potion** that casts a spell: one line in `Items/ItemSpells.cs`.
+- Which spells suit which kind of item (imbued items): `Magic/SpellFit.cs`.
+- A new glyph goes through `GlyphSet` and the `GlyphCoverage` / `GlyphsInFont` tests.
 
-### Uma animação
+### An animation
 
-Uma peça em `FxLib` (`engine/Ossuary.Core/Fx.cs`) que escreve passos de células no mapa e devolve o passo em que termina. Use as rampas por elemento (`FxLib.Pal`),
-nada de cor fixa, e a geometria compartilhada (`Shapes`) para o que você vê coincidir com o que foi atingido. Detalhes em [`docs/magia-e-itens.md`](docs/magia-e-itens.md#animações).
+One piece in `FxLib` (`engine/Ossuary.Core/Fx.cs`) that writes steps of map cells and returns the step where it ends. Use the per-element ramps (`FxLib.Pal`),
+never a fixed colour, and the shared geometry (`Shapes`) so what you see matches what was hit. Details in [`docs/magia-e-itens.md`](docs/magia-e-itens.md#animações).
 
-### Um monstro, chefe, deus, raça…
+### A monster, boss, god, race…
 
-Veja [`docs/sistemas.md`](docs/sistemas.md) e [`docs/rpg.md`](docs/rpg.md): quase tudo é uma tabela em `engine/Ossuary.Core/Entities/`.
+See [`docs/sistemas.md`](docs/sistemas.md) and [`docs/rpg.md`](docs/rpg.md): nearly everything is a table in `engine/Ossuary.Core/Entities/`.
 
-## Testes
+## Tests
 
 ```powershell
-.\fastcheck.ps1                  # type-check de C# e TypeScript
-.\headless.ps1 test              # suite de simulação e fluxo do desktop (C#)
-.\headless.ps1 dump panels       # layout em ASCII (use [level|overworld|panels|town|create])
-.\headless.ps1 fx <magia|all>    # animações em ASCII
-.\headless.ps1 soak 50 500       # bot aleatório
-.\headless.ps1 balance 8 2500    # bot de balanceamento por classe × raça (veja docs/balance.md)
-cd desktop; npm test             # vitest do frontend
-.\check.ps1                      # tudo
+.\fastcheck.ps1                  # type-check C# and TypeScript
+.\headless.ps1 test              # simulation and desktop-flow suite (C#)
+.\headless.ps1 dump panels       # layout as ASCII (also level|overworld|town|create)
+.\headless.ps1 fx <spell|all>    # animations as ASCII
+.\headless.ps1 soak 50 500       # random bot
+.\headless.ps1 balance 8 2500    # balance bot per class × race (see docs/balance.md)
+cd desktop; npm test             # frontend vitest
+.\check.ps1                      # everything
 ```
 
-- Cada sistema novo vem com teste (padrão do projeto). Testes que dependem de sorte devem usar amostras grandes o bastante para não serem cara-ou-coroa.
-- `ARSENAL_TRACE=1 .\headless.ps1 test` mostra o stack trace dos testes do arsenal.
-- O teste de banda de balanceamento (`BalanceBand`) é uma trava, não uma meta: se uma classe despencar, investigue antes de mexer no limite.
+- Every new system comes with a test (project standard). Luck-dependent tests need samples large enough not to be coin flips.
+- `ARSENAL_TRACE=1 .\headless.ps1 test` prints stack traces for the arsenal tests.
+- The `BalanceBand` test is a guard rail, not a target: if a class collapses, investigate before touching the limit.
 
-## Textos e traduções
+## Text and translations
 
-- Texto visível ao jogador **nasce em inglês** e ganha tradução PT em `Loc.cs` (ou `Loc.Spells.cs` para magias). `Say` e `TextBuilder` já traduzem; o Core nunca decide o idioma sozinho.
-- Mensagens dinâmicas (com nomes e números) casam por padrões `Rx` em `Loc.cs`. Veja [`docs/idiomas.md`](docs/idiomas.md).
-- Nomes de magias e buffs em PT precisam caber na lista (≤ 26 colunas); os testes conferem.
+- Player-visible text **is born in English** and gets a Portuguese translation in `Loc.cs` (or `Loc.Spells.cs` for spells). `Say` and `TextBuilder` already translate; the Core never picks the language itself.
+- Dynamic messages (names and numbers) match `Rx` patterns in `Loc.cs`. See [`docs/idiomas.md`](docs/idiomas.md).
+- Portuguese spell and buff names must fit the list (≤ 26 columns); the tests check.
 
-## Visual
+## Visuals
 
-Direção de arte **"Fósforo & Osso"** ([`docs/visual.md`](docs/visual.md)): terminal de PC dos anos 80, fundo índigo, glifos coloridos, brilho escasso.
+Art direction **"Phosphor & Bone"** ([`docs/visual.md`](docs/visual.md)): an 80s PC terminal, indigo background, coloured glyphs, sparing glow.
 
-- Cores do jogo só em `engine/Ossuary.Core/Theme.cs` (e rampas de efeito em `FxLib`); o CSS recebe tokens do frame. Não crie outra paleta.
-- Fonte bitmap fixa 8×16, sem suavização, escala inteira. Fonte nova exige atribuição e licença em `docs/visual.md` e `assets/fonts/NOTICE.md`.
-- Cada célula tem glifo, fg, bg e negrito; o fundo deve transmitir significado.
-- Tema, CRT e escala pertencem ao usuário (`DisplaySettings` + `localStorage`).
+- Game colours live only in `engine/Ossuary.Core/Theme.cs` (and effect ramps in `FxLib`); CSS receives tokens from the frame. Do not create another palette.
+- Fixed 8×16 bitmap font, no smoothing, integer scaling. A new font needs attribution and a licence in `docs/visual.md` and `assets/fonts/NOTICE.md`.
+- Each cell has a glyph, fg, bg and bold; the background should carry meaning.
+- Theme, CRT and scale belong to the user (`DisplaySettings` + `localStorage`).
 
 ## Pull requests
 
-- Título claro e no imperativo; descreva **o quê** e **por quê**. Use o modelo que o GitHub carrega.
-- Marque o que testou (`headless test`, `check`, `fx`, capturas de tela se mexeu no visual).
-- Um PR, um assunto. Se a mudança alterar regras (e portanto saves), diga na descrição.
-- Seja gentil nas revisões: o objetivo é um jogo melhor, não ter razão.
+- A clear imperative title; say **what** and **why**. Use the template GitHub loads.
+- Tick what you tested (`headless test`, `check`, `fx`, screenshots if you touched visuals).
+- One PR, one subject. If the change alters rules (and so saves), say so in the description.
+- Be kind in reviews: the goal is a better game, not being right.
 
-## Reportar bugs e sugerir ideias
+## Bugs and ideas
 
-Use as [issues](https://github.com/Bruno-BRG/ossuary/issues) (há modelos). Um bom relato de bug traz: **versão** (a do jogo, por exemplo "Versão 11"),
-**semente** (aparece no início do diário e no menu), o que você fez, o que esperava e o que aconteceu. Como a semente é o save,
-semente + teclas reproduzem o problema.
+Use the [issues](https://github.com/Bruno-BRG/ossuary/issues) (there are templates). A good bug report has the game **version** (for example "Version 11"),
+the **seed** (shown at the start of the journal and in the menu), what you did, what you expected and what happened. Since the seed is the save,
+seed + keys reproduce the problem.

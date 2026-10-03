@@ -1,17 +1,17 @@
 ---
 name: Bug
-about: Algo quebrou ou se comportou de forma estranha
+about: Something broke or behaved strangely
 labels: bug
 ---
 
-**Versão do jogo** (ex.: Versão 11):
+**Game version** (e.g. Version 11):
 
-**Semente** (aparece no começo do diário e no menu):
+**Seed** (shown at the start of the journal and in the menu):
 
-**O que você fez** (teclas, passos):
+**What you did** (keys, steps):
 
-**O que esperava:**
+**What you expected:**
 
-**O que aconteceu** (cole a mensagem de erro ou uma captura de tela):
+**What happened** (paste the error message or a screenshot):
 
-**Ambiente** (Windows, instalador ou código-fonte, idioma PT/EN):
+**Environment** (Windows, installer or source build, language PT/EN):
