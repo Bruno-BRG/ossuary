@@ -1,26 +1,26 @@
-## O quê e por quê
+## What and why
 
-<!-- O que muda e qual problema resolve. Link para a issue, se houver. -->
+<!-- What changes and what problem it solves. Link the issue, if any. -->
 
-## Tipo
+## Type
 
-- [ ] Correção de bug
-- [ ] Mecânica / conteúdo (magia, item, monstro…)
-- [ ] Visual / animação
-- [ ] Documentação / tradução
-- [ ] Ferramentas / testes
+- [ ] Bug fix
+- [ ] Mechanics / content (spell, item, monster…)
+- [ ] Visuals / animation
+- [ ] Documentation / translation
+- [ ] Tooling / tests
 
-## Como testei
+## How I tested
 
 - [ ] `.\headless.ps1 test`
 - [ ] `.\check.ps1`
-- [ ] `.\headless.ps1 fx <magia>` / `dump panels` / captura de tela (se mexeu em visual)
+- [ ] `.\headless.ps1 fx <spell>` / `dump panels` / screenshot (if visuals changed)
 
 ## Checklist
 
-- [ ] O Core continua sem depender de UI/plataforma (regra de ouro)
-- [ ] Nada não determinístico na simulação (usei o `Rng` do jogo; efeitos visuais usam hash)
-- [ ] Se a mudança altera o resultado de sementes, subi `SaveData.Version` e avisei aqui
-- [ ] Campo novo no protocolo JSON atualizado nos três lados (se houver)
-- [ ] Textos novos têm tradução PT (`Loc.cs` / `Loc.Spells.cs`)
-- [ ] Atualizei `docs/` e `docs/a-fazer.md`
+- [ ] The Core still has no UI/platform dependency (golden rule)
+- [ ] Nothing non-deterministic in the simulation (used the game's `Rng`; visual effects use a hash)
+- [ ] If this changes what a seed produces, I bumped `SaveData.Version` and say so here
+- [ ] A new JSON protocol field is updated on all three sides (if any)
+- [ ] New text has a Portuguese translation (`Loc.cs` / `Loc.Spells.cs`)
+- [ ] Updated `docs/` and `docs/a-fazer.md`

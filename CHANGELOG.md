@@ -1,32 +1,33 @@
 # Changelog
 
-As versões do Ossuary são numeradas só com **um número** (Versão 11, Versão 12…), como no *Project Zomboid*. Nos manifestos (`package.json`, `Cargo.toml`,
-`tauri.conf.json`) e no nome do instalador a versão aparece como `0.N.0`. O **salvamento** (`SaveData.Version`) usa o mesmo número: mudou regra, sobe o número, saves antigos deixam de carregar.
+**English** · [Português (Brasil)](CHANGELOG.pt-BR.md)
 
-## Versão 11 — Magia que se vê
+Ossuary versions are a **single number** (Version 11, Version 12…), as in *Project Zomboid*. In the manifests (`package.json`, `Cargo.toml`,
+`tauri.conf.json`) and in the installer name the version appears as `0.N.0`. The **save format** (`SaveData.Version`) uses the same number: change a rule, bump it, old saves stop loading.
 
-### Magias e animações
-- **322 magias em 8 escolas** (eram 39 em 6). Escolas novas: **Natureza** (patrulheiro) e **Sombra** (ladino). Magias novas são receitas de dados: dano, efeitos (paralisar, veneno, sangramento, empurrão…), buffs, invocações, superfícies, cadeias, chuvas de golpes, cones, execuções.
-- **Animações de magia**: o motor grava o que acontece, o frontend toca por cima. Projéteis com rastro, raios denteados, cadeias, cones, explosões, ondas, chuvas, pilares, meteoros. Também animam varinhas, tiro de arco, molotov, armadilhas e ataques de chefes. `headless.ps1 fx <magia>` mostra em ASCII.
-- **55 livros** em cinco níveis de profundidade; painel de magias com **abas por escola**; todas as magias, buffs e efeitos traduzidos para PT.
-- Patrulheiro e Ladino agora começam com livro e magias.
+## Version 11 — Magic you can see
 
-### Itens
-- **Itens mágicos imbuídos com uma magia que combina com o tipo** (espada: ataque; armadura: proteção; botas: movimento…). A magia é emprestada enquanto o item está em uso; armas disparam sozinhas ao acertar e armaduras respondem ao golpe.
-- **43 itens únicos** em todos os ramos (38 emprestam magias) e 4 conjuntos novos.
-- Varinhas, pergaminhos e poções agora **lançam magias de verdade** (38 / 34 / 18), com a mesma animação e sem mana.
-- Dezenas de armas, armaduras, elmos, luvas, botas, capas, escudos, anéis e amuletos novos; 55 afixos novos; o loot respeita a profundidade.
-- Anéis e amuletos passaram a **valer** (e amuletos podem ser vestidos: `P`/`R`).
+### Spells and animations
+- **322 spells in 8 schools** (up from 39 in 6). New schools: **Nature** (ranger) and **Shadow** (rogue). New spells are data recipes: damage, status effects (hold, poison, bleeding, knockback…), buffs, summons, surfaces, chains, scattered strikes, cones, executions.
+- **Spell animations**: the engine records what happens and the front end plays it over the frame. Projectiles with trails, jagged lightning, chains, cones, bursts, waves, rain, pillars, meteors. Wands, arrows, molotovs, traps and boss attacks are animated too. `headless.ps1 fx <spell>` shows them in ASCII.
+- **55 spellbooks** in five depth tiers; a spell list with **school tabs**; every spell, buff and effect translated to Portuguese.
+- Rangers and Rogues now start with a book and spells.
 
-### Correções
-- Os amuletos antigos eram *anéis* no catálogo; o de salvar vidas nunca funcionou. Agora são amuletos de verdade.
-- O jogo quebrava se um monstro morresse envenenado no próprio turno.
+### Items
+- **Magic items imbued with a spell that fits their kind** (sword: attack; armour: ward; boots: movement…). The spell is lent to you while the item is in use; weapons fire it on their own when they hit and armour answers a blow with it.
+- **43 unique items** across every branch (38 lend spells) and 4 new sets.
+- Wands, scrolls and potions now **cast real spells** (38 / 34 / 18), with the same animations and no mana.
+- Dozens of new weapons, armours, helms, gloves, boots, cloaks, shields, rings and amulets; 55 new affixes; loot respects depth.
+- Rings and amulets now **count** (and amulets can be worn: `P`/`R`).
 
-### Para quem desenvolve
-- Salvamento passa à **versão 11** (saves antigos não carregam).
-- Novos testes `ArsenalTests` e `fx.test.ts`; documentação em [`docs/magia-e-itens.md`](docs/magia-e-itens.md); [CONTRIBUTING.md](CONTRIBUTING.md) e novo README.
+### Fixes
+- The old amulets were *rings* in the catalogue; the amulet of life saving never worked. They are real amulets now.
+- The game crashed if a monster died of poison during its own turn.
 
-## Antes da versão 11
+### For developers
+- Save format moves to **version 11** (old saves do not load).
+- New `ArsenalTests` and `fx.test.ts`; documentation in [`docs/magia-e-itens.md`](docs/magia-e-itens.md) (Portuguese); [CONTRIBUTING.md](CONTRIBUTING.md) and a new README.
 
-O histórico anterior está no `git log` e no registro de itens concluídos de [`docs/a-fazer.md`](docs/a-fazer.md): cidades verticais, mundo vivo (reputação, contratos,
-eventos de estrada), chefes, facções, corrupção e mutações, companheiros, conquistas, desafio diário, modos de jogo, efeitos sonoros e água animada, entre outros.
+## Before version 11
+
+Earlier history is in `git log` and in the finished-items log of [`docs/a-fazer.md`](docs/a-fazer.md): vertical towns, the living world (reputation, jobs, road events), bosses, factions, corruption and mutations, companions, achievements, the daily challenge, game modes, sound effects and animated water, among others.
