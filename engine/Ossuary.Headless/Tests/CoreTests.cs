@@ -1160,7 +1160,7 @@ namespace Ossuary.Tests
             var g = new Game(2718);
             g.Player.Gold = 500;
             int before = g.Player.Gold;
-            var item = shop.Stock[0];
+            var item = shop.Stock.Find(i => i.Def.Kind != ItemKind.Gold && g.ShopPrice(shop, i) <= 400) ?? shop.Stock[0];   // something the purse can pay for
 
             int price = g.ShopPrice(shop, item);
             Assert(price >= 1, "price must be at least 1");
@@ -2040,7 +2040,13 @@ namespace Ossuary.Tests
                     var it = LevelBuilder.RollLoot(rng, depth);
                     Assert(it != null, "null loot");
                     seenKinds.Add(it.Def.Kind);
-                    if (!it.Def.Kind.IsGear()) { Assert(it.Rarity == Rarity.Common && it.Enchant == 0 && it.Prefix == null, "non-gear must stay plain"); continue; }
+                    if (!it.Def.Kind.IsGear())
+                    {
+                        // (a blank band or pendant is only ever found enchanted, with a spell inside)
+                        bool blank = (it.Def.Kind == ItemKind.Ring || it.Def.Kind == ItemKind.Amulet) && Catalogue.IsBlank(it.Def.Name);
+                        Assert(blank ? it.Imbue != null : it.Rarity == Rarity.Common && it.Enchant == 0 && it.Prefix == null && it.Imbue == null, "non-gear must stay plain");
+                        continue;
+                    }
                     gear[pass]++;
                     if (it.Rarity == Rarity.Common) { Assert(it.Prefix == null && it.Suffix == null && it.Enchant == 0, "common gear must be plain"); continue; }
                     Assert(!it.Identified, "magic loot starts unidentified");

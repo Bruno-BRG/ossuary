@@ -19,6 +19,7 @@ namespace Ossuary.Core
             {
                 var art = it != null ? Artifacts.Find(it.ArtifactId) : null;
                 if (art?.Grants != null) foreach (string id in art.Grants) if (!ids.Contains(id)) ids.Add(id);
+                if (it?.Imbue != null && !ids.Contains(it.Imbue)) ids.Add(it.Imbue);
             }
             From(Player.Wielded);
             foreach (var piece in Player.WornPieces()) From(piece);
@@ -124,7 +125,46 @@ namespace Ossuary.Core
         /// <summary>The level a spell is cast at: yours, or the item's if that is higher.</summary>
         int CasterLevel => Math.Max(Player.Level, _itemPower);
 
-        bool CastCore(string id, int tx, int ty, Item source, int power)
+        bool _proc;
+
+        /// <summary>A spell an item fires by itself (no turn of its own, no mana, no charge): the spell the item carries, aimed or on you.</summary>
+        void ImbueProc(Item it, int tx, int ty, string flare)
+        {
+            var sp = it?.Imbue != null ? Spells.Find(it.Imbue) : null;
+            if (sp == null || _proc || Map == null) return;
+            _proc = true; _itemPower = Math.Max(Player.Level, 5 + Depth / 2);
+            try
+            {
+                Say($"Your {it.Name} {flare}: {sp.Name}!", MessageKind.Good);
+                CastCore(sp.Id, sp.Target == SpellTarget.Self ? Player.X : tx, sp.Target == SpellTarget.Self ? Player.Y : ty, it, _itemPower, true);
+            }
+            finally { _proc = false; _itemPower = 0; }
+        }
+
+        /// <summary>After a blow lands, the carried spell of the wielded weapon may flare on the creature it struck.</summary>
+        void ImbueStrike(Monster target)
+        {
+            var w = Player.Wielded;
+            if (w?.Imbue == null || target == null || target.IsDead || !Rng.Chance(14)) return;
+            ImbueProc(w, target.X, target.Y, "flares");
+        }
+
+        /// <summary>When you are struck, worn pieces that carry a self spell may answer with it.</summary>
+        void ImbueReaction()
+        {
+            var list = new List<Item>(Player.WornPieces());
+            for (int i = 0; i < 2; i++) if (Player.Rings[i] != null) list.Add(Player.Rings[i]);
+            if (Player.Amulet != null) list.Add(Player.Amulet);
+            foreach (var it in list)
+            {
+                if (it.Imbue == null || Player.HP <= 0) continue;
+                var sp = Spells.Find(it.Imbue);
+                if (sp == null || sp.Target != SpellTarget.Self || !Rng.Chance(10)) continue;
+                ImbueProc(it, Player.X, Player.Y, "stirs");
+            }
+        }
+
+        bool CastCore(string id, int tx, int ty, Item source, int power, bool proc = false)
         {
             var spell = Spells.Find(id);
             var p = Player;
@@ -177,7 +217,7 @@ namespace Ossuary.Core
             p.GainSkill(Skill.Magic, free ? 1 : spell.Level >= 2 ? 2 : 1);
             if (target != null && !target.IsDead && !target.Ally) { target.Alert = 1; target.Dormant = false; }
             Map.Version++;
-            EndPlayerTurn();
+            if (!proc) EndPlayerTurn();
             return true;
         }
 

@@ -105,7 +105,7 @@ namespace Ossuary.Core.Magic
                 {
                     var l = new List<SpellDef>();
                     l.AddRange(Evocation()); l.AddRange(Conjuration()); l.AddRange(Alteration()); l.AddRange(Illusion());
-                    l.AddRange(Necromancy()); l.AddRange(Sacred()); l.AddRange(Nature()); l.AddRange(Shadow());
+                    l.AddRange(Necromancy()); l.AddRange(Sacred()); l.AddRange(Nature()); l.AddRange(Shadow()); l.AddRange(More());
                     _all = l.ToArray();
                     var d = new Dictionary<string, SpellDef>();
                     foreach (var sp in _all) d[sp.Id] = sp;

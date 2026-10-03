@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Guia de contribuição
+    url: https://github.com/Bruno-BRG/ossuary/blob/main/CONTRIBUTING.md
+    about: Leia antes de abrir uma issue ou um pull request.

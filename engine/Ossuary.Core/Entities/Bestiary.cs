@@ -181,6 +181,11 @@ namespace Ossuary.Core.Entities
             Ally("treant", 'T', 0x3C9840, 12, 100, 3, 8, AttackKind.Hit, 3, 8, mindless: true);
             Ally("spirit spider", 'S', 0x78D860, 5, 20, 6, 14, AttackKind.Bite, 1, 6);
             Ally("spirit boar", 'q', 0xB08A4A, 5, 30, 6, 14, AttackKind.Butt, 2, 6);
+            Ally("imp", 'i', 0xE0502A, 3, 12, 6, 14, AttackKind.Touch, 1, 6, flys: true);
+            Ally("arcane hound", 'd', 0xB080F0, 5, 24, 5, 16, AttackKind.Bite, 1, 10, mindless: true);
+            Ally("storm sprite", '*', 0xFFF070, 4, 10, 4, 20, AttackKind.Touch, 2, 6, mindless: true, flys: true);
+            Ally("stone sentinel", 'g', 0xA08A60, 8, 60, 2, 8, AttackKind.Hit, 2, 8, mindless: true);
+            Ally("gargoyle", 'G', 0x909090, 11, 70, 3, 14, AttackKind.ClawOrBite, 2, 8, mindless: true, flys: true);
             Ally("shadow double", '@', 0x5A4290, 5, 22, 5, 14, AttackKind.Hit, 2, 6, mindless: true);
 
             return d.ToArray();

@@ -685,6 +685,7 @@ namespace Ossuary.Core
                 var res = Battles.MeleeAttack(m, Player, Rng);
                 Say(res.Message, res.Killed ? MessageKind.Death : MessageKind.Combat);
                 if (res.Hit && !res.Killed && Player.Buffs.Count > 0) Retaliate(m);
+                if (res.Hit && !res.Killed) ImbueReaction();
                 if (m.Def.Trait != null) TraitAfterHit(m, res);
                 Map.Version++;
                 CheckDeath();

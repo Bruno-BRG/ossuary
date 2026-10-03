@@ -71,6 +71,8 @@ namespace Ossuary.Core.Items
         /// <summary>Enchantment: +to hit and damage on weapons, +AC on armour.</summary>
         public int Enchant;
         public string Prefix, Suffix;
+        /// <summary>A spell the item carries (see <see cref="Magic.SpellFit"/>): lent to you while worn, and a weapon or armour also fires it by itself now and then.</summary>
+        public string Imbue;
         public string Engraving;
 
         public Item(ItemDef def, Rng rng, long uid = 0)
@@ -108,9 +110,10 @@ namespace Ossuary.Core.Items
             get
             {
                 if (Rarity == Rarity.Artifact) return Def.Cost * 12 + 1000;
-                if (!Def.Kind.IsGear()) return Def.Cost;
+                int imbued = Imbue != null ? 150 * (Magic.Spells.Find(Imbue)?.Level ?? 1) : 0;
+                if (!Def.Kind.IsGear()) return Def.Cost + imbued;
                 int affixes = (Prefix != null ? 1 : 0) + (Suffix != null ? 1 : 0);
-                int v = Def.Cost * (4 + Math.Max(0, Enchant) * 3 + affixes * 5) / 4;
+                int v = Def.Cost * (4 + Math.Max(0, Enchant) * 3 + affixes * 5) / 4 + imbued;
                 if (Rarity == Rarity.Artifact) v = Def.Cost * 12 + 1000;
                 return Math.Max(1, v);
             }
@@ -128,10 +131,12 @@ namespace Ossuary.Core.Items
                     else
                     {
                         string pre = Affixes.Find(Prefix)?.Name, suf = Affixes.Find(Suffix)?.Name;
+                        if (suf == null && Imbue != null) suf = "of " + Magic.Spells.Find(Imbue)?.Name;
                         n = (Enchant != 0 ? (Enchant > 0 ? "+" : "") + Enchant + " " : "")
                             + (pre != null ? pre + " " : "") + Def.Name + (suf != null ? " " + suf : "");
                     }
                 }
+                if (!gear && Imbue != null && ArtifactName == null) n = Identified ? Def.Name + " of " + Magic.Spells.Find(Imbue)?.Name : "enchanted " + Def.Name;
                 if (!Identified && (ArtifactName != null || (Def.Flags & ItemFlags.Cursed) != 0)) return n;
                 if ((Def.Flags & ItemFlags.Blessed) != 0) return "blessed " + n;
                 if ((Def.Flags & ItemFlags.Cursed) != 0) return "cursed " + n;

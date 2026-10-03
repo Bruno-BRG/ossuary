@@ -76,6 +76,22 @@ namespace Ossuary.Core.Magic
             B("vampiric-edge", "Vampiric Edge", "Your weapon thirsts. (25% life steal)", new ItemMods { LifeSteal = 25 }),
             B("fade", "Fade", "You are hard to look at, harder to hit. (evasion +5, harder to notice)", new ItemMods { Evasion = 5, Stealth = 2 }),
             B("umbral-shroud", "Umbral Shroud", "A shroud of dark folds around you. (AC +2, necrotic 30%, cold 20%)", new ItemMods { Ac = 2, ResNecrotic = 30, ResCold = 20, Evasion = 1 }),
+
+            // ---- The second round
+            B("lightfoot", "Lightfoot", "Your step goes quiet. (harder to notice, evasion +1)", new ItemMods { Stealth = 2, Evasion = 1 }),
+            B("keen-edge", "Keen Edge", "Your weapon finds its mark. (+3 to hit, +1 damage)", new ItemMods { ToHit = 3, Dmg = 1 }),
+            B("aegis", "Aegis", "A ward settles against everything. (AC +3; fire, cold and lightning 15%)", new ItemMods { Ac = 3, ResFire = 15, ResCold = 15, ResLightning = 15 }),
+            B("iron-body", "Iron Body", "You turn to a statue that moves. (AC +5, poison 40%, evasion -1)", new ItemMods { Ac = 5, ResPoison = 40, Evasion = -1 }),
+            B("titan", "Titan", "You swell with a giant's strength. (Str +6, Con +4, +25 HP)", new ItemMods { Str = 6, Con = 4, Hp = 25 }),
+            B("lich-form", "Lich Form", "Cold settles into your bones, and you like it. (necrotic 80%, cold 50%, poison 80%, spell power +3, 15% life steal)",
+                new ItemMods { ResNecrotic = 80, ResCold = 50, ResPoison = 80, SpellPower = 3, LifeSteal = 15 }),
+            B("courage", "Courage", "Courage steadies your hand. (+2 to hit, +6 HP)", new ItemMods { ToHit = 2, Hp = 6 }),
+            B("holy-weapon", "Holy Weapon", "Your weapon shines. (+1d6 holy, +1 to hit)", new ItemMods { ExtraType = DamageType.Holy, ExtraSides = 6, ToHit = 1 }),
+            B("divine-shield", "Divine Shield", "A shield of light stands before you. (AC +6, briefly)", new ItemMods { Ac = 6 }),
+            B("benediction", "Benediction", "A full blessing falls on you. (AC +2, +2 to hit, +2 damage, necrotic 30%)", new ItemMods { Ac = 2, ToHit = 2, Dmg = 2, ResNecrotic = 30 }),
+            B("stoneform", "Stoneform", "Your skin takes the grain of stone. (AC +5, fire 20%, evasion -1)", new ItemMods { Ac = 5, ResFire = 20, Evasion = -1 }),
+            B("vampiric-veil", "Vampiric Veil", "A veil that drinks. (20% life steal, evasion +3, harder to notice)", new ItemMods { LifeSteal = 20, Evasion = 3, Stealth = 2 }),
+            B("ambush", "Ambush", "You wait, and you are very good at it. (+4 to hit, +3 damage, well hidden)", new ItemMods { ToHit = 4, Dmg = 3, Stealth = 2 }),
         };
 
         static Dictionary<string, BuffDef> _byId;

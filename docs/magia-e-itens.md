@@ -8,14 +8,15 @@ As tabelas abaixo foram geradas do código; a fonte da verdade são os arquivos 
 
 | | |
 |---|---|
-| Magias | **262** em **8 escolas** (eram 39 em 6) |
-| Livros | **39** (com nível de profundidade 1–5) |
+| Magias | **322** em **8 escolas** (eram 39 em 6) |
+| Livros | **55** (com nível de profundidade 1–5) |
 | Varinhas / pergaminhos / poções que lançam magias | **38 / 34 / 18** |
-| Armas / armaduras / elmos / luvas / botas / capas / escudos novos | 26 / 14 / 10 / 7 / 6 / 7 / 6 |
-| Anéis / amuletos novos (agora **vestíveis**) | 24 / 12 |
-| Afixos novos | 33 (18 prefixos, 15 sufixos) |
+| Itens mágicos aleatórios **imbuídos com uma magia que combina com o tipo** | armas, armaduras, elmos, luvas, botas, capas, escudos, anéis e amuletos |
+| Armas / armaduras / elmos / luvas / botas / capas / escudos novos | 37 / 19 / 14 / 11 / 9 / 10 / 9 |
+| Anéis / amuletos novos (agora **vestíveis**) | 33 / 22 |
+| Afixos novos | 54 (30 prefixos, 24 sufixos) |
 | Itens únicos novos | **43**, 4 conjuntos novos, 38 deles emprestam magias |
-| Criaturas invocáveis novas | 21 |
+| Criaturas invocáveis novas | 26 |
 | Efeitos de animação | 23 peças (`FxLib`) |
 
 ## Animações
@@ -94,13 +95,14 @@ Cada escola é de um tipo de personagem (qualquer um pode ler qualquer livro, ma
 **Mago** (Evocação, Conjuração, Alteração, Ilusão), **Necromante** (Necromancia), **Clérigo e Paladino** (Sagrada),
 **Patrulheiro** (Natureza, livro inicial *a druid's handbook*) e **Ladino** (Sombra, livro inicial *a cutpurse's primer*).
 
-### Evocação — 29 magias (Mago)
+### Evocação — 39 magias (Mago)
 
 | Nv | Magia | Mp | Alvo | Animação | O que faz |
 |---|---|---|---|---|---|
 | 1 | **Respingo Ácido** (`acid-splash`) | 3 | criatura | Bolt Poison | Um bocado de ácido. Corrói a armadura: o alvo sofre mais de tudo por um tempo. |
 | 1 | **Mãos Flamejantes** (`burning-hands`) | 3 | cone | Cone Fire | Um leque de chamas dos seus dedos, três casas de comprimento. |
 | 1 | **Dardo de Brasa** (`ember-dart`) | 2 | criatura | Bolt Fire | Uma centelha de fogo. De vez em quando incendeia o alvo. |
+| 1 | **Flecha de Fogo** (`flame-arrow`) | 3 | criatura | Bolt Fire | Uma flecha de fogo que dispensa o arco. Pode incendiar o alvo. |
 | 1 | **Geladura** (`frostbite`) | 2 | criatura | Bolt Cold | Uma mordida de frio que atrasa o alvo. |
 | 1 | **Míssil Mágico** (`magic-missile`) | 2 | criatura | Bolt Arcane | Raios de força que não erram. Os dados crescem com o nível. |
 | 1 | **Toque Chocante** (`shocking-grasp`) | 2 | criatura | Zap Lightning | Raio pelo seu toque. Só adjacente; bate forte. |
@@ -112,23 +114,32 @@ Cada escola é de um tipo de personagem (qualquer um pode ler qualquer livro, ma
 | 2 | **Raio Escaldante** (`scorching-ray`) | 5 | criatura | Beam Fire | Uma agulha de fogo branco. Incendeia o alvo. |
 | 2 | **Estilhaço de Pedra** (`stone-shard`) | 4 | criatura | Bolt Earth | Uma pedra pontuda arremessada com força. |
 | 2 | **Trovão** (`thunderclap`) | 4 | você | Nova Wind | Uma palma ensurdecedora: fere tudo a 2 casas e pode atordoar. |
+| 2 | **Trovoada** (`thunderstrike`) | 5 | criatura | Pillar Lightning | Um raio de céu limpo. Pode atordoar. |
+| 3 | **Clarão Elétrico** (`arc-flash`) | 6 | cone | Cone Lightning | Um leque de raios de quatro casas que pode atordoar. |
 | 3 | **Bola de Fogo** (`fireball`) | 7 | área | Ball Fire | Explode onde você mira e queima tudo a 2 casas. |
+| 3 | **Cometa de Gelo** (`ice-comet`) | 7 | área | Meteor Cold | Um cometa de gelo que atrasa quem não morre. |
 | 3 | **Dardo de Lava** (`lava-bolt`) | 7 | criatura | Bolt Fire | Um bocado de rocha derretida. Queima e deixa chamas no chão onde cai. |
 | 3 | **Relâmpago** (`lightning-bolt`) | 6 | linha | Zap Lightning | Um raio que atravessa toda criatura na linha. |
 | 3 | **Nuvem Venenosa** (`poison-cloud`) | 6 | área | Cloud Poison | Uma nuvem verde e podre. Tudo nela fica envenenado por alguns turnos. |
+| 3 | **Orbe Abrasador** (`searing-orb`) | 7 | área | Ball Fire | Um solzinho que estoura no contato, 1 casa de raio. |
 | 3 | **Jato de Vapor** (`steam-burst`) | 6 | área | Cloud Water | Ferve a água em vapor: dano alto em molhados a 2 casas, e a água some. No seco, só chia. |
+| 4 | **Barragem Arcana** (`arcane-barrage`) | 9 | você | Custom Arcane | Quatro mísseis de força, cada um achando uma criatura à vista. |
 | 4 | **Chamar Raios** (`call-lightning`) | 9 | você | Custom Lightning | Três raios caem do nada sobre criaturas à vista. |
 | 4 | **Raio em Cadeia** (`chain-lightning`) | 10 | criatura | Custom Lightning | Atinge o alvo e salta para até três outros por perto. |
 | 4 | **Cone de Gelo** (`cone-of-cold`) | 10 | cone | Cone Cold | Um cone de geada mortal, cinco casas de comprimento. Atrasa quem sobrevive. |
 | 4 | **Tempestade de Gelo** (`ice-storm`) | 10 | área | Rain Cold | Granizo do tamanho de punhos, numa área larga. |
+| 4 | **Onda de Magma** (`magma-wave`) | 10 | cone | Cone Fire | Uma onda de rocha derretida, cinco casas, que incendeia tudo. |
 | 4 | **Leque Prismático** (`prismatic-spray`) | 10 | cone | Cone Mind | Um leque de luz colorida: fere e atordoa. |
+| 4 | **Campo Estático** (`static-field`) | 9 | você | Nova Lightning | Raios rastejam por tudo a 3 casas de você e podem atordoar. |
 | 4 | **Muralha de Fogo** (`wall-of-fire`) | 9 | área | Eruption Fire | Uma cruz em chamas no chão. Se espalha em mato e óleo; quem está nela pega fogo. |
 | 5 | **Desintegrar** (`disintegrate`) | 16 | criatura | Beam Poison | Um raio verde que desfaz o que toca. |
 | 5 | **Terremoto** (`earthquake`) | 15 | você | Eruption Earth | O chão sacode por 4 casas ao seu redor. Fere e atordoa tudo que está nele. |
 | 5 | **Meteoro** (`meteor`) | 15 | área | Meteor Fire | Uma rocha em chamas vinda do nada. Devasta 3 casas ao redor. |
+| 5 | **Explosão de Geada** (`rimeblast`) | 14 | você | Nova Cold | Uma explosão de geada mortal a 5 casas que atrasa o que vive. |
+| 5 | **Lança Solar** (`sun-lance`) | 15 | linha | Beam Holy | Uma lança de luz em brasa atravessando tudo em linha. |
 | 5 | **Explosão Solar** (`sunburst`) | 16 | área | Meteor Holy | Um sol cai: varre tudo a 3 casas e cega o que não matar. |
 
-### Conjuração — 20 magias (Mago)
+### Conjuração — 26 magias (Mago)
 
 | Nv | Magia | Mp | Alvo | Animação | O que faz |
 |---|---|---|---|---|---|
@@ -139,27 +150,34 @@ Cada escola é de um tipo de personagem (qualquer um pode ler qualquer livro, ma
 | 2 | **Nuvem de Névoa** (`fog-cloud`) | 4 | você | Cloud Wind | Uma névoa densa: inimigos a 2 casas tateiam às cegas e você fica mais difícil de acertar. |
 | 2 | **Passo de Fase** (`phase-step`) | 3 | célula | Teleport Arcane | Um salto curto através das paredes do mundo. |
 | 2 | **Invocar Fera** (`summon-beast`) | 5 | você | — | Chama uma fera mais forte conforme você sobe de nível. |
+| 2 | **Invocar Diabrete** (`summon-imp`) | 5 | você | — | Um diabrete mesquinho te serve por um tempo. |
 | 2 | **Invocar Enxame** (`summon-swarm`) | 5 | você | — | Uma nuvem de morcegos atende ao seu chamado. |
 | 2 | **Teia** (`web`) | 4 | área | Cloud Wind | Fios grudentos numa área pequena. O que toca fica preso por alguns turnos. |
+| 3 | **Cão Arcano** (`arcane-hound`) | 7 | você | — | Um cão de fogo roxo corre ao seu lado. |
 | 3 | **Piscar** (`blink`) | 5 | célula | Teleport Arcane | Atravessa o espaço até um ponto que você vê. |
 | 3 | **Chão Congelado** (`frozen-ground`) | 5 | área | Cloud Cold | O gelo se espalha pelo chão e quem pisa nele fica lento. |
 | 3 | **Imagem Espelhada** (`mirror-image`) | 6 | você | — | Dois duplos seus tremeluzem ao lado, atraindo golpes feitos para você. |
+| 3 | **Puxar** (`pull-through`) | 6 | criatura | Beam Mind | Uma mão através do mundo arrasta o alvo até você. |
+| 3 | **Duende da Tempestade** (`storm-sprite`) | 7 | você | — | Um duende crepitante avança sobre seus inimigos. |
 | 3 | **Trocar de Lugar** (`swap-places`) | 6 | criatura | Teleport Mind | Você e o alvo trocam de posição num piscar. |
 | 4 | **Banir** (`banish`) | 10 | criatura | Implode Shadow | Joga o alvo para longe, em outra parte do nível. |
 | 4 | **Porta Dimensional** (`dimension-door`) | 8 | célula | Teleport Arcane | Um passo longo através das paredes do mundo. |
+| 4 | **Sentinela de Pedra** (`stone-sentinel`) | 10 | você | — | Uma sentinela de pedra esculpida guarda você. |
 | 4 | **Invocar Elemental de Ar** (`summon-air-elemental`) | 10 | você | — | Um elemental de ar rodopiante atende você. |
 | 4 | **Invocar Elemental de Terra** (`summon-earth-elemental`) | 10 | você | — | Um elemental de terra se arranca do chão para te servir. |
 | 4 | **Invocar Elemental de Fogo** (`summon-fire-elemental`) | 10 | você | None Fire | Um elemental de fogo rasga o nada para te servir. |
 | 4 | **Invocar Elemental de Água** (`summon-water-elemental`) | 10 | você | — | Um elemental de água se ergue, pingando, para te servir. |
 | 4 | **Teletransporte** (`teleport`) | 9 | você | — | Joga você num lugar aleatório deste nível. |
+| 5 | **Guardião Gárgula** (`gargoyle-guard`) | 14 | você | — | Uma gárgula alada se desdobra do nada para te guardar. |
 
-### Alteração — 25 magias (Mago)
+### Alteração — 31 magias (Mago)
 
 | Nv | Magia | Mp | Alvo | Animação | O que faz |
 |---|---|---|---|---|---|
 | 1 | **Achar Armadilhas** (`detect-traps`) | 2 | você | Nova Earth | Mostra toda armadilha a 10 casas. |
 | 1 | **Arrombar** (`knock`) | 2 | você | Swirl Arcane | Destranca e abre toda porta trancada a 3 casas. |
 | 1 | **Luz** (`light`) | 2 | você | Nova Holy | Um clarão mostra o chão ao redor. |
+| 1 | **Pé Leve** (`lightfoot`) | 2 | você | Swirl Wind | Seu passo fica silencioso. (mais difícil de notar, evasão +1) |
 | 1 | **Armadura Arcana** (`mage-armor`) | 3 | você | Swirl Arcane | Placas invisíveis de força se assentam sobre você. (CA +4) |
 | 1 | **Escudo** (`arcane-shield`) | 2 | você | Swirl Arcane | Um disco de força salta à sua frente. (CA +6, por pouco tempo) |
 | 1 | **Proteção** (`ward`) | 2 | você | Swirl Arcane | Um escudo cintilante: CA +3 por um tempo. |
@@ -171,19 +189,24 @@ Cada escola é de um tipo de personagem (qualquer um pode ler qualquer livro, ma
 | 2 | **Astúcia** (`foxs-cunning`) | 4 | você | Swirl Mind | Seus pensamentos se afiam. (Int +3) |
 | 2 | **Prot. Gelo** (`frost-ward`) | 3 | você | Swirl Cold | Um véu morno te envolve. (frio 60%) |
 | 2 | **Identificar** (`identify`) | 4 | você | Swirl Mind | Tudo que você carrega e veste mostra o que é. |
+| 2 | **Fio Afiado** (`keen-edge`) | 4 | você | Swirl Wind | Sua arma acha o alvo. (+3 acerto, +1 dano) |
 | 2 | **Percepção** (`owls-wisdom`) | 4 | você | Swirl Holy | Uma clareza calma te assenta. (Sab +3) |
 | 2 | **Sentir a Vida** (`detect-monsters`) | 3 | você | Nova Mind | Por um tempo você sente toda coisa viva a 12 casas, através das paredes. |
 | 2 | **Prot. Raio** (`storm-ward`) | 3 | você | Swirl Lightning | Seu cabelo se ergue e o raio escorrega. (raio 60%) |
+| 3 | **Égide** (`aegis`) | 6 | você | Swirl Arcane | Uma proteção se assenta contra tudo. (CA +3; fogo, frio e raio 15%) |
 | 3 | **Foco** (`arcane-focus`) | 5 | você | Swirl Arcane | O tecido da magia entra em foco. (poder mágico +3, menos falhas) |
+| 3 | **Visão Arcana** (`arcane-survey`) | 6 | você | Nova Arcane | Você vê a forma da terra e toda armadilha nela, a 14 casas. |
 | 3 | **Clarividência** (`clairvoyance`) | 7 | você | Nova Mind | O nível inteiro se abre na sua mente. |
 | 3 | **Escavar** (`dig`) | 6 | linha | Beam Earth | Abre até seis casas de rocha escavável em linha. |
 | 3 | **Aceleração** (`haste`) | 6 | você | Swirl Lightning | Você age duas vezes mais que o resto, por pouco tempo. |
 | 3 | **Levitar** (`levitate`) | 5 | você | Rise Wind | Você flutua: armadilhas não te alcançam. |
 | 3 | **Lentidão** (`slow`) | 5 | criatura | Mark Water | Reduz à metade a velocidade de uma criatura. As fortes resistem. |
 | 4 | **Aumentado** (`enlarge`) | 9 | você | Swirl Blood | Você incha até uma vez e meia seu tamanho. (For +4, Con +3, +15 PV) |
+| 4 | **Corpo de Ferro** (`iron-body`) | 10 | você | Swirl Earth | Você vira uma estátua que anda. (CA +5, veneno 40%, evasão -1) |
 | 4 | **Pele de Pedra** (`stone-skin`) | 9 | você | Swirl Earth | Sua pele endurece: CA +6 por bastante tempo. |
+| 5 | **Força do Titã** (`titans-might`) | 14 | você | Swirl Blood | For +6, Con +4, +25 PV por um bom tempo. |
 
-### Ilusão — 14 magias (Mago)
+### Ilusão — 20 magias (Mago)
 
 | Nv | Magia | Mp | Alvo | Animação | O que faz |
 |---|---|---|---|---|---|
@@ -193,16 +216,22 @@ Cada escola é de um tipo de personagem (qualquer um pode ler qualquer livro, ma
 | 2 | **Confundir** (`confuse`) | 4 | criatura | Mark Mind | O alvo cambaleia ao acaso. |
 | 2 | **Deslocado** (`displacement`) | 4 | você | Swirl Mind | Sua imagem escorrega um palmo de onde você está. |
 | 2 | **Invisibilidade** (`invisibility`) | 5 | você | Swirl Shadow | Inimigos perdem você de vista e acertam pior. |
+| 2 | **Canção de Ninar** (`lullaby`) | 4 | cone | Cone Mind | Um cantarolar de três casas que pode pôr os vivos para dormir. |
+| 2 | **Guarda Fantasma** (`phantom-guard`) | 4 | você | — | Um duplo seu tremeluz ao lado e toma os golpes feitos para você. |
 | 2 | **Sono** (`sleep`) | 4 | criatura | Mark Mind | Põe um inimigo vivo para dormir. Os fortes resistem; dano acorda. |
 | 2 | **Sugestão** (`suggestion`) | 5 | criatura | Mark Mind | Uma ideia sussurrada: o alvo te serve por pouco tempo. |
+| 3 | **Desnortear** (`bewilder`) | 6 | cone | Cone Mind | Um cone de absurdos: tudo nele cambaleia. |
 | 3 | **Padrão Hipnótico** (`hypnotic-pattern`) | 7 | área | Cloud Mind | Um tecido de luz que põe para dormir quem está a 2 casas. |
+| 3 | **Névoa Mental** (`mind-fog`) | 7 | área | Cloud Mind | Uma névoa na mente: quem está nela luta mal e sofre mais de tudo. |
 | 3 | **Aterrorizar** (`terrify`) | 6 | você | Nova Shadow | Toda criatura a 4 casas vê seu pior medo. |
 | 4 | **Enfeitiçar** (`charm`) | 10 | criatura | Mark Mind | Um inimigo vivo luta por você por um tempo. Difícil nos fortes. |
+| 4 | **Sono Profundo** (`deep-slumber`) | 9 | criatura | Mark Mind | Um sono muito difícil de sacudir. |
 | 4 | **Pesadelo** (`nightmare`) | 9 | criatura | Mark Shadow | Um pesadelo acordado: fere, e o alvo foge aterrorizado. |
 | 4 | **Assassino Fantasmal** (`phantasmal-killer`) | 10 | criatura | Mark Mind | O próprio medo do alvo toma forma e ataca. |
 | 5 | **Feitiço em Massa** (`mass-charm`) | 16 | área | Cloud Mind | Uma onda de afeto por você: toda criatura a 3 casas pode se voltar contra os amigos. |
+| 5 | **Horror Espectral** (`spectral-horror`) | 15 | área | Cloud Shadow | Um horror feito do próprio pavor do alvo: fere e manda tudo a 3 casas correr. |
 
-### Necromancia — 42 magias (Necromante)
+### Necromancia — 50 magias (Necromante)
 
 | Nv | Magia | Mp | Alvo | Animação | O que faz |
 |---|---|---|---|---|---|
@@ -210,12 +239,16 @@ Cada escola é de um tipo de personagem (qualquer um pode ler qualquer livro, ma
 | 1 | **Toque Gélido** (`chill-touch`) | 2 | criatura | Slash Necrotic | Uma mão fria como a cova. Fere, e o alvo bate pior por um tempo. |
 | 2 | **Cão de Ossos** (`bone-hound`) | 5 | você | — | Um cão de ossos costurados corre aos seus pés. |
 | 2 | **Maldição da Fraqueza** (`curse-of-weakness`) | 4 | área | Cloud Shadow | Uma maldição murmurada sobre tudo ao redor de um ponto: sofrem mais de cada golpe. |
+| 2 | **Aperto da Morte** (`death-grip`) | 4 | criatura | Beam Necrotic | Uma mão fria puxa o alvo e o fere. |
 | 2 | **Enfraquecer** (`enfeeble`) | 4 | criatura | Beam Necrotic | Um raio cinza drena o alvo: ele sofre mais de cada golpe por um bom tempo. |
 | 2 | **Frio da Cova** (`grave-chill`) | 4 | você | Swirl Necrotic | O frio do cemitério te envolve: necrótico 50%, gelo 30%. |
+| 2 | **Mãos da Cova** (`grave-hands`) | 3 | área | Eruption Necrotic | Mãos arranham o chão e seguram o que está ali. |
 | 2 | **Sangrar Vida** (`life-tap`) | 1 | você | Implode Blood | Queima 8 dos seus PV em 8 de mana. |
+| 2 | **Dardo de Alma** (`soul-bolt`) | 4 | criatura | Bolt Necrotic | Um dardo de alma roubada; um terço volta para você. |
 | 2 | **Toque Vampírico** (`vampiric-touch`) | 4 | criatura | Drain Blood | Um toque que devolve tudo: você cura o que causa. |
 | 2 | **Definhar** (`wither`) | 4 | criatura | Bolt Necrotic | Apodrece um membro. Fere e atrasa. |
 | 3 | **Animar Carniçal** (`animate-ghoul`) | 7 | você | — | Um carniçal se ergue para te servir. Está sempre faminto. |
+| 3 | **Praga Negra** (`blight`) | 7 | criatura | Bolt Poison | Apodrece o alvo por dentro: veneno, e ele sofre mais de tudo. |
 | 3 | **Sede de Sangue** (`bloodlust`) | 6 | você | Swirl Blood | Calor vermelho atrás dos olhos. (+2 acerto, +3 dano, 10% de roubo de vida) |
 | 3 | **Lança de Osso** (`bone-spear`) | 7 | linha | Beam Earth | Uma lança de osso que atravessa toda criatura em linha. |
 | 3 | **Comandar Mortos-Vivos** (`command-undead`) | 8 | criatura | Mark Necrotic | Um morto-vivo dobra o joelho para você por um tempo. |
@@ -226,6 +259,7 @@ Cada escola é de um tipo de personagem (qualquer um pode ler qualquer livro, ma
 | 3 | **Fingir de Morto** (`feign-death`) | 6 | você | Cloud Necrotic | Você fica imóvel e frio. Tudo por perto perde você de vista. |
 | 3 | **Amarra da Cova** (`gravebind`) | 6 | área | Eruption Necrotic | Mãos mortas agarram quem está preso ao chão: criaturas a 2 casas ficam presas. |
 | 3 | **Hemorragia** (`hemorrhage`) | 6 | criatura | Bolt Blood | Abre as veias do alvo à distância: ele sangra por um tempo. |
+| 3 | **Miasma** (`miasma`) | 6 | área | Cloud Poison | Uma nuvem fétida que adoece e enfraquece. |
 | 3 | **Ossificar** (`ossify`) | 5 | você | Swirl Earth | O osso cobre sua pele: CA +4 por um tempo. O Ossuary leva um pouco de você por isso. |
 | 3 | **Dardo da Peste** (`plague-bolt`) | 6 | criatura | Bolt Poison | Um dardo verde e gorduroso. O alvo adoece por um tempo. |
 | 3 | **Erguer Esqueleto** (`raise-skeleton`) | 6 | você | — | Um esqueleto arranha o chão para te servir. |
@@ -234,6 +268,7 @@ Cada escola é de um tipo de personagem (qualquer um pode ler qualquer livro, ma
 | 3 | **Chuva de Crânios** (`skull-barrage`) | 7 | você | Custom Necrotic | Três crânios gritando voam sobre criaturas à vista. |
 | 3 | **Profano** (`unholy-vigor`) | 6 | você | Swirl Necrotic | Seus golpes voltam mais quentes do que saíram. (+1d4 necrótico, 15% de roubo de vida) |
 | 4 | **Lamento da Banshee** (`banshee-wail`) | 9 | você | Nova Shadow | Um grito que fere e manda os vivos correr. 4 casas. |
+| 4 | **Jaula de Ossos** (`bone-cage`) | 9 | área | Eruption Earth | Costelas de osso se fecham ao redor de tudo a 2 casas. |
 | 4 | **Golem de Ossos** (`bone-golem`) | 11 | você | — | Um golem de cem esqueletos, amarrados com arame, te atende. |
 | 4 | **Nuvem Mortal** (`cloudkill`) | 9 | área | Cloud Poison | Uma névoa verde assassina, três casas de largura. |
 | 4 | **Contágio** (`contagion`) | 9 | área | Cloud Poison | Uma doença que gruda. Tudo perto do ponto fica envenenado por muito tempo. |
@@ -244,12 +279,14 @@ Cada escola é de um tipo de personagem (qualquer um pode ler qualquer livro, ma
 | 4 | **Sugar Alma** (`siphon-soul`) | 10 | criatura | Drain Necrotic | Puxa um pedaço da alma do alvo para dentro de você. |
 | 5 | **Exército de Ossos** (`army-of-bones`) | 14 | você | — | Três esqueletos se erguem para te guardar. |
 | 5 | **Dedo da Morte** (`finger-of-death`) | 15 | criatura | Beam Necrotic | Desfaz os vivos com um apontar de mão. |
+| 5 | **Forma de Lich** (`lich-form`) | 14 | você | Swirl Necrotic | O frio se assenta nos seus ossos, e você gosta. (necrótico 80%, frio 50%, veneno 80%, poder mágico +3, 15% de roubo de vida) |
 | 5 | **Palavra de Morte** (`power-word-kill`) | 18 | criatura | Mark Necrotic | Uma palavra. O que está muito ferido morre; o que não está leva um golpe enorme. |
 | 5 | **Ritual de Sangue** (`ritual-of-blood`) | 8 | você | Implode Blood | Corte-se por um quarto da sua vida; encha a mana até a borda. |
 | 5 | **Ceifar Almas** (`soul-reap`) | 15 | você | Nova Necrotic | Tudo vivo a 5 casas entrega um pedaço da alma; você fica com um quarto. |
 | 5 | **Invocar Espectro** (`summon-wraith`) | 14 | você | — | Um espectro, preso a você por um tempo, atravessa a parede. |
+| 5 | **Lamento dos Condenados** (`wail-of-the-damned`) | 15 | você | Nova Shadow | Um grito do poço fere e manda tudo a 6 casas correr. |
 
-### Sagrada — 43 magias (Clérigo e Paladino)
+### Sagrada — 51 magias (Clérigo e Paladino)
 
 | Nv | Magia | Mp | Alvo | Animação | O que faz |
 |---|---|---|---|---|---|
@@ -260,10 +297,12 @@ Cada escola é de um tipo de personagem (qualquer um pode ler qualquer livro, ma
 | 1 | **Remendo Menor** (`minor-mending`) | 2 | você | Rise Nature | Uma pequena misericórdia: 1d8 mais um pouco de Sabedoria. |
 | 1 | **Chama Sagrada** (`sacred-flame`) | 2 | criatura | Pillar Holy | A luz cai sobre o alvo como uma mão. Os mortos-vivos sofrem o dobro. |
 | 1 | **Escudo da Fé** (`shield-of-faith`) | 3 | você | Swirl Holy | A fé se ergue como muralha: CA +4 por um tempo. |
+| 2 | **Aura de Coragem** (`aura-of-courage`) | 4 | você | Swirl Holy | A coragem firma você: +2 para acertar e +6 PV. |
 | 2 | **Luz Ofuscante** (`blinding-light`) | 4 | cone | Cone Holy | Um cone de luz branca que deixa as vítimas cegas. |
 | 2 | **Purificar Corpo** (`cleanse`) | 3 | você | Rise Water | Queima veneno, confusão, cegueira e visões. |
 | 2 | **Favor Divino** (`divine-favor`) | 4 | você | Swirl Holy | +3 para acertar, +2 de dano e um dado de fogo sagrado nos golpes, por um tempo. |
 | 2 | **Heroísmo** (`heroism`) | 4 | você | Swirl Blood | A coragem é uma brasa no peito. (+3 acerto, For +1) |
+| 2 | **Arma Sagrada** (`holy-weapon`) | 4 | você | Swirl Holy | Sua arma brilha. (+1d6 sagrado, +1 acerto) |
 | 2 | **Proteção contra o Mal** (`protection-from-evil`) | 4 | você | Swirl Holy | Um círculo de fogo branco: CA +3 e resistência necrótica 40%. |
 | 2 | **Remédio** (`remedy`) | 3 | você | Rise Nature | Tira o veneno do sangue. |
 | 2 | **Luz Abrasadora** (`searing-light`) | 4 | criatura | Beam Holy | Uma agulha de luz branca. Os mortos-vivos sofrem o dobro. |
@@ -271,16 +310,20 @@ Cada escola é de um tipo de personagem (qualquer um pode ler qualquer livro, ma
 | 2 | **Punir** (`smite`) | 4 | criatura | Pillar Holy | Ira radiante. Os mortos-vivos sofrem o dobro. |
 | 2 | **Arma Espiritual** (`spiritual-weapon`) | 4 | você | — | Um martelo de luz luta ao seu lado por um tempo. |
 | 2 | **Expulsar Mortos-Vivos** (`turn-undead`) | 5 | você | Nova Holy | Todo morto-vivo à vista queima e foge. |
+| 3 | **Nova Purificadora** (`cleansing-nova`) | 7 | você | Nova Holy | Um anel de fogo branco a 2 casas que cega enquanto queima. |
 | 3 | **Consagrar** (`consecrate`) | 7 | área | Eruption Holy | Santifica um trecho de chão: a luz queima quem pisa nele. |
+| 3 | **Escudo Divino** (`divine-shield`) | 7 | você | Swirl Holy | Um escudo de luz se ergue à sua frente. (CA +6, por pouco tempo) |
 | 3 | **Fortitude** (`fortitude`) | 6 | você | Swirl Blood | Você se sente difícil de matar. (Con +3, +15 PV) |
 | 3 | **Cura Maior** (`greater-heal`) | 8 | você | Rise Nature | Uma grande cura: 4d8 mais Sabedoria e nível. |
 | 3 | **Martelo da Ira** (`hammer-of-wrath`) | 6 | criatura | Bolt Holy | Um martelo de luz. Pode atordoar. |
 | 3 | **Imobilizar** (`hold-person`) | 6 | criatura | Mark Holy | Um alvo vivo fica rígido por alguns turnos. |
 | 3 | **Lança Sagrada** (`holy-lance`) | 7 | linha | Beam Holy | Uma lança de luz que atravessa tudo em linha. |
+| 3 | **Toque de Misericórdia** (`mercy-touch`) | 5 | você | Rise Holy | Uma imposição de mãos: 3d6 mais Sabedoria. |
 | 3 | **Oração** (`prayer`) | 7 | você | Swirl Holy | A oração firma cada parte sua. (+2 acerto, +2 dano, CA +2) |
 | 3 | **Regeneração** (`regeneration`) | 6 | você | Rise Nature | As feridas se fecham sozinhas: 2 PV por turno por um tempo. |
 | 3 | **Remover Maldição** (`remove-curse`) | 6 | você | Rise Holy | Tira a maldição de tudo que você carrega. |
 | 3 | **Santuário** (`sanctuary`) | 7 | você | Nova Holy | Cai um silêncio ao redor. Poucos erguerão a mão contra você. |
+| 4 | **Bênção Plena** (`benediction`) | 10 | você | Pillar Holy | Uma bênção completa cai sobre você. (CA +2, +2 acerto, +2 dano, necrótico 30%) |
 | 4 | **Poder Divino** (`divine-might`) | 9 | você | Swirl Holy | Uma força que não é sua enche seus braços. (For +4, +2 dano) |
 | 4 | **Exorcizar** (`exorcise`) | 10 | você | Nova Holy | Queima e põe em fuga tudo a 5 casas. Os mortos-vivos sofrem o dobro. |
 | 4 | **Golpe de Chamas** (`flame-strike`) | 10 | área | Pillar Fire | Uma coluna de fogo do céu, 3 casas de largura. |
@@ -289,6 +332,7 @@ Cada escola é de um tipo de personagem (qualquer um pode ler qualquer livro, ma
 | 4 | **Purificar** (`purify`) | 10 | você | Rise Holy | Queima 15 pontos de corrupção do Ossuary em você. As mutações ficam. |
 | 4 | **Nova Radiante** (`radiant-nova`) | 10 | você | Nova Holy | Um anel de luz explode 3 casas ao seu redor. |
 | 4 | **Restauração** (`restoration`) | 10 | você | Rise Holy | Uma cura profunda: 3d8 mais Sabedoria, e todo mal em você acaba. |
+| 4 | **Solo Sagrado** (`sacred-ground`) | 9 | área | Eruption Holy | Um trecho de chão onde a luz se levanta e queima. |
 | 4 | **Guardiões Espirituais** (`spirit-guardians`) | 10 | você | Nova Holy | Espíritos pálidos rodopiam ao redor, ferindo e atrasando tudo a 2 casas. |
 | 4 | **Raio de Sol** (`sunbeam`) | 9 | linha | Beam Holy | Uma lança de sol em linha; o que não morre, fica cego. |
 | 5 | **Bênção Angelical** (`angelic-blessing`) | 14 | você | Pillar Holy | Por bastante tempo você é um pouco mais do que é. |
@@ -296,8 +340,9 @@ Cada escola é de um tipo de personagem (qualquer um pode ler qualquer livro, ma
 | 5 | **Anjo da Guarda** (`guardian-angel`) | 15 | você | — | Um guardião alado desce para lutar por você. |
 | 5 | **Julgamento** (`judgement`) | 16 | área | Pillar Holy | Um pilar de fogo branco cai: tudo a 3 casas é julgado. |
 | 5 | **Reviver** (`revive`) | 15 | você | Pillar Holy | Prende sua alma: a próxima morte em 300 turnos é desfeita. |
+| 5 | **Ira dos Céus** (`wrath-of-heaven`) | 15 | você | Custom Holy | Cinco pilares de fogo sobre cinco criaturas à vista. |
 
-### Natureza — 50 magias (Patrulheiro)
+### Natureza — 58 magias (Patrulheiro)
 
 | Nv | Magia | Mp | Alvo | Animação | O que faz |
 |---|---|---|---|---|---|
@@ -322,37 +367,45 @@ Cada escola é de um tipo de personagem (qualquer um pode ler qualquer livro, ma
 | 2 | **Chicote de Raio** (`lightning-lash`) | 4 | criatura | Zap Lightning | Um chicote de raio vindo do céu. |
 | 2 | **Fogo da Lua** (`moonfire`) | 4 | criatura | Pillar Water | Fogo branco e frio vindo de cima. Os mortos-vivos sofrem o dobro. |
 | 2 | **Jato de Veneno** (`poison-spray`) | 4 | cone | Cone Poison | Um jato de veneno de três casas. |
+| 2 | **Areia Movediça** (`quicksand`) | 4 | área | Eruption Earth | O chão fica mole e molhado; quem pisa afunda e gruda. |
 | 2 | **Rejuvenescer** (`rejuvenate`) | 4 | você | Rise Nature | Cura 2d6 agora e um pouco a cada turno depois. |
 | 2 | **Falar com Animais** (`speak-with-animals`) | 4 | criatura | Mark Nature | Uma fera escuta e te segue por um tempo. |
 | 2 | **Espinhos do Mato** (`spike-growth`) | 4 | área | Eruption Nature | Espinhos rasgam quem cruza a área e atrasam. |
 | 2 | **Invocar Falcão** (`summon-hawk`) | 4 | você | — | Um falcão espiritual mergulha sobre seus inimigos. |
 | 2 | **Espinhos** (`thorns`) | 4 | você | Swirl Nature | Espinhos furam sua pele; quem te acerta sangra por isso. |
+| 2 | **Enxame de Vespas** (`wasp-swarm`) | 4 | área | Cloud Nature | Vespas furiosas numa área pequena: picadas e veneno. |
 | 2 | **Salto Selvagem** (`wild-leap`) | 3 | célula | Teleport Nature | Um pulo que leva você cinco casas. |
 | 3 | **Vigor** (`bears-endurance`) | 5 | você | Swirl Earth | Você se sente teimoso como um urso. (Con +4, +10 PV) |
 | 3 | **Trepadeiras Sufocantes** (`choking-vines`) | 7 | criatura | Eruption Nature | Uma criatura presa e apertada. |
 | 3 | **Comunhão com a Natureza** (`commune`) | 5 | você | Nova Nature | A terra diz o que há por perto: o mapa a 14 casas e toda armadilha nele. |
 | 3 | **Vendaval** (`gale`) | 6 | cone | Wave Wind | Um vento uivante que bate e joga criaturas três casas para trás. |
+| 3 | **Chuva de Espinhos** (`hail-of-thorns`) | 6 | você | Custom Nature | Três rajadas de espinhos sobre criaturas à vista. |
+| 3 | **Recrescimento** (`regrowth`) | 6 | você | Rise Nature | Vida verde fecha suas feridas: 3d8 mais Sabedoria. |
 | 3 | **Chuva de Granizo** (`sleet-storm`) | 6 | área | Rain Water | Granizo numa área larga: fere, atrasa e gela o chão. |
 | 3 | **Javali Espiritual** (`spirit-boar`) | 7 | você | — | Um javali espiritual avança sobre seus inimigos. |
 | 3 | **Aranha Espiritual** (`giant-spider`) | 7 | você | — | Uma aranha espiritual, toda patas e veneno, te serve. |
 | 3 | **Lobos Espirituais** (`spirit-wolves`) | 8 | você | — | Dois lobos de luz pálida caçam por você. |
 | 3 | **Nuvem de Esporos** (`spore-cloud`) | 6 | área | Cloud Nature | Uma nuvem de esporos: queima, e a mente vai junto. |
 | 3 | **Espetos de Pedra** (`stone-spikes`) | 6 | cone | Cone Earth | Espetos de pedra saem num cone de quatro casas. |
+| 3 | **Forma de Pedra** (`stoneform`) | 6 | você | Swirl Earth | Sua pele ganha a textura da pedra. (CA +5, fogo 20%, evasão -1) |
+| 3 | **Raio de Sol** (`sun-bolt`) | 6 | criatura | Beam Holy | Um raio de luz solar concentrada que incendeia o alvo. |
 | 3 | **Tremor** (`tremor`) | 7 | você | Eruption Earth | O chão estremece 3 casas ao seu redor: fere e pode atordoar. |
 | 3 | **Dardo de Veneno** (`venom-bolt`) | 6 | criatura | Bolt Poison | Um dardo de veneno concentrado. O veneno demora a passar. |
 | 4 | **Forma de Urso** (`bear-form`) | 10 | você | Swirl Earth | Seus ombros se alargam e as mãos viram garras. (For +5, Con +4, +20 PV, CA +3) |
 | 4 | **Muralha de Sarças** (`briar-wall`) | 9 | área | Eruption Nature | Uma muralha de espinhos duros como ferro brota e prende o que pega. |
 | 4 | **Forma de Águia** (`eagle-form`) | 9 | você | Swirl Wind | O ar te leva. (Des +4, evasão +4) |
+| 4 | **Vento Gélido** (`frostwind`) | 9 | cone | Wave Cold | Um vento que corta como gelo, cinco casas. |
 | 4 | **Chuva Curativa** (`healing-rain`) | 10 | você | Rain Water | Uma chuva morna que cura você e todo aliado a 5 casas. |
 | 4 | **Deslizamento de Pedras** (`rockslide`) | 9 | área | Rain Earth | Uma chuva de pedregulhos vinda de cima. |
 | 4 | **Invocar Urso** (`summon-bear`) | 10 | você | — | Um urso espiritual lumbra para o seu lado. |
+| 4 | **Maré Avassaladora** (`tidal-surge`) | 9 | cone | Wave Water | Uma parede de água de cinco casas: bate, atrasa e joga criaturas para trás. |
 | 4 | **Tornado** (`tornado`) | 9 | área | Cloud Wind | Um funil uivante: esmaga, empurra e cega. |
 | 4 | **Forma de Lobo** (`wolf-form`) | 9 | você | Swirl Shadow | Você cai de quatro, pernas longas e olhos brilhantes. (For +3, Des +3, CA +2) |
 | 5 | **Tempestade de Raios** (`lightning-storm`) | 15 | você | Custom Lightning | Cinco raios em cinco criaturas à vista. |
 | 5 | **Chuva de Estrelas** (`starfall`) | 16 | você | Custom Arcane | Quatro estrelas caem sobre quatro criaturas à vista. |
 | 5 | **Ente** (`treant`) | 15 | você | — | Uma árvore velha caminha. |
 
-### Sombra — 39 magias (Ladino)
+### Sombra — 47 magias (Ladino)
 
 | Nv | Magia | Mp | Alvo | Animação | O que faz |
 |---|---|---|---|---|---|
@@ -367,35 +420,42 @@ Cada escola é de um tipo de personagem (qualquer um pode ler qualquer livro, ma
 | 2 | **Manto de Sombras** (`cloak-of-shadows`) | 4 | você | Swirl Shadow | A sombra se junta a você: muito mais difícil de notar, evasão +2. |
 | 2 | **Aleijar** (`cripple`) | 4 | criatura | Slash Blood | Um corte no tendão: o alvo manca atrás de você. |
 | 2 | **Desarmar Armadilhas** (`disarm-traps`) | 3 | você | Nova Earth | Desarma toda armadilha a 3 casas. |
+| 2 | **Garrote** (`garrote`) | 4 | criatura | Slash Blood | Um arame do nada: fere e abre uma ferida. |
 | 2 | **Escuridão** (`gloom`) | 3 | área | Cloud Shadow | Um trecho de breu: criaturas nele lutam cegas e sofrem mais. |
 | 2 | **Dedos Leves** (`light-fingers`) | 3 | criatura | Slash Wind | Surrupia algumas moedas de tudo que você toca. |
 | 2 | **Marcado para Morrer** (`mark-for-death`) | 3 | criatura | Mark Blood | Uma presa marcada: sofre mais de cada golpe por bastante tempo. |
 | 2 | **Espeto Mental** (`mind-spike`) | 4 | criatura | Bolt Mind | Uma agulha de pensamento cravada na cabeça do alvo. |
 | 2 | **Golpe de Sombra** (`shade-strike`) | 4 | cone | Cone Shadow | Um cone de sombra viva que morde e assusta. |
 | 2 | **Passo de Sombra** (`shadow-step`) | 4 | célula | Teleport Shadow | De uma sombra para outra, a seis casas. |
+| 2 | **Pó do Sono** (`sleeping-dust`) | 4 | cone | Cone Earth | Uma pitada de pó de três casas que pode pôr os vivos para dormir. |
 | 2 | **Bomba de Fumaça** (`smoke-bomb`) | 4 | você | Cloud Shadow | Uma explosão de fumaça preta: inimigos a 2 casas ficam cegos e você some de vista. |
+| 2 | **Laço** (`snare`) | 4 | área | Eruption Earth | Um laço escondido: fere e prende quem pisa nele. |
 | 2 | **Cuspe Venenoso** (`venom-spit`) | 4 | cone | Cone Poison | Um jato de veneno entre os dentes. |
+| 3 | **Emboscada** (`ambush`) | 6 | você | Swirl Shadow | Você espera, e é muito bom nisso. (+4 acerto, +3 dano, bem escondido) |
 | 3 | **Olhar Aterrador** (`dread-gaze`) | 6 | criatura | Mark Shadow | Um olhar que mostra ao alvo a própria morte. |
 | 3 | **Esvanecido** (`fade`) | 6 | você | Swirl Shadow | Você é difícil de olhar, mais difícil de acertar. (evasão +5) |
 | 3 | **Chuva de Facas** (`knife-flurry`) | 7 | você | Custom Wind | Três facas acham, cada uma, uma criatura à vista. |
 | 3 | **Chicote da Noite** (`night-whip`) | 6 | linha | Beam Shadow | Um chicote de escuridão que açoita tudo em linha. |
+| 3 | **Beladona** (`nightshade`) | 6 | criatura | Bolt Poison | Uma gota de beladona à distância: veneno que não solta. |
 | 3 | **Lâmina de Sombra** (`shadow-blade`) | 5 | você | Swirl Shadow | Sua arma bebe a luz. (+1d6 necrótico, +2 acerto) |
 | 3 | **Clone de Sombra** (`shadow-clone`) | 6 | você | — | Sua sombra se levanta do chão e luta. |
+| 3 | **Salto de Sombra** (`shadow-leap`) | 5 | célula | Teleport Shadow | De uma sombra para outra, a oito casas. |
 | 3 | **Garra Umbral** (`umbral-grasp`) | 6 | criatura | Eruption Shadow | Mãos de sombra se erguem e seguram o alvo. |
 | 3 | **Mortalha Umbral** (`umbral-shroud`) | 6 | você | Swirl Shadow | Uma mortalha escura se dobra em volta de você. (CA +2, necrótico 30%, frio 20%) |
 | 3 | **Gume Vampírico** (`vampiric-edge`) | 5 | você | Swirl Blood | Sua arma tem sede. (25% de roubo de vida) |
 | 3 | **Véu de Escuridão** (`veil-of-darkness`) | 6 | você | Cloud Shadow | O escuro engrossa: tudo por perto perde você de vista. |
 | 4 | **Assassinar** (`assassinate`) | 8 | criatura | Slash Blood | Um golpe mortal: dano em dobro em quem dorme ou está desprevenido. |
 | 4 | **Tentáculos Negros** (`black-tentacles`) | 9 | área | Eruption Shadow | Tentáculos de escuridão esmagam e prendem tudo a 2 casas. |
+| 4 | **Corrente de Sombras** (`chain-of-shadows`) | 9 | criatura | Custom Shadow | A sombra salta de uma criatura a outra e segura cada uma por um instante. |
 | 4 | **Golpe de Misericórdia** (`coup-de-grace`) | 8 | criatura | Slash Blood | Acaba com o que está muito ferido; um golpe firme no resto. |
 | 4 | **Acelerar Sombra** (`quicken-shadow`) | 9 | você | Swirl Shadow | Uma rajada curta de velocidade. |
 | 4 | **Adaga da Alma** (`soul-dagger`) | 9 | criatura | Bolt Blood | Uma adaga de vida roubada; metade do que ela tira volta para você. |
+| 4 | **Véu Vampírico** (`vampiric-veil`) | 9 | você | Swirl Blood | Um véu que bebe. (20% de roubo de vida, evasão +3, mais difícil de notar) |
 | 4 | **Desaparecer** (`vanish`) | 9 | você | Cloud Shadow | Fumaça, um truque, e você não está aqui: invisível, e todos te perderam. |
 | 4 | **Fenda do Vazio** (`void-rift`) | 10 | área | Implode Shadow | Um pequeno buraco no mundo, puxando tudo perto dele. |
 | 5 | **Dominar** (`dominate`) | 16 | criatura | Mark Mind | Uma criatura viva se torna sua por bastante tempo. |
 | 5 | **Eclipse** (`eclipse`) | 14 | você | Nova Shadow | A luz morre por 5 casas: tudo nela é ferido e cego. |
 | 5 | **Caminhada Sombria** (`shadow-walk`) | 12 | você | Custom Shadow | Entre na escuridão e saia em outro ponto do nível, sem ser visto. |
-
 
 ## Livros
 
@@ -423,9 +483,17 @@ profundidade (`LevelBuilder.PickBook`: nível máximo = 1 + profundidade/3); a l
 | *a book of grave-bargains* | 3 | 420 | Profano, Pacto Sombrio, Comandar Mortos-Vivos, Animar Carniçal, Sede de Sangue, Fingir de Morto, Aura da Morte |
 | *a book of weather* | 3 | 420 | Geada, Redemoinho de Poeira, Chicote de Raio, Sementes de Fogo, Jato de Veneno, Fogo da Lua, Vendaval, Chuva de Granizo |
 | *a breviary of the faithful* | 3 | 420 | Regeneração, Santuário, Oração, Fortitude, Remover Maldição, Martelo da Ira, Lança Sagrada, Consagrar, Imobilizar |
+| *a folio of flames* | 3 | 420 | Flecha de Fogo, Trovoada, Orbe Abrasador, Cometa de Gelo, Clarão Elétrico |
+| *a footpad's tricks* | 3 | 420 | Garrote, Pó do Sono, Laço, Beladona, Salto de Sombra |
+| *a forester's lore* | 3 | 420 | Enxame de Vespas, Areia Movediça, Chuva de Espinhos, Raio de Sol |
+| *a lay-brother's psalms* | 3 | 420 | Aura de Coragem, Arma Sagrada, Toque de Misericórdia, Escudo Divino, Nova Purificadora |
 | *a manual of the body* | 3 | 420 | Força, Graça, Astúcia, Percepção, Aumentado, Suportar Elementos |
 | *a manual of the knife* | 3 | 420 | Lâmina de Sombra, Gume Vampírico, Clone de Sombra, Garra Umbral, Véu de Escuridão, Chuva de Facas, Esvanecido, Olhar Aterrador, Mortalha Umbral, Chicote da Noite |
+| *a menagerie of the lesser planes* | 3 | 420 | Invocar Diabrete, Cão Arcano, Duende da Tempestade, Puxar |
+| *a mummer's folio* | 3 | 420 | Guarda Fantasma, Canção de Ninar, Desnortear, Névoa Mental |
 | *a tome of evocation* | 3 | 420 | Míssil Mágico, Raio de Gelo, Lança de Gelo, Bola de Fogo, Jato de Vapor, Relâmpago, Muralha de Fogo, Raio Escaldante, Rajada de Vento, Raio Bifurcado, Nuvem Venenosa, Dardo de Lava |
+| *a ward-smith's ledger* | 3 | 420 | Pé Leve, Fio Afiado, Égide, Visão Arcana |
+| *the bonewright's notes* | 3 | 420 | Aperto da Morte, Dardo de Alma, Mãos da Cova, Miasma, Praga Negra |
 | *the green psalter* | 3 | 420 | Falar com Animais, Acalmar Feras, Invocar Falcão, Lobos Espirituais, Javali Espiritual, Aranha Espiritual |
 | *the rotted codex* | 3 | 420 | Dardo da Peste, Explosão Pútrida, Hemorragia, Lança de Osso, Pavor, Maldição da Fraqueza, Amarra da Cova, Chuva de Crânios |
 | *a book of mercy* | 4 | 700 | Punir, Expulsar Mortos-Vivos, Cura Maior, Purificar, Reviver, Restauração, Cura em Massa |
@@ -437,37 +505,68 @@ profundidade (`LevelBuilder.PickBook`: nível máximo = 1 + profundidade/3); a l
 | *the assassin's testament* | 4 | 700 | Assassinar, Tentáculos Negros, Fenda do Vazio, Desaparecer, Golpe de Misericórdia, Adaga da Alma, Acelerar Sombra |
 | *the black litany* | 4 | 700 | Contágio, Nuvem Mortal, Sugar Alma, Onda da Morte, Lamento da Banshee, Erguer Aparição, Golem de Ossos |
 | *the book of four winds* | 4 | 700 | Invocar Elemental de Fogo, Invocar Elemental de Água, Invocar Elemental de Terra, Invocar Elemental de Ar, Porta Dimensional, Banir |
+| *the night-blade's creed* | 4 | 700 | Véu Vampírico, Corrente de Sombras, Emboscada, Assassinar, Desaparecer |
+| *the tide and the stone* | 4 | 700 | Forma de Pedra, Recrescimento, Maré Avassaladora, Vento Gélido |
 | *the verdant grimoire* | 4 | 700 | Dardo de Veneno, Nuvem de Esporos, Trepadeiras Sufocantes, Tremor, Comunhão com a Natureza, Espetos de Pedra, Deslizamento de Pedras, Muralha de Sarças, Chuva Curativa, Tornado |
 | *the annals of ruin* | 5 | 1060 | Leque Prismático, Desintegrar, Explosão Solar, Terremoto, Cone de Gelo, Chamar Raios, Meteoro |
 | *the book of last things* | 5 | 1060 | Julgamento, Anjo da Guarda, Bênção Angelical, Intervenção Divina, Restauração |
 | *the book of the long night* | 5 | 1060 | Eclipse, Caminhada Sombria, Dominar, Desaparecer, Assassinar |
+| *the canticle of dawn* | 5 | 1060 | Solo Sagrado, Bênção Plena, Ira dos Céus, Toque de Misericórdia |
+| *the dreamless book* | 5 | 1060 | Sono Profundo, Horror Espectral, Névoa Mental, Sono, Padrão Hipnótico |
+| *the giant's manual* | 5 | 1060 | Corpo de Ferro, Força do Titã, Égide, Força, Aumentado |
 | *the last rite* | 5 | 1060 | Ceifar Almas, Palavra de Morte, Invocar Espectro, Ritual de Sangue, Dedo da Morte, Exército de Ossos |
+| *the lich's catechism* | 5 | 1060 | Jaula de Ossos, Forma de Lich, Lamento dos Condenados, Praga Negra |
+| *the pyrelord's treatise* | 5 | 1060 | Onda de Magma, Campo Estático, Barragem Arcana, Explosão de Geada, Lança Solar |
+| *the stone and the gate* | 5 | 1060 | Sentinela de Pedra, Guardião Gárgula, Invocar Elemental de Terra, Pele de Pedra |
 | *the wild hunt* | 5 | 1060 | Tempestade de Raios, Chuva de Estrelas, Ente, Invocar Urso, Tornado |
 
 ## Itens
 
 ### Bases novas (`Items/Catalogue.More.cs`, efeitos em `Items/ItemEffects.cs`)
 
-- **Armas** (26): club, hand axe, stiletto, main gauche, javelin, ashwood staff, kris, rapier, falchion, bastard sword, morning star, flanged mace, war pick, glaive, pike, halberd, druid's crook, greatsword, great axe, maul, dwarven waraxe, katana, wizard's staff, bone staff, staff of the faithful, elven blade.
-- **Armaduras** (14): padded armour, studded leather, brigandine, mage's robe, druid's vestments, priest's vestments, banded mail, necromancer's shroud, shadowsilk tunic, half plate, full plate, archmage's robe, mithril shirt, dragonhide armour.
-- **Elmos** (10): coif of mail, circlet, wizard's hat, hood of shadows, horned helm, visored helm, skull cap of the dead, winged helm, laurel of the sage, crown of thorns.
-- **Luvas** (7): gloves of dexterity, gloves of spellcasting, thieves' gloves, mage's mitts, gauntlets of the faithful, gauntlets of ogre power, bracers of defence.
-- **Botas** (6): sandals of the wind, boots of striding, boots of the mage, boots of elvenkind, boots of the north, boots of fire walking.
-- **Capas** (7): wolf pelt, cloak of protection, cloak of the mage, cloak of the bat, cloak of fortitude, cloak of resistance, cloak of shadows.
-- **Escudos** (6): kite shield, tower shield, bone shield, rune shield, mirror shield, aegis of the faithful.
-- **Anéis** (24): silver band, gold band, bone ring, jade ring, ring of fire resistance, ring of frost resistance, ring of storm resistance, ring of poison resistance, ring of the grave, ring of accuracy, ring of evasion, ring of stealth, ring of might, ring of flames, ring of frost, ring of sparks, ring of the mage, ring of focus, ring of vitality, ring of intellect, ring of insight, ring of spell power, ring of vampirism, ring of the archmage.
-- **Amuletos** (12): amulet of stealth, amulet of health, amulet of warding, amulet of vigor, amulet of the wolf, amulet of the hunter, amulet of faith, amulet of the grave, amulet of resistance, amulet of the sage, amulet of the magi, amulet of spell power.
+- **Armas** (37): club, hand axe, stiletto, main gauche, javelin, ashwood staff, kris, rapier, falchion, bastard sword, morning star, flanged mace, war pick, glaive, pike, halberd, druid's crook, greatsword, great axe, maul, dwarven waraxe, katana, wizard's staff, bone staff, staff of the faithful, elven blade, spiked club, cutlass, estoc, runed dagger, witch's wand, sacrificial knife, thornwood staff, lucerne hammer, bardiche, claymore, crystal staff.
+- **Armaduras** (19): padded armour, studded leather, brigandine, mage's robe, druid's vestments, priest's vestments, banded mail, necromancer's shroud, shadowsilk tunic, half plate, full plate, archmage's robe, mithril shirt, dragonhide armour, quilted gambeson, shaman's furs, storm-cloth robe, battle-priest's mail, lamellar.
+- **Elmos** (14): coif of mail, circlet, wizard's hat, hood of shadows, horned helm, visored helm, skull cap of the dead, winged helm, laurel of the sage, crown of thorns, bone crown, plague doctor's mask, iron halo, cat's-eye circlet.
+- **Luvas** (11): gloves of dexterity, gloves of spellcasting, thieves' gloves, mage's mitts, gauntlets of the faithful, gauntlets of ogre power, bracers of defence, gloves of the healer, gauntlets of flame, gauntlets of storms, witch's gloves.
+- **Botas** (9): sandals of the wind, boots of striding, boots of the mage, boots of elvenkind, boots of the north, boots of fire walking, boots of the wind-walker, boots of deep stone, ghoul-leather boots.
+- **Capas** (10): wolf pelt, cloak of protection, cloak of the mage, cloak of the bat, cloak of fortitude, cloak of resistance, cloak of shadows, feathered cloak, cloak of the storm, mantle of the grave.
+- **Escudos** (9): kite shield, tower shield, bone shield, rune shield, mirror shield, aegis of the faithful, duelist's buckler, shield of the sun, rampart.
+- **Anéis** (33): silver band, gold band, bone ring, jade ring, ring of fire resistance, ring of frost resistance, ring of storm resistance, ring of poison resistance, ring of the grave, ring of accuracy, ring of evasion, ring of stealth, ring of might, ring of flames, ring of frost, ring of sparks, ring of the mage, ring of focus, ring of vitality, ring of intellect, ring of insight, ring of spell power, ring of vampirism, ring of the archmage, ring of warding, ring of the fox, ring of resistance, ring of mana, ring of the sage, ring of life, ring of the grave-knight, ring of the assassin, ring of the berserker.
+- **Amuletos** (22): charm, pendant, locket, talisman, amulet of stealth, amulet of health, amulet of warding, amulet of vigor, amulet of the wolf, amulet of the hunter, amulet of faith, amulet of the grave, amulet of resistance, amulet of the sage, amulet of the magi, amulet of spell power, amulet of the phoenix, amulet of the glacier, amulet of the tempest, amulet of the oracle, amulet of the berserker, amulet of the shadow.
 
 `ItemEffects` dá números a uma base só por ela existir (robe do arquimago: +12 Mp, +2 poder mágico, +10% de foco). Afixos, encantamento e
 artefatos somam por cima. O loot respeita **nível** (`LevelBuilder.PickDeep`: nível máximo = 2 + profundidade/3), então as coisas grandes aparecem fundo.
 
-**Anéis e amuletos agora valem.** `Player.AccessoryMods` soma anéis e amuleto em `Gear` (e em acerto, dano, dado extra e CA). Amuletos podem ser
+**Anéis e amuletos agora valem.** Os amuletos antigos eram, no catálogo, *anéis* com nome de amuleto (ocupavam dedo e o amuleto de verdade nunca era usado); agora são `ItemKind.Amulet`. `Player.AccessoryMods` soma anéis e amuleto em `Gear` (e em acerto, dano, dado extra e CA). Amuletos podem ser
 vestidos (`P`, ou `Enter` no inventário) e tirados com `R`; o *amulet of life saving* desfaz uma morte e se desfaz; o *amulet of ESP* mostra criaturas pelas paredes.
 
 ### Afixos novos (`Items/Affixes.cs`)
 
-Prefixos novos (18): shocking, radiant, rotting, thundering, searing, holy, draining, masterwork, razor-edged, arcane, mage-woven, shadowed, grave-warded, mithril-lined, rune-etched, troll-hide, dragon-warded, fortified.
-Sufixos novos (15): of the wolf, of the lion, of the sphinx, of stealth, of brilliance, of the archmage, of fire, of frost, of storms, of the grave, of vitality, of precision, of might, of the hunter, of slaying.
+Prefixos novos (30): shocking, radiant, rotting, thundering, searing, holy, draining, masterwork, razor-edged, arcane, mage-woven, shadowed, grave-warded, mithril-lined, rune-etched, troll-hide, dragon-warded, fortified, wintry, stormforged, bloodthirsty, sanctified, serrated, balanced, stormproof, ghostly, sage's, hallowed, vital, bladeturning.
+
+Sufixos novos (24): of the wolf, of the lion, of the sphinx, of stealth, of brilliance, of the archmage, of fire, of frost, of storms, of the grave, of vitality, of precision, of might, of the hunter, of slaying, of the phoenix, of the glacier, of the tempest, of the oracle, of agility, of fortitude, of the sentinel, of reaping, of the storm.
+
+### Itens mágicos com magia (`Magic/SpellFit.cs`)
+
+Equipamento mágico achado no chão pode vir **imbuído com uma magia que combina com o que ele é**. O sorteio escolhe numa reserva filtrada por tipo
+(e por profundidade: nível da magia ≤ 1 + profundidade/3; se nada tão baixo cabe no tipo, pega o mais baixo que cabe):
+
+| Item | Reserva de magias | Efeito automático |
+|---|---|---|
+| Arma | ataques e controle apontados (bola, cone, linha, raio, golpes aleatórios) e buffs de arma | 14% de **disparar sozinha** no alvo a cada golpe que acerta |
+| Armadura, escudo | proteções, curas, auras, invocações e novas de área ao seu redor | 10% de **responder sozinha** quando você é atingido |
+| Elmo | sentidos e mente (luz, achar armadilhas, sentir a vida, ilusões) | só empresta a magia |
+| Luvas | toque e cones curtos, arrombar, furtar, desarmar | só empresta a magia |
+| Botas | movimento (piscar, passo, salto, aceleração, levitar, formas) | só empresta a magia |
+| Capa | furtividade e ilusões em você | 10% de responder |
+| Anel | proteções, sentidos, furtividade, movimento, buffs de arma | 10% de responder |
+| Amuleto | proteções, invocações, novas e chuvas de golpes, sentidos, mente | 10% de responder |
+
+- **Rara**: 55% de vir imbuída; **mágica**: 18%. Anéis (`silver band`, `gold band`, `bone ring`, `jade ring`) e amuletos (`charm`, `pendant`, `locket`, `talisman`)
+  *em branco* só aparecem **sempre imbuídos**. O nome vira "long sword of Frostbite" quando identificado (antes: "magical long sword" ou "enchanted silver band").
+- Enquanto você segura ou veste o item, a magia vai para a sua lista (`◆`) e você a conjura com mana, como qualquer magia emprestada. Vestir revela a magia.
+- O disparo automático é de graça (sem mana, sem falha, não gasta turno) e usa nível de conjurador `max(seu nível, 5 + profundidade/2)`. Vale mais no comércio (+150 por nível da magia).
+- Para encaixar uma magia nova em itens, basta ela ter dados de receita; `SpellFit.Fits` lê o alvo, os riders, os buffs e os especiais.
 
 ### Varinhas, pergaminhos e poções que são magias (`Items/ItemSpells.cs`)
 
@@ -580,7 +679,6 @@ cavar, teletransporte) mantêm o nome e agora usam a mira e as animações. O n�
 | potion of sanctuary | Santuário (`sanctuary`) | 8 | 240 | 3 |
 | potion of stone skin | Pele de Pedra (`stone-skin`) | 8 | 220 | 3 |
 
-
 ### Itens únicos (`Items/Artifacts.More.cs`)
 
 Cada único mora em um nível de um ramo, com uma **chance** (vários podem dividir um nível; cada um rola a sua; os 13 antigos continuam sempre lá).
@@ -606,6 +704,7 @@ Muitos **emprestam magias** enquanto estão em uso (`ArtifactDef.Grants`, aparec
 | **Mantle of the Tempest** | cloak of the mage | Minas de Dwarfdeep 7 | 35% | +8 Mp, raio 30%, +1 esquiva | Faísca | Regalia do Invocador de Tempestades |
 | **Rat King's Whiskers** | bone ring | Tocas 3 | 40% | +1 Des, +2 furtividade, veneno 30% | Invocar Enxame | — |
 | **Scrap-King's Cleaver** | falchion | Tocas 4 | 40% | +1 For, +3 dano, -1 acerto | — | — |
+| **Plaguebearer's Mask** | skull cap of the dead | Tocas 5 | 35% | veneno 60%, necrótico 30%, +1 Con (relíquia: corrompe) | Dardo da Peste, Nuvem Mortal | — |
 | **Burrower's Boots** | boots of striding | Tocas 6 | 35% | +2 esquiva, +1 Des | Passo de Fase | — |
 | **Mantle of Many Teeth** | cloak | Tocas 2 | 45% | +1 Con, +6 PV | Espinhos | — |
 | **Gloves of Static** | gloves of spellcasting | Tocas 7 | 35% | +10 foco, raio 20% | Chicote de Raio | Regalia do Invocador de Tempestades |
@@ -631,7 +730,6 @@ Muitos **emprestam magias** enquanto estão em uso (`ArtifactDef.Grants`, aparec
 | **Auditor's Spectacles** | circlet | Anexo 1 | 50% | +2 Int, +1 Sab | Identificar, Achar Armadilhas | — |
 | **Ledger of Debts** | bone ring | Anexo 2 | 45% | +15 foco, +6 Mp | Marcado para Morrer, Maldição da Fraqueza | — |
 | **Dusk Daggers** | stiletto | Anexo 2 | 45% | +1 Des, +1 furtividade, +1d4 necrótico | Facas de Arremesso, Chuva de Facas | Cabala da Meia-Noite |
-| **Plaguebearer's Mask** | skull cap of the dead | Tocas 5 | 35% | veneno 60%, necrótico 30%, +1 Con (relíquia: corrompe) | Dardo da Peste, Nuvem Mortal | — |
 
 ## Como adicionar
 

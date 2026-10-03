@@ -41,6 +41,14 @@ Tudo o que estava listado foi implementado (ver *Feito*). O que sobrou são exte
 
 _(mova para cá, com data, o que for concluído)_
 
+- [x] **Itens mágicos imbuídos com magia + mais variedade** (2026-10-03). Detalhes em [`magia-e-itens.md`](magia-e-itens.md#itens-mágicos-com-magia-magicspellfitcs).
+  - `SpellFit` filtra as magias por tipo de item (espada: ataque e controle; armadura: proteção; botas: movimento; elmo: sentidos; capa: furtividade; anel/amuleto: o que você lança em si);
+    equipamento raro (55%) ou mágico (18%) sai imbuído (`Item.Imbue`, nome "long sword of Frostbite"); anéis e amuletos *em branco* só existem imbuídos. A magia é emprestada
+    enquanto o item está em uso; armas disparam sozinhas ao acertar (14%) e peças vestidas respondem ao golpe (10%), de graça e sem gastar turno.
+  - **+60 magias** (322 no total: 10 em Evocação, 6 em cada uma de Conjuração, Alteração e Ilusão, 8 em cada uma das outras quatro), 13 buffs e 5 criaturas novas, **+16 livros** (55), tradução PT.
+  - **+48 itens-base** (11 armas, 5 armaduras, 4 elmos, 4 luvas, 3 botas, 3 capas, 3 escudos, 9 anéis, 6 amuletos), 4 amuletos em branco e **+22 afixos**.
+  - Corrigido: os amuletos antigos eram *anéis* no catálogo (o amuleto de verdade, inclusive o de salvar vidas, nunca funcionou); agora são `ItemKind.Amulet`.
+
 - [x] **Magias, livros, itens mágicos, únicos e animações** (2026-10-03). Detalhes em [`magia-e-itens.md`](magia-e-itens.md). Salvamento passa à **versão 11**.
   - **Animações de magia** (`Fx.cs`, `Game.Fx.cs`, `desktop/src/fx.ts`): o motor grava uma `FxTimeline` (23 peças: projétil com rastro, raio, relâmpago denteado, cadeia,
     cone, explosão, nova, chuva, erupção, pilar, meteoro, enxame de partículas, teleporte…) que vai em `Frame.fx` e é tocada pelo front-end por cima do quadro, sem pedir turno.

@@ -1219,7 +1219,7 @@ namespace Ossuary.Tests
 
             // Generated levels: vaults appear, their key rides on a monster, and the cache is rigged.
             int keyed = 0, caches = 0;
-            for (ulong seed = 1; seed <= 40; seed++)
+            for (ulong seed = 1; seed <= 90; seed++)   // enough levels that "a few have keyed vaults" is not a coin flip
             {
                 var d = new Dungeon(new Rng(seed * 6700417));
                 var map = d.Ensure("The Dungeons", 4 + (int)(seed % 5), out var spawns, out int sx, out int sy);

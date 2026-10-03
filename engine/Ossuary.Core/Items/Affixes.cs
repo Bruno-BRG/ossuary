@@ -147,6 +147,28 @@ namespace Ossuary.Core.Items
             W("of-might", "of might", false, 7, new ItemMods { Dmg = 2 }),
             W("of-the-hunter", "of the hunter", false, 5, new ItemMods { ToHit = 1, Stealth = 1 }),
             W("of-slaying", "of slaying", false, 2, new ItemMods { ToHit = 2, Dmg = 3 }),
+            // The second round.
+            W("wintry", "wintry", true, 5, new ItemMods { ExtraType = DamageType.Cold, ExtraSides = 6 }),
+            W("stormforged", "stormforged", true, 4, new ItemMods { ExtraType = DamageType.Lightning, ExtraSides = 6 }),
+            W("bloodthirsty", "bloodthirsty", true, 3, new ItemMods { LifeSteal = 18 }),
+            W("sanctified", "sanctified", true, 3, new ItemMods { ExtraType = DamageType.Holy, ExtraSides = 4, ToHit = 1 }),
+            W("serrated", "serrated", true, 6, new ItemMods { Dmg = 3, ToHit = -1 }),
+            W("balanced", "balanced", true, 6, new ItemMods { ToHit = 3 }),
+            A("stormproof", "stormproof", true, 5, new ItemMods { ResLightning = 40 }),
+            A("ghostly", "ghostly", true, 4, new ItemMods { Evasion = 2, Stealth = 1 }),
+            A("sage's", "sage's", true, 4, new ItemMods { Mp = 8, Int = 1 }),
+            A("hallowed", "hallowed", true, 3, new ItemMods { ResNecrotic = 40, Wis = 1 }),
+            A("vital", "vital", true, 5, new ItemMods { Hp = 12, Vigor = 4 }),
+            A("bladeturning", "bladeturning", true, 3, new ItemMods { Ac = 3 }),
+            B("of-the-phoenix", "of the phoenix", false, 4, new ItemMods { ResFire = 30, Hp = 6 }),
+            B("of-the-glacier", "of the glacier", false, 4, new ItemMods { ResCold = 30, Hp = 6 }),
+            B("of-the-tempest", "of the tempest", false, 4, new ItemMods { ResLightning = 30, Evasion = 1 }),
+            B("of-the-oracle", "of the oracle", false, 4, new ItemMods { SpellPower = 1, Wis = 1 }),
+            B("of-agility", "of agility", false, 6, new ItemMods { Dex = 2, Evasion = 1 }),
+            B("of-fortitude", "of fortitude", false, 6, new ItemMods { Con = 2, Hp = 8 }),
+            A("of-the-sentinel", "of the sentinel", false, 5, new ItemMods { Ac = 2, ResPoison = 20 }),
+            W("of-reaping", "of reaping", false, 3, new ItemMods { LifeSteal = 10, Dmg = 1 }),
+            W("of-the-storm", "of the storm", false, 3, new ItemMods { ExtraType = DamageType.Lightning, ExtraSides = 6 }),
         };
 
         public static AffixDef Find(string id)
@@ -341,6 +363,14 @@ namespace Ossuary.Core.Items
     {
         public static void Roll(Item item, Rng rng, int depth)
         {
+            var kind = item.Def.Kind;
+            if ((kind == ItemKind.Ring || kind == ItemKind.Amulet) && Catalogue.IsBlank(item.Def.Name))
+            {
+                // A plain band or pendant is only worth finding because something was put into it.
+                item.Imbue = Magic.SpellFit.Pick(rng, kind, depth)?.Id;
+                item.Rarity = Rarity.Magic; item.Identified = false; item.Value = item.TradeValue;
+                return;
+            }
             if (!item.Def.Kind.IsGear()) return;
             bool weapon = item.Def.Kind == ItemKind.Weapon;
             int rareChance = Math.Min(15, 2 + depth);
@@ -362,6 +392,8 @@ namespace Ossuary.Core.Items
                 if (item.Prefix == null && item.Suffix == null && item.Enchant == 0) item.Enchant = 1;
             }
             else return;
+            // Many magic items carry a spell that fits what they are (a sword an attack, a boot a leap, a ward on a mail shirt).
+            if (rng.Chance(item.Rarity == Rarity.Rare ? 55 : 18)) item.Imbue = Magic.SpellFit.Pick(rng, kind, depth)?.Id;
             item.Identified = false;
             item.Value = item.TradeValue;
         }

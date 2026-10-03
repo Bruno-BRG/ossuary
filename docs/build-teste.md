@@ -46,7 +46,7 @@ Saídas:
 
 - `desktop/src-tauri/target/release/ossuary.exe`
 - `desktop/src-tauri/target/release/ossuary-engine.exe`
-- `desktop/src-tauri/target/release/bundle/nsis/Ossuary_0.1.0_x64-setup.exe`
+- `desktop/src-tauri/target/release/bundle/nsis/Ossuary_0.11.0_x64-setup.exe`
 
 Distribuir o instalador ou ambos os executáveis. O processo de simulação
 precisa acompanhar o aplicativo. O pacote atual é Windows x64; outros

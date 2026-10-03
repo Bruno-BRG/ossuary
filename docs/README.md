@@ -11,7 +11,7 @@ o que o jogo é, como cada sistema funciona e onde mora no código.
 - [`arquitetura.md`](arquitetura.md) — camadas, classes, regras de dependência
 - [`sistemas.md`](sistemas.md) — dungeon, overworld, cidades, combate, itens, FOV…
 - [`rpg.md`](rpg.md) — pesquisa, catálogo e roteiro do sistema RPG (raças, classes, magia, itens)
-- [`magia-e-itens.md`](magia-e-itens.md) — 262 magias, 39 livros, itens mágicos e únicos, e as **animações** das magias
+- [`magia-e-itens.md`](magia-e-itens.md) — 322 magias, 55 livros, itens mágicos e únicos, e as **animações** das magias
 - [`balance.md`](balance.md) — bot de balanceamento, linha de base e botões de ajuste
 - [`visual.md`](visual.md) — direção de arte "Fósforo & Osso": paleta, fonte, glifos e layout
 - [`renderer.md`](renderer.md) — fonte bitmap, Canvas, CRT, temas, FOV, como verificar
@@ -19,5 +19,6 @@ o que o jogo é, como cada sistema funciona e onde mora no código.
 - [`build-teste.md`](build-teste.md) — pipeline: scripts, CLI, builds, shots
 - [`a-fazer.md`](a-fazer.md) — **backlog e acompanhamento de progresso** (o que falta, o que já foi feito)
 - [`alpha.md`](alpha.md) — estado do alpha jogável + roadmap
+- [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — como contribuir; [`../CHANGELOG.md`](../CHANGELOG.md) — o que mudou em cada versão
 - [`lore.md`](lore.md) — bíblia de worldbuilding (tom, Ossuary, facções, Yendor)
 - [`idiomas.md`](idiomas.md) — português/inglês, como traduzir e a história de abertura
