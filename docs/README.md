@@ -17,6 +17,8 @@ how each system works and where it lives in the code.
 - [`renderer.md`](renderer.md) — bitmap font, Canvas, CRT, themes, FOV, how to verify
 - [`controls.md`](controls.md) — full keyboard (vi-keys + verbs)
 - [`build-and-test.md`](build-and-test.md) — pipeline: scripts, CLI, builds, shots
+- [`living-world.md`](living-world.md) — plan for personas, dialogue, quest tracks, rumours, travellers and town events.
+- [`main-quest.md`](main-quest.md) — the main questline "The Seal": short and long path, truths, endings, essential NPCs.
 - [`todo.md`](todo.md) — **backlog and progress tracking** (what is left, what is done)
 - [`alpha.md`](alpha.md) — state of the playable alpha + roadmap
 - [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — how to contribute; [`../CHANGELOG.md`](../CHANGELOG.md) — what changed in each version

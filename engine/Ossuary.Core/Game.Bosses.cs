@@ -258,6 +258,8 @@ namespace Ossuary.Core
             var b = Bosses.Find(m.BossId);
             if (b == null) return;
             BossesSlain.Add(b.Id);
+            Flags.Add("boss.slain." + b.Id);
+            QuestCheck();
             Say(b.Fall, MessageKind.Quest);
             Player.Gold += 150 + 40 * b.Level;
             foreach (string name in new[] { "potion of full healing", "potion of gain ability" })

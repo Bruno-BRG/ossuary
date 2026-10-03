@@ -63,6 +63,7 @@ namespace Ossuary.Desktop
                 case "F4": return "theme";
                 case "F5": return "save";
                 case "F6": return "D2";
+                case "F7": return "journal";
                 default: return null;
             }
         }

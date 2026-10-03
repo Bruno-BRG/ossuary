@@ -604,6 +604,10 @@ namespace Ossuary.Core
                 X = x, Y = y, HomeX = x, HomeY = y,
             };
             m.Name = role == TownRole.Pet ? def.Name : TownText.GivenName(p.R);
+            // The persona has its own stream (town seed mixed with who and where), so it never moves the layout or anyone else.
+            var pr = new Rng(p.R.Seed ^ (((ulong)(x * 73856093) ^ (ulong)(y * 19349663) ^ (ulong)(z * 83492791) ^ (ulong)(m.Voice * 2654435761L) ^ (ulong)role) * 0x9E3779B97F4A7C15UL));
+            m.Persona = Persona.For(pr, role);
+            m.Memory = new NpcMemory();
             p.T.Npcs.Add(m);
             return m;
         }

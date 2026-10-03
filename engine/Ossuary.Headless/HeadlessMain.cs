@@ -355,7 +355,8 @@ namespace Ossuary.Tools
             Console.WriteLine($"===== DUNGEON FRAME (turn {game.Turn}, depth {game.Depth}, {game.Player.HP}/{game.Player.MaxHP} HP) =====");
             Console.WriteLine(hud.Draw().ToAscii());
 
-            foreach (Panel p in new[] { Panel.Inventory, Panel.Character, Panel.Help, Panel.History, Panel.Discoveries })
+            game.StartQuest("main.seal"); game.StartQuest("watch.bandits");
+            foreach (Panel p in new[] { Panel.Inventory, Panel.Character, Panel.Help, Panel.History, Panel.Discoveries, Panel.Journal })
             {
                 game.UiState.Active = p;
                 Console.WriteLine();
@@ -363,6 +364,17 @@ namespace Ossuary.Tools
                 Console.WriteLine(hud.Draw().ToAscii());
             }
             game.UiState.Active = Panel.None;
+
+            // A conversation box (the Elder), as a person would see it.
+            {
+                var elder = new Ossuary.Core.Entities.Monster(Ossuary.Core.Entities.Bestiary.Find("hobbit"), new Rng(3)) { Name = "Maren", Townsperson = true, Role = TownRole.Elder };
+                elder.Persona = new Persona(); elder.Memory = new NpcMemory();
+                game.Talking = elder; game.OpenDialogue(Dialogues.For(elder), elder);
+                Console.WriteLine();
+                Console.WriteLine("===== PANEL: Dialogue =====");
+                Console.WriteLine(hud.Draw().ToAscii());
+                game.CurrentDialogue = null; game.UiState.Active = Panel.None;
+            }
 
             Console.WriteLine();
             Console.WriteLine("===== MESSAGE LOG (last 24) =====");

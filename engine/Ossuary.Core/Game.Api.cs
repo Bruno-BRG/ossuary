@@ -16,6 +16,7 @@ namespace Ossuary.Core
         public void PushHelp() => UiRequests.Help = true;
         public void PushHistory() => UiRequests.History = true;
         public void PushDiscoveries() => UiRequests.Discoveries = true;
+        public void PushJournal() => UiRequests.Journal = true;
         public void PushCharacter() => UiRequests.Character = true;
         public void PushTravelMode() => UiRequests.Travel = true;
         public void PushSettings() => UiRequests.Settings = true;

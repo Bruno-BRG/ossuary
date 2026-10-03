@@ -50,6 +50,14 @@ namespace Ossuary.Core
         {
             int rep = RepOf(house);
             int pct = Math.Max(75, Math.Min(125, 100 - rep / favourPct));
+            pct = pct * (100 - EventDiscount()) / 100;
+            if (Mode == GameMode.TownMap && World != null)
+            {
+                // What the hero knows has become public: the Holds and the League resent the ones who say it.
+                string region = RegionHere();
+                if (Flags.Contains("truth.vote") && region == "The Iron Hills") pct = pct * 110 / 100;
+                if (Flags.Contains("truth.order") && region == "The Verdant Reach") pct = pct * 110 / 100;
+            }
             return Math.Max(price > 0 ? 1 : 0, price * pct / 100);
         }
     }

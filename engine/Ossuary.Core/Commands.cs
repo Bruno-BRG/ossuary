@@ -26,7 +26,7 @@ namespace Ossuary.Core
             _g.ResetNoise();   // noise belongs to the action that makes it, never to a refused one before it
 
             // Inside the walls nothing is thrown, shot, zapped or cast at anyone.
-            if (_g.Mode == GameMode.TownMap && (cmd == "f" || cmd == "z" || cmd == "Z" || cmd == "V" || cmd == "k"))
+            if (_g.Mode == GameMode.TownMap && (cmd == "f" || cmd == "z" || cmd == "Z" || cmd == "V" || (cmd == "k" && _g.MonsterAt(_g.Player.X + _g.FacingX, _g.Player.Y + _g.FacingY) == null)))
             {
                 _g.Say("Not inside the walls. The Watch frowns on that.", MessageKind.Warn);
                 return true;
@@ -85,6 +85,7 @@ namespace Ossuary.Core
                 case "m": _g.ToggleMinimap(); return true;
                 case "c": _g.PushCharacter(); return true;
                 case "D2": _g.PushDiscoveries(); return true;
+                case "journal": _g.PushJournal(); return true;
                 case "H": _g.PushHistory(); return true;
                 case "?": _g.PushHelp(); return true;
                 case "save": _g.Say("The seed is the save: " + _g.Rng.Seed, MessageKind.Info); return true;

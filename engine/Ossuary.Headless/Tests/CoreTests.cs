@@ -1105,10 +1105,11 @@ namespace Ossuary.Tests
             key = StandBy(g, stranger.X, stranger.Y);
             int log = g.Log.Count, hp = stranger.HP;
             cmd.Execute(key);
-            Assert(g.Log.Count > log && stranger.HP == hp && !stranger.IsDead, "bumping a citizen should talk, not hurt");
-            Assert(g.Attack(stranger) && stranger.HP == hp, "attacking townsfolk is refused");
-            cmd.Execute("k");
-            Assert(stranger.HP == hp, "kicking is refused in town");
+            Assert((g.Log.Count > log || g.UiState.Active == Panel.Service) && stranger.HP == hp && !stranger.IsDead, "bumping a citizen should talk, not hurt");
+            g.UiState.Active = Panel.None;
+            stranger.HP = 999;
+            Assert(g.Attack(stranger), "attacking a person is handled (and has consequences: see CrimeAndTheWatch)");
+            Assert(!stranger.IsDead, "a citizen with plenty of health survives a blow");
         }
 
         // The same town is generated every time, with the same stock and the same people.

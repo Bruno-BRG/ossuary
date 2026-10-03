@@ -16,7 +16,7 @@ namespace Ossuary.Core
                 Say("It blocks the way. Fight it (Enter or K) or flee (R or <).", MessageKind.Warn);
                 return;
             }
-            CurrentEvent = null;
+            CurrentEvent = null; CurrentDialogue = null;
             int nx = World.PlayerX + dx, ny = World.PlayerY + dy;
             if (!World.InBounds(nx, ny)) return;
 

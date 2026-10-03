@@ -25,7 +25,7 @@ Keys are remappable in Controls.
 `>` descend — `<` ascend (also building stairs in towns) — `g` or `,`
 pick up — `d` drop — `s` search (traps/secret doors) —
 `Shift+N` train a skill with XP (Trained mode) — `Shift+B` craft (combine what you carry: molotov, bone blade…; `a` on a molotov throws it) — `Shift+E` drink from a fountain (may corrupt) — `Shift+A` disarm a found trap (below or beside, preferably ahead) —
-`k` (shift-K) kick / attack ahead — `D` (shift) open door — `u` (shift-U)
+`k` (shift-K) kick / attack ahead (in town it strikes the person in front of you, and the Watch may notice) — `D` (shift) open door — `u` (shift-U)
 use key — `a` apply tool — `f`/`Q` fire
 
 ## Equip and use
@@ -60,7 +60,7 @@ board or altar opens the shop or service menu (letters choose, Esc leaves).
 
 ## Panels
 
-`i` inventory — `c` character sheet — `H` history — `F6` discoveries —
+`i` inventory — `c` character sheet — `H` history — `F6` discoveries — `F7` quest journal —
 `?` or `/` help — `m` minimap — `F5` saves the run — `F2` or `Esc` menu — `F3` CRT — `F4` theme —
 `Ctrl-Q` twice quits (abandons the run) — `Esc`/`Enter` closes a panel
 

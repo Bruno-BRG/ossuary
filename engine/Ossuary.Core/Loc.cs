@@ -170,13 +170,15 @@ namespace Ossuary.Core
         };
 
         static Dictionary<string, string> _ui;
+        static int _uiTownCount;
 
         /// <summary>Interface text: whole-string match only, so names and numbers pass through untouched. Used by TextBuilder.</summary>
         public static string U(string s)
         {
             if (Current == Lang.En || string.IsNullOrEmpty(s)) return s;
-            if (_ui == null)
+            if (_ui == null || _uiTownCount != TownText.Pt.Count)
             {
+                _uiTownCount = TownText.Pt.Count;   // dialogue, quest and rumour texts register their PT as they are first used
                 var d = new Dictionary<string, string>();
                 foreach (var kv in Pt) d[kv.Key] = kv.Value;
                 foreach (var kv in Ui) d[kv.Key] = kv.Value;
