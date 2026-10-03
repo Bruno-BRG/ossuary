@@ -8,7 +8,7 @@ using Ossuary.Core.Magic;
 namespace Ossuary.Tests
 {
     /// <summary>
-    /// Assertions for the features tracked in docs/a-fazer.md. Run() is wired into TestRunner.RunAll as one entry;
+    /// Assertions for the features tracked in docs/todo.md. Run() is wired into TestRunner.RunAll as one entry;
     /// new features add a method here and a line in Run().
     /// </summary>
     public static class FeatureTests

@@ -26,9 +26,9 @@ As versões do Ossuary são numeradas só com **um número** (Versão 11, Versã
 
 ### Para quem desenvolve
 - Salvamento passa à **versão 11** (saves antigos não carregam).
-- Novos testes `ArsenalTests` e `fx.test.ts`; documentação em [`docs/magia-e-itens.md`](docs/magia-e-itens.md); [CONTRIBUTING.pt-BR.md](CONTRIBUTING.pt-BR.md) e novo README.
+- Novos testes `ArsenalTests` e `fx.test.ts`; documentação em [`docs/spells-and-items.md`](docs/spells-and-items.md); [CONTRIBUTING.pt-BR.md](CONTRIBUTING.pt-BR.md) e novo README.
 
 ## Antes da versão 11
 
-O histórico anterior está no `git log` e no registro de itens concluídos de [`docs/a-fazer.md`](docs/a-fazer.md): cidades verticais, mundo vivo (reputação, contratos,
+O histórico anterior está no `git log` e no registro de itens concluídos de [`docs/todo.md`](docs/todo.md): cidades verticais, mundo vivo (reputação, contratos,
 eventos de estrada), chefes, facções, corrupção e mutações, companheiros, conquistas, desafio diário, modos de jogo, efeitos sonoros e água animada, entre outros.

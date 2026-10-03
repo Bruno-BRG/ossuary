@@ -1,34 +1,35 @@
-# Visual — Fósforo & Osso
+# Visual — Phosphor & Bone
 
-Terminal de PC dos anos 80: fundo índigo, texto cor de osso, glifos coloridos e brilho escasso. A implementação atual usa Tauri, Canvas e fonte bitmap; veja [renderer.md](renderer.md) e [desktop.md](desktop.md).
+An 80s PC terminal: indigo background, bone-colored text, colored glyphs and sparing glow. The current implementation uses Tauri, Canvas and a bitmap font; see [renderer.md](renderer.md) and [desktop.md](desktop.md).
 
-## Fonte e licença
+## Font and license
 
-A fonte distribuída é **unscii-16**, bitmap 8×16 de viznut, em domínio público. Arquivo: `assets/fonts/unscii-16.hex`; crédito e origem em `assets/fonts/NOTICE.md`. Não usamos a variante `unscii-16-full`. Uma fonte nova exige registrar origem e licença aqui.
+The shipped font is **unscii-16**, an 8×16 bitmap by viznut, in the public domain. File: `assets/fonts/unscii-16.hex`; credit and origin in `assets/fonts/NOTICE.md`. We do not use the `unscii-16-full` variant. A new font requires recording its origin and license here.
 
-O Canvas usa escala inteira, sem suavização, com letterbox. O logo grande é composto em blocos em `desktop/src/title.ts`. Novos glifos entram primeiro em `engine/Ossuary.Core/GlyphSet.cs` e precisam passar no teste de cobertura da fonte. A fonte não contém `☼ ✗ ⚔ ☠ ♜ ⌂ ✚ ✦ ∙ ›`; use as alternativas existentes.
-## Paleta "Ossuary" (tokens semânticos)
+The Canvas uses integer scale, no smoothing, with letterboxing. The big logo is composed from blocks in `desktop/src/title.ts`. New glyphs enter `engine/Ossuary.Core/GlyphSet.cs` first and must pass the font coverage test. The font lacks `☼ ✗ ⚔ ☠ ♜ ⌂ ✚ ✦ ∙ ›`; use the existing alternatives.
 
-Fundo índigo quase preto, em vez de cinza neutro. O texto é cor de osso,
-âmbar marca títulos, ciano marca rótulos e magenta/violeta marca magia.
+## "Ossuary" palette (semantic tokens)
+
+Near-black indigo background instead of neutral gray. Text is bone-colored,
+amber marks titles, cyan marks labels and magenta/violet marks magic.
 
 **UI**
 
-| Token | Hex | Uso |
+| Token | Hex | Use |
 |---|---|---|
-| `Void` | `#07060B` | Letterbox, fora do mapa |
-| `Background` | `#0D0B14` | Chão do mapa e base de tudo |
-| `Panel` | `#16121F` | Sidebar, log e modais |
-| `PanelHi` | `#211B30` | Cabeçalho de painel, linha selecionada |
-| `Rule` | `#3A3150` | Molduras simples e separadores |
-| `Frame` | `#8A6F30` | Moldura dupla de modal (ouro velho) |
-| `Text` | `#D8CFC0` | Texto (osso) |
-| `Dim` | `#7D7590` | Texto secundário e mensagens antigas |
-| `Label` | `#5FCDE4` | Rótulos (ciano) |
-| `Title` | `#F2B33D` | Títulos e teclas de atalho (âmbar) |
-| `Accent` | `#FBF236` | Destaque raro (seleção, `@`) |
+| `Void` | `#07060B` | Letterbox, outside the map |
+| `Background` | `#0D0B14` | Map floor and base of everything |
+| `Panel` | `#16121F` | Sidebar, log and modals |
+| `PanelHi` | `#211B30` | Panel header, selected row |
+| `Rule` | `#3A3150` | Single frames and separators |
+| `Frame` | `#8A6F30` | Modal double frame (old gold) |
+| `Text` | `#D8CFC0` | Text (bone) |
+| `Dim` | `#7D7590` | Secondary text and old messages |
+| `Label` | `#5FCDE4` | Labels (cyan) |
+| `Title` | `#F2B33D` | Titles and shortcut keys (amber) |
+| `Accent` | `#FBF236` | Rare highlight (selection, `@`) |
 
-**Estados e mensagens**
+**States and messages**
 
 | Token | Hex | Token | Hex |
 |---|---|---|---|
@@ -38,95 +39,93 @@ Fundo índigo quase preto, em vez de cinza neutro. O texto é cor de osso,
 | `Info` | `#639BFF` | `Quest` | `#5FE4C0` |
 | `Narrative` | `#CBB3E8` | `Memory` | `#2E2A45` |
 
-**Mapa: cada tile tem fg *e* bg**
+**Map: every tile has fg *and* bg**
 
-| Tile | Glifo | fg | bg |
+| Tile | Glyph | fg | bg |
 |---|---|---|---|
-| Chão | `·` | `#4A4360` | `Background` |
-| Chão alt | `·` / `,` | `#6B5440` | `#120F18` |
-| Parede | `#` | `#9A90AE` | `#2A2438` |
-| Parede tijolo | `#` | `#B0705A` | `#341C1C` |
-| Rocha | `#` / `▓` | `#6A6880` | `#1E1B2A` |
-| Porta | `+` / `'` | `#DF7126` | `#2E1A10` |
-| Porta trancada | `+` | `#FBD94A` | `#2E1A10` |
-| Escada | `>` `<` | `#FFFFFF` (negrito) | `#3F3F74` |
+| Floor | `·` | `#4A4360` | `Background` |
+| Floor alt | `·` / `,` | `#6B5440` | `#120F18` |
+| Wall | `#` | `#9A90AE` | `#2A2438` |
+| Brick wall | `#` | `#B0705A` | `#341C1C` |
+| Rock | `#` / `▓` | `#6A6880` | `#1E1B2A` |
+| Door | `+` / `'` | `#DF7126` | `#2E1A10` |
+| Locked door | `+` | `#FBD94A` | `#2E1A10` |
+| Stairs | `>` `<` | `#FFFFFF` (bold) | `#3F3F74` |
 | Portal | `^` | `#D77BBA` | `#2A1238` |
-| Fonte | `{` | `#5FCDE4` | `#0E2A40` |
+| Fountain | `{` | `#5FCDE4` | `#0E2A40` |
 | Altar | `_` | `#EAE4F4` | `#2A2438` |
-| Entulho | `"` / `▒` | `#8F7A5E` | `Background` |
+| Rubble | `"` / `▒` | `#8F7A5E` | `Background` |
 
-**Overworld: vocabulário CP437 + fundo colorido**
+**Overworld: CP437 vocabulary + colored background**
 
-| Terreno | Glifos (variante por hash x,y) | fg | bg |
+| Terrain | Glyphs (variant by hash x,y) | fg | bg |
 |---|---|---|---|
-| Água funda | `≈` | `#306082` | `#0A1830` |
-| Água | `≈` `~` | `#5B6EE1` | `#10224A` |
-| Raso | `~` | `#639BFF` | `#16305A` |
-| Areia | `·` `·` `░` | `#D9A066` | `#2A2014` |
-| Grama | `"` `'` `,` `·` | `#6ABE30` | `#0F1A0C` |
-| Floresta | `♣` `♠` `↑` | `#37946E` | `#0A1610` |
-| Colinas | `∩` `ⁿ` | `#8F974A` | `#16180C` |
-| Montanha | `▲` | `#9BADB7` | `#1E2028` |
-| Pântano | `⌠` `"` `,` | `#4B692F` | `#10140A` |
-| Neve | `·` `*` | `#EAF2FF` | `#2A3040` |
-| Cinzas | `·` `·` | `#696A6A` | `#141414` |
-| Estrada | `·` `═` `║` | `#8A6F30` | `#1A140C` |
-| Cidade | `■` / `♦` | `#FBF236` | `#3A2A08` |
-| Masmorra | `▼` | `#FF3B4F` | `#2A0A0E` |
-| Ruína | `π` | `#9A9488` | — |
-| Caverna | `Ω` | `#B08050` | — |
-| Mina | `¥` | `#C09060` | — |
-| Fortaleza | `Π` | `#C0B0A0` | — |
-| Santuário | `‡` / `†` | `#5FE4C0` | — |
-| Ponte | `═` / `║` | `#A0A0B0` | `#10224A` |
+| Deep water | `≈` | `#306082` | `#0A1830` |
+| Water | `≈` `~` | `#5B6EE1` | `#10224A` |
+| Shallows | `~` | `#639BFF` | `#16305A` |
+| Sand | `·` `·` `░` | `#D9A066` | `#2A2014` |
+| Grass | `"` `'` `,` `·` | `#6ABE30` | `#0F1A0C` |
+| Forest | `♣` `♠` `↑` | `#37946E` | `#0A1610` |
+| Hills | `∩` `ⁿ` | `#8F974A` | `#16180C` |
+| Mountain | `▲` | `#9BADB7` | `#1E2028` |
+| Swamp | `⌠` `"` `,` | `#4B692F` | `#10140A` |
+| Snow | `·` `*` | `#EAF2FF` | `#2A3040` |
+| Ashes | `·` `·` | `#696A6A` | `#141414` |
+| Road | `·` `═` `║` | `#8A6F30` | `#1A140C` |
+| Town | `■` / `♦` | `#FBF236` | `#3A2A08` |
+| Dungeon | `▼` | `#FF3B4F` | `#2A0A0E` |
+| Ruin | `π` | `#9A9488` | — |
+| Cave | `Ω` | `#B08050` | — |
+| Mine | `¥` | `#C09060` | — |
+| Fortress | `Π` | `#C0B0A0` | — |
+| Shrine | `‡` / `†` | `#5FE4C0` | — |
+| Bridge | `═` / `║` | `#A0A0B0` | `#10224A` |
 
-Os glifos só valem depois de passar pelo `GlyphsInFont` contra a fonte
-escolhida. Glifo fora da fonte renderiza como `?` e falha o teste.
+Glyphs only count after passing `GlyphsInFont` against the chosen font. A glyph
+outside the font renders as `?` and fails the test.
 
-## Luz e composição
+## Light and composition
 
-A paleta implementada em `engine/Ossuary.Core/Theme.cs` é a fonte da verdade. A UI usa tokens semânticos; cores de terreno recebem luz antes do remapeamento do preset. Cores de monstros são conteúdo e passam por `Theme.Mon`.
+The palette implemented in `engine/Ossuary.Core/Theme.cs` is the source of truth. The UI uses semantic tokens; terrain colors receive light before the preset remap. Monster colors are content and go through `Theme.Mon`.
 
-- Tocha escurece células com a distância; memória fora do FOV usa uma rampa azulada.
-- Dia/noite altera a iluminação do overworld.
-- Variantes e jitter usam hash de coordenadas no desenho, sem consumir o RNG da simulação.
-- Branco, Accent e negrito ficam reservados ao jogador, escadas, itens e perigo.
-- Cabeçalho compacto, sidebar com Nearby/equipamento/minimapa, log colorido e molduras duplas nos modais.
-- Inventário em duas colunas; título com logo e seed; morte com RIP e causa; vitória com o Amuleto.
+- Torchlight darkens cells with distance; memory outside the FOV uses a bluish ramp.
+- Day/night changes overworld lighting.
+- Variants and jitter use a coordinate hash at draw time, never consuming the simulation RNG.
+- White, Accent and bold are reserved for the player, stairs, items and danger.
+- Compact header, sidebar with Nearby/equipment/minimap, colored log and double frames on modals.
+- Two-column inventory; title with logo and seed; death with RIP and cause; victory with the Amulet.
 
-## Preferências
+## Preferences
 
-`F2` abre opções, `F3` alterna CRT e `F4` alterna Ossuary, Amber, Phosphor e CGA. O CRT combina scanlines, vinheta e glow no frontend, em três níveis. As preferências persistem em `localStorage` e chegam ao motor como dados de `DisplaySettings`.
+`F2` opens options, `F3` toggles the CRT and `F4` cycles Ossuary, Amber, Phosphor and CGA. The CRT combines scanlines, vignette and glow in the frontend, in three levels. Preferences persist in `localStorage` and reach the engine as `DisplaySettings` data.
 
-## Extensões futuras
+## Future extensions
 
-Animação ambiente de água e tileset quadrado são opções de evolução visual, sem alterar turnos. O runtime atual está completo sem essas extensões. Capturas do cliente atual estão em `docs/shots/tauri-*.jpg`.
+Ambient water animation and a square tileset are visual-evolution options that do not alter turns. The current runtime is complete without them. Captures of the current client are in `docs/shots/tauri-*.jpg`.
 
+## Light, ambience and HUD (redesign)
 
-## Luz, ambientação e HUD (redesenho)
+**Torchlight.** `Theme.Shade` warms glyphs and backgrounds near the player (a
+`#6A4220` pool on the background), with a soft falloff up to `TorchRadius`. Monsters and items tint
+their own background with the glyph color so they pop from the plan. The `@` sits in a
+warm pool.
 
-**Luz de tocha.** `Theme.Shade` aquece glifos e fundos perto do jogador (poça
-`#6A4220` no fundo), com queda suave até `TorchRadius`. Monstros e itens tingem o
-próprio fundo com a cor do glifo, para saltarem da planta. O `@` fica numa poça
-quente.
+**Depth mood.** `Theme.DepthTint` pushes stone and background toward a
+color per band of 3 levels: crypt (indigo), catacombs (moss), flooded vaults
+(blue), bone pits (amber) and the mouth of hell (crimson). The band name
+appears in the header. A secret door stays identical to the wall around it.
 
-**Humor por profundidade.** `Theme.DepthTint` empurra pedra e fundo para uma
-cor por faixa de 3 níveis: cripta (índigo), catacumbas (musgo), cofres alagados
-(azul), fossas de osso (âmbar) e boca do inferno (rubro). O nome da faixa
-aparece no cabeçalho. Porta secreta continua idêntica à parede ao redor.
+**Texture.** Floor/wall variants and tone jitter come only from `hash(x,y)`;
+unexplored rock has sparse grain, and maps smaller than the window are centered.
 
-**Textura.** Variantes de chão/parede e jitter de tom saem só de `hash(x,y)`;
-rocha inexplorada tem grão esparso, e mapas menores que a janela são centralizados.
+**HUD.** Header with the `♦ OSSUARY` seal, depth chip and clock with a day/dusk/night
+icon; rounded map frame with title and coordinates;
+solid half-block bars (HP/EN/XP); colored attributes; sections
+`NEARBY`, `IN VIEW` (live legend), `WORN`, `VITALS`, `MAP`; journal with a marker
+per type and fade by age; status bar with what is underfoot;
+shortcuts as keys; modal panels with a drop shadow and ornamented title.
 
-**HUD.** Cabeçalho com selo `♦ OSSUARY`, chip de profundidade e relógio com ícone
-de dia/dusk/noite; moldura arredondada do mapa com título e coordenadas;
-barras sólidas de meio bloco (HP/EN/XP); atributos coloridos; seções
-`NEARBY`, `IN VIEW` (legenda viva), `WORN`, `VITALS`, `MAP`; diário com marcador
-por tipo e esmaecimento por idade; barra de status com o que está sob os pés;
-atalhos como teclas; painéis modais com sombra projetada e título ornamentado.
+## Animated water and square tiles
 
-
-## Água animada e tiles quadrados
-
-- Água visível é marcada pelo motor (`Frame.Anim`) e o front-end alterna glifo/brilho entre frames (`desktop/src/anim.ts`); nada disso consome turno nem Rng.
-- Opção **Tiles** (menu): `DisplaySettings.Square` desenha cada célula do mapa em duas colunas 8×16, ficando quadrada na tela. O Core continua contando em células.
+- Visible water is marked by the engine (`Frame.Anim`) and the frontend alternates glyph/brightness between frames (`desktop/src/anim.ts`); none of this consumes a turn or Rng.
+- **Tiles** option (menu): `DisplaySettings.Square` draws each map cell in two 8×16 columns, making it square on screen. The Core still counts in cells.

@@ -26,8 +26,8 @@ Ossuary versions are a **single number** (Version 11, Version 12…), as in *Pro
 
 ### For developers
 - Save format moves to **version 11** (old saves do not load).
-- New `ArsenalTests` and `fx.test.ts`; documentation in [`docs/magia-e-itens.md`](docs/magia-e-itens.md) (Portuguese); [CONTRIBUTING.md](CONTRIBUTING.md) and a new README.
+- New `ArsenalTests` and `fx.test.ts`; documentation in [`docs/spells-and-items.md`](docs/spells-and-items.md); [CONTRIBUTING.md](CONTRIBUTING.md) and a new README.
 
 ## Before version 11
 
-Earlier history is in `git log` and in the finished-items log of [`docs/a-fazer.md`](docs/a-fazer.md): vertical towns, the living world (reputation, jobs, road events), bosses, factions, corruption and mutations, companions, achievements, the daily challenge, game modes, sound effects and animated water, among others.
+Earlier history is in `git log` and in the finished-items log of [`docs/todo.md`](docs/todo.md): vertical towns, the living world (reputation, jobs, road events), bosses, factions, corruption and mutations, companions, achievements, the daily challenge, game modes, sound effects and animated water, among others.

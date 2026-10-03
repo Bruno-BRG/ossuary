@@ -12,7 +12,7 @@ You climb down to steal what is left.
 ![Shell](https://img.shields.io/badge/shell-Tauri%202%20%2B%20Rust-e0802a?style=flat-square)
 ![Tests](https://img.shields.io/badge/tests-headless%20%2B%20vitest-5fa85f?style=flat-square)
 
-**English** · [Português (Brasil)](README.pt-BR.md) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [Docs (pt-BR)](docs/README.md)
+**English** · [Português (Brasil)](README.pt-BR.md) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [Docs](docs/README.md)
 
 <img src="docs/shots/tauri-dungeon.jpg" alt="Ossuary: a dungeon level in the phosphor terminal" width="760">
 
@@ -86,7 +86,7 @@ Arrow keys, numpad or `hjkl` move; `yubn` are diagonals. `i` inventory, `c` char
 - In the spell list, `←`/`→` switch school, a letter or `Enter` casts, `◆` marks spells lent by your gear.
 - When a monster blocks the road: `Enter`, `Space`, `K` or `F` fight; `R` or `<` flee.
 
-The complete list is in [docs/controles.md](docs/controles.md) (Portuguese).
+The complete list is in [docs/controls.md](docs/controls.md).
 
 ## How it is built
 
@@ -96,11 +96,11 @@ engine/Ossuary.Desktop   local host: input, modals, JSON protocol over stdin/std
 engine/Ossuary.Headless  tests, ASCII dumps, soak and balance bots
 desktop/                 Tauri window (Rust), TypeScript/Canvas terminal, packaging
 assets/fonts             the canonical bitmap font and its attribution
-docs/                    architecture, systems, spells and items, lore (Portuguese)
+docs/                    architecture, systems, spells and items, lore
 ```
 
 The simulation lives only in C#; the front end draws the grid the engine sends and plays animations the engine records.
-Start with [docs/arquitetura.md](docs/arquitetura.md) and [docs/magia-e-itens.md](docs/magia-e-itens.md).
+Start with [docs/architecture.md](docs/architecture.md) and [docs/spells-and-items.md](docs/spells-and-items.md).
 
 ## Testing
 

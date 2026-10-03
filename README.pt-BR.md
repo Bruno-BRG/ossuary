@@ -11,7 +11,7 @@ Você desce para roubar o que sobrou.
 ![Motor](https://img.shields.io/badge/motor-C%23%20.NET%2010-7c4dff?style=flat-square)
 ![Casca](https://img.shields.io/badge/casca-Tauri%202%20%2B%20Rust-e0802a?style=flat-square)
 
-[English](README.md) · **Português (Brasil)** · [Como contribuir](CONTRIBUTING.pt-BR.md) · [Changelog](CHANGELOG.pt-BR.md) · [Docs](docs/README.md)
+[English](README.md) · **Português (Brasil)** · [Como contribuir](CONTRIBUTING.pt-BR.md) · [Changelog](CHANGELOG.pt-BR.md) · [Docs (EN)](docs/README.md)
 
 <img src="docs/shots/tauri-dungeon.jpg" alt="Ossuary: um andar da masmorra no terminal de fósforo" width="760">
 
@@ -84,7 +84,7 @@ Setas, teclado numérico ou `hjkl` movem; `yubn` são as diagonais. `i` inventá
 - Nas cidades, esbarre numa pessoa para conversar, e num balcão, quadro de avisos ou altar para negociar.
 - Na lista de magias, `←`/`→` trocam a escola, uma letra ou `Enter` conjura, `◆` marca magias emprestadas pelo equipamento.
 
-A lista completa está em [docs/controles.md](docs/controles.md).
+A lista completa está em [docs/controls.md](docs/controls.md).
 
 ## Como é feito
 
@@ -94,11 +94,11 @@ engine/Ossuary.Desktop   host local: entrada, modais, protocolo JSON por stdin/s
 engine/Ossuary.Headless  testes, dumps ASCII, bots de soak e balanceamento
 desktop/                 janela Tauri (Rust), terminal TypeScript/Canvas, empacotamento
 assets/fonts             a fonte bitmap canônica e sua atribuição
-docs/                    arquitetura, sistemas, magias e itens, lore
+docs/                    arquitetura, sistemas, magias e itens, lore (em inglês)
 ```
 
 A simulação vive só em C#; o frontend desenha a grade que o motor manda e toca as animações que o motor grava.
-Comece por [docs/arquitetura.md](docs/arquitetura.md) e [docs/magia-e-itens.md](docs/magia-e-itens.md).
+Comece por [docs/architecture.md](docs/architecture.md) e [docs/spells-and-items.md](docs/spells-and-items.md).
 
 ## Testes
 

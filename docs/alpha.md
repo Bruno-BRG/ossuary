@@ -1,40 +1,38 @@
-# Alpha v0.1 — Ossuary
+# Status — Ossuary, Version 11
 
-Aplicativo desktop Tauri 2 + Rust, terminal TypeScript/Canvas bitmap e motor
-C#/.NET 10 autocontido. Os fontes definitivos estão em `engine/`, `desktop/`
-e `assets/`; o pipeline e os testes usam essa estrutura.
+A Tauri 2 + Rust desktop app, a TypeScript/Canvas bitmap terminal and a self-contained C#/.NET 10 engine. The definitive sources are in
+`engine/`, `desktop/` and `assets/`; the pipeline and the tests use that structure.
 
-## Implementado
+## Implemented
 
-- Geração de dungeon: 5 branches, aproximadamente 54 níveis e 6 estilos.
-- Combate, FOV, pathfinding, monstros, fome, status, itens e equipamento.
-- Overworld, regiões, estradas, relógio, viagens, encontros e cidades verticais (andares, porões, serviços, gente).
-- Lojas, economia, seleção de compra/venda, papéis e progressão.
-- Missão, amuleto final, morte permanente e vitória.
-- HUD, inventário, personagem, histórico, descobertas, ajuda, mira e opções.
-- Título com logo em blocos, semente opcional, 4 temas e CRT ajustável.
-- Fonte unscii-16 8×16, escala inteira em pixels físicos e preferências persistidas.
-- Empacotamento Windows x64 com motor embutido no instalador NSIS.
+- Dungeon generation: 5 branches plus the optional Annex, about 57 levels and 8 styles.
+- Combat, FOV, pathfinding, monsters, hunger, status effects, items and equipment.
+- The overworld, regions, roads, clock, travel, encounters and vertical towns (floors, cellars, services, people).
+- Shops, economy, buy/sell selection, roles and progression.
+- The quest, the final Amulet, permadeath and victory.
+- HUD, inventory, character, history, discoveries, help, targeting and options.
+- A title with a block logo, an optional seed, 4 themes and an adjustable CRT.
+- The unscii-16 8×16 font, integer scaling in physical pixels and persisted preferences.
+- Windows x64 packaging with the engine inside the NSIS installer.
+- **Magic** (Version 11): 322 spells in 8 schools, 55 spellbooks, animated spells, magic items imbued with fitting spells, 43 uniques and 4 sets, wands/scrolls/potions that cast
+  real spells, and a spell list with school tabs. See [`spells-and-items.md`](spells-and-items.md).
 
-## Validação
+## Validation
 
-73 testes headless (simulação + protocolo desktop) PASS, 8 testes
-frontend/IPC PASS e 2 testes Rust. O protocolo é exercitado com o
-executável autocontido em uma pasta vazia. Soak: 50 sementes × 500 turnos.
-Capturas em `docs/shots/`.
+The headless suite (simulation, victory, features, the spells/items/animations suite and the desktop protocol) passes, and the
+front-end tests (terminal, audio, water, animations) pass. The packaged-IPC test only runs on Windows. The protocol is exercised with the
+self-contained executable in an empty folder. Soak: 50 seeds × 500 turns. Screenshots are in `docs/shots/`.
 
-Executar: `desktop.ps1 dev`. Distribuir: `desktop.ps1 build`.
-Ver [build-teste.md](build-teste.md).
+Run: `desktop.ps1 dev`. Ship: `desktop.ps1 build`. See [build-and-test.md](build-and-test.md).
 
-## Estado depois da rodada de acompanhamento
+## State after the follow-up rounds
 
-Todo o backlog de `a-fazer.md` foi implementado nesta rodada (tecla segurada, auto-explore, morgue/histórico/cemitério, modos e desafios, diário, conquistas, armadilhas, furtividade,
-corrupção e mutações, companheiros, crafting, artefatos e conjuntos, magias, deuses, monstros e chefes por branch, facções, reputação/contratos/eventos, cofres e estilos novos, The Annex,
-Trained, som, água animada e tiles quadrados). Salvamento: **versão 10**. Suíte headless: 79 testes de simulação + 5 de vitória + 28 de funcionalidades + fluxo desktop; vitest: terminal, áudio e água
-(o teste de IPC empacotado só roda no Windows). Itens que ficaram como ideias futuras estão anotados dentro de cada entrada em *Feito* de `a-fazer.md`.
+The whole backlog of [`todo.md`](todo.md) was implemented (held-key walking, auto-explore, morgue/history/graveyard, modes and challenges, journal, achievements, traps, stealth,
+corruption and mutations, companions, crafting, artifacts and sets, spells, gods, branch monsters and bosses, factions, reputation/jobs/events, vaults and new level styles, the Annex,
+Trained mode, sound, animated water and square tiles), followed by the Version 11 magic round. Save format: **version 11**.
+Ideas that remain for the future are listed in [`todo.md`](todo.md).
 
-## Evolução de gameplay
+## Gameplay evolution
 
-Sistema RPG completo (raças, classes, magia, perks, itens, deuses, superfícies; ver rpg.md e balance.md). Save/load completo, novos conteúdos, animação de água e tiles de mapa
-quadrados são evoluções futuras. `F5` mostra a semente inicial; não restaura
-progresso de uma run. Estas funcionalidades não são requisitos do runtime.
+The full RPG system (races, classes, magic, perks, items, gods, surfaces; see rpg.md and balance.md) is in place. `F5` shows the starting seed.
+Further content is tracked in [`todo.md`](todo.md); none of it is a runtime requirement.

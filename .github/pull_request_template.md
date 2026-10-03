@@ -23,4 +23,4 @@
 - [ ] If this changes what a seed produces, I bumped `SaveData.Version` and say so here
 - [ ] A new JSON protocol field is updated on all three sides (if any)
 - [ ] New text has a Portuguese translation (`Loc.cs` / `Loc.Spells.cs`)
-- [ ] Updated `docs/` and `docs/a-fazer.md`
+- [ ] Updated `docs/` and `docs/todo.md`

@@ -1,67 +1,67 @@
 # Renderer — Ossuary
 
-O renderer em `desktop/src/renderer.ts` consome frames do motor e desenha
-uma grade bitmap, com o filtro CRT em WebGL2 (e Canvas 2D como reserva). Ele não conhece mapa, combate ou regras do jogo.
+The renderer in `desktop/src/renderer.ts` consumes engine frames and draws
+a bitmap grid, with the CRT filter in WebGL2 (and Canvas 2D as a fallback). It knows nothing about the map, combat or game rules.
 
-## Fonte e células
+## Font and cells
 
-Fonte canônica: `assets/fonts/unscii-16.hex`, unscii-16 de viznut, domínio
-público. `desktop/src/font.ts` lê as linhas hex, retendo glifos BMP 8×16.
-Cada glifo tem 16 bytes; o bit mais significativo representa a coluna esquerda.
-O glifo `?` é o fallback. Nenhuma fonte dinâmica desenha o terminal.
+Canonical font: `assets/fonts/unscii-16.hex`, viznut's unscii-16, public
+domain. `desktop/src/font.ts` reads the hex lines, keeping BMP 8×16 glyphs.
+Each glyph is 16 bytes; the most significant bit is the left column.
+The `?` glyph is the fallback. No dynamic font draws the terminal.
 
-A grade tem 84–240 colunas e 26–120 linhas. `layout` escolhe escala inteira
-1×, 2× ou 3× em pixels físicos e centraliza a tela com letterbox. O DPI é
-incluído no cálculo; o Canvas mantém suavização desativada. Uma escala fixa
-maior que a disponível é reduzida para manter a grade jogável.
+The grid is 84–240 columns by 26–120 rows. `layout` picks an integer scale
+of 1×, 2× or 3× in physical pixels and centers the screen with letterboxing. DPI is
+part of the calculation; the Canvas keeps smoothing off. A fixed scale
+larger than what is available is reduced to keep the grid playable.
 
 ## Frame
 
-`Session.Draw` percorre `TextBuilder` em ordem linha/coluna, exportando
-codepoint, cor de frente, cor de fundo e negrito. Também envia tokens de cor,
-dimensões, modo, turno, painel, opções e parâmetros do CRT.
+`Session.Draw` walks `TextBuilder` in row/column order, exporting
+codepoint, foreground color, background color and bold. It also sends color tokens,
+dimensions, mode, turn, panel, options and CRT parameters.
 
-O renderer rasteriza a grade em resolução nativa 8×16 por célula em duas
-texturas: a imagem base e uma camada de emissão com os glifos brilhantes ou
-em negrito. O look CRT é um fragment shader (`desktop/src/crt.ts`) sobre elas:
+The renderer rasterizes the grid at native 8×16 resolution per cell into two
+textures: the base image and an emission layer with the bright or bold glyphs.
+The CRT look is a fragment shader (`desktop/src/crt.ts`) over them:
 
-- curvatura de barril suave e vidro com cantos arredondados;
-- *sharp bilinear*: texels nítidos, só a costura de 1 px é filtrada;
-- scanlines (a parte baixa de cada linha de fonte escurece; em 1× alterna
-  linhas de tela, bem leve) e máscara de fósforo RGB por pixel;
-- bloom por mipmap só dos emissores e halação leve da imagem inteira;
-- vinheta, flicker e zumbido muito sutis, e grão (hash inteiro, sem `sin`).
+- soft barrel curvature and glass with rounded corners;
+- *sharp bilinear*: crisp texels, only the 1 px seam is filtered;
+- scanlines (the lower part of each font row darkens; at 1× it alternates
+  screen rows, very light) and a per-pixel RGB phosphor mask;
+- mipmap bloom of the emitters only and a light halation of the whole image;
+- very subtle vignette, flicker and hum, and grain (integer hash, no `sin`).
 
-Intensidade de scanline, vinheta e glow continua vindo do Core
-(`DisplaySettings.CrtParams`); curvatura, máscara e flicker derivam do nível
-(`crtParams`). O brilho vaza como aura CSS ao redor do vidro. Sem WebGL2 o
-renderer cai para Canvas 2D com blur + overlay CSS. A animação roda a ~30 fps
-só com CRT ligado e é desativada com `prefers-reduced-motion`.
+Scanline, vignette and glow intensity still come from the Core
+(`DisplaySettings.CrtParams`); curvature, mask and flicker derive from the level
+(`crtParams`). The glow leaks as a CSS aura around the glass. Without WebGL2 the
+renderer falls back to Canvas 2D with blur + a CSS overlay. The animation runs at ~30 fps
+only with the CRT on and is disabled with `prefers-reduced-motion`.
 
-**Animações de magia** (`fx.ts`): o quadro pode trazer `fx` (um array por passo de [célula, glifo, fg, bg]) e `fxMs`; o front-end toca por cima do quadro
-pronto, ~45 ms por passo, sem pedir turno ao motor, com a mesma regra de `prefers-reduced-motion` da água. Uma tecla nova ou um novo quadro corta a
-animação. Ver [`magia-e-itens.md`](magia-e-itens.md#animações).
+**Spell animations** (`fx.ts`): a frame may carry `fx` (one array per step of [cell, glyph, fg, bg]) and `fxMs`; the frontend plays it over the finished
+frame, ~45 ms per step, without asking the engine for a turn, under the same `prefers-reduced-motion` rule as water. A new key or a new frame cuts the
+animation short. See [`spells-and-items.md`](spells-and-items.md#animations).
 
-O título (`title.ts`) é cena só do cliente: céu, ruínas, brasas e logo com
-gradiente; as brasas se movem por tick local e nunca consultam o motor.
+The title (`title.ts`) is a client-only scene: sky, ruins, embers and a gradient
+logo; the embers move on a local tick and never query the engine.
 
-## Paleta, luz e preferências
+## Palette, light and preferences
 
-Cores vêm exclusivamente de `engine/Ossuary.Core/Theme.cs`. A luz de tocha,
-memória, dia/noite e remap dos quatro presets são aplicados pela composição
-Core antes do frame. O CSS recebe tokens, sem uma paleta paralela.
+Colors come exclusively from `engine/Ossuary.Core/Theme.cs`. Torch light,
+memory, day/night and the remap of the four presets are applied by the Core
+composition before the frame. The CSS receives tokens, with no parallel palette.
 
-`DisplaySettings.Current` conserva tema, CRT e escala durante uma run e nos
-reinícios. O frontend persiste essas opções em localStorage. `F2` abre opções,
-`F3` alterna CRT e `F4` alterna tema; `F11` controla a janela em tela cheia.
+`DisplaySettings.Current` keeps theme, CRT and scale during a run and across
+restarts. The frontend persists these options in localStorage. `F2` opens options,
+`F3` toggles the CRT and `F4` toggles the theme; `F11` controls fullscreen.
 
-## Como verificar
+## How to verify
 
-- `headless.ps1 test`: GlyphSet, fonte real, paleta, composição de todos os painéis.
-- `headless.ps1 dump panels`: layout e conteúdo em ASCII.
-- `npm test` em `desktop/`: fonte real, dimensões/DPI, sementes e IPC empacotado.
-- `desktop.ps1 web`: inspeção visual com o mesmo motor da distribuição.
-- `check.ps1`: validação completa.
+- `headless.ps1 test`: GlyphSet, real font, palette, composition of every panel.
+- `headless.ps1 dump panels`: layout and content as ASCII.
+- `npm test` in `desktop/`: real font, dimensions/DPI, seeds and packaged IPC.
+- `desktop.ps1 web`: visual inspection with the same engine as the distribution.
+- `check.ps1`: full validation.
 
-Capturas reais ficam em `docs/shots/tauri-title.jpg`, `tauri-dungeon.jpg` e
-`tauri-options.jpg`. A direção de arte está em [visual.md](visual.md).
+Real captures live in `docs/shots/tauri-title.jpg`, `tauri-dungeon.jpg` and
+`tauri-options.jpg`. The art direction is in [visual.md](visual.md).
