@@ -11,7 +11,7 @@ o que o jogo é, como cada sistema funciona e onde mora no código.
 - [`arquitetura.md`](arquitetura.md) — camadas, classes, regras de dependência
 - [`sistemas.md`](sistemas.md) — dungeon, overworld, cidades, combate, itens, FOV…
 - [`rpg.md`](rpg.md) — pesquisa, catálogo e roteiro do sistema RPG (raças, classes, magia, itens)
-- [`magia-e-itens.md`](magia-e-itens.md) — 262 magias, 39 livros, itens mágicos e únicos, e as **animações** das magias
+- [`magia-e-itens.md`](magia-e-itens.md) — 322 magias, 55 livros, itens mágicos e únicos, e as **animações** das magias
 - [`balance.md`](balance.md) — bot de balanceamento, linha de base e botões de ajuste
 - [`visual.md`](visual.md) — direção de arte "Fósforo & Osso": paleta, fonte, glifos e layout
 - [`renderer.md`](renderer.md) — fonte bitmap, Canvas, CRT, temas, FOV, como verificar

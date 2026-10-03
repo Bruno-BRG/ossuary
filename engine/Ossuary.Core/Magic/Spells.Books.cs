@@ -71,6 +71,24 @@ namespace Ossuary.Core.Magic
             Bk("a manual of the knife", 3, "shadow-blade", "vampiric-edge", "shadow-clone", "umbral-grasp", "veil-of-darkness", "knife-flurry", "fade", "dread-gaze", "umbral-shroud", "night-whip"),
             Bk("the assassin's testament", 4, "assassinate", "black-tentacles", "void-rift", "vanish", "coup-de-grace", "soul-dagger", "quicken-shadow"),
             Bk("the book of the long night", 5, "eclipse", "shadow-walk", "dominate", "vanish", "assassinate"),
+
+            // ---- the second round
+            Bk("a folio of flames", 3, "flame-arrow", "thunderstrike", "searing-orb", "ice-comet", "arc-flash"),
+            Bk("the pyrelord's treatise", 5, "magma-wave", "static-field", "arcane-barrage", "rimeblast", "sun-lance"),
+            Bk("a menagerie of the lesser planes", 3, "summon-imp", "arcane-hound", "storm-sprite", "pull-through"),
+            Bk("the stone and the gate", 5, "stone-sentinel", "gargoyle-guard", "summon-earth-elemental", "stone-skin"),
+            Bk("a ward-smith's ledger", 3, "lightfoot", "keen-edge", "aegis", "arcane-survey"),
+            Bk("the giant's manual", 5, "iron-body", "titans-might", "aegis", "bulls-strength", "enlarge"),
+            Bk("a mummer's folio", 3, "phantom-guard", "lullaby", "bewilder", "mind-fog"),
+            Bk("the dreamless book", 5, "deep-slumber", "spectral-horror", "mind-fog", "sleep", "hypnotic-pattern"),
+            Bk("the bonewright's notes", 3, "death-grip", "soul-bolt", "grave-hands", "miasma", "blight"),
+            Bk("the lich's catechism", 5, "bone-cage", "lich-form", "wail-of-the-damned", "blight"),
+            Bk("a lay-brother's psalms", 3, "aura-of-courage", "holy-weapon", "mercy-touch", "divine-shield", "cleansing-nova"),
+            Bk("the canticle of dawn", 5, "sacred-ground", "benediction", "wrath-of-heaven", "mercy-touch"),
+            Bk("a forester's lore", 3, "wasp-swarm", "quicksand", "hail-of-thorns", "sun-bolt"),
+            Bk("the tide and the stone", 4, "stoneform", "regrowth", "tidal-surge", "frostwind"),
+            Bk("a footpad's tricks", 3, "garrote", "sleeping-dust", "snare", "nightshade", "shadow-leap"),
+            Bk("the night-blade's creed", 4, "vampiric-veil", "chain-of-shadows", "ambush", "assassinate", "vanish"),
         };
     }
 }

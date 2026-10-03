@@ -44,6 +44,7 @@ namespace Ossuary.Tests
             Test("items: every kind is well-formed and magic can be found", ItemCatalogue);
             Test("uniques: placed, named, and their spells work", UniqueItems);
             Test("wands and scrolls cast real spells", WandsAndScrolls);
+            Test("magic items carry a spell that fits what they are", ImbuedItems);
             Console.WriteLine($"==== arsenal: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} arsenal asserts failed");
         }
@@ -548,6 +549,90 @@ namespace Ossuary.Tests
             s.Key("PageDown"); s.Key("End"); s.Draw();
             s.Key("Escape");
             Assert(s.Game.UiState.Active == Panel.None, "Escape closes the list");
+        }
+
+        static void ImbuedItems()
+        {
+            // Every kind of item has a real pool of spells to draw from, and the pool makes sense.
+            var need = new Dictionary<ItemKind, int> { { ItemKind.Weapon, 30 }, { ItemKind.Armor, 15 }, { ItemKind.Shield, 15 }, { ItemKind.Helm, 8 }, { ItemKind.Gloves, 6 }, { ItemKind.Boots, 6 }, { ItemKind.Cloak, 6 }, { ItemKind.Ring, 12 }, { ItemKind.Amulet, 15 } };
+            foreach (var kv in need) Assert(SpellFit.Pool(kv.Key, 5).Count >= kv.Value, kv.Key + " has only " + SpellFit.Pool(kv.Key, 5).Count + " spells to carry");
+            Assert(SpellFit.Fits(Spells.Find("fireball"), ItemKind.Weapon) && SpellFit.Fits(Spells.Find("frostbite"), ItemKind.Weapon), "a sword may carry an attack");
+            Assert(!SpellFit.Fits(Spells.Find("blink"), ItemKind.Weapon) && !SpellFit.Fits(Spells.Find("cure-wounds"), ItemKind.Weapon), "but not a leap or a prayer");
+            Assert(SpellFit.Fits(Spells.Find("blink"), ItemKind.Boots) && SpellFit.Fits(Spells.Find("haste"), ItemKind.Boots) && !SpellFit.Fits(Spells.Find("fireball"), ItemKind.Boots), "boots carry movement");
+            Assert(SpellFit.Fits(Spells.Find("stone-skin"), ItemKind.Armor) && SpellFit.Fits(Spells.Find("holy-aura"), ItemKind.Shield) && !SpellFit.Fits(Spells.Find("magic-missile"), ItemKind.Armor), "armour carries wards");
+            Assert(SpellFit.Fits(Spells.Find("detect-monsters"), ItemKind.Helm) && SpellFit.Fits(Spells.Find("fade"), ItemKind.Cloak) && SpellFit.Fits(Spells.Find("regeneration"), ItemKind.Amulet), "helms sense, cloaks hide, amulets mend");
+            foreach (var sp in Spells.All)
+            {
+                bool somewhere = false;
+                foreach (var k in need.Keys) if (SpellFit.Fits(sp, k)) somewhere = true;
+                if (!somewhere && SpellFit.Damaging(sp)) Assert(false, sp.Id + " is an attack no kind of item can carry");
+            }
+
+            // Found items: gear and blank bases carry spells that fit them and that their depth allows.
+            var seenKinds = new HashSet<ItemKind>(); int imbued = 0, blanks = 0;
+            for (int i = 0; i < 6000; i++)
+            {
+                int depth = i % 2 == 0 ? 1 : 13;
+                var it = LevelBuilder.RollLoot(new Rng((ulong)(50000 + i)), depth);
+                if (it == null) continue;
+                bool blank = (it.Def.Kind == ItemKind.Ring || it.Def.Kind == ItemKind.Amulet) && Catalogue.IsBlank(it.Def.Name);
+                if (blank) { blanks++; Assert(it.Imbue != null, "a blank band is never found empty"); }
+                if (it.Imbue == null) continue;
+                imbued++; seenKinds.Add(it.Def.Kind);
+                var sp = Spells.Find(it.Imbue);
+                Assert(sp != null, "an item carries a spell that does not exist: " + it.Imbue);
+                Assert(SpellFit.Fits(sp, it.Def.Kind), it.Def.Name + " carries " + sp.Id + ", which does not fit it");
+                Assert(sp.Level <= 1 + depth / 3 + 2, "a level " + sp.Level + " spell turned up at depth " + depth);
+                if (depth == 1) Assert(sp.Level <= 2, "a deep spell on the first level: " + sp.Id);
+                Assert(it.Name.Contains(sp.Name) || !it.Identified, "an identified item names its spell");
+            }
+            Assert(imbued >= 100 && blanks >= 5, "imbued items are common enough: " + imbued + ", blanks " + blanks);
+            foreach (var k in new[] { ItemKind.Weapon, ItemKind.Armor, ItemKind.Helm, ItemKind.Boots, ItemKind.Ring, ItemKind.Amulet })
+                Assert(seenKinds.Contains(k), "no imbued " + k + " ever turned up");
+
+            // Naming, identifying and lending.
+            var g = Archmage(9100); var p = g.Player;
+            p.Spells.Clear();
+            var ring = new Item(Catalogue.Rings.First("silver band"), g.Rng, g.NextUid()) { Imbue = "haste", Rarity = Rarity.Magic };
+            Assert(ring.Name == "enchanted silver band", "unknown: " + ring.Name);
+            p.Inventory.Add(ring);
+            Assert(!g.Knows("haste"), "not before it is worn");
+            p.Rings[0] = ring; p.Inventory.Remove(ring); g.RevealGear(ring);
+            Assert(ring.Name == "silver band of Haste" && g.Knows("haste"), "worn: " + ring.Name);
+            Assert(g.CastableSpells().Contains("haste") && !p.Spells.Contains("haste"), "lent, not learned");
+            var blade = new Item(Catalogue.Weapons.First("long sword"), g.Rng, g.NextUid()) { Imbue = "frostbite", Rarity = Rarity.Magic, Identified = true };
+            Assert(blade.Name == "long sword of Frostbite", blade.Name);
+            Assert(blade.TradeValue > Catalogue.Weapons.First("long sword").Cost, "an imbued blade is worth more");
+
+            // A carried attack flares by itself in the fight; a carried ward stirs when you are struck.
+            var gw = Archmage(9101); var pw = gw.Player;
+            pw.Wielded = new Item(Catalogue.Weapons.First("long sword"), gw.Rng, gw.NextUid()) { Imbue = "frostbite", Identified = true, Rarity = Rarity.Magic };
+            pw.RefreshGear();
+            var dummy = Put(gw, "ogre", pw.X + 1, pw.Y);
+            bool flared = false;
+            for (int i = 0; i < 400 && !flared; i++)
+            {
+                dummy.HP = dummy.MaxHP = 4000; dummy.SlowTurns = 0; dummy.Speed = 0;
+                int before = gw.Log.Count;
+                gw.Attack(dummy);
+                for (int m = before; m < gw.Log.Count; m++) if (gw.Log[m].Text.Contains("flares: Frostbite")) flared = true;
+            }
+            Assert(flared, "a sword of Frostbite should flare now and then");
+            Assert(dummy.SlowTurns > 0 || flared, "and the frost takes");
+
+            var ga = Archmage(9102); var pa = ga.Player;
+            pa.WornArmor = new Item(Catalogue.Armor.First("ring mail"), ga.Rng, ga.NextUid()) { Imbue = "mage-armor", Identified = true, Rarity = Rarity.Magic };
+            pa.RefreshGear();
+            var brute = Put(ga, "ogre", pa.X + 1, pa.Y, 4000, true);
+            bool stirred = false;
+            for (int i = 0; i < 500 && !stirred; i++)
+            {
+                pa.HP = pa.MaxHP;
+                int before = ga.Log.Count;
+                new Commands(ga).Execute(".");
+                for (int m = before; m < ga.Log.Count; m++) if (ga.Log[m].Text.Contains("stirs: Mage Armor")) stirred = true;
+            }
+            Assert(stirred && pa.BuffTurns("mage-armor") > 0, "a mail shirt of Mage Armor answers a blow with the ward");
         }
 
         static void SpellTranslations()

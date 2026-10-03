@@ -99,11 +99,17 @@ namespace Ossuary.Core
                 var art = Items.Artifacts.Find(it.ArtifactId);
                 if (art != null) Say(art.Lore, MessageKind.Narrative);
             }
+            if (it.Imbue != null)
+            {
+                var sp = Magic.Spells.Find(it.Imbue);
+                if (sp != null) Say($"It carries the spell {sp.Name}: you can cast it while you hold it" + (sp.Target == Magic.SpellTarget.Self && it.Def.Kind != ItemKind.Weapon ? ", and it stirs by itself when you are struck." : it.Def.Kind == ItemKind.Weapon ? ", and it flares by itself when you strike." : "."), MessageKind.Good);
+            }
         }
 
         /// <summary>Lifesteal and the elemental die on the wielded weapon, after a melee hit.</summary>
         void MeleeProcs(Monster target, int dealt, bool alive)
         {
+            ImbueStrike(target);
             // Everything on you counts: the weapon, spells, rings, the amulet, a mutation.
             var m = Player.Gear;
             if (m.LifeSteal == 0 && m.ExtraSides == 0 && Player.BuffTurns("flame") == 0 && !(Player.God == "veyra" && Player.GodTier >= 2)) return;
