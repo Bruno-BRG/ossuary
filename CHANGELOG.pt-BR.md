@@ -5,6 +5,21 @@
 As versões do Ossuary são numeradas só com **um número** (Versão 11, Versão 12…), como no *Project Zomboid*. Nos manifestos (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) e no nome do instalador a versão aparece como `0.N.0`. O **salvamento** (`SaveData.Version`) usa o mesmo número: mudou regra, sobe o número, saves antigos deixam de carregar.
 
+## Versão 13 — Som
+
+### Música
+- **Dezoito trilhas que acompanham o momento.** O motor agora informa o que está acontecendo (`Frame.scene`: um chefe à vista, um inimigo à vista, dentro de uma taverna ou templo, uma loja, noite ou dia, ou o ramo da masmorra) e a música muda com uma transição suave. Elas compartilham o motivo de cinco notas e as mesmas vozes: o tema do título "Phosphor & Bone", a introdução da história, a estrada de dia e de noite, as cidades de dia e de noite, a taverna, a loja, o templo, uma trilha para cada ramo de masmorra (as Masmorras, as Minas, as Warrens, as Abóbadas Afundadas, a Torre de Cinzas, o Anexo), combate, o Gaoler e o Guardião de Pedra.
+- Um herói morto ou uma partida vencida não toca nada.
+
+### Efeitos sonoros
+- **Quinze stingers** gerados por código a partir de pequenos modelos de instrumentos (sinos, piano, harpa, violoncelo, órgão, tímpano, vento e raspões): subir de nível, missão aceita, atualizada e concluída, item raro, perigo, armadilha, descanso, portão, morte, vitória, os três finais e um novo ciclo. Subir de nível, missão, morte, escadas, descansar numa estalagem e emergir com o Amuleto tocam um deles.
+- Sinais novos para escadas, portas destrancadas, pegar itens e descansar. Sons de menu para mover, confirmar e cancelar.
+- Os volumes geral, de música e de efeitos agora funcionam.
+- `npm run stingers` (em `desktop/`) grava os stingers como arquivos WAV.
+
+### Salvamento
+- O formato do save não mudou (continua 12): saves da Versão 12 continuam carregando.
+
 ## Versão 12 — Um mundo que lembra
 
 ### Pessoas
