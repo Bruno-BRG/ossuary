@@ -5,7 +5,7 @@ import { TerminalRenderer } from './renderer';
 import { overlayMenu, titleFrame } from './title';
 import { bodyOf, introFrame, introHold, introSpeed, pageLength } from './intro';
 import { t, type Lang } from './i18n';
-import { playCues, playUi, setMusic, trackFor, uiSoundFor, unlockAudio } from './audio';
+import { playCues, playStinger, playUi, setMusic, trackFor, uiSoundFor, unlockAudio } from './audio';
 import { shimmer } from './anim';
 import { createFxPlayer } from './fx';
 
@@ -54,6 +54,8 @@ function size() { return layout(Math.floor(innerWidth * devicePixelRatio), Math.
 // While the title is up, the engine's menu panels are drawn over the title scene.
 function menuOnTitle() { return onTitle && (frame.panel === 'Settings' || frame.panel === 'Controls'); }
 
+let wonHeard = false;
+
 function paint(next: Frame) {
   const wasIntro = introActive;
   if (next !== frame) fxPlayer.stop();
@@ -64,7 +66,10 @@ function paint(next: Frame) {
   const scene = introActive ? introFrame(frame, frame.intro!, introPage, introTyped, titleTick, frame.lang, introAge) : onTitle ? titleFrame(frame, titleTick) : frame;
   renderer.draw(menuOnTitle() ? overlayMenu(scene, frame) : scene, size(), devicePixelRatio);
   if (!onTitle && !introActive) playCues(frame.sounds, frame.master, frame.effects);
-  setMusic(trackFor({ onTitle, intro: introActive, mode: frame.mode }), frame.master, frame.music);
+  // Surfacing with the Amulet is heard once, however many times the frame is repainted.
+  if (frame.mode === 'Won' && !onTitle && !wonHeard) { wonHeard = true; playStinger('victory', frame.master, frame.effects); }
+  else if (frame.mode !== 'Won') wonHeard = false;
+  setMusic(trackFor({ onTitle, intro: introActive, mode: frame.mode, scene: frame.scene }), frame.master, frame.music);
   if (!onTitle && !introActive && frame !== fxFrame) {
     fxFrame = frame;
     if (frame.fx?.length && !calmMotion()) fxPlayer.start(frame);

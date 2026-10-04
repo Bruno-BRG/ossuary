@@ -8,6 +8,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
+    "stingers": "node scripts/render-stingers.mjs",
     "tauri": "tauri",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build"

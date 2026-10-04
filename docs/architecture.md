@@ -62,9 +62,9 @@ Everything is synthesised in `desktop/src/audio.ts` with the Web Audio API: no a
 square/triangle bleeps with a little noise. Menu blips (`click`, `move`, `confirm`, `cancel`) are the front end's own: they play when a key is pressed inside a panel.
 
 Music is a score as data (`tracks`: bars of notes in beats and MIDI numbers) played by a look-ahead step sequencer with five voices (FM bell, 12.5% pulse, triangle bass, bowed
-saw "cello", detuned-saw pad) plus noise ticks and thuds, all through one shared reverb. `trackFor` picks the track from what is on screen: **title** ("Phosphor & Bone", 24 bars of 6/4
-at 66 BPM in D minor, which also plays during the intro), **dungeon**, **road** (overworld, D Dorian) and **town** (F major); a dead hero hears nothing. Tracks fade in and out. The scores are
-deterministic and the sequencer never touches the simulation RNG. Master × music and master × effects volumes come from the frame. Audio only unlocks after a key press or click (browser policy).
+saw "cello", detuned-saw pad) plus noise ticks and thuds, all through one shared reverb. `trackFor` picks the track from `Frame.scene` (see `Game.MusicScene`: boss in view, hostile in view, inside a tavern or temple, a shop panel, night or day, or the branch) and falls back to the mode. Eighteen tracks share the five-note motif: **title** ("Phosphor & Bone", 24 bars of 6/4 at 66 BPM in D minor), **intro**, **road** and **road-night**, **town**, **town-night**, **tavern**, **shop**, **temple**, **dungeon**, **mines**, **warrens**, **sunken**, **spire**, **annex**, **combat**, **boss** (the Gaoler, in two halves) and **boss-warden** (a slam every fourth bar). A dead hero or a won run hears nothing. Tracks fade in and out, the scores are deterministic and the sequencer never touches the simulation RNG.
+
+**Stingers** (`desktop/src/stingers.ts`) are short musical signs rendered sample by sample from small instrument models (inharmonic bells, a stretched-partial piano, Karplus-Strong plucks, a bowed cello, a breathing organ, timpani, wind and scrape noise), reverberated and normalised, deterministic and file-free. Fifteen exist (level up, quest accepted/updated/complete, item found, danger, trap, rest, gate, death, victory, the three endings and a new cycle). The cues `levelup`, `quest`, `death`, `stairs` and `rest` play a stinger instead of a bleep, and surfacing with the Amulet plays the victory. `npm run stingers` (in `desktop/`) writes them as WAV files to `assets/audio/stingers/` (git-ignored).
 
 ## Animation
 

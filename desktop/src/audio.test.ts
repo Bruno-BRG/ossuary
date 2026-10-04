@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { cuesToPlay, level, musicLevel, patterns, trackFor, tracks, uiPatterns, uiSoundFor, type TrackName } from './audio';
+import { cueStinger, cuesToPlay, level, musicLevel, patterns, stingerLevel, trackFor, tracks, uiPatterns, uiSoundFor, type TrackName } from './audio';
+import { stingerInfo } from './stingers';
 
 describe('sound cues', () => {
   it('knows every cue the engine can name', () => {
@@ -22,6 +23,20 @@ describe('sound cues', () => {
     expect(level(10, 0)).toBe(0);
     expect(level(99, 99)).toBe(level(10, 10));
     expect(level(5, 5)).toBeLessThan(level(10, 10));
+  });
+});
+
+describe('stingers in the game', () => {
+  it('maps engine cues to stingers that exist', () => {
+    for (const [cue, name] of Object.entries(cueStinger)) expect(stingerInfo[name], cue).toBeDefined();
+    expect(cueStinger['levelup']).toBe('level-up');
+    expect(cueStinger['death']).toBe('death');
+  });
+  it('keeps the level polite and silences either volume at zero', () => {
+    expect(stingerLevel(10, 10)).toBeLessThanOrEqual(0.55);
+    expect(stingerLevel(0, 10)).toBe(0);
+    expect(stingerLevel(10, 0)).toBe(0);
+    expect(stingerLevel(5, 5)).toBeLessThan(stingerLevel(10, 10));
   });
 });
 
@@ -71,7 +86,17 @@ describe('music', () => {
   });
   it('picks music by what is on screen', () => {
     expect(trackFor({ onTitle: true, intro: false, mode: 'Dungeon' })).toBe('title');
-    expect(trackFor({ onTitle: false, intro: true, mode: 'Dungeon' })).toBe('title');
+    expect(trackFor({ onTitle: false, intro: true, mode: 'Dungeon' })).toBe('intro');
+    expect(trackFor({ onTitle: false, intro: false, mode: 'Dungeon', scene: 'combat' })).toBe('combat');
+    expect(trackFor({ onTitle: false, intro: false, mode: 'Dungeon', scene: 'boss-gaoler' })).toBe('boss');
+    expect(trackFor({ onTitle: false, intro: false, mode: 'Dungeon', scene: 'boss-stone-warden' })).toBe('boss-warden');
+    expect(trackFor({ onTitle: false, intro: false, mode: 'Dungeon', scene: 'boss-rat-king' })).toBe('boss');
+    expect(trackFor({ onTitle: false, intro: false, mode: 'TownMap', scene: 'tavern' })).toBe('tavern');
+    expect(trackFor({ onTitle: false, intro: false, mode: 'TownMap', scene: 'town-night' })).toBe('town-night');
+    expect(trackFor({ onTitle: false, intro: false, mode: 'Overworld', scene: 'road-night' })).toBe('road-night');
+    expect(trackFor({ onTitle: false, intro: false, mode: 'Dungeon', scene: 'spire' })).toBe('spire');
+    expect(trackFor({ onTitle: false, intro: false, mode: 'Dungeon', scene: 'something-new' })).toBe('dungeon');
+    expect(trackFor({ onTitle: false, intro: false, mode: 'GameOver', scene: '' })).toBeNull();
     expect(trackFor({ onTitle: false, intro: false, mode: 'Dungeon' })).toBe('dungeon');
     expect(trackFor({ onTitle: false, intro: false, mode: 'Overworld' })).toBe('road');
     expect(trackFor({ onTitle: false, intro: false, mode: 'TownMap' })).toBe('town');

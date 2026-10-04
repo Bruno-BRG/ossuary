@@ -1,3 +1,5 @@
+import { renderStinger, type StingerName } from './stingers';
+
 // All sound is synthesised here, with the Web Audio API and no files: square-wave bleeps for what the engine names
 // (see Game.DrainCues), tiny UI blips for menus, and looping music played by a small step sequencer. The engine never
 // plays anything; this file decides what each name sounds like and how loud it is.
@@ -56,7 +58,9 @@ export type Voice = 'bell' | 'pulse' | 'tri' | 'cello' | 'pad' | 'tick' | 'thud'
 /** One note: `b` is the start in beats from the top of the bar, `d` the length in beats, `m` a MIDI note. */
 export interface Ev { v: Voice; b: number; d: number; m?: number; g?: number }
 export interface Track { bpm: number; beats: number; bars: number; bar(i: number): Ev[] }
-export type TrackName = 'title' | 'road' | 'town' | 'dungeon';
+export type TrackName =
+  | 'title' | 'intro' | 'road' | 'road-night' | 'town' | 'town-night' | 'tavern' | 'shop' | 'temple'
+  | 'dungeon' | 'mines' | 'warrens' | 'sunken' | 'spire' | 'annex' | 'combat' | 'boss' | 'boss-warden';
 
 const hz = (m: number) => 440 * Math.pow(2, (m - 69) / 12);
 
@@ -171,13 +175,233 @@ const dungeon: Track = {
   },
 };
 
-export const tracks: Readonly<Record<TrackName, Track>> = { title, road, town, dungeon };
+// ---- the rest of the soundtrack: the same five notes and the same voices, in every mood the game has
 
-export interface SoundScene { onTitle: boolean; intro: boolean; mode: string }
+const Cm: Chord = { r: 36, a: [48, 51, 55] };
+const Fm: Chord = { r: 29, a: [53, 56, 60] };
+const Eb: Chord = { r: 39, a: [51, 55, 58] };
+const Em: Chord = { r: 40, a: [52, 55, 59] };
+const Csm: Chord = { r: 37, a: [49, 52, 56] };
+
+/** The motif spread over a bar of any length: five notes at sixths of the bar, the last one held, `drop` of them left off the end. */
+function motifIn(root: number, step: number, beats: number, g = 1, v: Voice = 'bell', drop = 0): Ev[] {
+  const u = beats / 6, notes = [root, root + 3, root + step, root, root + 7], lens = [1, 1, 1, 1, 2];
+  const out: Ev[] = [];
+  for (let i = 0; i < 5 - drop; i++) out.push({ v, m: notes[i]!, b: i * u, d: lens[i]! * 1.6 * u, g });
+  return out;
+}
+const eighths = (m: number, beats: number, g: number, v: Voice = 'pulse'): Ev[] =>
+  Array.from({ length: beats * 2 }, (_, i) => ({ v, m, b: i * 0.5, d: 0.42, g }));
+const hit = (v: 'thud' | 'tick', beats: number[], g = 1): Ev[] => beats.map(b => ({ v, b, d: 0.2, g }));
+const drone = (m: number, d: number, g: number): Ev[] => [{ v: 'pad', m, b: 0, d, g }, { v: 'pad', m: m + 7, b: 0, d, g: g * 0.55 }];
+
+/** The story crawl: a music box that never finishes its tune, over a low drone. */
+const intro: Track = {
+  bpm: 50, beats: 6, bars: 8,
+  bar(i) {
+    const out = drone(38, 6.5, 0.7);
+    if (i === 1) out.push(...motifIn(62, 1, 6, 0.5, 'bell', 2));
+    if (i === 3) out.push(...motifIn(62, 1, 6, 0.5, 'bell', 1));
+    if (i === 5) out.push(...motifIn(62, 1, 6, 0.4, 'bell', 3), { v: 'drip', m: 91, b: 4.5, d: 1, g: 0.5 });
+    if (i === 6) out.push({ v: 'cello', m: 38, b: 0, d: 6, g: 0.6 });
+    return out;
+  },
+};
+
+/** A camp on a dead road: the motif in broken pieces, long silences, one low cello note. */
+const roadNight: Track = {
+  bpm: 56, beats: 6, bars: 8,
+  bar(i) {
+    const out = drone(38, 6.5, 0.45);
+    if (i % 2 === 0) out.push(...motifIn(62, 1, 6, 0.5, 'bell', i % 4 === 0 ? 2 : 3));
+    if (i === 3) out.push({ v: 'cello', m: 50, b: 0.5, d: 5.5, g: 0.6 });
+    if (i === 6) out.push({ v: 'drip', m: 96, b: 2, d: 1, g: 0.5 });
+    return out;
+  },
+};
+
+/** A town with every door barred: a detuned music box in C minor and one far-off bell. */
+const townNight: Track = {
+  bpm: 54, beats: 6, bars: 12,
+  bar(i) {
+    const out = drone(36, 6.5, 0.6);
+    if (i < 4) out.push(...motifIn(60, 2, 6, 0.55, 'bell', 0));
+    else if (i < 8) {
+      out.push(...motifIn(60, 2, 6, 0.5, 'bell', 0), { v: 'pad', m: 41, b: 0, d: 6.5, g: 0.4 });
+      if (i % 2 === 0) out.push({ v: 'bell', m: 48, b: 0, d: 5, g: 0.6 });
+    } else out.push(...motifIn(60, 2, 6, 0.45, 'bell', i - 7), ...hit('tick', [2], 0.4));
+    return out;
+  },
+};
+
+/** An inn at the end of the world: a slow pulse-wave dance in G minor, a harmony a third below, the hum of a wake. */
+const tavern: Track = {
+  bpm: 76, beats: 6, bars: 8,
+  bar(i) {
+    const c = [Gm, Gm, Eb, Dm][i % 4]!;
+    const out: Ev[] = [...bass(c, 0.8), ...hit('tick', [2, 5], 0.5)];
+    if (i < 7) {
+      const lead = i < 4 ? motifIn(67, 1, 6, 1.5, 'pulse') : [
+        { v: 'pulse', m: 67, b: 0, d: 1.2, g: 1.4 }, { v: 'pulse', m: 70, b: 1, d: 1.2, g: 1.4 }, { v: 'pulse', m: 72, b: 2, d: 1.2, g: 1.4 },
+        { v: 'pulse', m: 70, b: 3, d: 1.2, g: 1.4 }, { v: 'pulse', m: 67, b: 4, d: 2, g: 1.4 },
+      ] as Ev[];
+      out.push(...lead);
+      if (i >= 2) out.push(...shifted(lead, -3).map(e => ({ ...e, g: 0.9 })));
+    }
+    out.push({ v: 'pad', m: 31, b: 0, d: 6.5, g: 0.4 });
+    return out;
+  },
+};
+
+/** A merchant's stall: the motif counted out like coins, staggered and joyless. */
+const shop: Track = {
+  bpm: 66, beats: 4, bars: 16,
+  bar(i) {
+    const out: Ev[] = [{ v: 'tri', m: 33, b: 0, d: 2, g: 0.8 }, { v: 'tri', m: 40, b: 2, d: 2, g: 0.7 }];
+    if (i !== 12) {
+      [69, 72, 70, 69, 76].forEach((m, k) => out.push({ v: 'bell', m, b: [0, 0.9, 1.6, 2.5, 3.2][k]!, d: 0.7, g: 0.55 }));
+    }
+    if (i % 4 >= 2) out.push({ v: 'pulse', m: 64, b: 0.5, d: 0.3, g: 0.8 }, { v: 'pulse', m: 60, b: 2.5, d: 0.3, g: 0.8 });
+    if (i % 2 === 0) out.push({ v: 'bell', m: 96, b: 0, d: 0.5, g: 0.3 });
+    return out;
+  },
+};
+
+/** A temple whose god stopped answering: one voice at a time and long silences. */
+const temple: Track = {
+  bpm: 48, beats: 6, bars: 12,
+  bar(i) {
+    if (i === 11) return [{ v: 'pad', m: 38, b: 0, d: 6.5, g: 0.9 }];
+    if (i === 6 || i === 7) return [{ v: 'pad', m: 38, b: 0, d: 6.5, g: 0.9 }, { v: 'pad', m: 45, b: 0, d: 6.5, g: 0.8 }, { v: 'pad', m: 50, b: 0, d: 6.5, g: 0.6 }, ...(i === 6 ? [{ v: 'bell', m: 50, b: 1, d: 5, g: 0.9 } as Ev] : [])];
+    const out: Ev[] = [38, 50, 53, 57, 60, 64].map((m, k) => ({ v: 'pad', m, b: 0, d: 6.5, g: 1 - k * 0.1 } as Ev));
+    if (i % 4 === 1) out.push({ v: 'bell', m: 50, b: 1, d: 5, g: 0.9 });
+    if (i % 4 === 2) out.push({ v: 'cello', m: 57, b: 0.5, d: 5, g: 0.6 });
+    if (i % 4 === 3) out.push({ v: 'drip', m: 96, b: 2, d: 1, g: 0.5 }, { v: 'drip', m: 98, b: 4, d: 1, g: 0.35 });
+    return out;
+  },
+};
+
+/** The mines: muffled hammers on iron and a harsh bell, a man tapping through a collapsed tunnel. */
+const mines: Track = {
+  bpm: 64, beats: 4, bars: 8,
+  bar(i) {
+    const out: Ev[] = [...drone(31, 4.5, 0.7), ...hit('thud', [0], 0.8), ...hit('tick', [3], 0.5)];
+    if (i % 2 === 1) out.push(...hit('thud', [2.5], 0.5));
+    if (i >= 2 && i <= 5) out.push(...motifIn(67, 1, 4, 1.1, 'bell'));
+    if (i === 1 || i === 5) out.push({ v: 'drip', m: 91, b: 3, d: 1, g: 0.6 });
+    if (i >= 6) out.push(...hit('thud', [1, 1.5], 0.6), ...hit('tick', [i === 7 ? 3.5 : 2.5], 0.5));
+    return out;
+  },
+};
+
+/** The warrens: nervous plucked notes in no steady meter, pieces of the motif, and a false silence. */
+const warrens: Track = {
+  bpm: 80, beats: 6, bars: 8,
+  bar(i) {
+    const silent = i === 3 || i === 7;
+    const hits = silent ? [0, 0.5, 1.5, 2.0, 3.5] : [0, 0.5, 1.5, 2.0, 3.5, 4.0, 5.0];
+    const out: Ev[] = hits.map((b, k) => ({ v: 'pulse', m: [57, 60, 58, 57, 64][k % 5]!, b, d: 0.22, g: 0.55 } as Ev));
+    if (!silent) out.push(...drone(33, 6.5, 0.5));
+    if (!silent && i % 2 === 0) out.push({ v: 'bell', m: 69 - (i % 4 === 0 ? 0.4 : 0), b: 1, d: 2, g: 0.5 }, { v: 'bell', m: 66, b: 3.5, d: 1.6, g: 0.4 });
+    if (!silent && i % 3 === 1) out.push(...hit('tick', [1, 4.5], 0.5));
+    return out;
+  },
+};
+
+/** The sunken vaults: one muffled bell note a bar, the motif at the pace of falling water. */
+const sunken: Track = {
+  bpm: 46, beats: 6, bars: 14,
+  bar(i) {
+    const out = drone(40, 6.5, 0.7);
+    if (i >= 2 && i <= 6) out.push({ v: 'bell', m: [64, 67, 65, 64, 71][i - 2]!, b: 1, d: 5, g: 0.6 });
+    if (i === 4 || i === 10) out.push({ v: 'cello', m: 40, b: 0, d: 6.2, g: 0.6 });
+    if (i === 1 || i === 4 || i === 8 || i === 11) out.push({ v: 'drip', m: 91 + (i % 3) * 3, b: 1 + (i % 4), d: 1, g: 0.7 }, { v: 'drip', m: 100, b: 3, d: 1, g: 0.25 });
+    return out;
+  },
+};
+
+/** The ashen spire: a drone that climbs, a cracked bell, a heartbeat, and a sudden drop back so the loop hides its join. */
+const spire: Track = {
+  bpm: 60, beats: 6, bars: 16,
+  bar(i) {
+    const root = i === 15 ? 34 : 34 + (i < 4 ? 0 : i < 12 ? 2 : 3);
+    const out: Ev[] = [...drone(root, 6.5, 0.8), { v: 'tick', b: 3, d: 0.2, g: 0.3 }];
+    if (i >= 8 && i < 12) out.push(...motifIn(70, 2, 6, 0.9, 'bell'));
+    if (i >= 12) out.push(...hit('thud', [0, 2], 0.9));
+    if (i >= 12 && i < 15) out.push({ v: 'cello', m: 46, b: 0, d: 6.2, g: 0.55 });
+    return out;
+  },
+};
+
+/** The annex: a relentless pulse, hits of sub bass and a few brittle bell notes. No way out. */
+const annex: Track = {
+  bpm: 76, beats: 4, bars: 8,
+  bar(i) {
+    const out: Ev[] = [...eighths(49, 4, 0.75), { v: 'tri', m: 37, b: 0, d: 1.5, g: 1 }, { v: 'tri', m: 37, b: 2, d: 1.5, g: 0.9 }, ...hit('tick', [0.5, 1.5, 2.5, 3.5], 0.5)];
+    if (i >= 4) out.push(...hit('tick', [1, 3], 0.45), ...hit('thud', [0], 0.7));
+    if (i < 4 ? i % 2 === 0 : i < 7) out.push(...motifIn(61, 2, 4, 1.2, 'bell'));
+    return out;
+  },
+};
+
+/** A fight: a tight bass, a thin sixteenth-note arpeggio, thuds on one and three, the motif stabbed like an alarm. */
+const combat: Track = {
+  bpm: 108, beats: 4, bars: 8,
+  bar(i) {
+    const out: Ev[] = [];
+    for (let k = 0; k < 8; k++) out.push({ v: 'tri', m: 38, b: k * 0.5, d: 0.4, g: 1 });
+    out.push(...arp(Dm, 16, 4, i < 2 ? 0.5 : 0.7), ...hit('thud', [0, 2], 1), ...hit('tick', [0.5, 1.5, 2.5, 3.5], 0.5));
+    if (i >= 6) return out.filter(e => e.v === 'thud' || e.v === 'tick' || e.v === 'tri');
+    if (i >= 2 && i <= 5 && i % 2 === 0) out.push(...motifIn(74, 1, 4, 1.1, 'bell'));
+    return out;
+  },
+};
+
+/** The Gaoler: chains, a low pedal and the motif brutal and slow; the second half doubles up and a cello shakes. */
+const boss: Track = {
+  bpm: 104, beats: 4, bars: 16,
+  bar(i) {
+    const phase2 = i >= 8;
+    const out: Ev[] = [{ v: 'tri', m: 26, b: 0, d: 4, g: 1.2 }, { v: 'pad', m: 38, b: 0, d: 4.4, g: 0.6 }, ...hit('thud', [0, 2], 1.2), ...hit('tick', [0.5, 1.5, 2.5, 3.5], 0.9)];
+    if (!phase2 && i % 2 === 0) out.push(...motifIn(50, 1, 4, 1.6, 'pulse'));
+    if (phase2) out.push(...motifIn(50, 1, 4, 1.7, 'pulse'), ...arp(Dm, 16, 4, 0.7), ...hit('thud', [1, 3], 0.9), { v: 'cello', m: 62, b: 0, d: 4, g: 0.7 });
+    return out;
+  },
+};
+
+/** The Stone Warden: a rumble that swells, a slam, and a beat of held silence. Every fourth bar. */
+const bossWarden: Track = {
+  bpm: 88, beats: 4, bars: 4,
+  bar(i) {
+    const out: Ev[] = [{ v: 'pad', m: 31, b: 0, d: 4.4, g: 0.45 }];
+    if (i === 0) out.push(...hit('thud', [0], 0.6), ...motifIn(55, 1, 4, 1.2, 'pulse'));
+    if (i === 1) out.push({ v: 'pad', m: 26, b: 0, d: 4, g: 0.8 }, ...hit('thud', [2], 0.5));
+    if (i === 2) out.push({ v: 'pad', m: 26, b: 0, d: 3, g: 1.2 }, ...motifIn(55, 1, 4, 1.2, 'pulse'));
+    if (i === 3) return [{ v: 'thud', b: 0, d: 0.3, g: 2 }, { v: 'tri', m: 31, b: 0, d: 1, g: 1.5 }, { v: 'bell', m: 43, b: 0, d: 3, g: 0.5 }];
+    return out;
+  },
+};
+
+export const tracks: Readonly<Record<TrackName, Track>> = {
+  title, intro, road, 'road-night': roadNight, town, 'town-night': townNight, tavern, shop, temple,
+  dungeon, mines, warrens, sunken, spire, annex, combat, boss, 'boss-warden': bossWarden,
+};
+
+export interface SoundScene { onTitle: boolean; intro: boolean; mode: string; scene?: string }
+
+const sceneTracks: Readonly<Record<string, TrackName>> = {
+  combat: 'combat', tavern: 'tavern', shop: 'shop', temple: 'temple', 'town-night': 'town-night', 'road-night': 'road-night',
+  town: 'town', road: 'road', mines: 'mines', warrens: 'warrens', sunken: 'sunken', spire: 'spire', annex: 'annex', dungeon: 'dungeon',
+  'boss-stone-warden': 'boss-warden',
+};
 
 /** Which music suits what is on screen; null is silence (the hero is dead, or the run is over). */
 export function trackFor(s: SoundScene): TrackName | null {
-  if (s.onTitle || s.intro) return 'title';
+  if (s.onTitle) return 'title';
+  if (s.intro) return 'intro';
+  if (s.scene?.startsWith('boss-')) return sceneTracks[s.scene] ?? 'boss';
+  const byScene = s.scene ? sceneTracks[s.scene] : undefined;
+  if (byScene) return byScene;
   if (s.mode === 'Dungeon') return 'dungeon';
   if (s.mode === 'Overworld') return 'road';
   if (s.mode === 'TownMap') return 'town';
@@ -221,8 +445,8 @@ export function unlockAudio(): void {
     const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Ctor) return;
     if (!context) { context = new Ctor(); setup(context); }
-    if (context.state === 'suspended') void context.resume().then(syncMusic);
-    else syncMusic();
+    if (context.state === 'suspended') void context.resume().then(() => { syncMusic(); warmStingers(); });
+    else { syncMusic(); if (!stingerBuffers.size) warmStingers(); }
   } catch { /* No audio is a fine way to play. */ }
 }
 
@@ -390,6 +614,53 @@ function bleep(ctx: AudioContext, pattern: Pattern, gain: number, at: number, wa
   return at + 0.02;
 }
 
+/** Cues that are heard as a stinger (see stingers.ts) instead of a bleep. */
+export const cueStinger: Readonly<Record<string, StingerName>> = { levelup: 'level-up', quest: 'quest-accepted', death: 'death', stairs: 'gate', rest: 'rest' };
+
+const stingerBuffers = new Map<StingerName, AudioBuffer>();
+let stingerEndsAt = 0;
+
+/** Stinger output level, 0..~0.55: master and effects volumes are 0..10. */
+export function stingerLevel(master: number, effects: number): number {
+  const m = Math.max(0, Math.min(10, master)), e = Math.max(0, Math.min(10, effects));
+  return (m / 10) * (e / 10) * 0.55;
+}
+
+function stingerBuffer(ctx: AudioContext, name: StingerName): AudioBuffer {
+  let buf = stingerBuffers.get(name);
+  if (!buf) {
+    const data = renderStinger(name, ctx.sampleRate);
+    buf = ctx.createBuffer(1, data.length, ctx.sampleRate);
+    buf.getChannelData(0).set(data);
+    stingerBuffers.set(name, buf);
+  }
+  return buf;
+}
+
+/** Plays a stinger (a short musical sign). A new one waits its turn rather than talking over the one still sounding. */
+export function playStinger(name: StingerName, master: number, effects: number): void {
+  const gain = stingerLevel(master, effects);
+  const ctx = running();
+  if (!ctx || gain <= 0) return;
+  try {
+    const src = ctx.createBufferSource();
+    src.buffer = stingerBuffer(ctx, name);
+    const amp = ctx.createGain(); amp.gain.value = gain;
+    src.connect(amp).connect(ctx.destination);
+    src.start(Math.max(ctx.currentTime + 0.005, Math.min(stingerEndsAt, ctx.currentTime + 1.5)));
+    stingerEndsAt = ctx.currentTime + src.buffer.duration * 0.6;
+  } catch { /* Ignore audio errors. */ }
+}
+
+/** Renders the stingers the game is likely to need soon, one at a time, so the first one does not stutter. */
+export function warmStingers(): void {
+  const ctx = running();
+  if (!ctx) return;
+  (['level-up', 'quest-accepted', 'gate', 'rest', 'death', 'victory'] as StingerName[]).forEach((name, i) => {
+    setTimeout(() => { try { if (running()) stingerBuffer(ctx, name); } catch { /* Ignore audio errors. */ } }, 400 + i * 350);
+  });
+}
+
 /** Plays the cues one after another, quietly, never throwing: sound must not be able to break the game. */
 export function playCues(cues: readonly string[] | undefined, master: number, effects: number): void {
   const gain = level(master, effects);
@@ -398,6 +669,8 @@ export function playCues(cues: readonly string[] | undefined, master: number, ef
   try {
     let at = ctx.currentTime + 0.005;
     for (const cue of cues) {
+      const sting = cueStinger[cue];
+      if (sting) { playStinger(sting, master, effects); continue; }
       const p = patterns[cue];
       if (p) at = bleep(ctx, p, gain, at, waves[cue] ?? 'square', noiseSeconds[cue] ?? 0);
     }
