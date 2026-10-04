@@ -193,7 +193,7 @@ namespace Ossuary.Core
                 Say("The stairs lead no further down. This is the bottom of this branch.");
                 return false;
             }
-            Say("You descend the staircase.", MessageKind.Narrative);
+            Say("You descend the staircase.", MessageKind.Narrative); Cue("stairs");
             DescendTo(Branch, Depth + 1);
             return true;
         }
@@ -209,7 +209,7 @@ namespace Ossuary.Core
                 LeaveToOverworld();
                 return true;
             }
-            Say("You climb the stairs.", MessageKind.Narrative);
+            Say("You climb the stairs.", MessageKind.Narrative); Cue("stairs");
             DescendTo(Branch, Depth - 1);
             return true;
         }
@@ -313,14 +313,14 @@ namespace Ossuary.Core
                 case TileKind.LockedDoor:
                     if (Player.FindFirst("lock pick") != null)
                     {
-                        Say("You pick the lock.", MessageKind.Good);
+                        Say("You pick the lock.", MessageKind.Good); Cue("door");
                         Map.Set(x, y, TileKind.OpenDoor);
                         Map.Version++;
                         return;
                     }
                     if (SpendBrassKey())
                     {
-                        Say("The brass key turns, and the lock lets go. The key crumbles in your hand.", MessageKind.Good);
+                        Say("The brass key turns, and the lock lets go. The key crumbles in your hand.", MessageKind.Good); Cue("door");
                         Map.Set(x, y, TileKind.OpenDoor);
                         Map.Version++;
                         return;
@@ -330,7 +330,7 @@ namespace Ossuary.Core
                 case TileKind.HiddenDoor:
                     Map.Set(x, y, TileKind.OpenDoor);
                     Map.Version++;
-                    Say("You find a secret door and open it.", MessageKind.Good);
+                    Say("You find a secret door and open it.", MessageKind.Good); Cue("door");
                     return;
                 case TileKind.Altar:
                     Say("You feel a chill. It is not a place to linger.");

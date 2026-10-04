@@ -20,3 +20,6 @@ desktop/src-tauri/icons/icon.icns
 # Local validation logs
 ossuary_test.stdout.txt
 .claude/
+
+# Rendered stingers (npm run stingers in desktop/)
+assets/audio/stingers/

@@ -444,6 +444,7 @@ namespace Ossuary.Core
             if (hours < 5) hours += 8;
             World.AdvanceTime(hours);
             Tell("You sleep soundly, and wake to morning light and the smell of bread.", MessageKind.Good);
+            Cue("rest");
         }
 
         /// <summary>"▲2" upstairs, "▼1" in a cellar, empty on the street.</summary>

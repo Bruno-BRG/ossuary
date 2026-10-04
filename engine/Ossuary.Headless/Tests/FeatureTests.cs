@@ -1988,6 +1988,20 @@ namespace Ossuary.Tests
             mage.DrainCues();
             Assert(Cast(mage, "magic-missile", x, y), "cast");
             Assert(Array.IndexOf(mage.DrainCues(9), "magic") >= 0, "casting is heard");
+
+            // Stairs and loose items are heard too.
+            var walker = Game.NewHero(2402, "Steps", "human", "fighter");
+            walker.DrainCues();
+            walker.Cue("stairs"); walker.Cue("door"); walker.Cue("rest");
+            var world = walker.DrainCues(9);
+            Assert(world.Length == 3 && Array.IndexOf(world, "stairs") >= 0 && Array.IndexOf(world, "door") >= 0 && Array.IndexOf(world, "rest") >= 0,
+                "stairs, doors and rest have cues: " + string.Join(",", world));
+
+            // The music follows the scene: something while alive, nothing once the run is over.
+            Assert(!string.IsNullOrEmpty(walker.MusicScene()), "a living hero has a scene: " + walker.MusicScene());
+            var fallen = Game.NewHero(2404, "Gone", "human", "fighter");
+            fallen.Mode = GameMode.GameOver;
+            Assert(fallen.MusicScene() == "", "a dead hero hears no music");
         }
 
         static void SquareTiles()

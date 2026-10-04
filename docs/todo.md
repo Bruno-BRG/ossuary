@@ -64,6 +64,12 @@ Today (2026-10-03): townsfolk have a role and a line, the Guild board has two jo
 
 ## Done
 
+- [x] **Synthesised sound and music** (2026-10-03). `desktop/src/audio.ts`: effects (now with stairs, doors and pickups), menu blips and looping music built only from Web Audio oscillators and noise
+  (the theme "Phosphor & Bone" plus dungeon, road and town tracks), through one reverb; volumes follow the Audio settings. Engine cues `stairs`, `door`, `pickup`. Tests in `audio.test.ts` and `SoundCues`.
+  Left: boss music, detuning with depth, a recorded score.
+- [x] **The whole soundtrack in the same style** (2026-10-04). `Game.MusicScene` and `Frame.scene` tell the front end what the moment is; `audio.ts` now has 18 tracks (intro, road by night, town by night, tavern, shop, temple, one per branch, combat, two bosses) on the same voices and motif. Tests `audio.test.ts` and `SoundCues`. Left: music for the Watch, the rival party and the endings, depth detuning in the dungeon, boss music for the Rat King and Drowned King (they use the Gaoler's).
+- [x] **Stingers rendered by code** (2026-10-04). `desktop/src/stingers.ts`: 15 short pieces from instrument models (bell, piano, harp, cello, organ, timpani, noise), played for the `levelup`, `quest`, `death`, `stairs` and `rest` cues and on victory; `npm run stingers` exports WAVs. Tests `stingers.test.ts`. Left: hooks for the endings, trap, danger and new cycle (they exist but nothing triggers them yet).
+
 - [x] **Dungeon level 1 always has a way out** (2026-10-03). `Dungeon.Ensure` stripped the stairs up from depth 1 of *every* branch, so entering a dungeon from the overworld
   at depth 1 left the hero with no exit. Now only side branches (the Annex, left by its portal) lose them. Left: a regression test (`Dungeon.Ensure` depth 1 has `StairsUp`).
 

@@ -11,6 +11,7 @@ export interface Frame extends Display {
   started: boolean; toTitle: boolean; hasSave: boolean; saveInfo: string;
   intro: string[][] | null;
   sounds?: string[];
+  scene?: string;
   anim?: number[];
   fx?: number[][];
   fxMs?: number;

@@ -693,6 +693,7 @@ namespace Ossuary.Desktop
                 Started = Started, ToTitle = ToTitle, HasSave = HasSave, SaveInfo = SaveInfo,
                 Lang = Loc.Code(s.Language), Intro = Intro ? Story.Intro() : null,
                 Sounds = _replaying || AtTitle || Intro ? new string[0] : Game.DrainCues(),
+                Scene = AtTitle || Intro ? "" : Game.MusicScene(),
                 Fx = BuildFx(screen.Width), FxMs = FxTimeline.StepMs,
                 Anim = AtTitle || Intro || Game.UiState.Active != Panel.None || Game.PendingChoice.Active || Game.Mode == GameMode.GameOver || Game.Mode == GameMode.Won ? new int[0] : screen.ShimmerCells(),
             };
@@ -766,6 +767,8 @@ namespace Ossuary.Desktop
         public string[][] Intro { get; set; }
         /// <summary>Sound cues that happened since the last frame (see Game.DrainCues), strongest first.</summary>
         public string[] Sounds { get; set; }
+        /// <summary>What the music should be about (see Game.MusicScene); empty on the title, in the intro and when the run is over.</summary>
+        public string Scene { get; set; }
         /// <summary>Cells (row * Cols + col) holding moving water, for the front end to shimmer between frames.</summary>
         public int[] Anim { get; set; }
         /// <summary>A spell or ability animation to play over this frame: steps of [cell, glyph, fg, bg] quadruples, FxMs apart.</summary>
