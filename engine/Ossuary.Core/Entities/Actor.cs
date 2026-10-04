@@ -79,7 +79,17 @@ namespace Ossuary.Core.Entities
 
         public virtual int VisionRadius => 8;
 
-        public string TheName => IsPlayer ? Name : (Name.StartsWith("the ", StringComparison.Ordinal) ? Name : "the " + Name);
+        /// <summary>The bare name, without an article: callers write "the {TheName}" themselves. Use <see cref="Obj"/>/<see cref="Subj"/> for whole phrases.</summary>
+        public string TheName => IsPlayer ? Name : (Name.StartsWith("the ", StringComparison.Ordinal) ? Name.Substring(4) : Name);
+
+        /// <summary>Named people (townsfolk) take no article.</summary>
+        bool TakesArticle => !IsPlayer && !(this is Monster tm && tm.Townsperson);
+
+        /// <summary>This actor as the object of a sentence: "you", "the jackal", "Dagny".</summary>
+        public string Obj => IsPlayer ? "you" : TakesArticle ? "the " + TheName : TheName;
+
+        /// <summary>This actor as the subject of a sentence: "You", "The jackal", "Dagny".</summary>
+        public string Subj => IsPlayer ? "You" : TakesArticle ? "The " + TheName : TheName;
 
         public virtual string LongDescription
         {
@@ -87,7 +97,7 @@ namespace Ossuary.Core.Entities
             {
                 string hp = "";
                 if (MaxHP > 0) hp = $", {HP}/{MaxHP} HP";
-                return $"{TheName} (level {Level}{hp})";
+                return $"{Subj} (level {Level}{hp})";
             }
         }
 

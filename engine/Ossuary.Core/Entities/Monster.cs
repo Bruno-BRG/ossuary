@@ -131,7 +131,7 @@ namespace Ossuary.Core.Entities
         {
             get
             {
-                string s = TheName;
+                string s = Subj;
                 if (Def.Undead) s += " of the dead";
                 s += $", level {Level} ({Def.HP} HP, AC {AC})";
                 return s;

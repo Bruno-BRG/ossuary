@@ -463,7 +463,6 @@ namespace Ossuary.Core
             R(@"Fresh rivets and a new lining\. (.+) will turn a blow better now\.", "Rebites novos e forro novo. $1 vai aparar melhor os golpes agora.");
             R(@"You learn that it is (.+)\.", "Você descobre que é $1.");
             R(@"The Amulet lies (\d+) levels down, at the bottom of the Dungeons\.", "O Amuleto está $1 níveis abaixo, no fundo das Masmorras.");
-            R(@"Fight it \(Enter or K\), or flee \(R or <\)\. It is (.+)\.", "Lute (Enter ou K) ou fuja (R ou <). Parece $1.");
         }
 
         /// <summary>Portuguese for a message of the town layer, or null when it is none of ours.</summary>

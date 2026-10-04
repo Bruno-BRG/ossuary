@@ -108,7 +108,7 @@ namespace Ossuary.Desktop
             {
                 DisplaySettings.Current.SetLanguage(Lang.Pt);
                 Check(Loc.T("You break away and run.") == "Você se solta e corre.", "static messages translate");
-                Check(Loc.T("You buy a dagger for 12 gold.") == "Você compra a dagger por 12 de ouro.", "dynamic messages translate by pattern");
+                Check(Loc.T("You buy a dagger for 12 gold.") == "Você compra uma adaga por 12 de ouro.", "dynamic messages translate by pattern, names included");
                 Check(Loc.T("some string nobody translated") == "some string nobody translated", "untranslated text falls back to English");
                 var pt = Story.Intro(); DisplaySettings.Current.SetLanguage(Lang.En); var en = Story.Intro();
                 Check(pt.Length == en.Length && pt.Length >= 4, "the intro has the same pages in both languages");

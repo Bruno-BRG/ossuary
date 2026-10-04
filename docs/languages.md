@@ -22,9 +22,29 @@ The Core defaults to English; the frontend's stored default is set in `desktop/s
 ## Translation status
 
 Translated: title, menu/options, HUD, panel labels, commands, overworld messages,
-town, shop and victory, region/branch names, races and classes (names), intro and opening.
-Still English (next layer): descriptions of races/classes/spells/abilities, item and
-monster names, combat and magic messages, god and altar texts.
+town, shop and victory, region/branch names, races and classes (names and descriptions), intro and opening,
+**monster and item names**, combat/look/magic/potion/god/trap messages, skills, abilities, perks and the Controls panel.
+Still English: altar texts, artifact lore, some rarely seen messages (run `headless.ps1 loc msgs` for the current list).
+
+### Names, articles and gender
+
+- English is still the key. `Loc.Names.cs` holds the Portuguese for monsters and items with their **gender**, so a pattern can say
+  `{a1}` (article + name: "a adaga"), `{d1}` ("da adaga"), `{u1}` ("uma adaga") or plain `$1`, and `Contract` turns "de o" into "do".
+- A capture that is a name goes through `Loc.Part`: "the jackal" becomes "o chacal", lists are split on ", ", a trailing rank or count ("Tough 2", "(x3)") is kept.
+- Item names are **composed** from their parts (`blessed`, `+N`, a prefix affix, the base, an `of X` tail): add the base to `Nm`, the tail to `OfPt`, the adjective to `Adj`.
+- Sentences about people use `Actor.Subj` / `Actor.Obj` ("The jackal" / "you" / "Dagny"); never write `the {TheName}` by hand around a named person.
+- Patterns live in `Loc.Game.cs` (play layer, HUD, sheets) and `Loc.Msgs.cs` (messages); newer patterns win.
+
+### Auditing a language pass
+
+| Command | What it does |
+|---|---|
+| `headless.ps1 loc [seeds] [turns]` | plays in Portuguese and prints every string that reached the screen untranslated |
+| `headless.ps1 loc frames` | prints every panel in Portuguese |
+| `headless.ps1 loc msgs` | lists every `Say`/`Tell` in the Core that Portuguese leaves unchanged |
+| `headless.ps1 loc names` | lists monster, item, affix, ability, perk and control names |
+
+The `language` test suite fails when a name has no Portuguese.
 
 ## Opening
 

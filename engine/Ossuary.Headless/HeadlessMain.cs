@@ -29,6 +29,7 @@ namespace Ossuary.Tools
                 case "soak": return RunSoak(args);
                 case "balance": return BalanceBot.Report(args);
                 case "fx": return RunFx(args);
+                case "loc": return RunLoc(args);
                 default:
                     Console.Error.WriteLine("unknown mode: " + mode);
                     Console.Error.WriteLine("modes: test | dump | soak | balance | fx <spell-id|all> [steps]");
@@ -116,6 +117,67 @@ namespace Ossuary.Tools
             int seeds = args.Length > 1 ? int.Parse(args[1]) : 50;
             int turns = args.Length > 2 ? int.Parse(args[2]) : 500;
             Ossuary.Tests.TestRunner.RunSoakOnly(seeds, turns);
+            return 0;
+        }
+
+        // Plays in Portuguese and prints every string that reached the player untranslated.
+        static int RunLoc(string[] args)
+        {
+            int seeds = args.Length > 1 && char.IsDigit(args[1][0]) ? int.Parse(args[1]) : 20;
+            int turns = args.Length > 2 && char.IsDigit(args[2][0]) ? int.Parse(args[2]) : 400;
+            Loc.Current = Lang.Pt; Loc.Misses = new System.Collections.Generic.HashSet<string>();
+            Ossuary.Tests.TestRunner.RunSoakOnly(seeds, turns);
+            var game = new Game(31337); var hud = new GameHud(game); hud.Ui.Resize(110, 36);
+            hud.Draw();
+            if (Array.IndexOf(args, "msgs") >= 0)
+            {
+                // Static audit: every Say/Tell literal in the Core, interpolations replaced by a stand-in, that Portuguese leaves unchanged.
+                Loc.Current = Lang.Pt;
+                var rx = new System.Text.RegularExpressions.Regex("\\b(?:Say|Tell)\\((\\$?)\"((?:[^\"\\\\]|\\\\.)*)\"");
+                var bad = new System.Collections.Generic.SortedSet<string>(StringComparer.Ordinal);
+                foreach (var file in System.IO.Directory.GetFiles("engine/Ossuary.Core", "*.cs", System.IO.SearchOption.AllDirectories))
+                {
+                    if (file.Contains("\\obj\\") || file.Contains("/obj/")) continue;
+                    foreach (System.Text.RegularExpressions.Match m in rx.Matches(System.IO.File.ReadAllText(file)))
+                    {
+                        string s = m.Groups[2].Value.Replace("\\\"", "\"").Replace("\\n", "\n");
+                        if (m.Groups[1].Value == "$") s = System.Text.RegularExpressions.Regex.Replace(s, "\\{[^}]*\\}", "jackal");
+                        if (!System.Text.RegularExpressions.Regex.IsMatch(s, "[A-Za-z]{3,}")) continue;
+                        if (Loc.T(s) == s) bad.Add(System.IO.Path.GetFileName(file) + "\t" + s);
+                    }
+                }
+                foreach (var b in bad) Console.WriteLine(b);
+                Console.WriteLine($"-- {bad.Count} messages unchanged in Portuguese");
+                return 0;
+            }
+            if (Array.IndexOf(args, "names") >= 0)
+            {
+                var seen = new System.Collections.Generic.SortedSet<string>(StringComparer.Ordinal);
+                foreach (var l in new[] { Ossuary.Core.Items.Catalogue.Weapons, Ossuary.Core.Items.Catalogue.Armor, Ossuary.Core.Items.Catalogue.Shields, Ossuary.Core.Items.Catalogue.Helms,
+                    Ossuary.Core.Items.Catalogue.Gloves, Ossuary.Core.Items.Catalogue.Boots, Ossuary.Core.Items.Catalogue.Cloaks, Ossuary.Core.Items.Catalogue.Rings, Ossuary.Core.Items.Catalogue.Amulets,
+                    Ossuary.Core.Items.Catalogue.Wands, Ossuary.Core.Items.Catalogue.Scrolls, Ossuary.Core.Items.Catalogue.Potions, Ossuary.Core.Items.Catalogue.Food, Ossuary.Core.Items.Catalogue.Tools,
+                    Ossuary.Core.Items.Catalogue.Misc, Ossuary.Core.Items.Catalogue.Corpses, Ossuary.Core.Items.Catalogue.Books, Ossuary.Core.Items.Catalogue.Ornaments })
+                    foreach (var d in l) seen.Add("item\t" + d.Kind + "\t" + d.Name);
+                foreach (var a in Ossuary.Core.Items.Affixes.All) seen.Add("affix\t" + (a.Prefix ? "pre" : "suf") + "\t" + a.Name);
+                foreach (var m in Ossuary.Core.Entities.Bestiary.All) seen.Add("mon\t\t" + m.Name);
+                foreach (var a in Ossuary.Core.Entities.Abilities.All) seen.Add("abil\t" + a.Name + "\t" + a.Blurb);
+                foreach (var a in Ossuary.Core.Entities.Progression.All) seen.Add("perk\t" + a.Name + "\t" + a.Blurb);
+                foreach (var a in Ossuary.Core.KeyBindings.Actions) seen.Add("key\t" + a.Group + "\t" + a.Label);
+                foreach (var s in seen) Console.WriteLine(s);
+                return 0;
+            }
+            bool frames = Array.IndexOf(args, "frames") >= 0;
+            foreach (Panel p in new[] { Panel.Inventory, Panel.Character, Panel.Help, Panel.History, Panel.Discoveries, Panel.Journal,
+                                        Panel.Settings, Panel.Controls, Panel.Spells, Panel.Abilities, Panel.Advance, Panel.Runs, Panel.Achievements, Panel.Travel, Panel.Create })
+            {
+                game.UiState.Active = p;
+                var f = hud.Draw();
+                if (frames) { Console.WriteLine("===== " + p + " ====="); Console.WriteLine(f.ToAscii()); }
+            }
+            if (frames) return 0;
+            var list = new System.Collections.Generic.List<string>(Loc.Misses); list.Sort(StringComparer.Ordinal);
+            foreach (var m in list) Console.WriteLine(m);
+            Console.WriteLine($"-- {list.Count} untranslated");
             return 0;
         }
 

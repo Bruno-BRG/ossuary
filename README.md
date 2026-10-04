@@ -62,7 +62,7 @@ The seed *is* the save: same seed, same keys, same run.
 
 ## Install (players)
 
-Download the installer `Ossuary_0.13.0_x64-setup.exe` (Windows x64) from a [release](https://github.com/Bruno-BRG/ossuary/releases)
+Download the installer `Ossuary_0.13.2_x64-setup.exe` (Windows x64) from a [release](https://github.com/Bruno-BRG/ossuary/releases)
 or the build output, and run it. No SDK is needed. WebView2 is required (preinstalled on Windows 11).
 
 > The public name of a release is just **Version N** (this one is **Version 13**). Installers and manifests use the matching
