@@ -5,6 +5,21 @@
 Ossuary versions are a **single number** (Version 11, Version 12…), as in *Project Zomboid*. In the manifests (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) and in the installer name the version appears as `0.N.0`. The **save format** (`SaveData.Version`) uses the same number: change a rule, bump it, old saves stop loading.
 
+## Version 13 — Sound
+
+### Music
+- **Eighteen tracks that follow the moment.** The engine now reports what is going on (`Frame.scene`: a boss in view, a hostile in view, inside a tavern or temple, a shop, night or day, or the dungeon branch) and the music changes with a fade. They share the five-note motif and the same voices: the title theme "Phosphor & Bone", the story intro, the road by day and by night, towns by day and by night, the tavern, the shop, the temple, one track for each dungeon branch (the Dungeons, the Mines, the Warrens, the Sunken Vaults, the Ashen Spire, the Annex), combat, the Gaoler and the Stone Warden.
+- A dead hero or a won run hears nothing.
+
+### Sound effects
+- **Fifteen stingers** rendered by code from small instrument models (bells, piano, harp, cello, organ, timpani, wind and scrape noise): level up, quest accepted, updated and complete, rare item, danger, trap, rest, gate, death, victory, the three endings and a new cycle. Level up, quest, death, stairs, resting at an inn and surfacing with the Amulet play one.
+- New cues for stairs, unlocked doors, picking things up and resting. Menu blips for moving, confirming and cancelling.
+- Master, music and effects volumes now work.
+- `npm run stingers` (in `desktop/`) writes the stingers as WAV files.
+
+### Saves
+- The save format is unchanged (still 12): Version 12 saves keep loading.
+
 ## Version 12 — A world that remembers
 
 ### People

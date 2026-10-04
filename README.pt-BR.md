@@ -5,7 +5,7 @@
 **Um roguelike ASCII de fantasia sombria.** O mundo jogou seus mortos, seus reis e seus deuses num só poço.
 Você desce para roubar o que sobrou.
 
-![Versão 12](https://img.shields.io/badge/vers%C3%A3o-12-c8a050?style=flat-square)
+![Versão 13](https://img.shields.io/badge/vers%C3%A3o-13-c8a050?style=flat-square)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-5fa85f?style=flat-square)
 ![Plataforma](https://img.shields.io/badge/plataforma-Windows%20x64-4a6ea8?style=flat-square)
 ![Motor](https://img.shields.io/badge/motor-C%23%20.NET%2010-7c4dff?style=flat-square)
@@ -25,7 +25,7 @@ Desça pelo Ossuary, pegue o **Amuleto de Yendor** e traga de volta à luz do di
 num terminal estilo CRT; o jogo é uma exploração de masmorras por turnos com um mundo vivo na superfície.
 A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 
-### O que há na **versão 12**
+### O que há na **versão 13**
 
 | | |
 |---|---|
@@ -35,6 +35,7 @@ A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 | 🗡️ **43 itens únicos e 4 conjuntos** | Relíquias nomeadas em todos os ramos; muitas emprestam uma magia enquanto você as segura. |
 | 🧪 **Varinhas, pergaminhos e poções que são magias** | Mesmos efeitos, mesmas animações, sem mana. |
 | 🏰 **O mundo** | Cinco ramos e um ramo-portal, overworld de nove regiões, cidades verticais, chefes, facções, reputação, corrupção e mutações, companheiros, criação. |
+| 🔊 **Som e música** | Dezoito trilhas que acompanham o momento (título, estrada, cidades de dia e de noite, taverna, loja, templo, cada ramo de masmorra, combate e dois chefes), quinze stingers e sons de menu: tudo sintetizado, sem arquivos de áudio. |
 | 🕯️ **Um mundo que lembra** | Moradores com personalidade e memória, diálogos, missões com prazo (diário em `F7`), crime e a Guarda, rumores, viajantes na estrada e a trama principal *O Selo*, com seis finais. |
 | 🌍 **Dois idiomas** | Português (Brasil) e inglês, trocáveis a qualquer hora com `F2`. |
 
@@ -60,10 +61,10 @@ A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 
 ## Instalar (jogadores)
 
-Baixe o instalador `Ossuary_0.12.0_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
+Baixe o instalador `Ossuary_0.13.0_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
 ou na saída do build, e execute. Não precisa de SDK. É preciso o WebView2 (já vem no Windows 11).
 
-> O nome público de uma versão é só **Versão N** (esta é a **Versão 12**), como em *Project Zomboid*. Instaladores e manifestos usam o
+> O nome público de uma versão é só **Versão N** (esta é a **Versão 13**), como em *Project Zomboid*. Instaladores e manifestos usam o
 > `0.N.0` correspondente, porque instalador do Windows, npm e Cargo pedem três números.
 
 ## Compilar do código
