@@ -170,7 +170,7 @@ namespace Ossuary.Core
             int x = ox + 1;
             for (int i = 0; i < keys.GetLength(0); i++)
             {
-                string key = keys[i, 0], label = keys[i, 1];
+                string key = Loc.T(keys[i, 0]), label = Loc.T(keys[i, 1]);
                 if (x + key.Length + label.Length + 5 > ox + w - 1) break;
                 x = KeyCap(x, oy, key, label, theme);
             }
@@ -1321,7 +1321,7 @@ namespace Ossuary.Core
             {
                 int cap = role.CapFor(kv.Key);
                 string capText = cap < 100 ? $"  (max {cap})" : "";
-                _t.Write(x + 2, y++, $"{kv.Key,-10}{kv.Value,3}  {SkillRanks.Name(kv.Value),-8}{capText}", theme.Text, false, theme.Panel);
+                _t.Write(x + 2, y++, $"{Loc.T(kv.Key.ToString()),-10}{kv.Value,3}  {Loc.T(SkillRanks.Name(kv.Value)),-8}{Loc.T(capText)}", theme.Text, false, theme.Panel);
             }
             {
                 var houses = new System.Collections.Generic.List<string>();
@@ -1396,21 +1396,21 @@ namespace Ossuary.Core
             // Detail pane for whatever is being picked, plus the combined bonuses.
             int dx = x + 38, dw = px + pw - 3 - dx, y = py + 4;
             _t.WriteClipped(dx, y++, race.Name + " " + role.Name, theme.Title, dw, true, theme.Panel); y++;
-            foreach (string line in Wrap(race.Description, dw)) _t.Write(dx, y++, line, theme.Text, false, theme.Panel);
+            foreach (string line in Wrap(Loc.T(race.Description), dw)) _t.Write(dx, y++, line, theme.Text, false, theme.Panel);
             y++;
-            foreach (string line in Wrap(role.Description, dw)) _t.Write(dx, y++, line, theme.Dim, false, theme.Panel);
+            foreach (string line in Wrap(Loc.T(role.Description), dw)) _t.Write(dx, y++, line, theme.Dim, false, theme.Panel);
             y++;
             _t.Write(dx, y++, "Attributes " + Mods(race, role), theme.Info, false, theme.Panel);
             int hp = System.Math.Max(2, role.HpPerLevel + race.HpPerLevelMod);
             _t.Write(dx, y++, $"HP/level {hp}   Gold {System.Math.Max(0, role.Gold + race.GoldMod)}", theme.Text, false, theme.Panel);
             var traitLines = race.TraitLines();
             if (traitLines.Count > 0) foreach (string line in Wrap("Traits: " + string.Join(", ", traitLines.ToArray()), dw)) _t.Write(dx, y++, line, theme.Info, false, theme.Panel);
-            foreach (string line in Wrap("Kit: " + Kit(role), dw)) _t.Write(dx, y++, line, theme.Text, false, theme.Panel);
+            foreach (string line in Wrap(Loc.T("Kit: " + Kit(role)), dw)) _t.Write(dx, y++, line, theme.Text, false, theme.Panel);
             var skills = new System.Collections.Generic.List<string>();
             var total = new System.Collections.Generic.Dictionary<Skill, int>(role.StartingSkills);
             foreach (var kv in race.StartingSkills) total[kv.Key] = (total.ContainsKey(kv.Key) ? total[kv.Key] : 0) + kv.Value;
             foreach (var kv in total) skills.Add(kv.Key + " +" + kv.Value);
-            foreach (string line in Wrap("Skills: " + (skills.Count == 0 ? "none" : string.Join(", ", skills.ToArray())), dw)) _t.Write(dx, y++, line, theme.Text, false, theme.Panel);
+            foreach (string line in Wrap(Loc.T("Skills: " + (skills.Count == 0 ? "none" : string.Join(", ", skills.ToArray()))), dw)) _t.Write(dx, y++, line, theme.Text, false, theme.Panel);
 
             if (c.Step == CreateStep.Confirm)
             {

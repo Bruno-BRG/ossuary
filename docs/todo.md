@@ -22,7 +22,7 @@ Everything that was listed has been implemented (see *Done*). What is left are e
 - [ ] **Player-marked travel points** (today `~` goes to remembered altars/fountains and `` ` `` to the stairs).
 - [ ] **Companions**: orders (stay/follow), shared inventory, more than one, archers.
 - [ ] **Pacifist challenge** and more achievements (per class, per god, per branch).
-- [ ] **Magic**: ice × lightning interaction; PT translation of altar texts and combat messages (spell names and descriptions are already in PT).
+- [ ] **Magic**: ice × lightning interaction; PT translation of altar texts (spell names and descriptions, and combat and look messages, are already in PT).
 - [ ] **Martial techniques** for the Fighter (no Mp today): a "book" of strikes using Vigor in the same panel, with the same animations.
 - [ ] **Animations**: monsters casting spells (sorcerers, new bosses) and damage arriving *with* the projectile (today the spell is already resolved when the animation plays);
   per-element sound; a key to skip the whole animation.
@@ -64,6 +64,7 @@ Today (2026-10-03): townsfolk have a role and a line, the Guild board has two jo
 
 ## Done
 
+- [x] **Version 13.2: one language at a time** (2026-10-04). Fixes the half-translated Portuguese and the English grammar slips in the combat log. `Actor.Subj`/`Obj` stop the "the the" and "you misses"; `Loc.Names.cs` (monster and item names with gender, items composed from parts), `Loc.Game.cs` and `Loc.Msgs.cs` (HUD, sheets, controls, abilities, perks and ~300 messages), `Rx` captures now translate names and contract ("de o" to "do"). Audit tools `headless.ps1 loc [frames|msgs|names]` and the `language` test suite. Left: altar texts, artifact lore, rarely seen messages (`loc msgs`).
 - [x] **Synthesised sound and music** (2026-10-03). `desktop/src/audio.ts`: effects (now with stairs, doors and pickups), menu blips and looping music built only from Web Audio oscillators and noise
   (the theme "Phosphor & Bone" plus dungeon, road and town tracks), through one reverb; volumes follow the Audio settings. Engine cues `stairs`, `door`, `pickup`. Tests in `audio.test.ts` and `SoundCues`.
   Left: boss music, detuning with depth, a recorded score.

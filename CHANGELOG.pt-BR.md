@@ -5,6 +5,21 @@
 As versões do Ossuary são numeradas só com **um número** (Versão 11, Versão 12…), como no *Project Zomboid*. Nos manifestos (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) e no nome do instalador a versão aparece como `0.N.0`. O **salvamento** (`SaveData.Version`) usa o mesmo número: mudou regra, sobe o número, saves antigos deixam de carregar.
 
+## Versão 13.2 — Um idioma de cada vez
+
+Correção sobre a Versão 13 (`0.13.2` nos manifestos). Nenhuma regra mudou, então saves das Versões 12 e 13 continuam carregando.
+
+### Português, terminado onde estava pela metade
+- **O combate lê direito nos dois idiomas.** O log em inglês dizia "You hit the the jackal", "The jackal hits the you" e "you misses the kobold"; agora diz "You hit the jackal for 3 damage.", "The jackal hits you for 3 damage.", "The jackal misses you." e "You evade the jackal's attack." Moradores com nome próprio não ganham mais "the" na frente. O português tem as mesmas frases, com gênero e contrações ("do chacal", "a aranha das cavernas").
+- **"It is weak" não vaza mais para o português.** Olhar um monstro e o aviso de encontro na estrada agora dizem "Parece fraco / um pouco perigoso / perigoso / muito perigoso".
+- **Nomes de monstros e itens traduzidos.** Todo o bestiário e todo item do catálogo, com as partes compostas ("blessed +1 keen dagger of the fox" vira "adaga afiada da raposa +1 abençoada"), além das pilhas "x3".
+- **As telas terminam o serviço**: a barra de cima ("NÍVEL 3", "Dia 1"), a barra de atalhos, a linha de status, os rótulos PV/EN/VG/MP, a ficha do personagem (perícias, níveis, alinhamento, talentos, traços), habilidades e talentos com suas descrições, a lista de evolução, o painel de Controles inteiro, as descrições de classe e raça na criação de personagem e os nomes do terreno.
+- **Cerca de 300 mensagens a mais**: magias, poções, deuses, armadilhas, eventos de estrada, chefes, itens, treino e evolução.
+
+### Para quem contribui
+- `headless.ps1 loc [sementes] [turnos]` joga em português e lista toda string que chegou à tela sem tradução; `loc frames` imprime os painéis em português; `loc msgs` confere todo `Say`/`Tell` do Core; `loc names` lista os nomes a traduzir.
+- Uma suíte `language` falha quando um monstro, item, afixo, talento, habilidade ou rótulo de controle fica sem português, e fixa as principais frases de combate e HUD nos dois idiomas.
+
 ## Versão 13 — Som
 
 ### Música

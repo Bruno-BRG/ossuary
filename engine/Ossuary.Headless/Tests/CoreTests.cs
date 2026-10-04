@@ -104,6 +104,7 @@ namespace Ossuary.Tests
             Test("quest victory", WinTests.Run);
             Test("tracked features (docs/todo.md)", FeatureTests.Run);
             Test("spells, items and animations (docs/spells-and-items.md)", ArsenalTests.Run);
+            Test("language: nothing half-translated (docs/languages.md)", LocTests.Run);
 
             Console.WriteLine();
             Console.WriteLine($"==== {(_fail == 0 ? "PASS" : "FAIL")}: {_pass} passed, {_fail} failed ====");

@@ -40,11 +40,11 @@ namespace Ossuary.Core
             if (defender.IsPlayer)
             {
                 int evade = ((Player)defender).Evasion();
-                if (rng.Dice(100) < evade * 3) return new AttackResult { Dodged = true, Message = $"{defender.TheName} evades the {attacker.Name}'s attack." };
+                if (rng.Dice(100) < evade * 3) return new AttackResult { Dodged = true, Message = $"You evade {attacker.Obj}'s attack." };
             }
 
             if (roll < threshold)
-                return new AttackResult { Message = $"{defender.TheName} misses the {attacker.Name}." };
+                return new AttackResult { Message = $"{attacker.Subj} misses {defender.Obj}." };
 
             // Pick which of the monster's attacks this swing uses, so a two-attack
             // monster like the jackal genuinely alternates bite and claw.
@@ -61,7 +61,7 @@ namespace Ossuary.Core
             defender.HP -= dmg;
             bool killed = defender.HP <= 0;
             string verb = killed ? "kill" : "hit";
-            string msg = $"The {attacker.Name} {verb}s the {defender.TheName} for {dmg} damage.";
+            string msg = $"{attacker.Subj} {verb}s {defender.Obj} for {dmg} damage.";
             return new AttackResult { Hit = true, Damage = dmg, Message = msg, Killed = killed };
         }
 
@@ -95,7 +95,7 @@ namespace Ossuary.Core
             int threshold = 20 - ac + 1;
 
             if (roll <= 2) return new AttackResult { Message = "You miss.", };
-            if (roll < threshold) return new AttackResult { Message = "You miss the " + target.TheName + "." };
+            if (roll < threshold) return new AttackResult { Message = "You miss " + target.Obj + "." };
             if (roll == 20 - 1 || roll == 20)
             {
                 critical = true;
@@ -107,7 +107,7 @@ namespace Ossuary.Core
             target.HP -= dmg;
             bool killed = target.HP <= 0;
             string critText = critical ? " with a critical hit" : "";
-            string msg = $"You {(killed ? "kill" : "hit")} the {target.TheName}{critText} for {dmg} damage.";
+            string msg = $"You {(killed ? "kill" : "hit")} {target.Obj}{critText} for {dmg} damage.";
             return new AttackResult { Hit = true, Damage = dmg, Message = msg, Killed = killed };
         }
 
@@ -120,7 +120,7 @@ namespace Ossuary.Core
             int roll = toHit + rng.Dice(20);
 
             if (roll <= 2) return new AttackResult { Message = "The missile misses." };
-            if (roll < threshold) return new AttackResult { Message = $"The missile misses the {target.TheName}." };
+            if (roll < threshold) return new AttackResult { Message = $"The missile misses {target.Obj}." };
             if (roll >= 19) critical = true;
 
             int dmg = rng.Roll(2, 4, 0) * dmgMult;
@@ -130,7 +130,7 @@ namespace Ossuary.Core
             return new AttackResult
             {
                 Hit = true, Damage = dmg, Killed = killed,
-                Message = $"The missile {(killed ? "kills" : "hits")} the {target.TheName} for {dmg} damage."
+                Message = $"The missile {(killed ? "kills" : "hits")} {target.Obj} for {dmg} damage."
             };
         }
     }

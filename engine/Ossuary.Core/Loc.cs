@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -52,6 +53,10 @@ namespace Ossuary.Core
         {
             AddMutationText();
             AddSpellText();
+            AddMonsterText();
+            AddItemText();
+            AddMsgText();
+            AddGameText();
             var traps = new[] { ("spike trap", "armadilha de espetos", "uma"), ("hole", "buraco", "um"), ("dart trap", "armadilha de dardos", "uma"),
                                 ("teleport trap", "armadilha de teletransporte", "uma"), ("alarm trap", "armadilha de alarme", "uma"),
                                 ("fire trap", "armadilha de fogo", "uma"), ("web", "teia", "uma") };
@@ -72,19 +77,39 @@ namespace Ossuary.Core
         {
             if (Current == Lang.En || string.IsNullOrEmpty(en)) return en;
             if (Pt.TryGetValue(en, out var pt)) return pt;
-            string u = U(en);
-            if (!ReferenceEquals(u, en)) return u;
+            string u = UCore(en);
+            if (u != null) return u;
             string town = TownText.Translate(en);
             if (town != null) return town;
-            foreach (var (re, rep) in Rx)
-                if (re.IsMatch(en))
-                {
-                    string r = re.Replace(en, rep, 1);
-                    foreach (var kv in Names) r = r.Replace(kv.Key, kv.Value);
-                    return r;
-                }
+            string rx = ApplyRx(en);
+            if (rx != null) return rx;
+            Miss(en);
             return en;
         }
+
+        // First matching pattern wins. Captured names (monsters, items, perks) are translated on the way through,
+        // and the usual Portuguese contractions are applied to the result.
+        static readonly Dictionary<string, string> _rxMemo = new Dictionary<string, string>();
+        static string ApplyRx(string en)
+        {
+            if (_rxMemo.TryGetValue(en, out var hit)) return hit;
+            string result = null;
+            foreach (var (re, rep) in Rx)
+            {
+                var m = re.Match(en);
+                if (!m.Success) continue;
+                string r = Expand(m, rep);
+                foreach (var kv in Names) r = r.Replace(kv.Key, kv.Value);
+                result = Contract(r);
+                break;
+            }
+            if (_rxMemo.Count > 4000) _rxMemo.Clear();
+            _rxMemo[en] = result;
+            return result;
+        }
+        /// <summary>Dev audit: when set, every string that reached the player in Portuguese without a translation is collected here (`headless loc`).</summary>
+        public static HashSet<string> Misses;
+        static void Miss(string s) { if (Misses != null && Regex.IsMatch(s, "[A-Za-z]{3,}")) Misses.Add(s); }
 
         public static string F(string en, params object[] args) => string.Format(T(en), args);
 
@@ -176,6 +201,15 @@ namespace Ossuary.Core
         public static string U(string s)
         {
             if (Current == Lang.En || string.IsNullOrEmpty(s)) return s;
+            string r = UCore(s) ?? TownText.Translate(s) ?? ApplyRx(s);
+            if (r != null) return r;
+            Miss(s);
+            return s;
+        }
+
+        // Exact match, then the same with surrounding padding peeled off (" IN VIEW ", "Here ").
+        static string UCore(string s)
+        {
             if (_ui == null || _uiTownCount != TownText.Pt.Count)
             {
                 _uiTownCount = TownText.Pt.Count;   // dialogue, quest and rumour texts register their PT as they are first used
@@ -188,7 +222,21 @@ namespace Ossuary.Core
                     if (kv.Key.Length <= 26) d[kv.Key.ToUpperInvariant()] = kv.Value.ToUpperInvariant();
                 _ui = d;
             }
-            return _ui.TryGetValue(s, out var v) ? v : s;
+            if (_ui.TryGetValue(s, out var v)) return v;
+            string core = s.Trim();
+            if (core.Length > 0 && core.Length != s.Length && _ui.TryGetValue(core, out v))
+            {
+                int lead = s.IndexOf(core, StringComparison.Ordinal);
+                return s.Substring(0, lead) + v + s.Substring(lead + core.Length);
+            }
+            if (core.Length > 3 && core.Length < 70 && char.IsLetter(core[0]))
+            {
+                var item = ItemPt(core);
+                if (item != null) return item.Value.Pt;
+                var qty = Regex.Match(core, @"^(.+?) (\(x\d+\))$");
+                if (qty.Success && ItemPt(qty.Groups[1].Value) != null) return ItemPt(qty.Groups[1].Value).Value.Pt + " " + qty.Groups[2].Value;
+            }
+            return null;
         }
 
         static (Regex, string) R(string pattern, string replacement) => (new Regex("^" + pattern + "$", RegexOptions.CultureInvariant), replacement);

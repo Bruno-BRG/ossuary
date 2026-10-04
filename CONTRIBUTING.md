@@ -5,7 +5,7 @@
 Thanks for wanting to help. This guide explains **how the project is organised**, **what not to break**, and **how to add the most common things**
 (spells, items, animations, translations) in a few lines. Code and commits may be in English or Portuguese; the documentation in `docs/` is in English.
 
-> **Version and license.** The game is at **Version 13** (`0.13.0` in the manifests). The project is under the [MIT license](LICENSE): by contributing you agree
+> **Version and license.** The game is at **Version 13** (`0.13.2` in the manifests). The project is under the [MIT license](LICENSE): by contributing you agree
 > that your code is distributed under it. The `unscii-16` font has its own attribution ([assets/fonts/NOTICE.md](assets/fonts/NOTICE.md)).
 
 ## Contents
