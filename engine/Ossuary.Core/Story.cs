@@ -4,7 +4,7 @@ namespace Ossuary.Core
     /// Opening story as data: pages in the player's language, one era per page, told in order from the
     /// first pit to the player's own arrival. The first line of every page is its heading (era and how long
     /// ago); the rest is the text. The frontend plays them as an animated cross-section of the world, one
-    /// scene per page; nothing here touches the simulation. Facts follow docs/lore.md.
+    /// scene per page; nothing here touches the simulation. Facts follow docs/game/lore.md.
     /// </summary>
     public static class Story
     {

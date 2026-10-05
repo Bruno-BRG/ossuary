@@ -17,7 +17,7 @@ namespace Ossuary.Core
             string n = potion.Def.Name;
 
             if (n.Contains("healing")) { int hx = p.X, hy = p.Y; Fx((tl, s) => FxLib.Rise(tl, s, hx, hy, Elem.Nature, 3, '+')); }
-            if (n.Contains("full healing")) { p.BonusMaxHP += 2; p.RecomputeMaxHP(); p.HP = p.MaxHP; p.PoisonResist = 0; Say("You feel completely whole. (+2 max HP)", MessageKind.Good); }
+            if (n.Contains("full healing")) { p.BonusMaxHP += 2; p.RecomputeMaxHP(); p.HP = p.MaxHP; p.PoisonResist = 0; Say("You feel completely whole. (+2 max HP)", MessageKind.Good); MendWounds(4); }
             else if (n.Contains("extra healing")) Heal(Rng.Roll(6, 8, 0));
             else if (n.Contains("healing")) Heal(Rng.Roll(6, 4, 0));
             else if (n.Contains("poison")) { Say("It was poison!", MessageKind.Bad); PoisonPlayer(Rng.Range(3, 8)); }

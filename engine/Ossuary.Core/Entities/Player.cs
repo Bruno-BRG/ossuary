@@ -119,6 +119,8 @@ namespace Ossuary.Core.Entities
         public int Corruption;
         /// <summary>Mutation ids, in the order they took hold.</summary>
         public readonly List<string> Mutated = new List<string>();
+        /// <summary>Body parts that carry a scar from a wound that healed after being torn, broken or worse.</summary>
+        public readonly List<string> Scars = new List<string>();
         public int Turns;
         public bool InsideDungeon;
         public string CurrentBranch = "";

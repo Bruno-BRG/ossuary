@@ -5,7 +5,7 @@ namespace Ossuary.Core
 {
     /// <summary>
     /// Every quest of the game, as C# data with the PT beside the EN. The Main track grows act by act
-    /// (docs/main-quest.md); here is where each new chain is registered.
+    /// (docs/game/main-quest.md); here is where each new chain is registered.
     /// </summary>
     public static class QuestBook
     {

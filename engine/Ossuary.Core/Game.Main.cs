@@ -6,7 +6,7 @@ using Ossuary.Core.Items;
 namespace Ossuary.Core
 {
     /// <summary>
-    /// The main questline "The Seal" (docs/main-quest.md): four documents hidden in four branches, a Reader who explains them,
+    /// The main questline "The Seal" (docs/game/main-quest.md): four documents hidden in four branches, a Reader who explains them,
     /// the truths they unlock, and the choice of what to do with the Amulet once the hero walks out with it. The short path
     /// (take the Amulet, leave) still wins as it always did.
     /// </summary>

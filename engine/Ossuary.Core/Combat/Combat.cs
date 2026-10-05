@@ -12,6 +12,8 @@ namespace Ossuary.Core
         public bool Dodged;
         public string Message;
         public bool Killed;
+        /// <summary>The monster attack used (wounds read it: bites and claws cut, blows bruise and break).</summary>
+        public AttackKind Kind;
     }
 
     /// <summary>
@@ -29,6 +31,7 @@ namespace Ossuary.Core
             if (attacker.Def.ToHit != null && attacker.Def.ToHit.Length > 0)
                 toHit = attacker.Def.ToHit[0];
             toHit += bonusToHit;
+            toHit -= Bodies.ArmPenalty(attacker);
             // Aggression stands in for a monster's dexterity: faster predators swing more often.
             toHit += (attacker.Speed - 12) / 4;
 
@@ -53,6 +56,7 @@ namespace Ossuary.Core
                 : 0;
             int dice = (attacker.Def.DmgDice != null && idx < attacker.Def.DmgDice.Length) ? attacker.Def.DmgDice[idx] : 1;
             int sides = (attacker.Def.DmgSides != null && idx < attacker.Def.DmgSides.Length) ? attacker.Def.DmgSides[idx] : 6;
+            var kind = (attacker.Def.Attacks != null && attacker.Def.Attacks.Length > 0) ? attacker.Def.Attacks[Math.Min(idx, attacker.Def.Attacks.Length - 1)] : AttackKind.Hit;
 
             int dmg = rng.Roll(dice, sides, 0);
             dmg += bonusDamage;
@@ -62,7 +66,7 @@ namespace Ossuary.Core
             bool killed = defender.HP <= 0;
             string verb = killed ? "kill" : "hit";
             string msg = $"{attacker.Subj} {verb}s {defender.Obj} for {dmg} damage.";
-            return new AttackResult { Hit = true, Damage = dmg, Message = msg, Killed = killed };
+            return new AttackResult { Hit = true, Damage = dmg, Message = msg, Killed = killed, Kind = kind };
         }
 
         /// <summary>Player melee attack against a monster. Accounts for the wielded weapon and strength.</summary>
@@ -71,6 +75,7 @@ namespace Ossuary.Core
             critical = false;
             int toHit = 2 + (player.Dex - 10) / 2 + SkillRanks.Rank(player.Skills[Skill.Combat]) + (player.BuffTurns("bless") > 0 ? 2 : 0)
                 + player.PerkRank("weapon-master") + hitBonus;
+            toHit -= Bodies.ArmPenalty(player);
             var wmods = player.Wielded != null ? player.Wielded.Mods : default(ItemMods);
             var bmods = player.BuffMods; var amods = player.AccessoryMods;
             toHit += wmods.ToHit + bmods.ToHit + amods.ToHit + player.GodMeleeHit;
@@ -116,6 +121,7 @@ namespace Ossuary.Core
         {
             critical = false;
             int toHit = 4 + (player.Dex - 10) + 2 * player.PerkRank("keen-eye") + hitBonus;
+            toHit -= Bodies.ArmPenalty(player);
             int threshold = 20 - target.AC + 1 - distance / 2;
             int roll = toHit + rng.Dice(20);
 

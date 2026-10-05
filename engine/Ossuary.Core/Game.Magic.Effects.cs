@@ -203,6 +203,7 @@ namespace Ossuary.Core
             int before = Player.HP;
             Player.HP = Math.Min(Player.MaxHP, Player.HP + Math.Max(1, amount));
             Say($"Warmth knits your wounds (+{Player.HP - before} HP).", MessageKind.Good);
+            MendWounds(1);
         }
 
         /// <summary>Damages a monster. The dead shrug off necrotic harm and take double holy. Returns damage dealt.</summary>

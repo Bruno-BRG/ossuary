@@ -14,7 +14,7 @@ namespace Ossuary.Core
     public static class GlyphSet
     {
         // Shades and blocks, box drawing (single, double, rounded), arrows, and the
-        // CP437-style symbols the map vocabulary uses (see docs/visual.md section 3.2).
+        // CP437-style symbols the map vocabulary uses (see docs/tech/visual.md section 3.2).
         public const string Extra =
             "░▒▓█▀▄▌▐■□▪▫●○◇◆◘◙" +
             "─│┌┐└┘├┤┬┴┼═║╔╗╚╝╠╣╦╩╬╡╞╭╮╰╯" +

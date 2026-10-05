@@ -95,6 +95,7 @@ namespace Ossuary.Core
                         var res = Battles.PlayerRanged(p, target, dist, Rng, out _, 2, 4);
                         if (res.Hit) target.Asleep = false;
                         Say(res.Message, res.Killed ? MessageKind.Kill : MessageKind.Combat);
+                        WoundFrom(target, res, true, false);
                         p.GainSkill(Skill.Combat, 2);
                         if (res.Killed) KillMonster(target); else { target.Alert = 1; target.Dormant = false; }
                         break;
@@ -131,10 +132,11 @@ namespace Ossuary.Core
         bool Blow(Monster target, int mult, int hitBonus, string label)
         {
             bool unaware = target.Asleep || target.Alert == 0 || target.FearTurns > 0 || target.Confused;
-            var res = Battles.PlayerMelee(Player, target, Rng, out _, mult, hitBonus);
+            var res = Battles.PlayerMelee(Player, target, Rng, out bool crit, mult, hitBonus);
             if (res.Killed) { _killSneak = unaware; _killType = DamageType.Physical; }
             if (res.Hit) target.Asleep = false;
             Say(res.Message, res.Killed ? MessageKind.Kill : MessageKind.Combat);
+            WoundFrom(target, res, Bodies.EdgedWeapon(Player), crit);
             if (res.Hit) MeleeProcs(target, res.Damage, !res.Killed);
             Player.GainSkill(Skill.Combat, res.Hit ? 1 : 0);
             if (res.Killed) { KillMonster(target); return false; }

@@ -125,7 +125,7 @@ namespace Ossuary.Core.Entities
         public int Nutrient => Def.Nutrient;
         public int XpValue => XpKill;
 
-        public override int VisionRadius => Def.Vision;
+        public override int VisionRadius => Math.Max(1, Def.Vision - Bodies.EyePenalty(this));
 
         public override string LongDescription
         {

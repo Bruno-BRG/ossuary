@@ -5,7 +5,7 @@ using Ossuary.Core.Items;
 
 namespace Ossuary.Tests
 {
-    /// <summary>Language checks: nothing the player reads should be half in one language (docs/languages.md).</summary>
+    /// <summary>Language checks: nothing the player reads should be half in one language (docs/tech/languages.md).</summary>
     public static class LocTests
     {
         static int _pass, _fail;

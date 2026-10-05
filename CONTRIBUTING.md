@@ -5,7 +5,7 @@
 Thanks for wanting to help. This guide explains **how the project is organised**, **what not to break**, and **how to add the most common things**
 (spells, items, animations, translations) in a few lines. Code and commits may be in English or Portuguese; the documentation in `docs/` is in English.
 
-> **Version and license.** The game is at **Version 13** (`0.13.3` in the manifests). The project is under the [MIT license](LICENSE): by contributing you agree
+> **Version and license.** The game is at **Version 14** (`0.14.0` in the manifests). The project is under the [MIT license](LICENSE): by contributing you agree
 > that your code is distributed under it. The `unscii-16` font has its own attribution ([assets/fonts/NOTICE.md](assets/fonts/NOTICE.md)).
 
 ## Contents
@@ -23,7 +23,7 @@ Thanks for wanting to help. This guide explains **how the project is organised**
 
 ## Before you start
 
-- Read the [README](README.md), [`docs/overview.md`](docs/overview.md) and [`docs/architecture.md`](docs/architecture.md).
+- Read the [README](README.md), [`docs/game/overview.md`](docs/game/overview.md) and [`docs/tech/architecture.md`](docs/tech/architecture.md).
 - **Read [`docs/todo.md`](docs/todo.md)**: the living backlog (what is missing, what is done). If your idea is there, great; if not, add it under the right category.
 - [`AGENTS.md`](AGENTS.md) sums up the rules for coding agents; they apply to people too.
 - For anything big (a new system, a rules change, a protocol change), **open an issue first**.
@@ -48,7 +48,7 @@ cd ossuary
 .\desktop.ps1 web       # the same engine in a browser (loopback)
 ```
 
-Details and troubleshooting: [INSTALL.md](INSTALL.md) and [`docs/build-and-test.md`](docs/build-and-test.md).
+Details and troubleshooting: [INSTALL.md](INSTALL.md) and [`docs/tech/build-and-test.md`](docs/tech/build-and-test.md).
 The engine and its tests (`engine/`) only need the .NET SDK, so you can work on game rules without Rust or Tauri.
 
 ## Golden rules
@@ -85,7 +85,7 @@ Code style: write like the neighbouring code (names, comment density, language).
 
 ## Recipes: adding things
 
-Everything is data wherever possible. The full catalogue and the details are in [`docs/spells-and-items.md`](docs/spells-and-items.md).
+Everything is data wherever possible. The full catalogue and the details are in [`docs/design/spells-and-items.md`](docs/design/spells-and-items.md).
 
 ### A spell
 
@@ -113,11 +113,11 @@ If your spell is legitimately silent in an empty arena (light, find traps…), a
 ### An animation
 
 One piece in `FxLib` (`engine/Ossuary.Core/Fx.cs`) that writes steps of map cells and returns the step where it ends. Use the per-element ramps (`FxLib.Pal`),
-never a fixed colour, and the shared geometry (`Shapes`) so what you see matches what was hit. Details in [`docs/spells-and-items.md`](docs/spells-and-items.md#animations).
+never a fixed colour, and the shared geometry (`Shapes`) so what you see matches what was hit. Details in [`docs/design/spells-and-items.md`](docs/design/spells-and-items.md#animations).
 
 ### A monster, boss, god, race…
 
-See [`docs/systems.md`](docs/systems.md) and [`docs/rpg.md`](docs/rpg.md): nearly everything is a table in `engine/Ossuary.Core/Entities/`.
+See [`docs/design/systems.md`](docs/design/systems.md) and [`docs/design/rpg.md`](docs/design/rpg.md): nearly everything is a table in `engine/Ossuary.Core/Entities/`.
 
 ## Tests
 
@@ -127,7 +127,7 @@ See [`docs/systems.md`](docs/systems.md) and [`docs/rpg.md`](docs/rpg.md): nearl
 .\headless.ps1 dump panels       # layout as ASCII (also level|overworld|town|create)
 .\headless.ps1 fx <spell|all>    # animations as ASCII
 .\headless.ps1 soak 50 500       # random bot
-.\headless.ps1 balance 8 2500    # balance bot per class × race (see docs/balance.md)
+.\headless.ps1 balance 8 2500    # balance bot per class × race (see docs/design/balance.md)
 cd desktop; npm test             # frontend vitest
 .\check.ps1                      # everything
 ```
@@ -139,15 +139,15 @@ cd desktop; npm test             # frontend vitest
 ## Text and translations
 
 - Player-visible text **is born in English** and gets a Portuguese translation in `Loc.cs` (or `Loc.Spells.cs` for spells). `Say` and `TextBuilder` already translate; the Core never picks the language itself.
-- Dynamic messages (names and numbers) match `Rx` patterns in `Loc.cs`. See [`docs/languages.md`](docs/languages.md).
+- Dynamic messages (names and numbers) match `Rx` patterns in `Loc.cs`. See [`docs/tech/languages.md`](docs/tech/languages.md).
 - Portuguese spell and buff names must fit the list (≤ 26 columns); the tests check.
 
 ## Visuals
 
-Art direction **"Phosphor & Bone"** ([`docs/visual.md`](docs/visual.md)): an 80s PC terminal, indigo background, coloured glyphs, sparing glow.
+Art direction **"Phosphor & Bone"** ([`docs/tech/visual.md`](docs/tech/visual.md)): an 80s PC terminal, indigo background, coloured glyphs, sparing glow.
 
 - Game colours live only in `engine/Ossuary.Core/Theme.cs` (and effect ramps in `FxLib`); CSS receives tokens from the frame. Do not create another palette.
-- Fixed 8×16 bitmap font, no smoothing, integer scaling. A new font needs attribution and a licence in `docs/visual.md` and `assets/fonts/NOTICE.md`.
+- Fixed 8×16 bitmap font, no smoothing, integer scaling. A new font needs attribution and a licence in `docs/tech/visual.md` and `assets/fonts/NOTICE.md`.
 - Each cell has a glyph, fg, bg and bold; the background should carry meaning.
 - Theme, CRT and scale belong to the user (`DisplaySettings` + `localStorage`).
 

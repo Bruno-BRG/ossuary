@@ -19,7 +19,7 @@ composition produces a `TextBuilder`.
 - `desktop/src/`: frontend, bitmap terminal, title, grid fitting and preferences.
 - `desktop/src-tauri/`: Rust window, local transport, process lifecycle and packaging.
 - `assets/fonts/unscii-16.hex`: canonical 8×16 font; attribution in NOTICE.md.
-- `docs/`: documentation in English; real captures in `docs/shots/`.
+- `docs/`: documentation in English, by topic: `game/`, `design/`, `tech/`, `audio/`, `roadmap/`; index in `docs/README.md`; real captures in `docs/shots/`.
 - `docs/todo.md`: backlog and progress tracking, organized by category.
 
 ## Commands
@@ -34,7 +34,7 @@ composition produces a `TextBuilder`.
 | `headless.ps1 dump [level\|overworld\|panels\|town]` | ASCII frames |
 | `headless.ps1 fx <spell>` | a spell animation as ASCII (`fx list`, `fx all`) |
 | `headless.ps1 soak <seeds> <turns>` | random bot |
-| `headless.ps1 balance <seeds> <turns> [dive]` | class×race balance bot (see docs/balance.md) |
+| `headless.ps1 balance <seeds> <turns> [dive]` | class×race balance bot (see docs/design/balance.md) |
 | `check.ps1` | full suite, frontend, packaged IPC and Rust |
 | `test.ps1` / `run-tests.ps1` | headless test aliases |
 | `desktop.ps1 build` | Windows x64 executable + NSIS installer |
@@ -56,7 +56,7 @@ The package ships `ossuary.exe` and the engine `ossuary-engine.exe` side by side
   `desktop/src/protocol.ts` and the `Request` struct in `desktop/src-tauri/src/main.rs` (it uses `deny_unknown_fields`:
   a forgotten field makes the packaged app refuse every request).
 - Player-visible text is born in English and gets a PT translation in `Loc.cs`; `Say` and
-  `TextBuilder` already translate (see docs/languages.md). The Core never picks the language by itself.
+  `TextBuilder` already translate (see docs/tech/languages.md). The Core never picks the language by itself.
 - Diagnostic errors go to stderr; stdout is exclusive to the protocol.
 - Do not duplicate the simulation in TypeScript or Rust.
 
@@ -70,7 +70,7 @@ The package ships `ossuary.exe` and the engine `ossuary-engine.exe` side by side
 - A new glyph goes through GlyphSet and the GlyphCoverage/GlyphsInFont tests.
 - Visual variants are hash(x,y) at draw time, never simulation RNG consumption.
 - Theme, CRT and scale belong to the user: DisplaySettings + localStorage.
-- A new font requires attribution and license in docs/visual.md and assets/fonts/NOTICE.md.
+- A new font requires attribution and license in docs/tech/visual.md and assets/fonts/NOTICE.md.
 
 ## Work and validation
 

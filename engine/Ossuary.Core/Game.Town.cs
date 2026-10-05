@@ -430,6 +430,7 @@ namespace Ossuary.Core
             Player.Confused = false; Player.ConfusionTurns = 0;
             Player.Hallucinating = false; Player.HallucinationTurns = 0;
             Player.StunTurns = 0;
+            StopBleeding();
         }
 
         /// <summary>A night at the inn: everything mended, hungry mouths fed, the world a few hours older.</summary>
@@ -439,6 +440,7 @@ namespace Ossuary.Core
             Player.Mp = Player.MpMax;
             Player.Vigor = Player.VigorMax;
             CureAilments();
+            MendWounds(4);
             Player.Nutrient = Math.Max(Player.Nutrient - 40, 300);
             Player.Hunger = 0;
             int hours = (7 - World.Hour + 24) % 24;

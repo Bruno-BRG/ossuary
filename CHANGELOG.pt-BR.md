@@ -5,6 +5,24 @@
 As versões do Ossuary são numeradas só com **um número** (Versão 11, Versão 12…), como no *Project Zomboid*. Nos manifestos (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) e no nome do instalador a versão aparece como `0.N.0`. O **salvamento** (`SaveData.Version`) usa o mesmo número: mudou regra, sobe o número, saves antigos deixam de carregar.
 
+## Versão 14 — Carne e osso
+
+### Corpos e ferimentos
+- **Todo golpe acerta algum lugar.** Quando um golpe tira uma boa parte da vida de uma criatura (15% ou mais), ele cai numa parte do corpo e deixa um ferimento além do dano. O log diz onde: "Sua perna esquerda está quebrada.", "A pata traseira esquerda do chacal está dilacerada."
+- **Quatro gravidades, dois tipos.** Mordidas, garras, lâminas e flechas arranham, cortam, dilaceram e destroçam; punhos, maças e chutes machucam, contundem, quebram e esmagam. Um crítico vai mais fundo, e acertar de novo uma parte ferida piora o ferimento.
+- **Ferimentos mudam a luta.** Pernas quebradas fazem qualquer um mancar ou se arrastar (asas, para quem voa), braços feridos estragam a mira, cabeça quebrada atordoa, olho cortado diminui a visão e a distância em que um monstro percebe você. Um herói mancando dá movimentos extras aos monstros.
+- **Cortes sangram.** Alguns pontos por turno durante alguns turnos. Um monstro pode sangrar até morrer (conta como morte sua), e você também.
+- **Toda criatura tem um corpo**: humanoides, feras de quatro patas, insetos e aranhas, morcegos e aves, dragões. Moldes, olhos flutuantes, espectros, elementais e enxames não têm o que quebrar; esqueletos, golens e mortos-vivos quebram mas não sangram.
+- **Cura.** Os ferimentos saram com o tempo; um dilacerado ou quebrado deixa cicatriz. Magias e poções de cura melhoram cada ferimento em um nível, cura total e uma noite na estalagem fecham todos, e o templo estanca o sangue.
+- **Dá para ver**: SANGRANDO, MANCANDO, RASTEJANDO e FERIDO na barra lateral, *Ferimentos* e *Cicatrizes* na ficha e no necrotério, e olhar um monstro lista os ferimentos dele. Tudo em português com o gênero certo.
+
+### Documentação
+- A pasta `docs/` foi organizada por assunto (`game/`, `design/`, `tech/`, `audio/`, `roadmap/`), com um índice em `docs/README.md`.
+- Um roadmap novo de profundidade, [`docs/roadmap/depth.md`](docs/roadmap/depth.md), reúne as ideias inspiradas no Dwarf Fortress que ainda vêm: materiais, história gerada, biografia de relíquias, fluidos e rastros, humor, gravuras, inimigos com nome, cercos e lendas.
+
+### Saves
+- O formato do save passa para **13**: o lugar do golpe sai dos dados, então saves da Versão 13 não carregam.
+
 ## Versão 13.3 — Cada palavra, e um aviso que se ouve
 
 Correção sobre a Versão 13 (`0.13.3` nos manifestos). Nenhuma regra mudou, então saves das Versões 12 e 13 continuam carregando.
@@ -95,7 +113,7 @@ Correção sobre a Versão 13 (`0.13.2` nos manifestos). Nenhuma regra mudou, en
 
 ### Para quem desenvolve
 - Salvamento passa à **versão 11** (saves antigos não carregam).
-- Novos testes `ArsenalTests` e `fx.test.ts`; documentação em [`docs/spells-and-items.md`](docs/spells-and-items.md); [CONTRIBUTING.pt-BR.md](CONTRIBUTING.pt-BR.md) e novo README.
+- Novos testes `ArsenalTests` e `fx.test.ts`; documentação em [`docs/spells-and-items.md`](docs/design/spells-and-items.md); [CONTRIBUTING.pt-BR.md](CONTRIBUTING.pt-BR.md) e novo README.
 
 ## Antes da versão 11
 

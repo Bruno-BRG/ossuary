@@ -9,7 +9,7 @@ namespace Ossuary.Core
 {
     /// <summary>
     /// Draws the whole interface into a TextBuilder: header, map, sidebar, journal,
-    /// status line and every modal panel ("Fósforo &amp; Osso", docs/visual.md section 3.4).
+    /// status line and every modal panel ("Fósforo &amp; Osso", docs/tech/visual.md section 3.4).
     /// Pure C# so the layout can be asserted headlessly.
     ///
     /// Every colour comes from <see cref="Theme"/>; map cells go through Theme.Shade /
@@ -631,7 +631,7 @@ namespace Ossuary.Core
             string hunger = FoodWord(p.FoodNutrient, theme, out Rgb hc);
             _t.Write(x + iw - hunger.Length, y++, hunger, hc, false, theme.Panel);
 
-            if (y <= last && (p.Confused || p.Blinded || p.Stunned || p.Hallucinating || p.BurnTurns > 0 || p.WetTurns > 0 || p.Buffs.Count > 0))
+            if (y <= last && (p.Confused || p.Blinded || p.Stunned || p.Hallucinating || p.BurnTurns > 0 || p.WetTurns > 0 || p.Buffs.Count > 0 || p.Wounds.Count > 0))
             {
                 int sx = x;
                 void Pill(string label, Rgb c) { if (sx + label.Length + 2 > x + iw) return; _t.Write(sx, y, " " + label + " ", theme.Void, true, c); sx += label.Length + 3; }
@@ -641,6 +641,10 @@ namespace Ossuary.Core
                 if (p.Hallucinating) Pill("TRIPPING", theme.Magic);
                 if (p.BurnTurns > 0) Pill("BURNING", theme.Danger);
                 if (p.WetTurns > 0) Pill("WET", theme.Info);
+                if (Bodies.Bleeding(p)) Pill("BLEEDING", theme.Danger);
+                int limp = Bodies.Limp(p);
+                if (limp > 0) Pill(limp == 1 ? "LIMPING" : "CRAWLING", theme.Warn);
+                else if (p.Wounds.Count > 0 && !Bodies.Bleeding(p)) Pill("WOUNDED", theme.Warn);
                 foreach (var kv in p.Buffs) Pill(Spells.BuffLabel(kv.Key).ToUpperInvariant(), theme.Info);
                 y++;
             }
@@ -1355,6 +1359,9 @@ namespace Ossuary.Core
             if (faith != null) _t.WriteClipped(x, y++, Loc.T($"Faith: {faith.Name}, {faith.Title} - piety {p.Piety}/{Gods.MaxPiety}" + (p.GodTier > 0 ? $" (tier {p.GodTier})" : "")), theme.Gold, iw, false, theme.Panel);
             var traits = Races.Find(p.RaceId).TraitLines();
             if (traits.Count > 0) _t.WriteClipped(x, y++, "Traits: " + string.Join(", ", traits.ToArray()), theme.Info, iw, false, theme.Panel);
+            var wounds = Game.WoundLines(p);
+            if (wounds.Count > 0) _t.WriteClipped(x, y++, Loc.T("Wounds") + ": " + string.Join(", ", wounds.ToArray()), Bodies.Bleeding(p) ? theme.Bad : theme.Warn, iw, false, theme.Panel);
+            if (p.Scars.Count > 0) _t.WriteClipped(x, y++, Loc.T("Scars") + ": " + string.Join(", ", Game.ScarLines(p).ToArray()), theme.Dim, iw, false, theme.Panel);
             y++;
             _t.WriteClipped(x, y++, $"Now: {(_g.Map != null ? _g.Map.LevelName : _g.World.CurrentRegionName)}", theme.Text, iw, false, theme.Panel);
             _t.WriteClipped(x, y++, $"Time: {_g.World.TimeString}", theme.Dim, iw, false, theme.Panel);

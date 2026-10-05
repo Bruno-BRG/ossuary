@@ -5,7 +5,7 @@
 **Um roguelike ASCII de fantasia sombria.** O mundo jogou seus mortos, seus reis e seus deuses num só poço.
 Você desce para roubar o que sobrou.
 
-![Versão 13](https://img.shields.io/badge/vers%C3%A3o-13-c8a050?style=flat-square)
+![Versão 14](https://img.shields.io/badge/vers%C3%A3o-14-c8a050?style=flat-square)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-5fa85f?style=flat-square)
 ![Plataforma](https://img.shields.io/badge/plataforma-Windows%20x64-4a6ea8?style=flat-square)
 ![Motor](https://img.shields.io/badge/motor-C%23%20.NET%2010-7c4dff?style=flat-square)
@@ -61,10 +61,10 @@ A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 
 ## Instalar (jogadores)
 
-Baixe o instalador `Ossuary_0.13.3_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
+Baixe o instalador `Ossuary_0.14.0_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
 ou na saída do build, e execute. Não precisa de SDK. É preciso o WebView2 (já vem no Windows 11).
 
-> O nome público de uma versão é só **Versão N** (esta é a **Versão 13**), como em *Project Zomboid*. Instaladores e manifestos usam o
+> O nome público de uma versão é só **Versão N** (esta é a **Versão 14**), como em *Project Zomboid*. Instaladores e manifestos usam o
 > `0.N.0` correspondente, porque instalador do Windows, npm e Cargo pedem três números.
 
 ## Compilar do código
@@ -86,7 +86,7 @@ Setas, teclado numérico ou `hjkl` movem; `yubn` são as diagonais. `i` inventá
 - Nas cidades, esbarre numa pessoa para conversar, e num balcão, quadro de avisos ou altar para negociar.
 - Na lista de magias, `←`/`→` trocam a escola, uma letra ou `Enter` conjura, `◆` marca magias emprestadas pelo equipamento.
 
-A lista completa está em [docs/controls.md](docs/controls.md).
+A lista completa está em [docs/game/controls.md](docs/game/controls.md).
 
 ## Como é feito
 
@@ -100,7 +100,7 @@ docs/                    arquitetura, sistemas, magias e itens, lore (em inglês
 ```
 
 A simulação vive só em C#; o frontend desenha a grade que o motor manda e toca as animações que o motor grava.
-Comece por [docs/architecture.md](docs/architecture.md) e [docs/spells-and-items.md](docs/spells-and-items.md).
+Comece por [docs/tech/architecture.md](docs/tech/architecture.md) e [docs/design/spells-and-items.md](docs/design/spells-and-items.md).
 
 ## Testes
 

@@ -4,7 +4,7 @@ using Ossuary.Core.Entities;
 
 namespace Ossuary.Core
 {
-    /// <summary>One thing the hero did that the world should remember (docs/living-world.md, pillar 9).</summary>
+    /// <summary>One thing the hero did that the world should remember (docs/game/living-world.md, pillar 9).</summary>
     public sealed class Deed
     {
         public const string Killed = "killed", Struck = "struck", Contract = "contract", Helped = "helped", Failed = "failed", Quest = "quest", Jailed = "jailed", Bribed = "bribed";
