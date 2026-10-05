@@ -21,6 +21,13 @@ namespace Ossuary.Core
             }
         }
 
+        /// <summary>The same name where it opens a sentence ("The Watch now holds you known.").</summary>
+        public static string Subject(string id)
+        {
+            string n = Name(id);
+            return n.Length == 0 ? n : char.ToUpperInvariant(n[0]) + n.Substring(1);
+        }
+
         public static string Standing(int rep) =>
             rep >= 60 ? "revered" : rep >= 25 ? "trusted" : rep > -25 ? "known" : rep > -60 ? "distrusted" : "hated";
     }
@@ -41,8 +48,8 @@ namespace Ossuary.Core
             int after = Math.Max(-100, Math.Min(100, before + delta));
             Player.Rep[house] = after;
             string was = Houses.Standing(before), now = Houses.Standing(after);
-            if (was != now) Say($"{Houses.Name(house)} now holds you {now}.", delta > 0 ? MessageKind.Good : MessageKind.Warn);
-            else if (reason != null && Math.Abs(delta) >= 3) Say($"{Houses.Name(house)} {(delta > 0 ? "thinks the better of" : "thinks the worse of")} you for {reason}.", delta > 0 ? MessageKind.Info : MessageKind.Warn);
+            if (was != now) Say($"{Houses.Subject(house)} now holds you {now}.", delta > 0 ? MessageKind.Good : MessageKind.Warn);
+            else if (reason != null && Math.Abs(delta) >= 3) Say($"{Houses.Subject(house)} {(delta > 0 ? "thinks the better of" : "thinks the worse of")} you for {reason}.", delta > 0 ? MessageKind.Info : MessageKind.Warn);
         }
 
         /// <summary>What a house's regard does to a price: its friends pay up to 20% less, its enemies up to 20% more (the clamp allows 25%).</summary>

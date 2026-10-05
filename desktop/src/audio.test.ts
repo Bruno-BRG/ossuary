@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cueStinger, cuesToPlay, level, musicLevel, patterns, stingerLevel, trackFor, tracks, uiPatterns, uiSoundFor, type TrackName } from './audio';
+import { cueAllowed, cueCooldown, cueStinger, cuesToPlay, level, musicLevel, patterns, stingerLevel, trackFor, tracks, uiPatterns, uiSoundFor, type TrackName } from './audio';
 import { stingerInfo } from './stingers';
 
 describe('sound cues', () => {
@@ -31,6 +31,19 @@ describe('stingers in the game', () => {
     for (const [cue, name] of Object.entries(cueStinger)) expect(stingerInfo[name], cue).toBeDefined();
     expect(cueStinger['levelup']).toBe('level-up');
     expect(cueStinger['death']).toBe('death');
+  });
+  it('gives a blocked way the loud danger sign', () => {
+    expect(cueStinger['danger']).toBe('danger');
+    expect(stingerInfo['danger'].title).toMatch(/danger/i);
+  });
+  it('holds a warning back while it is still sounding', () => {
+    const heard = new Map<string, number>();
+    expect(cueAllowed('danger', 100, heard)).toBe(true);
+    heard.set('danger', 100);
+    expect(cueAllowed('danger', 101, heard)).toBe(false);
+    expect(cueAllowed('danger', 100 + cueCooldown['danger']!, heard)).toBe(true);
+    heard.set('hit', 100);
+    expect(cueAllowed('hit', 100.01, heard)).toBe(true);
   });
   it('keeps the level polite and silences either volume at zero', () => {
     expect(stingerLevel(10, 10)).toBeLessThanOrEqual(0.55);

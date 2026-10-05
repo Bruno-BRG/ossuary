@@ -85,7 +85,9 @@ After packaging, `desktop.ps1 build` launches the executable with `--smoke-test`
 
 Operations: `new`, `load`, `key`, `resize`, `display`, `frame`. `load` rebuilds the saved
 run (seed + key log) and returns the frame. The frame carries `started` (a run is in
-progress), `hasSave`, `saveInfo`, `toTitle` (a single frame, after "Main menu") and the
-`master`/`music`/`effects` volumes, plus `sounds` (the turn's cues), `anim` (water cells) and `fx`/`fxMs` (spell animation: one array per step of
+progress), `hasSave`, `saveInfo`, `toTitle` (a single frame, after "Main menu"), the
+`master`/`music`/`effects` volumes, `modeLabel`/`panelLabel` (the mode and the open panel already
+translated, for the canvas `aria-label`: the grid is a picture, so a screen reader needs them as words),
+plus `sounds` (the turn's cues), `anim` (water cells) and `fx`/`fxMs` (spell animation: one array per step of
 [cell, glyph, fg, bg] quadruples, see `spells-and-items.md`). Rust only relays; save, binds and menu logic live in
 the Core and `engine/Ossuary.Desktop` (`Session`, `SaveStore`).

@@ -4,6 +4,21 @@ Desktop source: `engine/Ossuary.Desktop/Input.cs` and `Session.cs`.
 In the Tauri client, `F11` toggles fullscreen and the title screen accepts a seed.
 vi-key movement wins over a verb on the unshifted key; shift recovers the verb.
 
+## Keyboards (US and Portuguese)
+
+`>` and `<` have **no key of their own** on any layout, including ABNT2: `>` is `Shift` + `.`
+and `<` is `Shift` + `,`. Descending, climbing, fleeing a fight on the road and stepping into
+the portal are all typed that way. The message the game shows when you stand on the stairs
+says it ("Press `>` (Shift + .) to descend"), the **Commands** panel (`?`) lists it, and the
+**Controls** panel prints the note under the stairs lines; the panel itself shows the bind as
+`⇧.` and `⇧,`. Anything else on the keyboard is unaffected: `.` alone still waits a turn.
+
+On ABNT2 the same is true for `?`: it is `AltGr` + `W` or the extra `IntlRo` key beside the
+right `Shift`. Help is matched by the **character**, so `?` and `/` both work where the layout
+can produce them (`/` sits on the `Q` key on some ABNT2 machines), and `Shift+/` is still `?`.
+
+Numpad diagonals need Num Lock on (the keys send the digits otherwise), and vi keys never do.
+
 ## Move (also moves the aim/travel cursor)
 
 `h j k l` / arrows / numpad — `y u b n` diagonals — `.` wait
@@ -22,7 +37,7 @@ Keys are remappable in Controls.
 
 ## Dungeon
 
-`>` descend — `<` ascend (also building stairs in towns) — `g` or `,`
+`>` (`Shift` + `.`) descend — `<` (`Shift` + `,`) ascend (also building stairs in towns) — `g` or `,`
 pick up — `d` drop — `s` search (traps/secret doors) —
 `Shift+N` train a skill with XP (Trained mode) — `Shift+B` craft (combine what you carry: molotov, bone blade…; `a` on a molotov throws it) — `Shift+E` drink from a fountain (may corrupt) — `Shift+A` disarm a found trap (below or beside, preferably ahead) —
 `k` (shift-K) kick / attack ahead (in town it strikes the person in front of you, and the Watch may notice) — `D` (shift) open door — `u` (shift-U)
@@ -49,7 +64,7 @@ quit and erased on resume; no `F5`), the **Dive** (starts on level 5) and **Nake
 
 ## Road and town
 
-A monster blocking the road: `Enter`, `Space`, `K` or `F` attack; `R` or `<`
+A monster blocking the road: `Enter`, `Space`, `K` or `F` attack; `R` or `<` (`Shift` + `,`)
 flee. In town, bumping into people talks to them and bumping into a counter, notice
 board or altar opens the shop or service menu (letters choose, Esc leaves).
 

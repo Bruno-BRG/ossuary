@@ -614,8 +614,22 @@ function bleep(ctx: AudioContext, pattern: Pattern, gain: number, at: number, wa
   return at + 0.02;
 }
 
-/** Cues that are heard as a stinger (see stingers.ts) instead of a bleep. */
-export const cueStinger: Readonly<Record<string, StingerName>> = { levelup: 'level-up', quest: 'quest-accepted', death: 'death', stairs: 'gate', rest: 'rest' };
+/** Cues that are heard as a stinger (see stingers.ts) instead of a bleep. `danger` is the loud one: something is in the way. */
+export const cueStinger: Readonly<Record<string, StingerName>> = { levelup: 'level-up', quest: 'quest-accepted', death: 'death', stairs: 'gate', rest: 'rest', danger: 'danger' };
+
+/**
+ * How long the same cue is held back after it sounded, in seconds (0 = every time). `danger` is three seconds of drums and
+ * scrape, played whenever the way is refused: walking into the same blocker twice must not stack warnings over each other.
+ */
+export const cueCooldown: Readonly<Record<string, number>> = { danger: 2.5 };
+
+/** True when this cue may sound now: a warning that is still ringing does not start again over itself. */
+export function cueAllowed(cue: string, at: number, lastHeard: ReadonlyMap<string, number>): boolean {
+  const gap = cueCooldown[cue] ?? 0;
+  return gap <= 0 || at - (lastHeard.get(cue) ?? -Infinity) >= gap;
+}
+
+const lastCueAt = new Map<string, number>();
 
 const stingerBuffers = new Map<StingerName, AudioBuffer>();
 let stingerEndsAt = 0;
@@ -656,7 +670,7 @@ export function playStinger(name: StingerName, master: number, effects: number):
 export function warmStingers(): void {
   const ctx = running();
   if (!ctx) return;
-  (['level-up', 'quest-accepted', 'gate', 'rest', 'death', 'victory'] as StingerName[]).forEach((name, i) => {
+  (['level-up', 'quest-accepted', 'gate', 'rest', 'death', 'victory', 'danger'] as StingerName[]).forEach((name, i) => {
     setTimeout(() => { try { if (running()) stingerBuffer(ctx, name); } catch { /* Ignore audio errors. */ } }, 400 + i * 350);
   });
 }
@@ -669,6 +683,8 @@ export function playCues(cues: readonly string[] | undefined, master: number, ef
   try {
     let at = ctx.currentTime + 0.005;
     for (const cue of cues) {
+      if (!cueAllowed(cue, at, lastCueAt)) continue;
+      lastCueAt.set(cue, at);
       const sting = cueStinger[cue];
       if (sting) { playStinger(sting, master, effects); continue; }
       const p = patterns[cue];

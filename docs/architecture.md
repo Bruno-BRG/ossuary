@@ -47,7 +47,7 @@ The Core does not depend on the window, the DOM, the transport or the renderer. 
 
 One request and one response per UTF-8 line. Operations: `new`, `load`, `title`, `play`, `key`, `resize`, `display`, `frame`. The response is `{ok,frame}` or `{ok:false,error}`.
 Diagnostics go to stderr. Frames carry grids in row/column order, dimensions, the decimal seed, the turn, mode, panel, display tokens, and:
-`sounds` (cues of the turn), `anim` (water cells) and `fx`/`fxMs` (a spell animation: one array per step of `[cell, glyph, fg, bg]` quadruples).
+`sounds` (cues of the turn), `modeLabel`/`panelLabel` (the mode and the open panel in the player's language, for the canvas `aria-label`), `anim` (water cells) and `fx`/`fxMs` (a spell animation: one array per step of `[cell, glyph, fg, bg]` quadruples).
 
 The uint64 seed is a decimal string. No file path, shell command or network operation can be requested through this protocol. Rust validates the
 operations, serialises the requests and applies a 10-second timeout. Waiting happens off the graphics thread. Quitting the app reaps the engine.
@@ -58,13 +58,14 @@ assemblies so the build stays available during the preview.
 ## Sound
 
 Everything is synthesised in `desktop/src/audio.ts` with the Web Audio API: no audio files, no licences. The Core plays nothing: `Game.Cue/DrainCues` keep names
-(`hit`, `kill`, `hurt`, `death`, `levelup`, `quest`, `magic`, `warn`, `good`, `stairs`, `door`, `pickup`), the host puts them in `Frame.Sounds` and the front end turns them into
-square/triangle bleeps with a little noise. Menu blips (`click`, `move`, `confirm`, `cancel`) are the front end's own: they play when a key is pressed inside a panel.
+(`hit`, `kill`, `hurt`, `danger`, `death`, `levelup`, `quest`, `magic`, `warn`, `good`, `stairs`, `door`, `pickup`), the host puts them in `Frame.Sounds` and the front end turns them into
+square/triangle bleeps with a little noise. Menu blips (`click`, `move`, `confirm`, `cancel`) are the front end's own: they play when a key is pressed inside a panel, and one of them
+(`click`, at 1800 Hz) types the opening story out, one blip per tick of text, so the intro sounds the way the name field does at creation.
 
 Music is a score as data (`tracks`: bars of notes in beats and MIDI numbers) played by a look-ahead step sequencer with five voices (FM bell, 12.5% pulse, triangle bass, bowed
 saw "cello", detuned-saw pad) plus noise ticks and thuds, all through one shared reverb. `trackFor` picks the track from `Frame.scene` (see `Game.MusicScene`: boss in view, hostile in view, inside a tavern or temple, a shop panel, night or day, or the branch) and falls back to the mode. Eighteen tracks share the five-note motif: **title** ("Phosphor & Bone", 24 bars of 6/4 at 66 BPM in D minor), **intro**, **road** and **road-night**, **town**, **town-night**, **tavern**, **shop**, **temple**, **dungeon**, **mines**, **warrens**, **sunken**, **spire**, **annex**, **combat**, **boss** (the Gaoler, in two halves) and **boss-warden** (a slam every fourth bar). A dead hero or a won run hears nothing. Tracks fade in and out, the scores are deterministic and the sequencer never touches the simulation RNG.
 
-**Stingers** (`desktop/src/stingers.ts`) are short musical signs rendered sample by sample from small instrument models (inharmonic bells, a stretched-partial piano, Karplus-Strong plucks, a bowed cello, a breathing organ, timpani, wind and scrape noise), reverberated and normalised, deterministic and file-free. Fifteen exist (level up, quest accepted/updated/complete, item found, danger, trap, rest, gate, death, victory, the three endings and a new cycle). The cues `levelup`, `quest`, `death`, `stairs` and `rest` play a stinger instead of a bleep, and surfacing with the Amulet plays the victory. `npm run stingers` (in `desktop/`) writes them as WAV files to `assets/audio/stingers/` (git-ignored).
+**Stingers** (`desktop/src/stingers.ts`) are short musical signs rendered sample by sample from small instrument models (inharmonic bells, a stretched-partial piano, Karplus-Strong plucks, a bowed cello, a breathing organ, timpani, wind and scrape noise), reverberated and normalised, deterministic and file-free. Fifteen exist (level up, quest accepted/updated/complete, item found, danger, trap, rest, gate, death, victory, the three endings and a new cycle). The cues `levelup`, `quest`, `death`, `stairs`, `rest` and `danger` play a stinger instead of a bleep, and surfacing with the Amulet plays the victory. `danger` is the warning the player must hear without reading the log: the Core raises it when the way is refused (a monster blocking the road, travel past it) and once when a hostile first comes into view (`Game.NoteThreat`, called at the end of every turn), and the front end holds the same cue back for 2.5 s (`cueCooldown`) so walking into the same blocker does not stack warnings. `npm run stingers` (in `desktop/`) writes them as WAV files to `assets/audio/stingers/` (git-ignored).
 
 ## Animation
 

@@ -1,6 +1,6 @@
 export type Lang = 'pt' | 'en';
 
-const strings = {
+export const strings = {
   seed: { pt: 'SEMENTE', en: 'SEED' },
   optional: { pt: 'opcional', en: 'optional' },
   random: { pt: 'Aleatória', en: 'Random' },
@@ -22,6 +22,17 @@ const strings = {
   bVaults: { pt: 'Os Cofres Afundados', en: 'The Sunken Vaults' },
   bSpire: { pt: 'A Torre de Cinza', en: 'The Ashen Spire' },
   introBegin: { pt: 'Enter: começar a expedição', en: 'Enter: begin the expedition' },
+  fontFailed: { pt: 'Não foi possível carregar a fonte unscii-16.', en: 'Could not load the unscii-16 font.' },
+  engineNoFrame: { pt: 'O motor não devolveu uma tela.', en: 'The engine did not return a screen.' },
+  enginePartial: { pt: 'Tela incompleta recebida do motor.', en: 'An incomplete screen came back from the engine.' },
+  turn: { pt: 'Turno', en: 'Turn' },
+  panel: { pt: 'Painel', en: 'Panel' },
+  terminal: { pt: 'Terminal do jogo Ossuary', en: 'Ossuary game terminal' },
+  screen: { pt: 'Mapa e interface ASCII', en: 'ASCII map and interface' },
+  newExpedition: { pt: 'Nova expedição', en: 'New expedition' },
+  fontIncomplete: { pt: 'A fonte bitmap está incompleta.', en: 'The bitmap font is incomplete.' },
+  canvasMissing: { pt: 'Canvas indisponível.', en: 'Canvas unavailable.' },
+  crtMissing: { pt: 'WebGL2 CRT indisponível, usando Canvas 2D:', en: 'WebGL2 CRT unavailable, using Canvas 2D:' },
 } as const;
 
 export type Key = keyof typeof strings;

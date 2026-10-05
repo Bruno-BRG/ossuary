@@ -29,6 +29,33 @@ namespace Ossuary.Core
                 ("The Drowned King beats his trident on the stone. Black water spreads.", "O Rei Afogado bate o tridente na pedra. Água negra se espalha."),
                 ("The Gaoler's chain bites into you and drags you in!", "A corrente do Carcereiro morde você e te arrasta!"),
                 ("The Stone Warden slams the floor. The ground jumps.", "O Guardião de Pedra golpeia o chão. O solo salta."),
+                // Every branch boss, word for word (Game.Bosses.cs): what waits at the bottom, what it does when it
+                // is half dead, and what is left when it falls. The names are proper nouns and stay.
+                ("Chains drag somewhere ahead. The Gaoler keeps the way out, and he has not opened a cell in a long time.",
+                    "Correntes se arrastam em algum lugar à frente. O Carcereiro guarda a saída, e não abre uma cela há muito tempo."),
+                ("The Gaoler howls for his hounds.", "O Carcereiro uiva por seus cães."),
+                ("The Gaoler's keys clatter across the stone.", "As chaves do Carcereiro tilintam pela pedra."),
+                ("The floor hums. The Stone Warden never left the post the dwarves gave it.",
+                    "O chão zumbe. O Guardião de Pedra nunca deixou o posto que os anões lhe deram."),
+                ("The Stone Warden cracks, and moves faster.", "O Guardião de Pedra racha e se move mais rápido."),
+                ("The Stone Warden crumbles into ordinary rock.", "O Guardião de Pedra se desfaz em pedra comum."),
+                ("Squeaking, everywhere, in the walls. The Rat King is holding court.", "Guinchos por toda parte, dentro das paredes. O Rei dos Ratos dá audiência."),
+                ("The Rat King screams, and the walls scream back.", "O Rei dos Ratos grita, e as paredes gritam de volta."),
+                ("The Rat King dies, and the Warrens go quiet.", "O Rei dos Ratos morre, e as Tocas ficam quietas."),
+                ("Black water rises to your ankles. The Drowned King has been waiting under it.",
+                    "Água negra sobe até seus tornozelos. O Rei Afogado esperava sob ela."),
+                ("The Drowned King lifts his trident. The water answers.", "O Rei Afogado ergue o tridente. A água responde."),
+                ("The Drowned King sinks, finally, and the water goes still.", "O Rei Afogado afunda, enfim, e a água fica parada."),
+                ("The last room of the Annex is a ledger, and the Warden is reading it aloud: your name, your debts, your sins.",
+                    "A última sala do Anexo é um livro-razão, e o Guardião o lê em voz alta: seu nome, suas dívidas, seus pecados."),
+                ("The Annex Warden closes the ledger. The dead in the walls stand up.",
+                    "O Guardião do Anexo fecha o livro-razão. Os mortos nas paredes se levantam."),
+                ("The Annex Warden crumples, and every debt you owed is struck out at once.",
+                    "O Guardião do Anexo desmorona, e toda dívida sua é riscada de uma vez."),
+                ("The air at the top of the Spire is thick enough to chew. The Ashen Regent is not hungry. It is angry.",
+                    "O ar no alto da Torre é espesso o bastante para mastigar. O Regente de Cinzas não está com fome. Está furioso."),
+                ("The Ashen Regent splits its crown, and the cinders stand up.", "O Regente de Cinzas parte a coroa, e as brasas se levantam."),
+                ("The Ashen Regent comes apart like a log in a fire.", "O Regente de Cinzas se desfaz como um tronco no fogo."),
                 // crime
                 ("The animal wants no part of it.", "O animal não quer saber disso."), ("There is no point.", "Não adianta."),
                 // events
@@ -138,6 +165,33 @@ namespace Ossuary.Core
                 ("to hit", "para acertar"), ("damage", "de dano"), ("evasion", "de evasão"), ("spell power", "de poder mágico"), ("spell focus", "de foco mágico"), ("stealth", "de furtividade"),
                 // quarterstaff with an imbued spell has this literal name
                 ("quarterstaff of...", "bordão de..."),
+                // the same spell named inside a sentence ("Your staff flares: magic missile!"), where the composer
+                // writes it in lower case
+                ("magic missile", "míssil mágico"),
+                // ---- what a spell says when it finds nothing, and the other one-line messages of the play layer
+                ("Your roar echoes, and nothing flees.", "Seu rugido ecoa, e nada foge."),
+                ("Your empty hands tingle.", "Suas mãos vazias formigam."),
+                ("Your skin prickles, but you wear nothing to enchant.", "Sua pele arrepia, mas você não veste nada para encantar."),
+                ("Nothing living stirs near you.", "Nada vivo se mexe por perto."), ("No beasts answer.", "Nenhuma fera responde."),
+                ("The spell lands on empty ground.", "A magia cai em chão vazio."), ("The spell takes hold.", "A magia se firma."),
+                ("The land shows you its shape.", "A terra mostra a sua forma."), ("No traps nearby.", "Nenhuma armadilha por perto."),
+                ("There is no trap to disarm here.", "Não há armadilha para desarmar aqui."), ("Nothing here is locked.", "Nada aqui está trancado."),
+                ("There is nothing there to dig.", "Não há nada para cavar ali."), ("Nothing you carry is cursed.", "Nada do que você carrega está amaldiçoado."),
+                ("The water boils away in a scream of steam.", "A água ferve num grito de vapor."),
+                ("Steam hisses up from the stone, and thins to nothing.", "Vapor sibila da pedra e se desfaz."),
+                ("The door slams shut.", "A porta bate."), ("The door swings open.", "A porta se abre."),
+                // a road fight opens by saying what provoked it
+                ("Something has been living down there", "Algo viveu lá embaixo"),
+                ("The one with the nice coat steps back, and the other two do not", "O de casaco bonito recua, e os outros dois não"),
+                ("The stone remembers you.", "A pedra lembra de você."), ("which item?", "qual item?"),
+                // what the bolt of a wand is called before it strikes or misses (Game.Items.cs)
+                ("A frost ray", "Um raio de gelo"), ("A bolt of lightning", "Um raio"),
+                ("A gout of flame", "Um jato de chama"), ("A silver bolt", "Um dardo prateado"),
+                // an effect that slams a creature into a wall names that first ("It slams into the wall: ...")
+                ("It slams into the wall:", "Bate na parede:"),
+                // an aura that answers a blow: one row per retaliating buff (Game.Magic.Recipes.cs)
+                ("Your thorns lashes", "Espinhos rasgam"), ("Your death aura lashes", "A aura da morte açoita"),
+                ("Your holy aura lashes", "A aura sagrada açoita"),
             })
                 P(kv.Item1, kv.Item2);
 
@@ -149,7 +203,60 @@ namespace Ossuary.Core
                 ("Light sears", "A luz queima"), ("Lightning arcs into", "Um raio salta contra"), ("Lightning strikes", "Um raio atinge"), ("Lightning tears through", "Um raio rasga"),
                 ("Magic strikes", "A magia atinge"), ("Radiance scours", "O brilho fustiga"), ("Scalding steam sears", "Vapor escaldante queima"), ("Steam hisses over", "O vapor sibila sobre"),
                 ("The lightning leaps to", "O raio salta para"), ("The magic leaps to", "A magia salta para"), ("You cut", "Você corta"), ("You finish", "Você termina"),
-                ("You open the throat of", "Você abre a garganta de"), ("You stab", "Você apunhala"), ("A meteor crushes", "Um meteoro esmaga"), ("Fire engulfs", "O fogo envolve") })
+                ("You open the throat of", "Você abre a garganta de"), ("You stab", "Você apunhala"), ("A meteor crushes", "Um meteoro esmaga"), ("Fire engulfs", "O fogo envolve"),
+                // The rest of the verbs a spell or a surface can strike with: each one is written so that the object of
+                // the sentence follows it, and the contractions of Loc.Contract join them ("em o" -> "no", "de o" -> "do").
+                ("A bone shard hits", "Um estilhaço de osso atinge"), ("A bone spear skewers", "Uma lança de osso empala"),
+                ("A cold hand grips", "Uma mão fria aperta"), ("A column of fire falls on", "Uma coluna de fogo cai sobre"),
+                ("A cut hobbles", "Um corte aleija"), ("A dart pricks", "Um dardo espeta"), ("A dead hand drags", "Uma mão morta arrasta"),
+                ("A dust devil lashes", "Um redemoinho de pó açoita"), ("A falling star crushes", "Uma estrela cadente esmaga"),
+                ("A fire seed bursts on", "Uma semente de fogo explode em"), ("A flame arrow burns", "Uma flecha em chamas queima"),
+                ("A gust slams into", "Uma rajada bate em"), ("A hammer of light smashes", "Um martelo de luz esmaga"),
+                ("A knife bites", "Uma faca morde"), ("A lance of light pierces", "Uma lança de luz perfura"),
+                ("A lash of lightning strikes", "Um açoite de raio atinge"), ("A missile of force strikes", "Um dardo de força atinge"),
+                ("A nightmare rends", "Um pesadelo rasga"), ("A phantom claws", "Um fantasma arranha"),
+                ("A piece of soul tears from", "Um pedaço de alma se arranca de"), ("A pillar of light falls on", "Um pilar de luz cai sobre"),
+                ("A scorching ray burns", "Um raio escaldante queima"), ("A searing orb bursts on", "Uma esfera escaldante explode em"),
+                ("A shadow bolt rips", "Um dardo de sombra rasga"), ("A skull bites", "Uma caveira morde"), ("A snare bites", "Uma armadilha morde"),
+                ("A soul bolt tears at", "Um dardo de alma rasga"), ("A soul dagger pierces", "Uma adaga de alma perfura"),
+                ("A spark leaps into", "Uma faísca salta em"), ("A spectral horror claws", "Um horror espectral arranha"),
+                ("A spike of thought pierces", "Um espeto de pensamento perfura"), ("A stone shard hits", "Um estilhaço de pedra atinge"),
+                ("A thorn pricks", "Um espinho espeta"), ("A wail flays", "Um lamento fustiga"),
+                ("A whip of night lashes", "Um chicote da noite açoita"), ("A wire bites", "Um arame morde"),
+                ("Acid splashes", "O ácido respinga"), ("An arc of lightning scorches", "Um arco de raio queima"),
+                ("An ember sears", "Uma brasa queima"), ("An ice comet shatters on", "Um cometa de gelo se estilhaça em"),
+                ("Black tentacles crush", "Tentáculos negros esmagam"), ("Blight withers", "A praga resseca"),
+                ("Blood bursts from", "O sangue irrompe de"), ("Bone ribs crush", "Costelas de osso esmagam"),
+                ("Boulders crush", "Pedras esmagam"), ("Briars tear", "Sarças rasgam"), ("Caltrops pierce", "Estrepes furam"),
+                ("Coloured light flays", "Luz colorida fustiga"), ("Dark hands crush", "Mãos escuras esmagam"),
+                ("Darkness crushes", "A escuridão esmaga"), ("Dead hands rake", "Mãos mortas rasgam"),
+                ("Death washes over", "A morte passa por"), ("Flame washes over", "A chama passa por"), ("Flies sting", "Moscas ferroam"),
+                ("Forked lightning strikes", "Um raio bifurcado atinge"), ("Frost bites", "O gelo morde"),
+                ("Frostwind flays", "O vento gélido fustiga"), ("Hail hammers", "O granizo martela"),
+                ("Hallowed light burns", "Luz consagrada queima"), ("Hoarfrost bites", "A geada morde"),
+                ("Holy fire scours", "O fogo sagrado fustiga"), ("Judgement falls on", "O julgamento cai sobre"),
+                ("Killing frost sweeps over", "A geada mortal varre"), ("Knives bite", "Facas mordem"),
+                ("Lightning falls on", "Um raio cai sobre"), ("Lightning smites", "Um raio golpeia"),
+                ("Magma washes over", "O magma passa por"), ("Miasma chokes", "O miasma sufoca"),
+                ("Molten rock splashes", "Rocha derretida respinga"), ("Moonfire falls on", "Fogo lunar cai sobre"),
+                ("Nightshade burns", "A beladona queima"), ("Plague eats into", "A peste corrói"),
+                ("Radiance washes over", "O brilho passa por"), ("Rime blasts", "A geada golpeia"), ("Rot spatters", "A podridão respinga"),
+                ("Rot spreads through", "A podridão se espalha por"), ("Sacred flame falls on", "A chama sagrada cai sobre"),
+                ("Searing light burns", "Luz escaldante queima"), ("Shadow clamps on", "A sombra se agarra a"),
+                ("Shadows bite", "Sombras mordem"), ("Sickness racks", "A doença torce"), ("Sleet lashes", "A chuva gelada açoita"),
+                ("Spirits tear at", "Espíritos rasgam"), ("Spores burn", "Esporos queimam"),
+                ("Static lightning shocks", "Um raio estático eletriza"), ("Stone spikes impale", "Espetos de pedra empalam"),
+                ("Sunlight burns", "A luz do sol queima"), ("Sunlight scours", "A luz do sol fustiga"),
+                ("The damned wail through", "Os condenados uivam por"), ("The fog chokes", "A névoa sufoca"),
+                ("The gale hammers", "O vendaval martela"), ("The green ray unmakes", "O raio verde desfaz"),
+                ("The ground blazes under", "O chão arde sob"), ("The ground heaves under", "O chão se ergue sob"),
+                ("The ground shudders under", "O chão treme sob"), ("The poison cloud chokes", "A nuvem de veneno sufoca"),
+                ("The rift tears at", "A fenda rasga"), ("The sun lance pierces", "A lança solar perfura"),
+                ("The tide slams into", "A maré bate em"), ("The tornado flings", "O tornado arremessa"),
+                ("Thorns rake", "Espinhos rasgam"), ("Thunder batters", "O trovão golpeia"), ("Thunder strikes", "O trovão atinge"),
+                ("Venom eats", "O veneno corrói"), ("Venom spatters", "O veneno respinga"), ("Venom sprays", "O veneno espirra"),
+                ("Vines crush", "Vinhas esmagam"), ("Wasps sting", "Vespas ferroam"), ("White fire cleanses", "O fogo branco purifica"),
+                ("Your scythe of dark passes through", "Sua foice sombria atravessa"), ("Your touch drinks from", "Seu toque bebe de") })
                 P(kv.Item1, kv.Item2);
 
             var front = new List<(System.Text.RegularExpressions.Regex, string)>
@@ -186,7 +293,19 @@ namespace Ossuary.Core
                 R(@"Under the stair: (.+)\.", "Sob a escada: $1."),
                 R(@"Under the torn tent: (\d+) gold\.", "Sob a tenda rasgada: $1 de ouro."),
                 R(@"(\d+) gold, and a feeling you cannot put down\.", "$1 de ouro, e uma sensação que você não consegue largar."),
-                R(@"(.+)\. A (.+) blocks your path!", "$1. Algo barra seu caminho: $2!"),
+                R(@"(.+)\. A (.+) blocks your path!", "$1. Algo barra seu caminho: {u2}!"),
+                // summoning, monsters fighting each other, and the altar of a rival god
+                R(@"A (.+) answers your call\.", "Uma criatura atende ao seu chamado: {a1}."),
+                R(@"(\d+) (.+)s answer your call\.", "Criaturas atendem ao seu chamado ($1): {a2}."),
+                // a boss calls its own creatures out of the dark (Game.Bosses.cs): the boss is a proper noun, the
+                // creature is not
+                R(@"A (.+) answers the (.+)\.", "{a1} atende a {a2}."),
+                R(@"(\d+) (.+)s answer the (.+)\.", "Criaturas atendem a {a3} ($1): {a2}."),
+                // the shade of a dead hero the bones remember (Bones.cs): a name built out of another name
+                R(@"shade of (.+)", "sombra de $1"),
+                R(@"The (.+) fights the (.+): (\d+) damage\.", "{a1} luta contra {a2}: $3 de dano."),
+                R(@"The (.+) swings at the (.+) and misses\.", "{a1} golpeia {a2} e erra."),
+                R(@"Defile the altar of (.+) \(for (.+)\)", "Profanar o altar de $1 (para $2)"),
                 R(@"Job done: (.+)\. You are paid (\d+) gold\.", "Trabalho feito: $1. Você recebe $2 de ouro."),
                 R(@"The job is done: (.+)\. Report to the board\.", "O trabalho está feito: $1. Apresente-se ao quadro."),
                 R(@"You have reached depth (\d+): (.+)\. Report to the board\.", "Você chegou ao nível $1: $2. Apresente-se ao quadro."),
@@ -204,14 +323,22 @@ namespace Ossuary.Core
                 R(@"(.+) does not answer\.", "$1 não responde."),
                 R(@"(.+) favours you\. \((.+)\)", "$1 te favorece. ($2)"),
                 R(@"(.+) frowns at (.+)\.", "$1 franze a testa para $2."),
-                R(@"(.+) hears you\. Your wounds close\. \(-20 piety\)", "$1 te ouve. Suas feridas se fecham. (-20 de devoção)"),
+                R(@"(.+) hears you\. Your wounds close\. \(-20 piety\)", "$1 te ouve. Suas feridas se fecham. (-20 de piedade)"),
                 R(@"(.+) holds you dear\. \((.+)\)", "$1 te tem em alta conta. ($2)"),
-                R(@"(.+) is displeased by your haste\. A cold hand shoves you down\. \(-(\d+) piety\)", "$1 se desagrada da sua pressa. Uma mão fria te empurra para baixo. (-$2 de devoção)"),
+                R(@"(.+) is displeased by your haste\. A cold hand shoves you down\. \(-(\d+) piety\)", "$1 se desagrada da sua pressa. Uma mão fria te empurra para baixo. (-$2 de piedade)"),
                 R(@"(.+) is satisfied\. Your trial is done\. A gift: (.+)\.", "$1 está satisfeito. Sua provação acabou. Um presente: $2."),
-                R(@"(.+) is silent\. \(a boon costs (\d+) piety; you have (\d+)\)", "$1 está em silêncio. (uma dádiva custa $2 de devoção; você tem $3)"),
+                R(@"(.+) is silent\. \(a boon costs (\d+) piety; you have (\d+)\)", "$1 está em silêncio. (uma dádiva custa $2 de piedade; você tem $3)"),
                 R(@"(.+) sets you a trial: (\d+) deeds the god likes \((.+)\)\. The reward is a gift: (.+)\.", "$1 te impõe uma provação: $2 feitos que o deus aprecia ($3). A recompensa é um presente: $4."),
                 R(@"(.+)'s favour slips away\.", "O favor de $1 se esvai."),
                 R(@"(.+) now holds you (revered|trusted|known|distrusted|hated)\.", "$1 agora tem você como $2."),
+                // the rows of the altar menu (Game.Gods.cs): the god is a proper noun and rides the pattern as $1
+                R(@"Swear to (.+) \((\d+) gold tribute\)", "Jurar a $1 (tributo de $2 de ouro)"),
+                R(@"Swear to (.+)", "Jurar a $1"),
+                R(@"Trial: (\d+)/(\d+) deeds (.+) likes", "Provação: $1/$2 feitos que $3 aprecia"),
+                R(@"Ask (.+) for a trial", "Pedir uma provação a $1"),
+                R(@"Renounce (.+) \(Enter again to confirm\)", "Renunciar a $1 (Enter de novo para confirmar)"),
+                R(@"Renounce (.+)", "Renunciar a $1"),
+                R(@"Forsake (.+), swear to (.+) \((\d+) gold\)", "Abandonar $1, jurar a $2 ($3 de ouro)"),
                 // items
                 R(@"A column of fire engulfs the (.+)!", "Uma coluna de fogo envolve {a1}!"),
                 R(@"A (.+) appears in a puff of smoke!", "{u1} surge numa nuvem de fumaça!"),
@@ -222,7 +349,10 @@ namespace Ossuary.Core
                 R(@"Your (.+) shudders, but can hold no more\.", "{a1} estremece, mas não aguenta mais."),
                 R(@"(.+) flashes past and fades\.", "$1 passa como um relâmpago e some."),
                 R(@"(.+) strikes the (.+) for (\d+) damage\.", "$1 atinge {a2} por $3 de dano."),
-                R(@"Your (.+) (flares|stirs): (.+)!", "{a1} reage: $3!"),
+                // An imbued item fires its spell by itself (Game.Magic.cs): the weapon flares when you strike, a worn
+                // piece stirs when you are struck. Two verbs, so two rows.
+                R(@"Your (.+) flares: (.+)!", "{a1} faísca: $2!"),
+                R(@"Your (.+) stirs: (.+)!", "{a1} desperta: $2!"),
                 // spells
                 R(@"The (.+) fades away\.", "$1 se desvanece."),
                 R(@"The (.+) freezes to the spot\.", "$1 congela no lugar."),
@@ -240,7 +370,7 @@ namespace Ossuary.Core
                 R(@"The (.+) succumbs to the poison\.", "$1 sucumbe ao veneno."),
                 R(@"The (.+) succumbs to its wounds\.", "$1 sucumbe aos ferimentos."),
                 R(@"The (.+) burns to death\.", "$1 morre queimado."),
-                R(@"The (.+) is cooked by the current\.", "$1 é cozido pela corrente."),
+                R(@"The (.+) is cooked by the current\.", "{a1} é cozido pela corrente."),
                 R(@"The (.+) falls in beside you\.", "$1 se junta a você."),
                 R(@"The (.+) feels your hand!", "$1 sente sua mão!"),
                 R(@"The (.+) is not a thing you can command\.", "$1 não é algo que você possa comandar."),
@@ -255,11 +385,18 @@ namespace Ossuary.Core
                 R(@"(.+) has no eyes to dazzle\.", "$1 não tem olhos para ofuscar."),
                 R(@"(.+) has no mind to sway\.", "$1 não tem mente para influenciar."),
                 R(@"(.+) is unaffected\.", "$1 não é afetado."),
+                R(@"Your roar scatters (\d+) foe\(s\)!", "Seu rugido dispersa $1 inimigo(s)!"),
                 R(@"(.+) knows no fear\.", "$1 não conhece o medo."),
                 R(@"(.+) resists\.", "$1 resiste."),
                 R(@"(.+) shakes off the spell\.", "$1 se livra da magia."),
                 R(@"(.+) shrugs off the spell\.", "$1 ignora a magia."),
                 R(@"(.+) stands firm\.", "$1 se mantém firme."),
+                // The spell riders that strike a target without naming damage (Game.Rpg.cs): the target is the object.
+                R(@"Frost bites (.+)\.", "O gelo morde {a1}."),
+                R(@"Venom eats into (.+)\.", "O veneno corrói {a1}."),
+                R(@"Sparks arc into (.+)\.", "Faíscas saltam em {a1}."),
+                R(@"Radiance sears (.+)\.", "A radiância queima {a1}."),
+                R(@"Dark power strikes (.+)\.", "O poder sombrio atinge {a1}."),
                 R(@"Warmth knits your wounds \(\+(\d+) HP\)\.", "O calor fecha suas feridas (+$1 PV)."),
                 R(@"Blood runs and the well fills\. \(-(\d+) HP, mana full\)", "O sangue escorre e o poço se enche. (-$1 PV, mana cheia)"),
                 R(@"You and the (.+) trade places\.", "Você e {a1} trocam de lugar."),
@@ -284,6 +421,8 @@ namespace Ossuary.Core
                 R(@"\((\d+),(\d+)\) (.+), with:", "($1,$2) $3, com:"),
                 R(@"The (.+) has nothing worth taking\.", "$1 não tem nada que valha levar."),
                 R(@"The (.+) is carrying:", "$1 carrega:"),
+                // "rubble" is plural in Portuguese ("os escombros"): it takes its own line, the rest take an article
+                R(@"You dig through the rubble \(effort (\d+)\)\.", "Você cava através dos escombros (esforço $1)."),
                 R(@"You dig through the (.+) \(effort (\d+)\)\.", "Você cava através de {a1} (esforço $2)."),
                 R(@"You need (\d+) experience to train (.+); you have (\d+)\.", "Você precisa de $1 de experiência para treinar $2; você tem $3."),
                 R(@"You train (.+): (\d+) -> (\d+)\.", "Você treina $1: $2 -> $3."),
@@ -301,7 +440,6 @@ namespace Ossuary.Core
                 R(@"Your (.+) fades\.", "{a1} que você invocou se desfaz."),
                 R(@"You are in (.+)", "Você está em $1"),
                 // screens
-                R(@"(.+) : level (\d+)", "$1 : nível $2"),
                 R(@"HP/level (\d+)   Gold (\d+)", "PV/nível $1   Ouro $2"),
                 R(@"Attributes (.+)", "Atributos $1"),
                 R(@"Kit: (.+)", "Kit: $1"),
@@ -318,6 +456,9 @@ namespace Ossuary.Core
                 R(@"(Human|Dwarf|Elf|Halfling|Orc|Gnome|Ashen) (.+)", "$2 $1"),
             };
             Rx.InsertRange(0, front);
+            // Left last on purpose: " : level N" only decorates a level name, so the patterns that translate a whole
+            // one ("You arrive at The Dungeons : level 1." -> "Você chega às Masmorras, nível 1.") must see it first.
+            Rx.Add(R(@"(.+) : level (\d+)", "$1, nível $2"));
         }
     }
 }

@@ -55,6 +55,8 @@ namespace Ossuary.Core
             AddSpellText();
             AddMonsterText();
             AddItemText();
+            AddArtifactText();
+            AddRivalText();
             AddMsgText();
             AddGameText();
             var traps = new[] { ("spike trap", "armadilha de espetos", "uma"), ("hole", "buraco", "um"), ("dart trap", "armadilha de dardos", "uma"),
@@ -98,15 +100,31 @@ namespace Ossuary.Core
             {
                 var m = re.Match(en);
                 if (!m.Success) continue;
-                string r = Expand(m, rep);
-                foreach (var kv in Names) r = r.Replace(kv.Key, kv.Value);
-                result = Contract(r);
+                result = Finish(Expand(m, rep));
                 break;
             }
             if (_rxMemo.Count > 4000) _rxMemo.Clear();
             _rxMemo[en] = result;
             return result;
         }
+
+        /// <summary>
+        /// The last step of any translated sentence, wherever its pattern lives (here or in <see cref="TownText"/>):
+        /// every proper name becomes Portuguese and the Portuguese contractions are applied, so "Dizem que $1 em
+        /// The Iron Hills" cannot leave half a sentence in English.
+        /// </summary>
+        internal static string Finish(string s)
+        {
+            foreach (var kv in Names) s = s.Replace(kv.Key, kv.Value);
+            return Contract(s);
+        }
+
+        /// <summary>
+        /// A message matched by a pattern of the town table: its captures go through the same name handling as
+        /// <see cref="ApplyRx"/> ({a1}'s articles, "$1" name translation, contractions), so a shop or party name
+        /// inside a sentence is translated too.
+        /// </summary>
+        internal static string TranslateMatch(Match m, string rep) => Finish(Expand(m, rep));
         /// <summary>Dev audit: when set, every string that reached the player in Portuguese without a translation is collected here (`headless loc`).</summary>
         public static HashSet<string> Misses;
         static void Miss(string s) { if (Misses != null && Regex.IsMatch(s, "[A-Za-z]{3,}")) Misses.Add(s); }
@@ -114,16 +132,36 @@ namespace Ossuary.Core
         public static string F(string en, params object[] args) => string.Format(T(en), args);
 
 
-        /// <summary>Region and place names: proper nouns, applied inside dynamic messages too.</summary>
+        /// <summary>
+        /// Region, place, branch and faction names: proper nouns, applied inside dynamic messages too. Every name the
+        /// world generator can put in a sentence belongs here (see <c>World/OverworldGen.cs</c>: <c>DungeonName</c>
+        /// and <c>FeatureName</c>), or a rumour would name half a place in English.
+        /// </summary>
         static readonly Dictionary<string, string> Names = new Dictionary<string, string>
         {
             ["The Verdant Reach"] = "O Alcance Verdejante", ["Ashen Marches"] = "Marcas de Cinza",
             ["The Sunken Vale"] = "O Vale Afundado", ["Gallowmoor"] = "Charneca da Forca",
             ["The Iron Hills"] = "As Colinas de Ferro", ["Whisperfen"] = "Pântano Sussurrante",
             ["The Craglands"] = "As Terras Fendidas", ["Emberdown"] = "Brasa Baixa",
-            ["The Hollow Wastes"] = "Os Ermos Ocos",
+            ["The Hollow Wastes"] = "Os Ermos Ocos", ["The Wilds"] = "Os Ermos",
             ["The Dungeons"] = "As Masmorras", ["The Mines of Dwarfdeep"] = "As Minas de Dwarfdeep",
+            ["The Mines"] = "As Minas",   // the short name older run records store ("Ended in The Mines 4")
             ["The Warrens"] = "As Tocas", ["The Sunken Vaults"] = "Os Cofres Afundados", ["The Ashen Spire"] = "A Torre de Cinza",
+            ["The Annex"] = "O Anexo", ["The Reach League"] = "A Liga do Reach",
+            // The four houses that keep a book on the hero: a message can open with one of them.
+            ["The Guild"] = "A Guilda", ["The Watch"] = "A Guarda", ["The Temple"] = "O Templo", ["The Cult of the Drowned"] = "O Culto dos Afogados",
+            // The mouths of the branches, as the overworld names them.
+            ["the Iron Delve"] = "a Escavação de Ferro", ["the Deep Delve"] = "a Escavação Profunda",
+            ["the Sunless Vaults"] = "os Cofres sem Sol", ["the Drowned Vaults"] = "os Cofres Afogados",
+            ["the Weeping Warren"] = "a Toca Chorosa", ["the Gnawed Warren"] = "a Toca Roída",
+            ["the Hollow Deep"] = "o Abismo Oco", ["the Bleak Catacombs"] = "as Catacumbas Desoladas",
+            ["the Gilded Galleries"] = "as Galerias Douradas", ["the Gloomhold Dungeons"] = "as Masmorras de Gloomhold",
+            ["the Cinder Spire"] = "a Torre de Brasa", ["the Ashen Spire"] = "a Torre de Cinza",
+            // Landmarks anyone on the road can point at.
+            ["an ancient ruin"] = "uma ruína antiga", ["a cave mouth"] = "uma boca de caverna",
+            ["an abandoned mine"] = "uma mina abandonada", ["a ruined keep"] = "um fortim em ruínas",
+            ["a wayshrine"] = "um santuário de estrada", ["a stone bridge"] = "uma ponte de pedra",
+            ["a landmark"] = "um marco",
         };
 
         static readonly Dictionary<string, string> Ui = new Dictionary<string, string>
@@ -184,7 +222,7 @@ namespace Ossuary.Core
             ["travel on the overworld"] = "viajar pelo mundo", ["travel"] = "viajar", ["use a key / open a door"] = "usar chave / abrir porta",
             ["use an ability / spend advancements (Shift)"] = "usar habilidade / gastar evolução (Shift)", ["wait one turn"] = "esperar um turno",
             ["wield / wear / take off armour"] = "empunhar / vestir / tirar armadura",
-            ["Str"] = "For", ["Dex"] = "Des", ["Con"] = "Con", ["Int"] = "Int", ["Wis"] = "Sab", ["Cha"] = "Car",
+            ["Str"] = "For", ["Dex"] = "Des", ["Con"] = "Con", ["Int"] = "Int", ["Wis"] = "Sab", ["Cha"] = "Car", ["AC"] = "CA",
             ["Forest"] = "Floresta", ["Grass"] = "Campo", ["Hills"] = "Colinas", ["Mountain"] = "Montanha", ["Swamp"] = "Pântano",
             ["Snow"] = "Neve", ["Ash"] = "Cinza", ["Ruins"] = "Ruínas", ["Road"] = "Estrada", ["Sand"] = "Areia", ["Water"] = "Água",
             ["Shallow"] = "Rasa", ["DeepWater"] = "Água funda",
@@ -192,6 +230,15 @@ namespace Ossuary.Core
             ["Wizard"] = "Mago", ["Ranger"] = "Patrulheiro", ["Paladin"] = "Paladino", ["Necromancer"] = "Necromante",
             ["Human"] = "Humano", ["Dwarf"] = "Anão", ["Elf"] = "Elfo", ["Halfling"] = "Halfling", ["Orc"] = "Orc", ["Gnome"] = "Gnomo", ["Ashen"] = "Cinzento",
             ["Begin as "] = "Começar como ",
+            // ---- hero titles (Roles.Titles), shown on the character sheet and in the morgue
+            ["Explorer"] = "Explorador", ["Legend"] = "Lenda", ["Squire"] = "Escudeiro", ["Warrior"] = "Guerreiro",
+            ["Knight"] = "Cavaleiro", ["Footpad"] = "Salteador", ["Thief"] = "Ladrão", ["Master Thief"] = "Mestre Ladrão",
+            ["Acolyte"] = "Acólito", ["Priest"] = "Sacerdote", ["Vicar"] = "Vigário", ["High Priest"] = "Sumo Sacerdote",
+            ["Apprentice"] = "Aprendiz", ["Conjurer"] = "Conjurador", ["Sorcerer"] = "Feiticeiro", ["Archmage"] = "Arquimago",
+            ["Tracker"] = "Rastreador", ["Hunter"] = "Caçador", ["Warden"] = "Guardião", ["Beastmaster"] = "Senhor das Feras",
+            ["Gallant"] = "Galante", ["Crusader"] = "Cruzado", ["Templar"] = "Templário", ["Lord Paladin"] = "Senhor Paladino",
+            ["Gravewalker"] = "Andarilho de Covas", ["Bonecaller"] = "Chamador de Ossos", ["Deathbinder"] = "Amarrador da Morte",
+            ["Lord of Ossuary"] = "Senhor do Ossuário",
         };
 
         static Dictionary<string, string> _ui;
@@ -229,7 +276,8 @@ namespace Ossuary.Core
                 int lead = s.IndexOf(core, StringComparison.Ordinal);
                 return s.Substring(0, lead) + v + s.Substring(lead + core.Length);
             }
-            if (core.Length > 3 && core.Length < 70 && char.IsLetter(core[0]))
+            // A head noun is a word: an item can also begin with its enchantment ("+2 dagger", "-1 adaga").
+            if (core.Length > 3 && core.Length < 70 && (char.IsLetter(core[0]) || core[0] == '+' || core[0] == '-'))
             {
                 var item = ItemPt(core);
                 if (item != null) return item.Value.Pt;
@@ -259,10 +307,8 @@ namespace Ossuary.Core
             ["Dive"] = "Mergulho", ["Naked"] = "Pelado",
             ["Start on depth 5, a few levels up. Score x2."] = "Começa no nível 5, com alguns níveis a mais. Pontos x2.",
             ["No weapon, armour or shield. One more advancement. Score x2."] = "Sem arma, armadura ou escudo. Um avanço a mais. Pontos x2.",
-            // ---- artifacts, sets and relics
-            ["The Drowned Court"] = "A Corte Afogada", ["The Ashen Regalia"] = "A Regalia de Cinza", ["Relics worn: "] = "Relíquias vestidas: ",
-            ["Tidecaller's Gauntlets"] = "Manoplas do Chamador de Marés", ["Brinewalkers"] = "Andarilhos da Salmoura", ["Mantle of Ash"] = "Manto de Cinza",
-            ["Cinder Plate"] = "Placa de Brasa", ["Hollow Ribs"] = "Costelas Ocas", ["Gravedigger's Spade"] = "Pá do Coveiro", ["Gnawed Cowl"] = "Capuz Roído",
+            // ---- relics (the names and the lore of every artifact live in Loc.Names.cs, with the monsters and the items)
+            ["Relics worn: "] = "Relíquias vestidas: ",
             // ---- training
             ["Trained"] = "Treinado", ["Skills rise only when you buy them with XP (Shift+N)."] = "As habilidades só sobem quando você as compra com XP (Shift+N).",
             ["train a skill with XP (Trained mode)"] = "treinar uma habilidade com XP (modo Treinado)",
@@ -287,6 +333,33 @@ namespace Ossuary.Core
             ["Standing"] = "Reputação", ["Job"] = "Serviço", ["Jobs done"] = "Serviços feitos",
             ["the Watch"] = "a Guarda", ["the Temple"] = "o Templo", ["the Guild"] = "a Guilda", ["the Cult of the Drowned"] = "o Culto dos Afogados",
             ["revered"] = "reverenciado", ["trusted"] = "de confiança", ["known"] = "conhecido", ["distrusted"] = "malvisto", ["hated"] = "odiado",
+            // Why a house changes its mind: the whole phrase after "for", so "<house> thinks the better of you for <reason>" is one sentence.
+            ["bribing the Watch"] = "subornar a Guarda",
+            ["calling in a favour"] = "cobrar um favor",
+            ["killing a priest"] = "matar um sacerdote",
+            ["killing a guard"] = "matar um guarda",
+            ["putting down road bandits"] = "derrubar bandidos de estrada",
+            ["robbing the dead"] = "roubar os mortos",
+            ["sharing water with a pilgrim"] = "dividir água com um peregrino",
+            ["feeding refugees"] = "alimentar refugiados",
+            ["robbing refugees"] = "roubar refugiados",
+            ["saving a delver"] = "salvar um escavador",
+            ["robbing a wounded delver"] = "roubar um escavador ferido",
+            ["burying a stranger"] = "enterrar um desconhecido",
+            ["beating a rival party to the bottom"] = "chegar ao fundo antes de um grupo rival",
+            ["losing the race"] = "perder a corrida",
+            ["catching the thief"] = "pegar o ladrão",
+            ["letting the thief go"] = "deixar o ladrão ir",
+            ["putting down the toll bandits"] = "derrubar os bandidos do pedágio",
+            ["leaving the toll bandits to the roads"] = "deixar os bandidos do pedágio nas estradas",
+            ["laying the restless to rest"] = "dar descanso aos inquietos",
+            ["carrying the Drowned's vial"] = "carregar o frasco dos Afogados",
+            ["putting down a king of the dark"] = "derrubar um rei do escuro",
+            // One reason is a whole sentence in English (Game.Ledger.cs): only the phrase after "for" belongs in the message.
+            ["The Watch hears you threatened a citizen."] = "ameaçar um cidadão",
+            // ---- the rival party that races you down the Dungeons
+            ["Reach level 7 of The Dungeons before the rival party does."] = "Chegue ao nível 7 das Masmorras antes do grupo rival.",
+            ["The rival party reached level 7 first, and they are not shy about it."] = "O grupo rival chegou ao nível 7 primeiro, e não faz segredo disso.",
             ["Hired Hand"] = "Mão Contratada", ["Finish three Guild jobs."] = "Termine três serviços da Guilda.",
             ["Well Liked"] = "Bem Quisto", ["Be revered by any house."] = "Seja reverenciado por qualquer casa.",
             ["Rest until morning (they know your face)"] = "Descansar até de manhã (conhecem seu rosto)",
@@ -328,10 +401,86 @@ namespace Ossuary.Core
             ["Boss Slayer"] = "Matador de Chefes", ["Kill a branch boss."] = "Mate o chefe de um branch.",
             ["Kingslayer"] = "Matador de Reis", ["Kill three branch bosses in one run."] = "Mate três chefes de branch em uma run.",
             ["Past the Portal"] = "Além do Portal", ["Step through the portal on Dungeons 4."] = "Atravesse o portal em Dungeons 4.",
-            ["Debts Paid"] = "Dívidas Pagas", ["Kill the Annex Warden."] = "Mate o Warden do Anexo.",
+            ["Debts Paid"] = "Dívidas Pagas", ["Kill the Annex Warden."] = "Mate o Guardião do Anexo.",
             ["The portal takes you, and the world folds."] = "O portal leva você, e o mundo se dobra.", ["You step back through the portal."] = "Você volta pelo portal.",
-            ["A portal shimmers here. Press > to step through."] = "Um portal cintila aqui. Aperte > para atravessar.",
+            ["A portal shimmers here. Press > (Shift + .) to step through."] = "Um portal cintila aqui. Aperte > (Shift + .) para atravessar.",
             ["The portal is dead. Whatever it led to is gone."] = "O portal está morto. O que havia do outro lado se foi.",
+            // ---- the gods: every field of a GodDef is read on the altar panel or in a line that names one
+            // (Entities/Gods.cs). The name is a proper noun and stays; the title takes the article the panel prints.
+            ["the Last Lamp"] = "a Última Lâmpada", ["light and mercy"] = "luz e misericórdia",
+            ["+1 Wis and +6 max HP"] = "+1 Sab e +6 PV máx",
+            ["killing the undead; sacred magic"] = "matar os mortos-vivos; magia sagrada",
+            ["necromancy; killing the harmless"] = "necromancia; matar os indefesos",
+            ["full healing, cleansing and a full measure of mana"] = "cura completa, purificação e uma medida cheia de mana",
+            ["wounds close faster"] = "feridas fecham mais rápido", ["necrotic resistance 30%"] = "resistência necrótica 30%",
+            ["the Hammer Beneath"] = "o Martelo Subterrâneo", ["war and stone"] = "guerra e pedra", ["+1 Str"] = "+1 For",
+            ["kills, above all of foes stronger than you"] = "mortes, acima de tudo de inimigos mais fortes que você",
+            ["illusions, vanishing and trickery"] = "ilusões, sumir e trapaça",
+            ["a +1 enchantment on your weapon"] = "um encantamento +1 na sua arma",
+            ["+1 to hit in melee"] = "+1 para acertar no corpo a corpo", ["+2 melee damage"] = "+2 de dano no corpo a corpo",
+            ["Mother of Ash"] = "Mãe de Cinzas", ["fire and ruin"] = "fogo e ruína",
+            // "Con" and "Int" are the same word in both languages: a gift has to say the whole one to read as Portuguese.
+            ["+1 Con"] = "+1 Constituição", ["+1 Int"] = "+1 Inteligência",
+            ["killing with fire"] = "matar com fogo", ["killing with cold"] = "matar com frio",
+            ["a flame that rides your blows for 300 turns"] = "uma chama que cavalga seus golpes por 300 turnos",
+            ["fire resistance 30%"] = "resistência a fogo 30%", ["fire resistance 60%; your blows burn"] = "resistência a fogo 60%; seus golpes queimam",
+            ["the Drowned King"] = "o Rei Afogado", ["death and still water"] = "morte e água parada",
+            ["killing with death magic; raising the dead"] = "matar com magia da morte; erguer os mortos", ["sacred magic"] = "magia sagrada",
+            ["two skeletons to serve you for 200 turns"] = "dois esqueletos para te servir por 200 turnos",
+            ["every kill restores 2 HP"] = "cada morte restaura 2 PV",
+            ["the Quiet One"] = "o Silencioso", ["shadow and theft"] = "sombra e roubo", ["+1 Dex"] = "+1 Des",
+            ["killing the sleeping and unaware; illusions"] = "matar os que dormem e não percebem; ilusões",
+            ["roaring war cries"] = "gritos de guerra",
+            ["invisibility for 100 turns and a full measure of Vigor"] = "invisibilidade por 100 turnos e uma medida cheia de Vigor",
+            ["+2 evasion"] = "+2 de evasão", ["foes notice you from one cell less"] = "inimigos notam você de uma casa a menos",
+            ["the Weeping Seam"] = "a Costura Chorosa", ["flesh and change"] = "carne e mudança",
+            ["a mutation that is always a gift"] = "uma mutação que é sempre um presente",
+            ["every mutation that takes hold; surviving corruption"] = "cada mutação que se firma; sobreviver à corrupção",
+            ["purging yourself of the Ossuary"] = "expulsar o Ossuário de você",
+            ["mutations are far more often gifts"] = "mutações são muito mais vezes presentes",
+            ["poison resistance 30%"] = "resistência a veneno 30%",
+            // A god frowns for a reason (Game.Gods.cs): the reason is a phrase inside the sentence.
+            ["the killing of the harmless"] = "matar os indefesos", ["the desecration of the dead"] = "a profanação dos mortos",
+            ["your purging"] = "sua purificação", ["your necromancy"] = "sua necromancia",
+            ["your prayers to another light"] = "suas preces a outra luz", ["your roar"] = "seu rugido", ["your skulking"] = "sua espreita",
+            // ---- the altar menu, row by row (Game.Gods.cs); the rows that name a god are patterns in Loc.Msgs.cs
+            ["Pray"] = "Rezar", ["Offer gold"] = "Oferecer ouro", ["Offer an item"] = "Oferecer um item",
+            ["Sacrifice a corpse"] = "Sacrificar um cadáver", ["Step back"] = "Recuar",
+            ["The altar is dead. Nothing answers."] = "O altar está morto. Nada responde.",
+            ["Sacrifice what?"] = "Sacrificar o quê?", ["Offer what?"] = "Oferecer o quê?",
+            ["You may pray."] = "Você pode rezar.",
+            // ---- what a choice prompt asks (Commands.cs)
+            ["Drink what?"] = "Beber o quê?", ["Apply what?"] = "Usar o quê?", ["Eat what?"] = "Comer o quê?",
+            ["Wield what?"] = "Empunhar o quê?", ["Wear what?"] = "Vestir o quê?", ["Take off what?"] = "Tirar o quê?",
+            ["Put on which ring or amulet?"] = "Pôr qual anel ou amuleto?", ["Read what?"] = "Ler o quê?",
+            ["Zap what?"] = "Usar qual varinha?", ["Sell what?"] = "Vender o quê?",
+            // ---- the bosses, with the article a death cause gives them ("Killed by the Gaoler")
+            ["the Gaoler"] = "o Carcereiro", ["the Stone Warden"] = "o Guardião de Pedra", ["the Rat King"] = "o Rei dos Ratos",
+            ["the Annex Warden"] = "o Guardião do Anexo", ["the Ashen Regent"] = "o Regente de Cinzas",
+            // ---- panels (Ui.cs): the road names a panel, the rest are one-line labels
+            ["The Road"] = "A Estrada", ["Nothing known in this school."] = "Nada conhecido nesta escola.",
+            ["Dlvl"] = "Nvl",
+            // ---- what a tile is wet, frozen or on fire with (Surfaces.cs), read in the look panel and in messages
+            ["shallow water"] = "água rasa", ["ice"] = "gelo", ["flames"] = "chamas",
+            ["spilled oil"] = "óleo derramado", ["dry brush"] = "mato seco",
+            // ---- the mood of a depth, beside DEPTH in the header (Theme.cs)
+            ["catacombs"] = "catacumbas", ["flooded vaults"] = "cofres alagados", ["bone pits"] = "fossas de ossos", ["hellmouth"] = "boca do inferno",
+            // ---- who a job, a rumour or a line comes from (Quests, Rumours, Game.Main.cs), shown as the speaker
+            ["a rumour"] = "um rumor", ["the tavern"] = "a taverna", ["the Captain of the Watch"] = "o Capitão da Guarda",
+            ["the gravekeeper"] = "o coveiro", ["The houses"] = "As casas",
+            ["A new cycle begins. What you did is remembered."] = "Um novo ciclo começa. O que você fez é lembrado.",
+            // ---- the open panel and the mode travel in the frame for a screen reader (Session.Frame)
+            ["None"] = "Nenhum", ["History"] = "Histórico", ["Choice"] = "Escolha", ["Travel"] = "Viagem", ["Death"] = "Morte",
+            ["Win"] = "Vitória", ["Settings"] = "Opções", ["Create"] = "Criação", ["Advance"] = "Evolução", ["Service"] = "Serviços",
+            ["Runs"] = "Expedições", ["Dungeon"] = "Masmorra", ["TownMap"] = "Cidade", ["GameOver"] = "Fim de jogo", ["Won"] = "Vitória",
+            // ---- the six endings of the Amulet, and what the house does with it (Game.Main.cs, Dialogues.cs)
+            ["The priest buries the Amulet in the rite Yendor meant. The dead settle, the lamps burn lower, and the pit closes."] = "O sacerdote enterra o Amuleto no rito que Yendor quis. Os mortos assentam, as lâmpadas baixam, e o poço se fecha.",
+            ["The seal turns, and every vault of the old kingdom opens. The Reach is rich by morning, and it is not the living who collect."] = "O selo gira, e todo cofre do velho reino se abre. O Reach fica rico ao amanhecer, e não são os vivos que recolhem.",
+            ["The Watch posts a standing guard and gives you the keys. You are the Warden now, and the seal is yours to keep from everyone."] = "A Guarda põe um posto de vigia e entrega as chaves a você. Agora você é o Carcereiro, e o selo é seu para guardar de todos.",
+            ["The Amulet goes to the highest bidder. The Reach eats well for a year, and the Ossuary has a new owner."] = "O Amuleto vai para quem mais pagar. O Reach come bem por um ano, e o Ossuary tem um novo dono.",
+            ["The League cannot pay five thousand. It pays what it has, takes the Amulet, and thanks you. The world goes on as it was."] = "A Liga não tem cinco mil. Paga o que tem, leva o Amuleto e agradece. O mundo segue como estava.",
+            ["You stamp the seal where Yendor stamped it, and the stone takes it. You are the Archivist now. The Ossuary will not forget you."] = "Você carimba o selo onde Yendor carimbou, e a pedra o aceita. Agora você é o Arquivista. O Ossuary não vai esquecer você.",
+            ["The house watches. You are one of theirs now, and everyone can see it."] = "A casa observa. Agora você é um deles, e todos podem ver.",
             // ---- achievements
             ["Achievements"] = "Conquistas", ["local"] = "locais", ["What you have done across all your runs."] = "O que você já fez em todas as suas runs.",
             ["Achievement: "] = "Conquista: ",
@@ -438,16 +587,21 @@ namespace Ossuary.Core
             ["The air here feels heavy, as if something precious waits in the dark."] = "O ar aqui pesa, como se algo precioso esperasse no escuro.",
             ["You emerge into the open air, the Amulet of Yendor blazing against your chest."] = "Você emerge ao ar livre, o Amuleto de Yendor ardendo contra o peito.",
             ["Press Ctrl-Q again within 3s to abandon the run."] = "Aperte Ctrl-Q de novo em 3s para abandonar a expedição.",
+            // ---- keyboards: the stairs are symbols, and a Portuguese layout has no key with them alone
+            ["> is Shift + . on every keyboard, US or ABNT2."] = "> é Shift + . em qualquer teclado, US ou ABNT2.",
+            ["< is Shift + , on every keyboard, US or ABNT2."] = "< é Shift + , em qualquer teclado, US ou ABNT2.",
+            ["Shift + . and Shift + , on any keyboard"] = "Shift + . e Shift + , em qualquer teclado",
+            ["this help (on ABNT2: AltGr + W)"] = "esta ajuda (no ABNT2: AltGr + W)",
         };
 
         static readonly List<(Regex, string)> Rx = new List<(Regex, string)>
         {
             R(@"Seed (\d+)\. Press \? for help\.", "Semente $1. Aperte ? para ajuda."),
             R(@"(.+) takes your coin and your word\. They will follow you down\.", "$1 pega seu dinheiro e sua palavra. Vai te seguir lá para baixo."),
-            R(@"The (.+) has fallen\.", "$1 tombou."),
+            R(@"The (.+) has fallen\.", "{a1} tombou."),
             R(@"You make (.+)\.", "Você faz $1."),
             R(@"A cold draught\. Someone died here: (.+) the (.+)\.", "Uma corrente fria. Alguém morreu aqui: $1, $2."),
-            R(@"A (.+) blocks your path!", "Algo barra seu caminho: $1!"),
+            R(@"A (.+) blocks your path!", "Algo barra seu caminho: {u1}!"),
             R(@"Attack it with k, or flee with <\. It is (.+)\.", "Ataque com k ou fuja com <. Parece $1."),
             R(@"You travel (\d+) hours into (.+)\.", "Você viaja $1 horas até $2."),
             R(@"You walk for (\d+) hours\.", "Você caminha por $1 horas."),
@@ -478,7 +632,7 @@ namespace Ossuary.Core
             R(@"The (.+) tears free\.", "$1 se solta."),
             R(@"The (.+) stays on its feet\.", "$1 se mantém de pé."),
             R(@"The (.+) is torn away\.", "$1 é arrancado dali."),
-            R(@"You lift (\d+) gold off the (.+)\.", "Você surrupia $1 de ouro de $2."),
+            R(@"You lift (\d+) gold off the (.+)\.", "Você surrupia $1 de ouro {d2}."),
             R(@"(\d+) beasts? lie down and sleep\.", "$1 fera(s) se deita(m) e dorme(m)."),
             R(@"(\d+) locks? spring open\.", "$1 fechadura(s) se abre(m)."),
             R(@"The rock crumbles away \((\d+) cells\)\.", "A rocha desmorona ($1 casas)."),

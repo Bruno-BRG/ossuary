@@ -57,6 +57,8 @@ namespace Ossuary.Tests
             Test("vaults are carved out of unused rock and need a key", VaultsAndKeys);
             Test("overworld entrances lead into every branch", EntrancesReachBranches);
             Test("the Annex: a portal, hard floors, a warden and a mantle", AnnexFlow);
+            Test("English frames carry no Portuguese", EnglishFramesAreEnglish);
+            Test("the stairs keys say they need Shift", KeyboardHints);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -70,6 +72,84 @@ namespace Ossuary.Tests
         static void Assert(bool condition, string message)
         {
             if (!condition) throw new Exception(message);
+        }
+
+        /// <summary>
+        /// The language is chosen once, for everything (docs/languages.md): a screen drawn in English must not carry a
+        /// Portuguese word, however it got there. Portuguese letters are the tell, and every text table keeps them.
+        /// </summary>
+        static void EnglishFramesAreEnglish()
+        {
+            var old = Loc.Current;
+            try
+            {
+                Loc.Current = Lang.En;
+                var g = Game.NewHero(4200, "Arthur", "human", "fighter");
+                var hud = new GameHud(g);
+                hud.Ui.Resize(110, 36);
+                foreach (Panel p in new[] { Panel.None, Panel.Inventory, Panel.Character, Panel.Spells, Panel.Abilities, Panel.Advance,
+                                            Panel.Help, Panel.Controls, Panel.Settings, Panel.Discoveries, Panel.Journal, Panel.Achievements,
+                                            Panel.Runs, Panel.Create, Panel.Travel, Panel.History })
+                {
+                    g.UiState.Active = p;
+                    var text = hud.Draw().ToAscii();
+                    var mark = Portuguese(text);
+                    Assert(mark.Length == 0, "Portuguese in the English " + p + " panel: " + mark);
+                }
+                g.UiState.Active = Panel.None;
+                g.LeaveToOverworld();
+                Assert(Portuguese(hud.Draw().ToAscii()).Length == 0, "Portuguese on the English overworld: " + Portuguese(hud.Draw().ToAscii()));
+                g.EnterTown("Ravensgate");
+                Assert(Portuguese(hud.Draw().ToAscii()).Length == 0, "Portuguese in an English town: " + Portuguese(hud.Draw().ToAscii()));
+                g.UiState.Active = Panel.Service;
+                Assert(Portuguese(hud.Draw().ToAscii()).Length == 0, "Portuguese in an English service panel: " + Portuguese(hud.Draw().ToAscii()));
+            }
+            finally { Loc.Current = old; }
+        }
+
+        const string Accented = "áàâãäéèêëíìîïóòôõöúùûüçñÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇÑ";
+        /// <summary>The first Portuguese word found in a screen, with a little of its line, or an empty string.</summary>
+        static string Portuguese(string text)
+        {
+            int at = text.IndexOfAny(Accented.ToCharArray());
+            if (at < 0) return "";
+            int from = Math.Max(0, at - 24);
+            return text.Substring(from, Math.Min(48, text.Length - from)).Replace("\n", " ");
+        }
+
+        /// <summary>
+        /// The stairs are typed as symbols that no keyboard has on its own (review item): the Commands panel names the
+        /// shift form, and the Controls panel explains it under the stairs line, in both languages.
+        /// </summary>
+        static void KeyboardHints()
+        {
+            var old = Loc.Current;
+            try
+            {
+                int descend = Array.FindIndex(KeyBindings.Actions, a => a.Id == "descend");
+                Assert(descend >= 0, "the stairs are a bound action");
+
+                Loc.Current = Lang.En;
+                var g = Game.NewHero(4300, "Keys", "human", "fighter");
+                var hud = new GameHud(g); hud.Ui.Resize(110, 36);
+                g.UiState.Active = Panel.Help;
+                var help = hud.Draw().ToAscii();
+                Assert(help.Contains("Shift + .") && help.Contains("Shift + ,"), "the Commands panel names the shift keys");
+                g.UiState.Active = Panel.Controls; g.UiState.ControlsIndex = descend;
+                var controls = hud.Draw().ToAscii();
+                Assert(controls.Contains("Shift + ."), "the Controls panel explains '>' under the stairs line");
+
+                Loc.Current = Lang.Pt;
+                var pt = Game.NewHero(4300, "Keys", "human", "fighter");
+                var ptHud = new GameHud(pt); ptHud.Ui.Resize(110, 36);
+                pt.UiState.Active = Panel.Help;
+                var ptHelp = ptHud.Draw().ToAscii();
+                Assert(ptHelp.Contains("Shift + .") && ptHelp.Contains("Shift + ,"), "the Portuguese Commands panel names them too");
+                pt.UiState.Active = Panel.Controls; pt.UiState.ControlsIndex = descend;
+                var ptControls = ptHud.Draw().ToAscii();
+                Assert(ptControls.Contains("Shift + .") && ptControls.Contains("ABNT2"), "and the Portuguese note names the layouts");
+            }
+            finally { Loc.Current = old; }
         }
 
         static void AutoExplore()
@@ -1996,6 +2076,41 @@ namespace Ossuary.Tests
             var world = walker.DrainCues(9);
             Assert(world.Length == 3 && Array.IndexOf(world, "stairs") >= 0 && Array.IndexOf(world, "door") >= 0 && Array.IndexOf(world, "rest") >= 0,
                 "stairs, doors and rest have cues: " + string.Join(",", world));
+
+            // Something blocking the way is heard loudly: an enemy coming into sight warns once, not once a turn.
+            var scout = Game.NewHero(2405, "Sight", "human", "fighter");
+            scout.Monsters.Clear();
+            scout.UpdateFov();
+            scout.NoteThreat();          // an empty level settles the state before the enemy arrives
+            scout.DrainCues();
+            Assert(scout.DrainCues(9).Length == 0, "an empty level is quiet");
+            var foe = new Monster(Bestiary.Find("giant rat"), scout.Rng);
+            foe.Dormant = false;
+            foreach (var d in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) })
+                if (scout.Map.Walkable(scout.Player.X + d.Item1, scout.Player.Y + d.Item2)) { foe.X = scout.Player.X + d.Item1; foe.Y = scout.Player.Y + d.Item2; break; }
+            scout.Monsters.Add(foe);
+            scout.UpdateFov();
+            scout.NoteThreat();
+            Assert(Array.IndexOf(scout.DrainCues(9), "danger") >= 0, "an enemy in sight is heard");
+            scout.NoteThreat();
+            Assert(Array.IndexOf(scout.DrainCues(9), "danger") < 0, "the same enemy warns once, not every turn");
+            scout.Monsters.Clear();
+            scout.UpdateFov();
+            scout.NoteThreat();
+            scout.Monsters.Add(foe);
+            scout.UpdateFov();
+            scout.NoteThreat();
+            Assert(Array.IndexOf(scout.DrainCues(9), "danger") >= 0, "and again when a fresh enemy appears");
+
+            // A road encounter blocks the way (and travelling past it), and both are heard.
+            var road = Game.NewHero(2406, "Road", "human", "fighter");
+            road.LeaveToOverworld();
+            road.ActiveEncounter = true;
+            road.DrainCues();
+            road.OverworldMove(1, 0);
+            Assert(Array.IndexOf(road.DrainCues(9), "danger") >= 0, "a blocked road is heard");
+            road.CommitTravel(road.World.PlayerX + 1, road.World.PlayerY);
+            Assert(Array.IndexOf(road.DrainCues(9), "danger") >= 0, "travel past a blocker is heard");
 
             // The music follows the scene: something while alive, nothing once the run is over.
             Assert(!string.IsNullOrEmpty(walker.MusicScene()), "a living hero has a scene: " + walker.MusicScene());

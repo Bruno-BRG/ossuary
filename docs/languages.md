@@ -21,30 +21,55 @@ The Core defaults to English; the frontend's stored default is set in `desktop/s
 
 ## Translation status
 
-Translated: title, menu/options, HUD, panel labels, commands, overworld messages,
-town, shop and victory, region/branch names, races and classes (names and descriptions), intro and opening,
-**monster and item names**, combat/look/magic/potion/god/trap messages, skills, abilities, perks and the Controls panel.
-Still English: altar texts, artifact lore, some rarely seen messages (run `headless.ps1 loc msgs` for the current list).
+Everything a player can read is translated. The only English left is **proper nouns** (people, gods,
+towns, Dwarfdeep, Yendor, the League's "Reach") and the few words that are the same in both languages
+(`MP`, `XP`, `CA`, `PV`, `Con`, `Int`, `Altar`, `CRT`, `Mana`, `Exp`).
+
+Translated: the front end (title labels, the boot line, the error messages and the `aria-label` a
+screen reader reads), the intro and the opening, the HUD and every panel, the message log, the altar of
+a god (title, domain, gift, likes, dislikes, boon, both blessings and every row of the menu), the six
+bosses (names and every line they say), the endings and the new cycle, the morgue file, region,
+landmark, dungeon-entrance, branch and faction names, races, classes and the hero's titles, monster,
+item, relic, set and affix names (composed from their parts), quest items and the four main-quest
+documents, floor surfaces, depth moods, every spell (name, blurb **and the verb that names what hit**),
+abilities, perks, skills, reputation reasons, the rival party and the hired companions.
 
 ### Names, articles and gender
 
-- English is still the key. `Loc.Names.cs` holds the Portuguese for monsters and items with their **gender**, so a pattern can say
-  `{a1}` (article + name: "a adaga"), `{d1}` ("da adaga"), `{u1}` ("uma adaga") or plain `$1`, and `Contract` turns "de o" into "do".
+- English is still the key. `Loc.Names.cs` holds the Portuguese for monsters, items, relics and the
+  **tiles** (`TN`) with their **gender**, so a pattern can say `{a1}` (article + name: "a adaga", "a parede"),
+  `{d1}` ("da adaga", "do rei"), `{u1}` ("uma adaga") or plain `$1`, and `Contract` turns "de o" into "do",
+  "em as" into "nas".
 - A capture that is a name goes through `Loc.Part`: "the jackal" becomes "o chacal", lists are split on ", ", a trailing rank or count ("Tough 2", "(x3)") is kept.
-- Item names are **composed** from their parts (`blessed`, `+N`, a prefix affix, the base, an `of X` tail): add the base to `Nm`, the tail to `OfPt`, the adjective to `Adj`.
+- Item names are **composed** from their parts (`blessed`, `+N`, a prefix affix, the base, an `of X` tail): add the base to `Nm`, the tail to `OfPt`, the adjective to `Adj` **in the masculine
+  form** - the feminine and the plural are derived, so "sturdy boots of the bear" reads "botas robustas do urso". A name that starts with its enchantment ("+2 dagger") is composed too.
+- Every sentence ends in `Loc.Finish`: proper names substituted (`Loc.Names`) and the Portuguese contractions applied. Patterns kept in `TownText` go through `Loc.TranslateMatch`, which does the same over `Loc.Expand`.
 - Sentences about people use `Actor.Subj` / `Actor.Obj` ("The jackal" / "you" / "Dagny"); never write `the {TheName}` by hand around a named person.
-- Patterns live in `Loc.Game.cs` (play layer, HUD, sheets) and `Loc.Msgs.cs` (messages); newer patterns win.
+- Patterns live in `Loc.Game.cs` (play layer, HUD, sheets) and `Loc.Msgs.cs` (messages); newer patterns win. A pattern that is only a *decoration* of another string (the " : level N" tail of a
+  level name) is added last on purpose, so the specific patterns see the whole string first.
 
 ### Auditing a language pass
 
 | Command | What it does |
 |---|---|
 | `headless.ps1 loc [seeds] [turns]` | plays in Portuguese and prints every string that reached the screen untranslated |
-| `headless.ps1 loc frames` | prints every panel in Portuguese |
-| `headless.ps1 loc msgs` | lists every `Say`/`Tell` in the Core that Portuguese leaves unchanged |
+| `headless.ps1 loc frames` | prints every panel in Portuguese, empty and in its rich states (a run list, an altar, a road event, the morgue, creation) |
+| `headless.ps1 loc pairs` | draws the rich screens in both languages and prints every line that came out **the same**, which is a line nobody translated |
+| `headless.ps1 loc msgs` | every string literal in the Core that Portuguese leaves in English (interpolations are tried with several stand-ins, so a literal only counts as translated when a pattern really carries it) |
 | `headless.ps1 loc names` | lists monster, item, affix, ability, perk and control names |
 
-The `language` test suite fails when a name has no Portuguese.
+The `language` test suite (`LocTests`) is the gate: names, every data table (gods, bosses,
+achievements, houses, standings, difficulties, tiles, surfaces, depth moods, quest sources, the altar
+menu in four states), every spell verb and the sentences the game composes at runtime, plus a check
+that a screen drawn in English carries no Portuguese word (`English frames carry no Portuguese` in
+`FeatureTests`). On the front end, `desktop/src/i18n.test.ts` fails when a string literal outside
+`i18n.ts` has an accent.
+
+A message built from a pattern is easy to get half right, and the tools do not catch it: when a
+sentence carries a captured name (a rumour, a shop sign, "You arrive at X"), check the produced
+string, not the pattern. Every capture must go through `Loc.Part`/`Loc.Names` and end in
+`Loc.Finish` (names substituted, contractions applied) - a pattern that returns `re.Replace(...)`
+directly leaves the name in English.
 
 ## Opening
 

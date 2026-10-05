@@ -338,7 +338,8 @@ Full catalog, recipes, animations and items in [`spells-and-items.md`](spells-an
 The town is **vertical**: a `Town` holds one `GameMap` per floor (`Floors`,
 `z = 0` street, positive = upper floors, negative = basements). Every building has the
 same footprint on every floor, so the stairs put you at the same (x, y).
-`>` descends and `<` ascends (`Game.TownStairs`); the stairs alternate between two corners
+`>` descends and `<` ascends (`Game.TownStairs`) - both are `Shift` plus `.` or `,`, on any layout
+(see the *Keyboards* section of [`controls.md`](controls.md)); the stairs alternate between two corners
 (A on even z, B on odd z) so the one you step on is never the one that continues.
 The header shows `▲2`/`▼1`; the map title becomes the building's name.
 

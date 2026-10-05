@@ -20,6 +20,17 @@ namespace Ossuary.Core
             if (!Pt.ContainsKey(en)) Pt[en] = pt;
         }
 
+        /// <summary>
+        /// Tiles and scenery: labels that also appear inside sentences ("You dig through {a1}"), so they carry a gender.
+        /// The label itself is the same text either way.
+        /// </summary>
+        static readonly Dictionary<string, (string Pt, bool Fem)> Scenery = new Dictionary<string, (string, bool)>();
+        static void TN(string en, string pt, bool fem = false)
+        {
+            Scenery[en] = (pt, fem);
+            if (!Pt.ContainsKey(en)) Pt[en] = pt;
+        }
+
         // ------------------------------------------------------------------ monsters
         static void AddMonsterText()
         {
@@ -46,6 +57,13 @@ namespace Ossuary.Core
             N("spirit wolf", "lobo espiritual"); N("spiritual weapon", "arma espiritual", true); N("stone sentinel", "sentinela de pedra", true);
             N("storm sprite", "espírito da tempestade"); N("summoned bat", "morcego invocado"); N("treant", "ent");
             N("water elemental", "elemental da água"); N("wight", "aparição", true); N("wraith thrall", "servo espectral");
+            N("stray dog", "cão vira-lata");   // the town's pet (Town.cs): a creature, so it takes an article like any other
+            N("cat", "gato");
+            // The hired companions (Game.Companions.cs) are named by what they are, in the sidebar and before every line.
+            N("sellsword", "mercenário"); N("shield-bearer", "porta-escudo"); N("cutthroat", "degolador");
+            // The kings of the branches: a rumour names them, so they are names like any other.
+            N("Gaoler", "Carcereiro"); N("Stone Warden", "Guardião de Pedra"); N("Rat King", "Rei dos Ratos");
+            N("Drowned King", "Rei Afogado"); N("Ashen Regent", "Regente de Cinzas"); N("Annex Warden", "Guardião do Anexo");
         }
 
         // ------------------------------------------------------------------ items
@@ -155,10 +173,20 @@ namespace Ossuary.Core
                 ("maul", "malho", false), ("morning star", "estrela da manhã", true), ("pike", "pique", false), ("quarterstaff", "bordão", false), ("rapier", "rapieira", true),
                 ("runed dagger", "adaga rúnica", true), ("sabre", "sabre", false), ("sacrificial knife", "faca sacrificial", true), ("scimitar", "cimitarra", true),
                 ("short bow", "arco curto", false), ("short sword", "espada curta", true), ("sling", "funda", true), ("spear", "lança", true), ("spiked club", "clava com espinhos", true),
+                ("staff", "cajado", false),
                 ("stiletto", "estilete", false), ("thornwood staff", "cajado de espinheiro", false), ("trident", "tridente", false), ("war axe", "machado de guerra", false),
                 ("war hammer", "martelo de guerra", false), ("war pick", "picareta de guerra", true), ("whip", "chicote", false), ("witch's wand", "varinha de bruxa", true),
                 ("wizard's staff", "cajado de mago", false) })
                 N(w.Item1, w.Item2, w.Item3);
+
+            // The keys, remains and papers the hero can pick up outside the catalogues: they are read out like any item.
+            N("brass key", "chave de latão", true); N("skeleton corpse", "cadáver de esqueleto"); N("amulet of Yendor", "amuleto de Yendor");
+            N("warden's ledger page", "página do livro do carcereiro", true); N("dwarf council's tally", "contagem do conselho dos anões", true);
+            N("archivist's last entry", "última anotação do arquivista", true); N("spire order roll", "rol de ordens da Torre");
+
+            // Crafted gear: registered with its gender, so "You are now wearing {a1}" says "a armadura".
+            N("bone blade", "lâmina de osso", true);
+            N("bone-studded armour", "armadura cravejada de osso", true);
 
             // Books carry their article in the name.
             foreach (var b in new[] {
@@ -198,17 +226,250 @@ namespace Ossuary.Core
                 Adj[a.Item1] = a.Item2;
         }
 
+        // ------------------------------------------------------------------ artifacts and sets
+        /// <summary>
+        /// Every unique the branches can give you, and every set they belong to. A relic is named aloud when it is
+        /// carried, dropped or worn, so its name is a name like any other and keeps its gender; the lore is a whole
+        /// sentence read out when the relic is identified, so it is registered as a plain entry. One source of truth:
+        /// the names of <c>Items/Affixes.cs</c> and <c>Items/Artifacts.More.cs</c>.
+        /// </summary>
+        static void AddArtifactText()
+        {
+            foreach (var a in new[] {
+                // The first thirteen: the relics of the five branches.
+                ("Veil of the First Cell", "Véu da Primeira Cela", false),
+                ("Dwarfdeep Cleaver", "Cutelo de Dwarfdeep", false),
+                ("Rat King's Tooth", "Dente do Rei dos Ratos", false),
+                ("Crown of the Drowned King", "Coroa do Rei Afogado", true),
+                ("Ashfall", "Queda de Cinzas", true),
+                ("Tidecaller's Gauntlets", "Manoplas do Chamador de Marés", true),
+                ("Brinewalkers", "Andarilhos da Salmoura", false),
+                ("Mantle of Ash", "Manto de Cinza", false),
+                ("Cinder Plate", "Placa de Brasa", true),
+                ("Tithe-Collector's Mantle", "Manto do Cobrador de Dízimos", false),
+                ("Hollow Ribs", "Costelas Ocas", true),
+                ("Gravedigger's Spade", "Pá do Coveiro", true),
+                ("Gnawed Cowl", "Capuz Roído", false),
+                // The Dungeons.
+                ("Gaoler's Keyring", "Chaveiro do Carcereiro", false),
+                ("Ratcatcher's Cudgel", "Porrete do Caçador de Ratos", false),
+                ("Mourner's Blade", "Lâmina do Enlutado", true),
+                ("Prisoner's Prayer", "Prece do Prisioneiro", true),
+                ("Heartwood Staff", "Cajado do Cerne", false),
+                ("Warden's Bulwark", "Baluarte do Guardião", false),
+                ("Nightglove", "Luva da Noite", true),
+                ("Stairwalker's Cloak", "Capa do Andarilho das Escadas", true),
+                // The Mines of Dwarfdeep.
+                ("Pickaxe of the First Vein", "Picareta da Primeira Veia", true),
+                ("Delver's Lamp-Helm", "Elmo-Lanterna do Escavador", false),
+                ("Stonebinder's Gauntlets", "Manoplas do Vinculador de Pedra", true),
+                ("Deepmaw Plate", "Placa da Goela Funda", true),
+                ("Ore Golem's Heart", "Coração do Golem de Minério", false),
+                ("Barkhide Vest", "Colete de Casca", false),
+                ("Mantle of the Tempest", "Manto da Tormenta", false),
+                // The Warrens.
+                ("Rat King's Whiskers", "Bigodes do Rei dos Ratos", false),
+                ("Scrap-King's Cleaver", "Cutelo do Rei da Sucata", false),
+                ("Plaguebearer's Mask", "Máscara do Portador da Peste", true),
+                ("Burrower's Boots", "Botas do Cavador", true),
+                ("Mantle of Many Teeth", "Manto de Muitos Dentes", false),
+                ("Gloves of Static", "Luvas da Estática", true),
+                ("Antlered Crown", "Coroa Galhada", true),
+                // The Sunken Vaults.
+                ("Tidecaller's Trident", "Tridente do Chamador de Marés", false),
+                ("Pearl of the Drowned", "Pérola dos Afogados", true),
+                ("Saltwhite Mail", "Cota Branca de Sal", true),
+                ("Lantern of the Deep", "Lanterna das Profundezas", true),
+                ("Midnight Hood", "Capuz da Meia-Noite", false),
+                ("Weeper's Hands", "Mãos da Carpideira", true),
+                ("Sunken Sceptre", "Cetro Afundado", false),
+                ("Lich-Queen's Crown", "Coroa da Rainha-Lich", true),
+                // The Ashen Spire.
+                ("Cindercrown", "Coroa de Brasa", true),
+                ("Stormcaller's Staff", "Cajado do Chamador de Tempestades", false),
+                ("Pyre-Knight's Sword", "Espada do Cavaleiro da Pira", true),
+                ("Ashmonk's Beads", "Contas do Monge de Cinzas", true),
+                ("Lich-Queen's Shroud", "Mortalha da Rainha-Lich", true),
+                ("Wraithwalkers", "Andarilhos Espectrais", false),
+                ("Spire-Lord's Staff", "Cajado do Senhor da Torre", false),
+                ("Lich-Queen's Phylactery", "Filactério da Rainha-Lich", false),
+                ("Regent's Tithe", "Dízimo do Regente", false),
+                ("Final Ember", "Brasa Final", true),
+                // The Annex.
+                ("Auditor's Spectacles", "Óculos do Auditor", false),
+                ("Ledger of Debts", "Registro das Dívidas", false),
+                ("Dusk Daggers", "Adagas do Crepúsculo", true) })
+                N(a.Item1, a.Item2, a.Item3);
+
+            // The lore of every relic, read out when it is identified.
+            foreach (var kv in new[] {
+                ("Woven by the first prisoner, from the shirts of the ones who never came back.",
+                 "Tecido pelo primeiro prisioneiro, com as camisas dos que nunca voltaram."),
+                ("Left behind when the dwarves abandoned the black water. It still remembers the stone.",
+                 "Deixado para trás quando os anões abandonaram a água negra. Ainda se lembra da pedra."),
+                ("Gnawed, not forged. It drinks.", "Roído, não forjado. Bebe."),
+                ("Cold as the water that took him. It still wants a head to wear it.",
+                 "Fria como a água que o levou. Ainda quer uma cabeça para usá-la."),
+                ("Forged to burn the dead. It could not tell the difference.",
+                 "Forjada para queimar os mortos. Não distinguia os vivos deles."),
+                ("They close like a tide. Whoever wore them once held the water back.",
+                 "Fecham-se como a maré. Quem as vestiu um dia segurou a água de volta."),
+                ("They never dry. They never slip, either.", "Nunca secam. Também nunca escorregam."),
+                ("Grey flakes fall from it as you walk, and every flake is still warm.",
+                 "Flocos cinzentos caem dele enquanto você anda, e cada floco ainda está morno."),
+                ("Black plate, glowing at the seams. The last owner is still inside, in a way.",
+                 "Placa negra, brilhando nas costuras. O último dono ainda está dentro, de certo modo."),
+                ("Woven from the receipts of everything the Annex ever took. It has no weight. It has a great deal of memory.",
+                 "Tecido com os recibos de tudo o que o Anexo já tomou. Não tem peso. Tem muita memória."),
+                ("A cage of ribs, hollowed out to be worn. It holds you like it held something else.",
+                 "Uma gaiola de costelas, ocadas para serem vestidas. Segura você como segurou outra coisa."),
+                ("It has dug more graves than anything alive. It wants to keep digging.",
+                 "Abriu mais covas que qualquer coisa viva. Quer continuar cavando."),
+                ("The Rat King's thoughts still crawl in the lining. They are clever. They are hungry.",
+                 "Os pensamentos do Rei dos Ratos ainda rastejam no forro. São espertos. Estão com fome."),
+                ("A ring of keys melted into one band. Every lock gave way to it but the one on the way out.",
+                 "Um molho de chaves derretido numa só aliança. Toda fechadura cedeu a ele, menos a da saída."),
+                ("Knotted oak, black with old blood. The rats never learned to fear it, and the ones who tried are in the walls.",
+                 "Carvalho nodoso, negro de sangue velho. Os ratos nunca aprenderam a temê-lo, e os que tentaram estão nas paredes."),
+                ("Made for one purpose, which was to be quiet. It has outlived the reason.",
+                 "Feita para um único propósito: o silêncio. Sobreviveu ao motivo."),
+                ("Scratched into a coin with a spoon by someone who did not expect to be heard. Someone heard.",
+                 "Riscada numa moeda com uma colher por alguém que não esperava ser ouvido. Alguém ouviu."),
+                ("Grown, not cut, in a cellar where nothing should grow. It still leans toward a light that is not there.",
+                 "Crescido, não cortado, num porão onde nada deveria crescer. Ainda se inclina para uma luz que não existe."),
+                ("Dented by a thousand prisoners and not one of them got past.",
+                 "Amassado por mil prisioneiros e nenhum deles passou."),
+                ("Cut from a single black glove, the other of which was never found. It likes to be alone with the dark.",
+                 "Cortada de uma única luva negra, cuja outra nunca foi achada. Gosta de ficar sozinha com o escuro."),
+                ("Frayed at the hem from every stair it has ever climbed. It knows the way up better than you do.",
+                 "Desfiada na barra por cada escada que já subiu. Conhece o caminho de volta melhor que você."),
+                ("The pick that struck the first seam, and has not been quiet since.",
+                 "A picareta que atingiu a primeira veia, e que não ficou quieta desde então."),
+                ("A miner's lamp hammered into a helm. The flame is not oil and has never needed trimming.",
+                 "Uma lanterna de mineiro martelada num elmo. A chama não é óleo e nunca precisou ser aparada."),
+                ("They close on a hand like a vault door. The stone listens.",
+                 "Fecham-se na mão como a porta de um cofre. A pedra escuta."),
+                ("Beaten from the hide of something the dwarves dug into and could not dig out of.",
+                 "Batida do couro de algo em que os anões cavaram e de onde não conseguiram sair."),
+                ("Cold, heavy, and it beats once a minute. The golem was not finished with it.",
+                 "Frio, pesado, e bate uma vez por minuto. O golem não tinha terminado com ele."),
+                ("Bark, stitched to bark, over a heart nobody has found.",
+                 "Casca costurada em casca, sobre um coração que ninguém achou."),
+                ("It crackles when you take it off. The dwarves called a storm in the deep, once, and this is what was left.",
+                 "Crepita quando você o tira. Os anões chamaram uma tempestade nas profundezas, uma vez, e isso é o que sobrou."),
+                ("Twisted into a ring that quivers when anything moves behind you. A great many things do.",
+                 "Torcidos num anel que estremece quando algo se move atrás de você. Muitas coisas se movem."),
+                ("Sharpened on everything. It has opinions about what you should cut.",
+                 "Afiado em tudo. Tem opiniões sobre o que você deve cortar."),
+                ("Wear it and the sickness walks beside you instead of in you. It will want a favour.",
+                 "Use-a e a doença anda ao seu lado em vez de dentro de você. Ela vai querer um favor."),
+                ("Every step a little further than it should be. The tunnels are not where they were.",
+                 "Cada passo um pouco mais longe do que deveria. Os túneis não estão mais onde estavam."),
+                ("Sewn from a hundred small hides, every one of which bit someone.",
+                 "Costurado com cem couros pequenos, cada um deles mordeu alguém."),
+                ("Rub them together and the hair stands up on everything alive within ten feet.",
+                 "Esfregue uma na outra e os pelos de tudo que vive por perto se arrepiam."),
+                ("Antlers grown through bronze. They are, by some measure, still growing.",
+                 "Galhadas crescidas através do bronze. Por alguma medida, ainda crescem."),
+                ("The tide came when it was raised, and went when it was set down. No one has set it down in a long time.",
+                 "A maré vinha quando ele era erguido, e ia embora quando era baixado. Ninguém o baixa há muito tempo."),
+                ("Pried from the throat of someone who swallowed it on purpose.",
+                 "Arrancada da garganta de alguém que a engoliu de propósito."),
+                ("Crusted white, and it will not rust. Salt remembers every sea it has been.",
+                 "Branca de crosta, e não enferruja. O sal lembra de cada mar por onde passou."),
+                ("A ring that glows a little less than the water it came out of.",
+                 "Um anel que brilha um pouco menos que a água de onde saiu."),
+                ("It is always the hour just after the lamps go out.",
+                 "É sempre a hora logo depois que as lâmpadas se apagam."),
+                ("Gloves of someone who held on to something for a very long time.",
+                 "Luvas de alguém que se agarrou a algo por muito tempo."),
+                ("A king's sceptre that was never allowed to be a king's staff. It has been waiting for a better hand.",
+                 "Um cetro de rei que nunca pôde ser cajado de rei. Espera por uma mão melhor."),
+                ("The first of the three pieces, and the only one that is angry.",
+                 "A primeira das três peças, e a única que está furiosa."),
+                ("A circlet of ash that has been burning for three hundred years, with no fuel but you.",
+                 "Um diadema de cinzas que arde há trezentos anos, sem combustível além de você."),
+                ("The Spire's tower-wizards called lightning to quench the fires. It has a grudge against both.",
+                 "Os magos da Torre chamaram raios para apagar o incêndio. Ele guarda rancor dos dois."),
+                ("A sword that rode into the Spire to put out a fire. It came out on fire.",
+                 "Uma espada que entrou na Torre para apagar um incêndio. Saiu em chamas."),
+                ("Prayer beads of bone and cinder. Each one is a name.",
+                 "Contas de oração de osso e brasa. Cada uma é um nome."),
+                ("She wore it to her own funeral and then declined to be buried.",
+                 "Ela a vestiu no próprio funeral e depois recusou ser enterrada."),
+                ("Boots of someone who is, strictly, no longer using them.",
+                 "Botas de alguém que, a rigor, não as usa mais."),
+                ("The last staff in the Spire still lit. The fire in it is not a flame but a decision.",
+                 "O último cajado ainda aceso na Torre. O fogo dentro dele não é chama, é uma decisão."),
+                ("The last of the three. Whatever she put in it is not what you would expect, and it is not finished.",
+                 "O último dos três. O que ela pôs nele não é o que você espera, e não está terminado."),
+                ("Gold, warm, a little heavy. The Regent paid his debts in fire.",
+                 "Ouro, morno, um pouco pesado. O Regente pagou suas dívidas em fogo."),
+                ("The last coal of the Spire, held in an iron fist that learned not to let go.",
+                 "A última brasa da Torre, presa num punho de ferro que aprendeu a não soltar."),
+                ("Wire and two lenses. They show you what everything cost, and who paid.",
+                 "Arame e duas lentes. Mostram quanto custou cada coisa, e quem pagou."),
+                ("A ring stamped with a number that increases whenever you are not looking.",
+                 "Um anel marcado com um número que aumenta sempre que você não olha."),
+                ("A pair that were never found together, and have been waiting to be.",
+                 "Um par que nunca foi achado junto, e que esperava por isso.") })
+                P(kv.Item1, kv.Item2);
+
+            // The sets: two pieces grant the first bonus, three the second as well.
+            foreach (var s in new[] {
+                ("The Drowned Court", "A Corte Afogada", true),
+                ("The Ashen Regalia", "A Regalia de Cinza", true),
+                ("The Lich-Queen's Panoply", "A Panóplia da Rainha-Lich", true),
+                ("The Stormcaller's Regalia", "A Regalia do Chamador de Tempestades", true),
+                ("The Verdant Court", "A Corte Verdejante", true),
+                ("The Midnight Cabal", "A Cabala da Meia-Noite", true) })
+                N(s.Item1, s.Item2, s.Item3);
+        }
+
+        // ------------------------------------------------------------------ rival parties
+        /// <summary>
+        /// The parties that race the hero down the Dungeons. They are groups, so a rumour names them inside a
+        /// sentence ("$1 are buying rope"): the names live here with the monsters and the items.
+        /// </summary>
+        static void AddRivalText()
+        {
+            N("the Ash Company", "a Companhia de Cinzas", true);
+            N("Maren's Blades", "as Lâminas de Maren", true);
+            N("the Grey Lanterns", "as Lanternas Cinzentas", true);
+            N("the Penny Knives", "as Facas de Tostão", true);
+            N("Brother Voss and his five", "Irmão Voss e seus cinco");
+            N("the Hollow Crows", "os Corvos Ocos");
+        }
+
         static readonly Dictionary<string, (string Pt, bool Fem)> Head = new Dictionary<string, (string, bool)>();
         static readonly Dictionary<string, string> Adj = new Dictionary<string, string>();
 
         static string Feminine(string adj)
         {
-            if (adj.StartsWith("de ") || adj.StartsWith("do ") || adj.StartsWith("da ") || adj.StartsWith("à ")) return adj;
+            if (StartsWithPreposition(adj)) return adj;
             int sp = adj.IndexOf(' ');
             string first = sp < 0 ? adj : adj.Substring(0, sp), rest = sp < 0 ? "" : adj.Substring(sp);
             if (first.EndsWith("o")) first = first.Substring(0, first.Length - 1) + "a";
             return first + rest;
         }
+
+        static bool StartsWithPreposition(string adj) =>
+            adj.StartsWith("de ") || adj.StartsWith("do ") || adj.StartsWith("da ") || adj.StartsWith("à ");
+
+        /// <summary>Plural of a composed adjective ("robusto" to "robustos"); a phrase that begins with a preposition is invariable.</summary>
+        static string Plural(string adj)
+        {
+            if (StartsWithPreposition(adj)) return adj;
+            int sp = adj.IndexOf(' ');
+            string first = sp < 0 ? adj : adj.Substring(0, sp), rest = sp < 0 ? "" : adj.Substring(sp);
+            if (first.EndsWith("s") || first.EndsWith("z") || first.EndsWith("m")) return adj;
+            if (first.EndsWith("o") || first.EndsWith("a") || first.EndsWith("e")) first += "s";
+            else if (first.EndsWith("l") || first.EndsWith("r")) first += "es";
+            return first + rest;
+        }
+
+        /// <summary>The adjective as it must appear after this noun: gender first, then number ("botas robustas").</summary>
+        static string Agree(string adj, bool fem, bool plural) => plural ? Plural(fem ? Feminine(adj) : adj) : (fem ? Feminine(adj) : adj);
 
         static readonly Dictionary<string, (string Pt, bool Fem)?> _itemMemo = new Dictionary<string, (string, bool)?>();
 
@@ -242,8 +503,8 @@ namespace Ossuary.Core
             foreach (var kv in Adj)
                 if (kv.Key != "blessed" && kv.Key != "cursed" && kv.Key != "magical" && kv.Key != "enchanted" && s.StartsWith(kv.Key + " ")) { pre = kv.Key; s = s.Substring(kv.Key.Length + 1); break; }
             // Base, with an optional "of X" suffix.
-            (string Pt, bool Fem)? bas = null; string suffix = null;
-            if (Nm.TryGetValue(s, out var whole)) bas = whole;
+            (string Pt, bool Fem)? bas = null; string suffix = null, baseEn = null;
+            if (Nm.TryGetValue(s, out var whole)) { bas = whole; baseEn = s; }
             else
             {
                 int at = 0;
@@ -252,19 +513,21 @@ namespace Ossuary.Core
                     string head = s.Substring(0, at), tail = s.Substring(at + 4);
                     if (OfPt.TryGetValue(tail, out var tp))
                     {
-                        if (Nm.TryGetValue(head, out var hb)) { bas = hb; suffix = tp; break; }
-                        if (Head.TryGetValue(head, out var hh)) { bas = hh; suffix = tp; break; }
+                        if (Nm.TryGetValue(head, out var hb)) { bas = hb; suffix = tp; baseEn = head; break; }
+                        if (Head.TryGetValue(head, out var hh)) { bas = hh; suffix = tp; baseEn = head; break; }
                     }
                     at += 4;
                 }
             }
             if (bas == null) return null;
             bool fem = bas.Value.Fem;
+            // "boots" is plural in both languages ("botas"): the adjective must follow the noun's number too.
+            bool plural = baseEn.EndsWith("s", System.StringComparison.Ordinal) && baseEn != bas.Value.Pt && bas.Value.Pt.EndsWith("s", System.StringComparison.Ordinal);
             var sb = new StringBuilder(bas.Value.Pt);
-            if (pre != null) sb.Append(' ').Append(fem ? Feminine(Adj[pre]) : Adj[pre]);
+            if (pre != null) sb.Append(' ').Append(Agree(Adj[pre], fem, plural));
             if (suffix != null) sb.Append(' ').Append(suffix);
             if (enchant != null) sb.Append(' ').Append(enchant);
-            foreach (string t in tags) sb.Append(' ').Append(fem ? Feminine(Adj[t]) : Adj[t]);
+            foreach (string t in tags) sb.Append(' ').Append(Agree(Adj[t], fem, plural));
             return (sb.ToString(), fem);
         }
 
@@ -272,8 +535,13 @@ namespace Ossuary.Core
         public static bool KnowsName(string en) => Nm.ContainsKey(en) || ItemPt(en) != null || Pt.ContainsKey(en);
 
         // ------------------------------------------------------------------ capture handling
-        static bool HasArticle(string pt) =>
-            pt.StartsWith("o ") || pt.StartsWith("a ") || pt.StartsWith("os ") || pt.StartsWith("as ") || pt.StartsWith("um ") || pt.StartsWith("uma ");
+        // A phrase that already carries an article takes no second one: "Uma lança de gelo perfura" is not "um Uma ...".
+        static bool HasArticle(string pt)
+        {
+            string low = pt.ToLowerInvariant();
+            return low.StartsWith("o ") || low.StartsWith("a ") || low.StartsWith("os ") || low.StartsWith("as ")
+                || low.StartsWith("um ") || low.StartsWith("uma ");
+        }
 
         /// <summary>Resolves a captured fragment to (Portuguese text, feminine, hasName). Handles "the jackal", "a dagger", lists and plain words.</summary>
         static (string Pt, bool Fem, bool Known) Resolve(string g)
@@ -297,6 +565,7 @@ namespace Ossuary.Core
         static (string Pt, bool Fem)? Lookup(string s)
         {
             if (Nm.TryGetValue(s, out var n)) return n;
+            if (Scenery.TryGetValue(s, out var t)) return t;
             if (s.IndexOf(' ') > 0 || s.Length > 2) { var it = ItemPt(s); if (it != null) return it; }
             return null;
         }
@@ -304,14 +573,16 @@ namespace Ossuary.Core
         /// <summary>Translates a captured fragment with no article: lists are split, unknown text is left alone.</summary>
         static string Part(string g)
         {
+            // A whole phrase that is registered as one entry wins over the list split: "kills, above all of foes
+            // stronger than you" is one line of a god's altar, not a list of two things.
+            var whole = Resolve(g);
+            if (whole.Known) return StripArticle(whole.Pt, g);
             if (g.IndexOf(", ", System.StringComparison.Ordinal) > 0 && g.IndexOf('(') < 0)
             {
                 var bits = g.Split(new[] { ", " }, System.StringSplitOptions.None);
                 for (int i = 0; i < bits.Length; i++) bits[i] = Part(bits[i]);
                 return string.Join(", ", bits);
             }
-            var r = Resolve(g);
-            if (r.Known) return StripArticle(r.Pt, g);
             var rk = Regex.Match(g, @"^(.+?) ([+-]?\d+|\(x\d+\))$");
             if (rk.Success && Resolve(rk.Groups[1].Value).Known) return Part(rk.Groups[1].Value) + " " + rk.Groups[2].Value;
             return UCore(g) ?? ApplyRx(g) ?? g;
@@ -361,9 +632,12 @@ namespace Ossuary.Core
             (new Regex(@"\bde o\b", RegexOptions.CultureInvariant), "do"), (new Regex(@"\bde a\b", RegexOptions.CultureInvariant), "da"),
             (new Regex(@"\bde os\b", RegexOptions.CultureInvariant), "dos"), (new Regex(@"\bde as\b", RegexOptions.CultureInvariant), "das"),
             (new Regex(@"\bem o\b", RegexOptions.CultureInvariant), "no"), (new Regex(@"\bem a\b", RegexOptions.CultureInvariant), "na"),
+            (new Regex(@"\bem os\b", RegexOptions.CultureInvariant), "nos"), (new Regex(@"\bem as\b", RegexOptions.CultureInvariant), "nas"),
             (new Regex(@"\bem um\b", RegexOptions.CultureInvariant), "num"), (new Regex(@"\bem uma\b", RegexOptions.CultureInvariant), "numa"),
             (new Regex(@"\bpor o\b", RegexOptions.CultureInvariant), "pelo"), (new Regex(@"\bpor a\b", RegexOptions.CultureInvariant), "pela"),
-            (new Regex(@"\ba o\b", RegexOptions.CultureInvariant), "ao"),
+            (new Regex(@"\bpor os\b", RegexOptions.CultureInvariant), "pelos"), (new Regex(@"\bpor as\b", RegexOptions.CultureInvariant), "pelas"),
+            (new Regex(@"\ba o\b", RegexOptions.CultureInvariant), "ao"), (new Regex(@"\ba os\b", RegexOptions.CultureInvariant), "aos"),
+            (new Regex(@"\ba as\b", RegexOptions.CultureInvariant), "às"),
             (new Regex(@"\bem O\b", RegexOptions.CultureInvariant), "no"), (new Regex(@"\bem A\b", RegexOptions.CultureInvariant), "na"),
             (new Regex(@"\bem Os\b", RegexOptions.CultureInvariant), "nos"), (new Regex(@"\bem As\b", RegexOptions.CultureInvariant), "nas"),
             (new Regex(@"\bde O\b", RegexOptions.CultureInvariant), "do"), (new Regex(@"\bde A\b", RegexOptions.CultureInvariant), "da"),

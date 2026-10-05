@@ -47,6 +47,11 @@ function applyLabels(lang: Lang) {
   document.querySelector('#daily')!.firstChild!.textContent = t(lang, 'daily') + ' ';
   document.querySelector('#options')!.firstChild!.textContent = t(lang, 'options') + ' ';
   document.querySelector('#retry')!.textContent = t(lang, 'retry');
+  // The page is born in Portuguese (the default language): the labels read out loud follow the choice too.
+  document.querySelector('#terminal')!.setAttribute('aria-label', t(lang, 'terminal'));
+  document.querySelector('#launch')!.setAttribute('aria-label', t(lang, 'newExpedition'));
+  status.textContent = t(lang, 'preparing');
+  canvas.setAttribute('aria-label', t(lang, 'screen'));
 }
 
 function size() { return layout(Math.floor(innerWidth * devicePixelRatio), Math.floor(innerHeight * devicePixelRatio), frame?.scale ?? readDisplay().scale); }
@@ -86,7 +91,7 @@ function paint(next: Frame) {
   resumeInfo.textContent = frame.started ? t(frame.lang, 'inProgress') : frame.saveInfo;
   failure.hidden = true;
   status.hidden = true;
-  canvas.setAttribute('aria-label', `Ossuary. ${frame.mode}. Turno ${frame.turn}. Painel ${frame.panel}.`);
+  canvas.setAttribute('aria-label', `${t(frame.lang, 'screen')}. Ossuary. ${frame.modeLabel ?? frame.mode}. ${t(frame.lang, 'turn')} ${frame.turn}. ${t(frame.lang, 'panel')} ${frame.panelLabel ?? frame.panel}.`);
 }
 
 function showError(error: unknown) {
@@ -125,7 +130,7 @@ async function initialize() {
   busy = true;
   try {
     const fontResponse = await fetch('/unscii-16.hex');
-    if (!fontResponse.ok) throw new Error('Não foi possível carregar a fonte unscii-16.');
+    if (!fontResponse.ok) throw new Error(t(langOf(), 'fontFailed'));
     const glyphs = parseFont(await fontResponse.text());
     renderer = new TerminalRenderer(canvas, glyphs, document.querySelector<HTMLElement>('#crt')!);
     const s = size();
@@ -247,7 +252,8 @@ setInterval(() => {
     const pages = frame.intro!;
     if (calm) { introTyped = 1 << 20; introAge = 1 << 12; paint(frame); return; }
     introAge++;
-    if (introTyped < pageLength(bodyOf(pages[introPage]!))) introTyped += introSpeed;
+    // The story types itself out to the sound the name field makes at creation: the same blip per tick of text.
+    if (introTyped < pageLength(bodyOf(pages[introPage]!))) { introTyped += introSpeed; blip('click'); }
     // A finished page is held for a few seconds and then the story moves on by itself; the last one waits for you.
     else if (introPage < pages.length - 1 && ++introWait > introHold) { introPage++; introTyped = 0; introAge = 0; introWait = 0; }
   }

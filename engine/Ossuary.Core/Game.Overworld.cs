@@ -14,6 +14,7 @@ namespace Ossuary.Core
             if (ActiveEncounter)
             {
                 Say("It blocks the way. Fight it (Enter or K) or flee (R or <).", MessageKind.Warn);
+                Danger();
                 return;
             }
             CurrentEvent = null; CurrentDialogue = null;
@@ -51,6 +52,7 @@ namespace Ossuary.Core
             ActiveEncounter = true;
             Say($"A {m.Name} blocks your path!", MessageKind.Bad);
             Say($"Fight it (Enter or K), or flee (R or <). It is {m.ThreatLabel()}.", MessageKind.Warn);
+            Danger();
         }
 
         public void FleeEncounter()
@@ -108,6 +110,7 @@ namespace Ossuary.Core
             if (ActiveEncounter)
             {
                 Say("You cannot travel with a foe in your path. Fight it (Enter or K) or flee (R or <).", MessageKind.Warn);
+                Danger();
                 return;
             }
             var from = World.RegionAt(World.PlayerX, World.PlayerY);

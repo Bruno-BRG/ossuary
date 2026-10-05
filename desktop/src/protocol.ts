@@ -1,9 +1,12 @@
 import type { Lang } from './i18n';
+import { t } from './i18n';
 export interface Display { theme: number; crt: number; scale: number; square: number; lang: Lang }
 export interface Frame extends Display {
   cols: number; rows: number;
   glyphs: number[]; fg: number[]; bg: number[]; bold: boolean[];
   seed: string; turn: number; mode: string; panel: string; exit: boolean;
+  /** The mode and the open panel already translated, for the canvas aria-label. */
+  modeLabel?: string; panelLabel?: string;
   void: number; text: number; dim: number; title: number;
   rule: number; panelColor: number; bad: number;
   scanline: number; vignette: number; glow: number;
@@ -34,11 +37,11 @@ export async function request(message: Request): Promise<Frame> {
     });
     response = await result.json() as Response;
   }
-  if (!response.ok || !response.frame) throw new Error(response.error ?? 'O motor não devolveu uma tela.');
+  if (!response.ok || !response.frame) throw new Error(response.error ?? t(readDisplay().lang, 'engineNoFrame'));
   const f = response.frame;
   const n = f.cols * f.rows;
   if (f.glyphs.length !== n || f.fg.length !== n || f.bg.length !== n || f.bold.length !== n) {
-    throw new Error('Tela incompleta recebida do motor.');
+    throw new Error(t(readDisplay().lang, 'enginePartial'));
   }
   return f;
 }

@@ -83,33 +83,35 @@ namespace Ossuary.Core
 
             Line("OSSUARY — " + Loc.T("morgue"));
             Line(new string('=', 40));
-            Line($"{r.Name}, {r.Race} {r.Role} ({r.Title}), {Loc.T("level")} {r.Level}");
+            Line($"{r.Name}, {Loc.U(r.Race)} {Loc.U(r.Role)} ({Loc.U(r.Title)}), {Loc.T("level")} {r.Level}");
             Line(r.Outcome == "won" ? Loc.T("Escaped with the Amulet of Yendor.")
                 : r.Outcome == "abandoned" ? Loc.T("Abandoned the run.")
                 : Loc.T("Killed by") + " " + Loc.T(r.Cause) + ".");
             Line($"{Loc.T("Deepest level")} {r.MaxDepth}   {Loc.T("Turns")} {r.Turns}   {Loc.T("Kills")} {r.Kills}   {Loc.T("Score")} {r.Score}");
-            Line($"{Loc.T(r.Outcome == "won" ? "Ended in" : "Ended on")} {r.Branch} {r.Depth}");
+            // The whole line goes through the dictionary, so "em As Masmorras" can contract to "nas Masmorras".
+            Line(Loc.T($"Ended {(r.Outcome == "won" ? "in" : "on")} {r.Branch} {r.Depth}"));
             if (r.God.Length > 0) Line($"{Loc.T("Follower of")} {r.God} ({Loc.T("piety")} {p.Piety})");
             if (r.Mode != "Normal") Line(Loc.T("Mode") + ": " + Loc.T(r.Mode));
             if (r.Daily.Length > 0) Line(Loc.T("Daily") + ": " + r.Daily);
             Line($"{Loc.T("Seed")} {r.Seed}" + (r.Date.Length > 0 ? "   " + r.Date : ""));
 
             Head("Attributes");
-            Line($"HP {Math.Max(0, p.HP)}/{p.MaxHP}   MP {p.Mp}/{p.MpMax}   AC {p.AC}");
-            Line($"Str {p.Str}  Dex {p.Dex}  Con {p.Con}  Int {p.Int}  Wis {p.Wis}  Cha {p.Cha}");
+            // The layout is the reader's; only the labels are ours to translate.
+            Line($"{Loc.U("HP")} {Math.Max(0, p.HP)}/{p.MaxHP}   {Loc.U("MP")} {p.Mp}/{p.MpMax}   {Loc.U("AC")} {p.AC}");
+            Line($"{Loc.U("Str")} {p.Str}  {Loc.U("Dex")} {p.Dex}  {Loc.U("Con")} {p.Con}  {Loc.U("Int")} {p.Int}  {Loc.U("Wis")} {p.Wis}  {Loc.U("Cha")} {p.Cha}");
             var skills = new List<string>();
-            foreach (var kv in p.Skills) if (kv.Value > 0) skills.Add($"{kv.Key} {kv.Value}");
+            foreach (var kv in p.Skills) if (kv.Value > 0) skills.Add($"{Loc.U(kv.Key.ToString())} {kv.Value}");
             if (skills.Count > 0) Line(Loc.T("Skills") + ": " + string.Join(", ", skills));
 
             var perks = new List<string>();
             foreach (var kv in p.Perks)
-                perks.Add((Progression.Find(kv.Key)?.Name ?? kv.Key) + (kv.Value > 1 ? " x" + kv.Value : ""));
+                perks.Add(Loc.U(Progression.Find(kv.Key)?.Name ?? kv.Key) + (kv.Value > 1 ? " x" + kv.Value : ""));
             if (perks.Count > 0) { Head("Perks"); Line(string.Join(", ", perks)); }
 
             if (p.Spells.Count > 0)
             {
                 var names = new List<string>();
-                foreach (string id in p.Spells) names.Add(Spells.Find(id)?.Name ?? id);
+                foreach (string id in p.Spells) names.Add(Loc.U(Spells.Find(id)?.Name ?? id));
                 Head("Spells"); Line(string.Join(", ", names));
             }
 
@@ -129,14 +131,14 @@ namespace Ossuary.Core
             }
 
             Head("Equipment");
-            if (p.Wielded != null) Line(Loc.T("Wielding") + ": " + p.Wielded.Name);
-            foreach (var piece in p.WornPieces()) Line(Loc.T("Wearing") + ": " + piece.Name);
-            for (int i = 0; i < p.Rings.Length; i++) if (p.Rings[i] != null) Line(Loc.T("Ring") + ": " + p.Rings[i].Name);
-            if (p.Amulet != null) Line(Loc.T("Amulet") + ": " + p.Amulet.Name);
+            if (p.Wielded != null) Line(Loc.T("Wielding") + ": " + Loc.U(p.Wielded.Name));
+            foreach (var piece in p.WornPieces()) Line(Loc.T("Wearing") + ": " + Loc.U(piece.Name));
+            for (int i = 0; i < p.Rings.Length; i++) if (p.Rings[i] != null) Line(Loc.T("Ring") + ": " + Loc.U(p.Rings[i].Name));
+            if (p.Amulet != null) Line(Loc.T("Amulet") + ": " + Loc.U(p.Amulet.Name));
 
             Head("Inventory");
             if (p.Inventory.Count == 0) Line(Loc.T("(empty)"));
-            foreach (var it in p.Inventory) Line("  " + it.Name);
+            foreach (var it in p.Inventory) Line("  " + Loc.U(it.Name));
             Line($"  {p.Gold} {Loc.T("gold")}");
 
             Head("Last words");

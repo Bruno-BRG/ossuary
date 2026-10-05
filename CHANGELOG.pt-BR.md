@@ -5,6 +5,26 @@
 As versões do Ossuary são numeradas só com **um número** (Versão 11, Versão 12…), como no *Project Zomboid*. Nos manifestos (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) e no nome do instalador a versão aparece como `0.N.0`. O **salvamento** (`SaveData.Version`) usa o mesmo número: mudou regra, sobe o número, saves antigos deixam de carregar.
 
+## Versão 13.3 — Cada palavra, e um aviso que se ouve
+
+Correção sobre a Versão 13 (`0.13.3` nos manifestos). Nenhuma regra mudou, então saves das Versões 12 e 13 continuam carregando.
+
+### Português, segunda passada
+- **Frases compostas traduzidas por inteiro.** Rumores, lugares e nomes dentro da frase não deixam mais metade em inglês ("Dizem que uma mina abandonada nas Colinas de Ferro..."), e a chegada ao nível lê "Você chega às Masmorras, nível 1.".
+- **Nomes com gênero e número**: entradas de masmorra, marcos, casas, reis dos ramos e terrenos ("Você cava através dos escombros"); itens concordam em gênero e número ("botas robustas do urso") e encantamentos antes do nome compõem certo.
+- **O resto do jogo**: relíquias, conjuntos e suas lendas, motivos de reputação, grupos rivais, títulos de herói, o arquivo do necrotério, deuses e o menu do altar, os seis chefes, os finais e o novo ciclo, companheiros, documentos da missão principal, tooltips e os 111 verbos de dano ("Uma só palavra desfaz o chacal por 5 de dano.").
+- **A outra direção**: mensagens de erro do frontend, rótulos de leitor de tela e a linha de boot seguem o idioma escolhido; telas em inglês não carregam português.
+
+### Som
+- **Um aviso impossível de perder**: o stinger *Danger Spotted* toca quando um inimigo aparece pela primeira vez e quando a estrada impede a passagem, sem empilhar se você insistir.
+- **A introdução datilografa em voz alta**, letra por letra.
+
+### Controles
+- As teclas de escada são símbolos sem tecla própria: mensagens, o painel de Comandos e o de Controles agora dizem que "> é Shift + ." em teclados US e ABNT2.
+
+### Para quem contribui
+- `loc msgs` varre todo literal com substitutos de interpolação; `loc pairs` lista linhas idênticas nos dois idiomas; novos testes `English frames carry no Portuguese`, `i18n.test.ts` e um `LocTests` mais amplo.
+
 ## Versão 13.2 — Um idioma de cada vez
 
 Correção sobre a Versão 13 (`0.13.2` nos manifestos). Nenhuma regra mudou, então saves das Versões 12 e 13 continuam carregando.

@@ -131,23 +131,38 @@ namespace Ossuary.Tools
             hud.Draw();
             if (Array.IndexOf(args, "msgs") >= 0)
             {
-                // Static audit: every Say/Tell literal in the Core, interpolations replaced by a stand-in, that Portuguese leaves unchanged.
+                // Static audit: every string literal in the Core (Loc*.cs and TownText.cs are the dictionaries themselves)
+                // whose runtime form Portuguese leaves unchanged. An interpolation stands for a name, a number, an item or a
+                // place, so each one is tried with all of them: a literal counts as translated when any stand-in comes back in
+                // Portuguese (the Rx patterns carry the real value at runtime), and only the ones nothing covers are printed.
                 Loc.Current = Lang.Pt;
-                var rx = new System.Text.RegularExpressions.Regex("\\b(?:Say|Tell)\\((\\$?)\"((?:[^\"\\\\]|\\\\.)*)\"");
+                var literal = new System.Text.RegularExpressions.Regex("\"((?:[^\"\\\\\\r\\n]|\\\\.)*)\"");
+                var hole = new System.Text.RegularExpressions.Regex("\\{(?:[^{}]|\\{[^{}]*\\})*\\}");
                 var bad = new System.Collections.Generic.SortedSet<string>(StringComparer.Ordinal);
+                string[] standIns = { "jackal", "dagger", "3", "Ashen Marches", "Khorr", "magic missile", "the fox", "burning", "Morgana" };
                 foreach (var file in System.IO.Directory.GetFiles("engine/Ossuary.Core", "*.cs", System.IO.SearchOption.AllDirectories))
                 {
-                    if (file.Contains("\\obj\\") || file.Contains("/obj/")) continue;
-                    foreach (System.Text.RegularExpressions.Match m in rx.Matches(System.IO.File.ReadAllText(file)))
+                    string name = System.IO.Path.GetFileName(file);
+                    if (file.Contains("\\obj\\") || file.Contains("/obj/") || name.StartsWith("Loc") || name == "TownText.cs") continue;
+                    foreach (System.Text.RegularExpressions.Match m in literal.Matches(System.IO.File.ReadAllText(file)))
                     {
-                        string s = m.Groups[2].Value.Replace("\\\"", "\"").Replace("\\n", "\n");
-                        if (m.Groups[1].Value == "$") s = System.Text.RegularExpressions.Regex.Replace(s, "\\{[^}]*\\}", "jackal");
-                        if (!System.Text.RegularExpressions.Regex.IsMatch(s, "[A-Za-z]{3,}")) continue;
-                        if (Loc.T(s) == s) bad.Add(System.IO.Path.GetFileName(file) + "\t" + s);
+                        string s = m.Groups[1].Value.Replace("\\\"", "\"").Replace("\\n", "\n");
+                        if (s.IndexOf(' ') < 0 || !System.Text.RegularExpressions.Regex.IsMatch(s, "[A-Za-z]{3,}")) continue;
+                        if (s.IndexOf('\\') >= 0 || s.Contains("|") || s.Contains("$") && s.Contains("(")) continue;   // patterns and format strings
+                        if (System.Text.RegularExpressions.Regex.IsMatch(s, "[áàâãéêíóôõúüçÁÀÂÃÉÊÍÓÔÕÚÇ]")) continue;  // already Portuguese
+                        string sample = hole.Replace(s, standIns[0]);
+                        bool translated = Loc.T(sample) != sample || Loc.U(sample) != sample;
+                        if (!translated && sample != s)
+                            foreach (string stand in standIns)
+                            {
+                                string other = hole.Replace(s, stand);
+                                if (Loc.T(other) != other || Loc.U(other) != other) { translated = true; sample = other; break; }
+                            }
+                        if (!translated) bad.Add(name + "\t" + s);
                     }
                 }
                 foreach (var b in bad) Console.WriteLine(b);
-                Console.WriteLine($"-- {bad.Count} messages unchanged in Portuguese");
+                Console.WriteLine($"-- {bad.Count} strings Portuguese leaves in English");
                 return 0;
             }
             if (Array.IndexOf(args, "names") >= 0)
@@ -166,6 +181,37 @@ namespace Ossuary.Tools
                 foreach (var s in seen) Console.WriteLine(s);
                 return 0;
             }
+            if (Array.IndexOf(args, "pairs") >= 0)
+            {
+                // Draws the same rich screens twice, once per language, and prints every line that came out the same:
+                // a line the player reads in English mode and in Portuguese mode alike is a line nobody translated.
+                // Proper nouns and numbers are identical on purpose, so the list is for a human to read, not a gate.
+                string Capture(Lang lang)
+                {
+                    Loc.Current = lang;
+                    var writer = new System.IO.StringWriter();
+                    var stdout = Console.Out;
+                    try { Console.SetOut(writer); DumpCreate(); DumpPanels(); }
+                    finally { Console.SetOut(stdout); }
+                    return writer.ToString();
+                }
+                string en = Capture(Lang.En);
+                string pt = Capture(Lang.Pt);
+                Loc.Current = Lang.Pt;
+                var seen = new System.Collections.Generic.HashSet<string>();
+                foreach (var line in pt.Split('\n')) seen.Add(line.Trim());
+                var same = new System.Collections.Generic.SortedSet<string>(StringComparer.Ordinal);
+                foreach (var line in en.Split('\n'))
+                {
+                    string s = line.Trim();
+                    if (s.Length < 12 || s.IndexOf(' ') < 0) continue;
+                    if (!System.Text.RegularExpressions.Regex.IsMatch(s, "[A-Za-z]{3,}")) continue;
+                    if (seen.Contains(s)) same.Add(s);
+                }
+                foreach (var s in same) Console.WriteLine(s);
+                Console.WriteLine($"-- {same.Count} lines identical in both languages");
+                return 0;
+            }
             bool frames = Array.IndexOf(args, "frames") >= 0;
             foreach (Panel p in new[] { Panel.Inventory, Panel.Character, Panel.Help, Panel.History, Panel.Discoveries, Panel.Journal,
                                         Panel.Settings, Panel.Controls, Panel.Spells, Panel.Abilities, Panel.Advance, Panel.Runs, Panel.Achievements, Panel.Travel, Panel.Create })
@@ -174,7 +220,16 @@ namespace Ossuary.Tools
                 var f = hud.Draw();
                 if (frames) { Console.WriteLine("===== " + p + " ====="); Console.WriteLine(f.ToAscii()); }
             }
-            if (frames) return 0;
+            if (frames)
+            {
+                // The panels above are empty of content: the rich states (a run list, an altar, a road event, the morgue,
+                // character creation) are dumped too, in the same language, so a manual pass sees what a player sees.
+                Console.WriteLine();
+                Console.WriteLine("===== RICH STATES, IN PORTUGUESE =====");
+                DumpCreate();
+                DumpPanels();
+                return 0;
+            }
             var list = new System.Collections.Generic.List<string>(Loc.Misses); list.Sort(StringComparer.Ordinal);
             foreach (var m in list) Console.WriteLine(m);
             Console.WriteLine($"-- {list.Count} untranslated");

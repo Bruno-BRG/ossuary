@@ -155,6 +155,7 @@ namespace Ossuary.Core
             Say($"You arrive at {Map.LevelName}.", MessageKind.Narrative);
             if (depth == 1) Say(Dungeon.Get(branchName).EntryText, MessageKind.Narrative);
             UpdateFov();
+            NoteThreat();   // arriving in sight of something is a fight beginning as much as walking into one
         }
 
         /// <summary>Steps through the portal under the player: into the side branch it leads to, or back out of one.</summary>
@@ -222,6 +223,7 @@ namespace Ossuary.Core
             Map = null;
             Town = null;
             Monsters.Clear();
+            NoteThreat();   // nothing is in sight on the road surface
             World.Discover(5);
             Say("You emerge into the open air.", MessageKind.Narrative);
         }
@@ -326,6 +328,7 @@ namespace Ossuary.Core
                         return;
                     }
                     Say("This door is locked.", MessageKind.Info);
+                    Cue("warn");   // a blocked way is worth hearing even when it is only a door
                     return;
                 case TileKind.HiddenDoor:
                     Map.Set(x, y, TileKind.OpenDoor);
@@ -530,6 +533,7 @@ namespace Ossuary.Core
             Regenerate();
             if (!(Player.BuffTurns("haste") > 0 && (Turn & 1) == 0)) RunMonsters();
             UpdateFov();
+            NoteThreat();
             CheckDeath();
             ReapCompanions();
             CheckAchievements();
