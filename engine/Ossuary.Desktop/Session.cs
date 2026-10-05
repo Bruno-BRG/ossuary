@@ -692,6 +692,7 @@ namespace Ossuary.Desktop
                 Master = a.Master, Music = a.Music, Effects = a.Effects,
                 Started = Started, ToTitle = ToTitle, HasSave = HasSave, SaveInfo = SaveInfo,
                 Lang = Loc.Code(s.Language), Intro = Intro ? Story.Intro() : null,
+                PanelLabel = Loc.T(Game.UiState.Active.ToString()), ModeLabel = Loc.T(Game.Mode.ToString()),
                 Sounds = _replaying || AtTitle || Intro ? new string[0] : Game.DrainCues(),
                 Scene = AtTitle || Intro ? "" : Game.MusicScene(),
                 Fx = BuildFx(screen.Width), FxMs = FxTimeline.StepMs,
@@ -764,6 +765,9 @@ namespace Ossuary.Desktop
         public bool HasSave { get; set; }
         public string SaveInfo { get; set; }
         public string Lang { get; set; }
+        /// <summary>The open panel and the mode, in the player's language, for a screen reader to read out (the canvas itself is a picture).</summary>
+        public string PanelLabel { get; set; }
+        public string ModeLabel { get; set; }
         public string[][] Intro { get; set; }
         /// <summary>Sound cues that happened since the last frame (see Game.DrainCues), strongest first.</summary>
         public string[] Sounds { get; set; }

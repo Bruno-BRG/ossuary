@@ -1,3 +1,6 @@
+import { readDisplay } from './protocol';
+import { t } from './i18n';
+
 export function parseFont(text: string): Map<number, Uint8Array> {
   const glyphs = new Map<number, Uint8Array>();
   for (const line of text.split(/\r?\n/)) {
@@ -9,7 +12,7 @@ export function parseFont(text: string): Map<number, Uint8Array> {
     for (let y = 0; y < 16; y++) rows[y] = parseInt(match[2].slice(y * 2, y * 2 + 2), 16);
     glyphs.set(cp, rows);
   }
-  if (!glyphs.has(63)) throw new Error('A fonte bitmap está incompleta.');
+  if (!glyphs.has(63)) throw new Error(t(readDisplay().lang, 'fontIncomplete'));
   return glyphs;
 }
 

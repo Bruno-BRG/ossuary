@@ -539,7 +539,7 @@ namespace Ossuary.Core
                 _t.WriteClipped(x + 2, y, m.Name, adjacent ? theme.Danger : theme.Text, iw - 2 - 7, adjacent, theme.Panel);
                 Bar(x + iw - 6, y, 6, f, theme.Fraction(f), theme);
             }
-            if (near.Count > rows && y <= last) { _t.Write(x + 2, y, $"+{near.Count - rows} more", theme.Dim, false, theme.Panel); y++; }
+            if (near.Count > rows && y <= last) { _t.Write(x + 2, y, Loc.T($"+{near.Count - rows} more"), theme.Dim, false, theme.Panel); y++; }
             return y;
         }
 
@@ -1097,7 +1097,7 @@ namespace Ossuary.Core
         listDone:
             listed = shown;
             if (p.Inventory.Count == 0) _t.Write(x, y0, "You are carrying nothing.", theme.Dim, false, theme.Panel);
-            else if (listed < p.Inventory.Count) _t.Write(x, py + ph - 2, $"...and {p.Inventory.Count - listed} more", theme.Dim, false, theme.Panel);
+            else if (listed < p.Inventory.Count) _t.Write(x, py + ph - 2, Loc.T($"...and {p.Inventory.Count - listed} more"), theme.Dim, false, theme.Panel);
 
             // Divider and right column: what is worn, and how heavy the pack is.
             for (int yy = y0; yy < py + ph - 2; yy++) _t.Put(rx - 2, yy, '│', theme.Rule, false, theme.Panel);
@@ -1167,6 +1167,7 @@ namespace Ossuary.Core
                 { "y u", "diagonals" },
                 { ".", "wait one turn" },
                 { ">  <", "descend / climb (stairs in towns too)" },
+                { ">  <", "Shift + . and Shift + , on any keyboard" },
                 { "bump", "talk to a person, trade at a counter (town)" },
                 { "Enter K  R", "road: fight / flee a monster in your way" },
                 { "g  d", "pick up / drop" },
@@ -1192,7 +1193,7 @@ namespace Ossuary.Core
                 { "c  F6", "character sheet / discoveries" },
                 { "H", "message history" },
                 { "F2 F3 F4", "options / CRT strength / colour theme" },
-                { "?", "this help" },
+                { "?", "this help (on ABNT2: AltGr + W)" },
             };
 
             int x = px + 3, y = py + 2;
@@ -1249,7 +1250,7 @@ namespace Ossuary.Core
             int today = _g.World != null ? _g.World.Day : 0;
             bool any = false;
             int wanted = _g.World != null ? _g.BountyHere() : 0;
-            if (wanted > 0) { any = true; _t.WriteClipped(x, y++, $"Wanted: {wanted} gold", theme.Bad, iw, true, theme.Panel); y++; }
+            if (wanted > 0) { any = true; _t.WriteClipped(x, y++, Loc.T($"Wanted: {wanted} gold"), theme.Bad, iw, true, theme.Panel); y++; }
             var today_ = _g.Mode == GameMode.TownMap ? _g.TownEventToday() : TownEventKind.None;
             if (today_ != TownEventKind.None) { any = true; _t.Write(x, y, "Today", theme.Label, true, theme.Panel); _t.WriteClipped(x + 8, y++, Game.EventTitle(today_), theme.Quest, iw - 8, true, theme.Panel); y++; }
             foreach (string track in new[] { QuestDef.Main, QuestDef.Guild, QuestDef.Watch, QuestDef.Temple, QuestDef.Cult, QuestDef.Personal, QuestDef.Rival, QuestDef.Region })
@@ -1289,7 +1290,7 @@ namespace Ossuary.Core
             if (!any) _t.WriteClipped(x, y, "No open quests. Speak to the people of the town.", theme.Dim, iw, false, theme.Panel);
             int done = 0, failed = 0;
             foreach (var q in _g.Quests) { if (q.Status == QStatus.Done) done++; else if (q.Status == QStatus.Failed) failed++; }
-            if (done + failed > 0) _t.WriteClipped(x, py + ph - 2, $"Done {done}   Failed {failed}", theme.Dim, iw, false, theme.Panel);
+            if (done + failed > 0) _t.WriteClipped(x, py + ph - 2, Loc.T($"Done {done}   Failed {failed}"), theme.Dim, iw, false, theme.Panel);
         }
 
         void DrawCharacterPanel()
@@ -1328,7 +1329,7 @@ namespace Ossuary.Core
                 foreach (string house in Houses.All) { int r = _g.RepOf(house); if (r != 0) houses.Add($"{Loc.T(Houses.Name(house))} {r:+#;-#;0}"); }
                 if (houses.Count > 0) _t.WriteClipped(x, y++, Loc.T("Standing") + ": " + string.Join(", ", houses.ToArray()), theme.Info, iw, false, theme.Panel);
                 foreach (var c in _g.Contracts)
-                    _t.WriteClipped(x, y++, $"{Loc.T("Job")}: {c.Describe()} ({System.Math.Min(c.Done, c.Count)}/{c.Count})" + (c.Complete ? " ✓" : ""), c.Complete ? theme.Good : theme.Dim, iw, false, theme.Panel);
+                    _t.WriteClipped(x, y++, Loc.T($"{Loc.T("Job")}: {c.Describe()} ({System.Math.Min(c.Done, c.Count)}/{c.Count})" + (c.Complete ? " ✓" : "")), c.Complete ? theme.Good : theme.Dim, iw, false, theme.Panel);
             }
             foreach (var comp in _g.Companions)
                 _t.WriteClipped(x, y++, $"Companion: {comp.Name}, level {comp.Level}, {System.Math.Max(0, comp.HP)}/{comp.MaxHP} HP", theme.Good, iw, false, theme.Panel);
@@ -1342,7 +1343,8 @@ namespace Ossuary.Core
             if (_g.StealthReduction() > 0 || _g.ArmourClatter() > 0)
                 _t.WriteClipped(x, y++, _g.ArmourClatter() > 0 ? $"Stealth: notice -{_g.StealthReduction()}, armour rattles +{_g.ArmourClatter()}" : $"Stealth: monsters notice you {_g.StealthReduction()} square(s) later", theme.Info, iw, false, theme.Panel);
             var gearLines = p.Gear.Lines();
-            if (gearLines.Count > 0) _t.WriteClipped(x, y++, "Gear: " + string.Join(", ", gearLines.ToArray()), theme.Info, iw, false, theme.Panel);
+            // One pattern per part: the joined line ("+2 Dex, fire 30%") is not a sentence any dictionary can hold.
+            if (gearLines.Count > 0) _t.WriteClipped(x, y++, "Gear: " + string.Join(", ", gearLines.ConvertAll(l => Loc.T(l)).ToArray()), theme.Info, iw, false, theme.Panel);
             foreach (var set in ArtifactSets.All)
             {
                 int pieces = ArtifactSets.Worn(p, set.Id);
@@ -1350,7 +1352,7 @@ namespace Ossuary.Core
             }
             if (_g.WornRelics() > 0) _t.WriteClipped(x, y++, $"Relics worn: {_g.WornRelics()} (they corrupt)", theme.Warn, iw, false, theme.Panel);
             var faith = Gods.Find(p.God);
-            if (faith != null) _t.WriteClipped(x, y++, $"Faith: {faith.Name}, {faith.Title} - piety {p.Piety}/{Gods.MaxPiety}" + (p.GodTier > 0 ? $" (tier {p.GodTier})" : ""), theme.Gold, iw, false, theme.Panel);
+            if (faith != null) _t.WriteClipped(x, y++, Loc.T($"Faith: {faith.Name}, {faith.Title} - piety {p.Piety}/{Gods.MaxPiety}" + (p.GodTier > 0 ? $" (tier {p.GodTier})" : "")), theme.Gold, iw, false, theme.Panel);
             var traits = Races.Find(p.RaceId).TraitLines();
             if (traits.Count > 0) _t.WriteClipped(x, y++, "Traits: " + string.Join(", ", traits.ToArray()), theme.Info, iw, false, theme.Panel);
             y++;
@@ -1419,7 +1421,7 @@ namespace Ossuary.Core
                 string dn = Loc.T(Difficulties.Name(c.Difficulty));
                 _t.Write(x + 6, py + ph - 5, "◄ " + dn + " ►", theme.Accent, true, theme.Panel);
                 _t.WriteClipped(x + 8 + dn.Length + 5, py + ph - 5, Loc.T(Difficulties.Blurb(c.Difficulty)), theme.Dim, iw - dn.Length - 14, false, theme.Panel);
-                _t.WriteClipped(x, py + ph - 3, "Begin as " + who + "?  (Enter)", theme.Good, iw, true, theme.Panel);
+                _t.WriteClipped(x, py + ph - 3, Loc.T($"Begin as {who}?  (Enter)"), theme.Good, iw, true, theme.Panel);
             }
         }
 
@@ -1486,7 +1488,7 @@ namespace Ossuary.Core
                 return;
             }
             var list = _g.SpellsShown();
-            if (list.Count == 0) { _t.WriteClipped(x, y, "Nothing known in this school.", theme.Dim, iw, false, theme.Panel); return; }
+            if (list.Count == 0) { _t.WriteClipped(x, y, Loc.T("Nothing known in this school."), theme.Dim, iw, false, theme.Panel); return; }
             int sel = System.Math.Max(0, System.Math.Min(State.SpellIndex, list.Count - 1));
             int rows = System.Math.Max(1, ph - 12);
             int first = System.Math.Max(0, System.Math.Min(sel - rows / 2, list.Count - rows));
@@ -1534,25 +1536,25 @@ namespace Ossuary.Core
             PanelRect(out int px, out int py, out int pw, out int ph, 76, 24, "Altar", "Up/Down  Enter chooses  Esc leaves");
             int x = px + 3, iw = pw - 6, y = py + 2;
             if (god == null) return;
-            _t.WriteClipped(x, y++, $"{god.Name}, {god.Title}", theme.Title, iw, true, theme.Panel);
-            _t.WriteClipped(x, y++, $"God of {god.Domain}.", theme.Dim, iw, false, theme.Panel);
+            _t.WriteClipped(x, y++, Loc.T($"{god.Name}, {god.Title}"), theme.Title, iw, true, theme.Panel);
+            _t.WriteClipped(x, y++, Loc.T($"God of {god.Domain}."), theme.Dim, iw, false, theme.Panel);
             y++;
-            _t.WriteClipped(x, y++, "Likes:    " + god.Likes, theme.Good, iw, false, theme.Panel);
-            _t.WriteClipped(x, y++, "Dislikes: " + god.Dislikes, theme.Bad, iw, false, theme.Panel);
-            _t.WriteClipped(x, y++, $"Boon ({god.BoonCost} piety): " + god.Boon, theme.Text, iw, false, theme.Panel);
-            _t.WriteClipped(x, y++, $"Piety {Gods.Tier1At}: " + god.Tier1, theme.Info, iw, false, theme.Panel);
-            _t.WriteClipped(x, y++, $"Piety {Gods.Tier2At}: " + god.Tier2, theme.Info, iw, false, theme.Panel);
+            _t.WriteClipped(x, y++, Loc.T("Likes:    " + god.Likes), theme.Good, iw, false, theme.Panel);
+            _t.WriteClipped(x, y++, Loc.T("Dislikes: " + god.Dislikes), theme.Bad, iw, false, theme.Panel);
+            _t.WriteClipped(x, y++, Loc.T($"Boon ({god.BoonCost} piety): " + god.Boon), theme.Text, iw, false, theme.Panel);
+            _t.WriteClipped(x, y++, Loc.T($"Piety {Gods.Tier1At}: " + god.Tier1), theme.Info, iw, false, theme.Panel);
+            _t.WriteClipped(x, y++, Loc.T($"Piety {Gods.Tier2At}: " + god.Tier2), theme.Info, iw, false, theme.Panel);
             var rival = Gods.Find(god.Rival);
             if (rival != null) _t.WriteClipped(x, y++, "Rival: " + rival.Name, theme.Dim, iw, false, theme.Panel);
             y++;
             if (p.God == god.Id)
             {
-                _t.Write(x, y, $"Your piety {p.Piety}/{Gods.MaxPiety}", theme.Gold, true, theme.Panel);
+                _t.Write(x, y, Loc.T($"Your piety {p.Piety}/{Gods.MaxPiety}"), theme.Gold, true, theme.Panel);
                 Bar(x + 22, y, Math.Max(6, iw - 22), (double)p.Piety / Gods.MaxPiety, theme.Gold, theme);
                 y++;
-                _t.WriteClipped(x, y++, p.PrayerTimer > 0 ? $"The last prayer is still fresh ({p.PrayerTimer} turns)." : "You may pray.", theme.Dim, iw, false, theme.Panel);
+                _t.WriteClipped(x, y++, p.PrayerTimer > 0 ? Loc.T($"The last prayer is still fresh ({p.PrayerTimer} turns).") : Loc.T("You may pray."), theme.Dim, iw, false, theme.Panel);
             }
-            else if (p.God != null) _t.WriteClipped(x, y++, $"You follow {_g.God.Name}.", theme.Warn, iw, false, theme.Panel);
+            else if (p.God != null) _t.WriteClipped(x, y++, Loc.T($"You follow {_g.God.Name}."), theme.Warn, iw, false, theme.Panel);
             else _t.WriteClipped(x, y++, "You follow no god.", theme.Dim, iw, false, theme.Panel);
             y++;
             var rows = _g.AltarRows();
@@ -1716,7 +1718,7 @@ namespace Ossuary.Core
             int by = py + ph - 4;
             _t.HLine(px + 2, by - 1, pw - 4, theme.Rule);
             _t.WriteClipped(x, by, cur.Blurb, theme.Text, iw, false, theme.Panel);
-            string need = cur.MinLevel > 1 ? $"Level {cur.MinLevel}+" : "";
+            string need = cur.MinLevel > 1 ? Loc.T($"Level {cur.MinLevel}+") : "";
             if (cur.Roles != null) need += (need.Length > 0 ? "   " : "") + "For: " + string.Join("/", cur.Roles);
             _t.WriteClipped(x, by + 1, need, theme.Dim, iw, false, theme.Panel);
         }
@@ -1942,8 +1944,28 @@ namespace Ossuary.Core
             }
 
             if (State.BindNote.Length > 0) _t.WriteClipped(x, py + ph - 3, State.BindNote, theme.Good, iw, true, theme.Panel);
+            else
+            {
+                string layout = KeyLayoutNote(sel);
+                if (layout.Length > 0) _t.WriteClipped(x, py + ph - 3, layout, theme.Dim, iw, false, theme.Panel);
+            }
             string hint = State.Rebinding ? "Press the new key.  Esc cancels." : "Enter rebind   Del clear   R reset   ⇧R reset all";
             _t.WriteClipped(x, py + ph - 2, hint, theme.Dim, iw, false, theme.Panel);
+        }
+
+        /// <summary>
+        /// Descending and climbing are typed as symbols, and ">" has no key of its own on any layout (US or ABNT2): the line under
+        /// the cursor says so, so nobody goes looking for a key that is not on the keyboard. Empty for every other action.
+        /// </summary>
+        static string KeyLayoutNote(int action)
+        {
+            if (action < 0 || action >= KeyBindings.Actions.Length) return "";
+            switch (KeyBindings.Actions[action].Char)
+            {
+                case ">": return Loc.T("> is Shift + . on every keyboard, US or ABNT2.");
+                case "<": return Loc.T("< is Shift + , on every keyboard, US or ABNT2.");
+                default: return "";
+            }
         }
 
         // ------------------------------------------------------------------ achievements
@@ -1996,7 +2018,7 @@ namespace Ossuary.Core
             int start = Math.Max(0, Math.Min(sel - visible / 2, list.Count - visible));
             _t.WriteClipped(x + 2, py + 2, Loc.T("Hero") + new string(' ', 0), theme.Label, 18, false, theme.Panel);
             _t.Write(x + 22, py + 2, Loc.T("Class"), theme.Label, false, theme.Panel);
-            _t.Write(x + 40, py + 2, "Dlvl", theme.Label, false, theme.Panel);
+            _t.Write(x + 40, py + 2, Loc.T("Dlvl"), theme.Label, false, theme.Panel);
             _t.Write(x + 46, py + 2, Loc.T("End"), theme.Label, false, theme.Panel);
             _t.Write(x + 62, py + 2, Loc.T("Score"), theme.Label, false, theme.Panel);
             for (int r = 0; r < visible && start + r < list.Count; r++)
@@ -2018,7 +2040,7 @@ namespace Ossuary.Core
             _t.HLine(px + 2, py + ph - 5, pw - 4, theme.Rule);
             string how = sr.Outcome == "won" ? Loc.T("Escaped with the Amulet of Yendor.") : sr.Outcome == "abandoned" ? Loc.T("Abandoned the run.") : Loc.T("Killed by") + " " + Loc.T(sr.Cause);
             _t.WriteClipped(x, py + ph - 4, how, theme.Text, iw, true, theme.Panel);
-            _t.WriteClipped(x, py + ph - 3, $"{sr.Race} {Loc.T(sr.Role)}, {sr.Title}   {sr.Branch} {sr.Depth}   {sr.Turns} {Loc.T("Turns")}   {sr.Kills} {Loc.T("Kills")}", theme.Dim, iw, false, theme.Panel);
+            _t.WriteClipped(x, py + ph - 3, $"{Loc.T(sr.Race)} {Loc.T(sr.Role)}, {Loc.T(sr.Title)}   {Loc.T(sr.Branch)} {sr.Depth}   {sr.Turns} {Loc.T("Turns")}   {sr.Kills} {Loc.T("Kills")}", theme.Dim, iw, false, theme.Panel);
             _t.WriteClipped(x, py + ph - 2, $"{sr.Date}   {Loc.T("Seed")} {sr.Seed}" + (sr.Daily.Length > 0 ? $"   {Loc.T("Daily")} {sr.Daily}" : "") + (sr.Mode != "Normal" ? $"   {Loc.T(sr.Mode)}" : ""), theme.Dim, iw, false, theme.Panel);
         }
 
@@ -2049,7 +2071,7 @@ namespace Ossuary.Core
             for (int i = 0; i < stone.Length; i++)
                 _t.Write(sx, py + 2 + i, stone[i], theme.Dim, false, theme.Panel);
             CentreOn(px, pw, py + 6, p.Name ?? "Adventurer", theme.Text, true);
-            CentreOn(px, pw, py + 7, $"Dlvl {p.MaxDepth}   {p.Kills} kills", theme.Dim, false);
+            CentreOn(px, pw, py + 7, Loc.T($"Dlvl {p.MaxDepth}   {p.Kills} kills"), theme.Dim, false);
 
             string cause = _g.Abandoned ? Loc.T("Abandoned the run.") : _g.DeathCause != null ? Loc.T("Killed by") + " " + Loc.T(_g.DeathCause) : "";
             if (cause.Length > 0) CentreOn(px, pw, py + 9, cause.Length > pw - 4 ? cause.Substring(0, pw - 4) : cause, theme.Warn, false);

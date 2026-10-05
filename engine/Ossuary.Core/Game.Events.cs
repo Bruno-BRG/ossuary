@@ -242,6 +242,7 @@ namespace Ossuary.Core
             EncounterMonster = m; EncounterX = World.PlayerX; EncounterY = World.PlayerY; ActiveEncounter = true;
             Say($"{why}. A {m.Name} blocks your path!", MessageKind.Bad);
             Say($"Fight it (Enter or K), or flee (R or <). It is {m.ThreatLabel()}.", MessageKind.Warn);
+            Danger();
         }
     }
 }

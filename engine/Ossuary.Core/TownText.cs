@@ -421,8 +421,8 @@ namespace Ossuary.Core
                 ["You sleep soundly, and wake to morning light and the smell of bread."] = "Você dorme profundamente e acorda com a luz da manhã e o cheiro de pão.",
                 ["Not inside the walls. The Watch frowns on that."] = "Não dentro dos muros. A Guarda não aprova.",
                 ["Not here. The Watch would hang you, and the dead would laugh."] = "Aqui não. A Guarda o enforcaria, e os mortos iriam rir.",
-                ["There is a staircase down here. Press > to descend."] = "Há uma escada para baixo aqui. Aperte > para descer.",
-                ["There is a staircase up here. Press < to climb."] = "Há uma escada para cima aqui. Aperte < para subir.",
+                ["There is a staircase down here. Press > (Shift + .) to descend."] = "Há uma escada para baixo aqui. Aperte > (Shift + .) para descer.",
+                ["There is a staircase up here. Press < (Shift + ,) to climb."] = "Há uma escada para cima aqui. Aperte < (Shift + ,) para subir.",
                 ["It blocks the way. Fight it (Enter or K) or flee (R or <)."] = "Ela bloqueia o caminho. Lute (Enter ou K) ou fuja (R ou <).",
                 ["You cannot travel with a foe in your path. Fight it (Enter or K) or flee (R or <)."] = "Você não pode viajar com um inimigo no caminho. Lute (Enter ou K) ou fuja (R ou <).",
                 ["You step back from the counter."] = "Você se afasta do balcão.",
@@ -454,10 +454,10 @@ namespace Ossuary.Core
             R(@"(.+) crumples, out cold\. They will wake in a few days\.", "$1 desmaia. Vai acordar em alguns dias.");
             R(@"You serve (\d+) day\(s\) in the cells\. The Watch strikes your name from its book\.", "Você cumpre $1 dia(s) nas celas. A Guarda risca seu nome do livro.");
             R(@"(.+) is out cold\.", "$1 está desmaiado.");
-            R(@"(.+) came back from the dark a step behind you, and the whole tavern knows it\.", "$1 voltou do escuro um passo atrás de você, e a taverna inteira sabe.");
-            R(@"(.+) reached level (\d+) before you, and they buy rounds in your name\.", "$1 chegou ao nível $2 antes de você, e paga rodadas em seu nome.");
-            R(@"(.+) are buying rope and arguing about the stairs\. They have not set out yet\.", "$1 estão comprando corda e discutindo sobre as escadas. Ainda não partiram.");
-            R(@"(.+) went down the Dungeons and were last seen on level (\d+)\.", "$1 desceu às Masmorras e foi visto pela última vez no nível $2.");
+            R(@"(.+) came back from the dark a step behind you, and the whole tavern knows it\.", "$1: de volta do escuro um passo atrás de você, e a taverna inteira sabe.");
+            R(@"(.+) reached level (\d+) before you, and they buy rounds in your name\.", "$1: nível $2 antes de você, e rodadas pagas em seu nome.");
+            R(@"(.+) are buying rope and arguing about the stairs\. They have not set out yet\.", "Já se fala em $1 comprando corda e discutindo sobre as escadas. Ainda não deixaram a cidade.");
+            R(@"(.+) went down the Dungeons and were last seen on level (\d+)\.", "$1: rumo às Masmorras, último avistamento no nível $2.");
             R(@"You step up to (.+)\.", "Você se aproxima de $1.");
             R(@"The edge is true again\. (.+) is better than it was\.", "O fio está firme de novo. $1 está melhor do que antes.");
             R(@"Fresh rivets and a new lining\. (.+) will turn a blow better now\.", "Rebites novos e forro novo. $1 vai aparar melhor os golpes agora.");
@@ -465,12 +465,19 @@ namespace Ossuary.Core
             R(@"The Amulet lies (\d+) levels down, at the bottom of the Dungeons\.", "O Amuleto está $1 níveis abaixo, no fundo das Masmorras.");
         }
 
-        /// <summary>Portuguese for a message of the town layer, or null when it is none of ours.</summary>
+        /// <summary>
+        /// Portuguese for a message of the town layer, or null when it is none of ours. The match goes through
+        /// <see cref="Loc.TranslateMatch"/> like every <see cref="Loc"/> pattern: captures are translated as names
+        /// (a shop, a place, a party) and the usual contractions are applied, so a line never mixes two languages.
+        /// </summary>
         public static string Translate(string en)
         {
             if (Pt.TryGetValue(en, out var pt)) return pt;
             foreach (var (re, rep) in Rx)
-                if (re.IsMatch(en)) return re.Replace(en, rep, 1);
+            {
+                var m = re.Match(en);
+                if (m.Success) return Loc.TranslateMatch(m, rep);
+            }
             return null;
         }
     }

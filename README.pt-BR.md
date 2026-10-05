@@ -61,7 +61,7 @@ A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 
 ## Instalar (jogadores)
 
-Baixe o instalador `Ossuary_0.13.2_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
+Baixe o instalador `Ossuary_0.13.3_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
 ou na saída do build, e execute. Não precisa de SDK. É preciso o WebView2 (já vem no Windows 11).
 
 > O nome público de uma versão é só **Versão N** (esta é a **Versão 13**), como em *Project Zomboid*. Instaladores e manifestos usam o

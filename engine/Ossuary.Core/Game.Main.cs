@@ -103,15 +103,19 @@ namespace Ossuary.Core
             Say($"Escaped after {Turn} turns, {Player.Kills} kills, depth {Player.MaxDepth}. The Ossuary remembers.", MessageKind.Good);
         }
 
+        /// <summary>
+        /// What the world does once the Amulet is carried out. The text is English here (the source language) and the
+        /// Portuguese lives in <see cref="Loc"/> with every other line, so there is only one place to keep it.
+        /// </summary>
         public static string EndingEpilogue(string id)
         {
             switch (id)
             {
-                case "shut": return TownText.L("The priest buries the Amulet in the rite Yendor meant. The dead settle, the lamps burn lower, and the pit closes.", "O sacerdote enterra o Amuleto no rito que Yendor quis. Os mortos se acomodam, as lamparinas baixam, e o poço se fecha.");
-                case "open": return TownText.L("The seal turns, and every vault of the old kingdom opens. The Reach is rich by morning, and it is not the living who collect.", "O selo gira, e todo cofre do velho reino se abre. O Reach amanhece rico, e não são os vivos que cobram.");
-                case "warden": return TownText.L("The Watch posts a standing guard and gives you the keys. You are the Warden now, and the seal is yours to keep from everyone.", "A Guarda põe um guarda permanente e lhe dá as chaves. Você é o Carcereiro agora, e o selo é seu para guardar de todos.");
-                case "auction": return TownText.L("The Amulet goes to the highest bidder. The Reach eats well for a year, and the Ossuary has a new owner.", "O Amuleto vai para o maior lance. O Reach come bem por um ano, e o Ossuary ganha um novo dono.");
-                default: return TownText.L("The League cannot pay five thousand. It pays what it has, takes the Amulet, and thanks you. The world goes on as it was.", "A Liga não pode pagar cinco mil. Paga o que tem, leva o Amuleto e agradece. O mundo segue como era.");
+                case "shut": return "The priest buries the Amulet in the rite Yendor meant. The dead settle, the lamps burn lower, and the pit closes.";
+                case "open": return "The seal turns, and every vault of the old kingdom opens. The Reach is rich by morning, and it is not the living who collect.";
+                case "warden": return "The Watch posts a standing guard and gives you the keys. You are the Warden now, and the seal is yours to keep from everyone.";
+                case "auction": return "The Amulet goes to the highest bidder. The Reach eats well for a year, and the Ossuary has a new owner.";
+                default: return "The League cannot pay five thousand. It pays what it has, takes the Amulet, and thanks you. The world goes on as it was.";
             }
         }
 

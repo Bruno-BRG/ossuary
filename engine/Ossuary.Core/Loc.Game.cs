@@ -30,16 +30,19 @@ namespace Ossuary.Core
                 ("attack", "atacar"), ("flee", "fugir"),
                 // status bar and HUD
                 ("HP", "PV"), ("Equipped", "Equipado"),
-                // tiles
-                ("floor", "chão"), ("wall", "parede"), ("brick wall", "parede de tijolos"), ("rock wall", "parede de rocha"), ("pillar", "pilar"),
-                ("closed door", "porta fechada"), ("open door", "porta aberta"), ("locked door", "porta trancada"), ("door", "porta"),
-                ("stairs down", "escada para baixo"), ("stairs up", "escada para cima"), ("ladder down", "escada de mão para baixo"), ("magic portal", "portal mágico"),
-                ("rubble", "escombros"), ("altar", "altar"), ("fountain", "fonte"), ("counter", "balcão"), ("bed", "cama"), ("table", "mesa"), ("barrel", "barril"),
-                ("shelf", "estante"), ("forge", "forja"), ("tree", "árvore"), ("notice board", "quadro de avisos"), ("grave", "sepultura"), ("hearth", "lareira"),
-                ("the void", "o vazio"), ("crypt", "cripta"),
                 // character titles
                 ("Adventurer", "Aventureiro") })
                 P(kv.Item1, kv.Item2);
+
+            // ---- tiles and scenery: they are labels, but a message can name one ("You dig through {a1}"), so the gender is kept
+            TN("floor", "chão"); TN("wall", "parede", true); TN("brick wall", "parede de tijolos", true); TN("rock wall", "parede de rocha", true);
+            TN("pillar", "pilar"); TN("door", "porta", true); TN("closed door", "porta fechada", true); TN("open door", "porta aberta", true);
+            TN("locked door", "porta trancada", true); TN("stairs down", "escada para baixo", true); TN("stairs up", "escada para cima", true);
+            TN("ladder down", "escada de mão para baixo", true); TN("magic portal", "portal mágico"); TN("rubble", "escombros");
+            TN("altar", "altar"); TN("fountain", "fonte", true); TN("counter", "balcão"); TN("bed", "cama", true); TN("table", "mesa", true);
+            TN("barrel", "barril"); TN("shelf", "estante", true); TN("forge", "forja", true); TN("tree", "árvore", true);
+            TN("notice board", "quadro de avisos"); TN("grave", "sepultura", true); TN("hearth", "lareira", true);
+            TN("the void", "o vazio"); TN("crypt", "cripta", true);
 
             // ---- plain messages
             foreach (var kv in new[] {
@@ -140,6 +143,12 @@ namespace Ossuary.Core
                 R(@"(.+) misses (.+)\.", "$1 erra {a2}."),
                 R(@"(.+) hits you for (\d+) damage\.", "$1 acerta você por $2 de dano."),
                 R(@"(.+) kills you for (\d+) damage\.", "$1 mata você por $2 de dano."),
+                // Every damaging effect names what did it: "{verb} the {name} for {dmg} damage." The verb is data on the
+                // spell (Magic/Spells.*), so the whole sentence matches here and $1 carries the translated phrase. These
+                // sit in front of the general lines below, which would otherwise read the verb as "A spark leaps into
+                // the" or leave "You open the throat of" half in English.
+                R(@"(.+) the (.+) for (\d+) damage\.", "$1 {a2} por $3 de dano."),
+                R(@"(.+) the (.+) for (\d+), and it dies\.", "$1 {a2} por $3, e morre."),
                 R(@"(.+) (hits|kills) (.+) for (\d+) damage\.", "$1 $2 {a3} por $4 de dano."),
                 R(@"The missile misses\.", "O projétil erra."),
                 R(@"The missile misses (.+)\.", "O projétil erra {a1}."),
@@ -150,6 +159,20 @@ namespace Ossuary.Core
                 R(@"Fight it \(Enter or K\), or flee \(R or <\)\. It is (.+)\.", "Lute (Enter ou K) ou fuja (R ou <). Parece $1."),
                 R(@"(.+), level (\d+) \((\d+) HP, AC (\d+)\)", "$1, nível $2 ($3 PV, CA $4)"),
                 R(@"\((\d+),(\d+)\) (.+)", "($1,$2) $3"),
+                // Jobs from the notice board (Game.Contracts.cs). A contract is composed ("Hunt 5 giant rats in The
+                // Dungeons"), so the deed and the branch ride the patterns as names: the branch takes the article of
+                // the sentence and contracts with it ("em As Masmorras" -> "nas Masmorras"). A monster named in the
+                // plural keeps the game's own "(s)" convention ("fera(s)").
+                R(@"Hunt (\d+) (.+)s in (.+)", "Caçar $1 $2(s) em $3"),
+                R(@"Hunt (\d+) (.+?) in (.+)", "Caçar $1 $2 em $3"),
+                R(@"Reach depth (\d+) of (.+)", "Chegar ao nível $1 de $2"),
+                R(@"You take the job: (.+)\. It pays (\d+) gold\.", "Você aceita o serviço: $1. Paga $2 de ouro."),
+                R(@"Take a job: (.+) \(pays (\d+)g\)", "Aceitar serviço: $1 (paga $2 de ouro)"),
+                R(@"Report: (.+) \((\d+)/(\d+)\)", "Entregar: $1 ($2/$3)"),
+                R(@"\((\d+)/(\d+)\) (.+)", "($1/$2) $3"),
+                // The journal row is composed with its label already in Portuguese ("Serviço: "), so the head is either
+                // language while the deed after it is always English.
+                R(@"(?:Job|Serviço): (.+) \((\d+)/(\d+)\)( ✓)?", "Serviço: $1 ($2/$3)$4"),
                 // misc messages
                 R(@"You are now wielding (.+)\.", "Você empunha {a1}."),
                 R(@"You eat (.+)\. That was good \(\+(\d+) nourishment\)\.", "Você come {a1}. Estava bom (+$2 de nutrição)."),
@@ -162,11 +185,31 @@ namespace Ossuary.Core
                 R("Three men with a rope across the road\\. \"The road is not free,\" says the one with the nicest coat\\. \\(Danger here: (\\d+)\\.\\)",
                     "Três homens com uma corda atravessada na estrada. \"A estrada não é de graça\", diz o de casaco mais bonito. (Perigo aqui: $1.)"),
                 R(@"(\s*)\(max (\d+)\)", "$1(máx $2)"),
-                // HUD and sheets
-                R(@"DEPTH (\d+)", "NÍVEL $1"),
+                // HUD and sheets. The header writes its place with a space on each side (" DEPTH 3 "), so the two
+                // patterns that name a place keep whatever padding they were given.
+                R(@"(\s*)DEPTH (\d+)(\s*)", "$1NÍVEL $2$3"),
+                R(@"(\s*)TOWN (-?\d+)(\s*)", "$1CIDADE $2$3"),
+                R(@"Day (\d+)  (.+) \(night\)", "Dia $1  $2 (noite)"),
                 R(@"Day (\d+)  (.+)", "Dia $1  $2"),
                 R(@"Lv (\d+)", "Nv $1"),
-                R(@"Level (\d+)   HP (\d+)/(\d+)(   MP \d+/\d+)?   AC (\d+)   XP (\d+)", "Nível $1   PV $2/$3$4   CA $5   XP $6"),
+                R(@"Level (\d+)   HP (\d+)/(\d+)(   MP \d+/\d+)?   AC (-?\d+)   XP (\d+)", "Nível $1   PV $2/$3$4   CA $5   XP $6"),
+                R(@"Level (\d+)\+", "Nível $1+"),
+                R(@"Dlvl (\d+)   (\d+) kills", "Nvl $1   $2 mortes"),
+                R(@"Wanted: (\d+) gold", "Procurado: $1 de ouro"),
+                R(@"Done (\d+)   Failed (\d+)", "Feitos $1   Falhos $2"),
+                R(@"\.\.\.and (\d+) more", "...e mais $1"),
+                R(@"\+(\d+) more", "+$1 mais"),
+                // the altar panel, and every line that shows where the hero stands with a god
+                R(@"God of (.+)\.", "Deus de $1."),
+                R(@"Likes:    (.+)", "Gosta:    $1"),
+                R(@"Dislikes: (.+)", "Odeia: $1"),
+                R(@"Boon \((\d+) piety\): (.+)", "Dádiva ($1 de piedade): $2"),
+                R(@"Piety (\d+): (.+)", "Piedade $1: $2"),
+                R(@"Your piety (\d+)/(\d+)", "Sua piedade $1/$2"),
+                R(@"The last prayer is still fresh \((\d+) turns\)\.", "A última prece ainda está fresca ($1 turnos)."),
+                R(@"You follow (.+)\.", "Você segue $1."),
+                // the confirmation of the creation screen: the name is the hero's, the race and the class are words
+                R(@"Begin as (.+) the (Human|Dwarf|Elf|Halfling|Orc|Gnome|Ashen) (.+)\?  \(Enter\)", "Começar como $1, $3 $2?  (Enter)"),
                 R(@"(.+), the (Human|Dwarf|Elf|Halfling|Orc|Gnome|Ashen) (.+)", "$1, $3 $2"),
                 R(@"Alignment (.+)", "Alinhamento $1"),
                 R(@"Title (.+)", "Título $1"),
@@ -183,13 +226,29 @@ namespace Ossuary.Core
                 R(@"Time: (.+)", "Hora: $1"),
                 R(@"XP to spend: (\d+)", "XP para gastar: $1"),
                 R(@"Gear: (.+)", "Equipo: $1"),
+                // The parts of a gear line, joined one by one with ", ": an attribute and a die of elemental damage.
+                R(@"([+-]\d+) (Str|Dex|Con|Int|Wis|Mp|HP|Vigor)", "$1 $2"),
+                R(@"(\d+)d(\d+) (\w+)", "$1d$2 $3"),
+                R(@"Faith: (.+), (.+) - piety (\d+)/(\d+) \(tier (\d+)\)", "Fé: $1, $2 - piedade $3/$4 (nível $5)"),
+                R(@"Faith: (.+), (.+) - piety (\d+)/(\d+)", "Fé: $1, $2 - piedade $3/$4"),
                 R(@"Faith: (.+)", "Fé: $1"),
                 R(@"Companion: (.+), level (\d+), (\d+)/(\d+) HP", "Companheiro: $1, nível $2, $3/$4 PV"),
                 R(@"Corruption (\d+)/(\d+)", "Corrupção $1/$2"),
                 R(@"Set: (.+) (\d)/3", "Conjunto: $1 $2/3"),
                 R(@"Relics worn: (\d+) \(they corrupt\)", "Relíquias vestidas: $1 (elas corrompem)"),
+                // The morgue's last line names a branch, so the whole sentence goes through the dictionary and
+                // "em As Masmorras" can contract to "nas Masmorras".
+                R(@"Ended (in|on) (.+) (\d+)", "Terminou em $2 $3"),
                 R(@"(.+) (\d+)/(\d+)", "$1 $2/$3"),
+                // What the rebind panel answers (KeyBindings.cs): the key or the label rides the pattern.
+                R(@"(.+) is reserved for menus\.", "$1 é reservado para os menus."),
+                R(@"Taken from ""(.+)""\.", "Tirado de \"$1\"."),
+                R(@"Bound to (.+)\.", "Ligado a $1."),
             };
+            // The altar panel opens with the god and its title ("Khorr, the Hammer Beneath"): the name is a proper noun
+            // and the title is data, so every god gets the row its own name can start.
+            foreach (var god in Entities.Gods.All)
+                front.Add(R(System.Text.RegularExpressions.Regex.Escape(god.Name) + @", (.+)", god.Name + ", $1"));
             Rx.InsertRange(0, front);
         }
     }

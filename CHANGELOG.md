@@ -5,6 +5,26 @@
 Ossuary versions are a **single number** (Version 11, Version 12…), as in *Project Zomboid*. In the manifests (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) and in the installer name the version appears as `0.N.0`. The **save format** (`SaveData.Version`) uses the same number: change a rule, bump it, old saves stop loading.
 
+## Version 13.3 — Every word, and a warning you hear
+
+A patch on Version 13 (`0.13.3` in the manifests). No rule changed, so Version 12 and 13 saves keep loading.
+
+### Portuguese, the second pass
+- **Composed sentences translate whole.** Rumours, places and names inside a sentence no longer leave an English half ("Dizem que uma mina abandonada nas Colinas de Ferro..."), and "You arrive at The Dungeons : level 1." reads "Você chega às Masmorras, nível 1.".
+- **Names with gender and number**: dungeon entrances, landmarks, houses, branch kings and tiles ("Você cava através dos escombros"); items agree in gender and number ("botas robustas do urso") and enchantments in front of the name compose correctly.
+- **The rest of the game**: relics, sets and their lore, reputation reasons, rival parties, hero titles, the morgue file, gods and the altar menu, the six bosses, the endings and new cycle, companions, main-quest documents, tooltips, and the 111 damage verbs ("Uma só palavra desfaz o chacal por 5 de dano.").
+- **The other direction**: the frontend's error strings, screen-reader labels and boot line follow the chosen language; English screens carry no Portuguese.
+
+### Sound
+- **A warning you cannot miss**: the *Danger Spotted* stinger plays when a hostile first comes into view and when the road refuses to let you pass, without stacking if you keep bumping into it.
+- **The intro types out loud**, letter by letter.
+
+### Controls
+- The stairs keys are symbols with no key of their own: messages, the Commands panel and the Controls panel now say "> is Shift + ." on US and ABNT2 keyboards.
+
+### For contributors
+- `loc msgs` scans every string literal with interpolation stand-ins; `loc pairs` prints lines identical in both languages; new tests `English frames carry no Portuguese`, `i18n.test.ts` and a broader `LocTests`.
+
 ## Version 13.2 — One language at a time
 
 A patch on Version 13 (`0.13.2` in the manifests). No rule changed, so Version 12 and 13 saves keep loading.

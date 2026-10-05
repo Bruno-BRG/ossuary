@@ -1,5 +1,6 @@
 import type { Frame } from './protocol';
-import { cssColor } from './protocol';
+import { cssColor, readDisplay } from './protocol';
+import { t } from './i18n';
 import type { Layout } from './font';
 import { CRT_FRAGMENT, CRT_VERTEX, crtParams, type CrtParams } from './crt';
 
@@ -29,7 +30,7 @@ export class TerminalRenderer {
     this.gl = this.initGl(document.createElement('canvas')) ? this.initGl(canvas) : null;
     if (!this.gl) {
       const context = canvas.getContext('2d', { alpha: false });
-      if (!context) throw new Error('Canvas indisponível.');
+      if (!context) throw new Error(t(readDisplay().lang, 'canvasMissing'));
       this.context = context;
     } else {
       this.crt.hidden = true;
@@ -70,7 +71,7 @@ export class TerminalRenderer {
       this.source = { w: 0, h: 0 };
       return gl;
     } catch (error) {
-      console.warn('WebGL2 CRT indisponível, usando Canvas 2D:', error);
+      console.warn(t(readDisplay().lang, 'crtMissing'), error);
       return null;
     }
   }

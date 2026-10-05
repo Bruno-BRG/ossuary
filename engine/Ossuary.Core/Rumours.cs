@@ -122,7 +122,7 @@ namespace Ossuary.Core
 
         public static void Translations(Action<string, string> rx)
         {
-            rx(@"The (.+) waits on level (\d+) of (.+)\.", "$1 espera no nível $2 de $3.");
+            rx(@"The (.+) waits on level (\d+) of (.+)\.", "{a1} espera no nível $2 de $3.");
             rx(@"Something old and angry waits in the deep of (.+)\.", "Algo velho e furioso espera no fundo de $1.");
             rx(@"They say (.+) in (.+) still holds something worth the walk\.", "Dizem que $1 em $2 ainda guarda algo que vale a caminhada.");
             rx(@"They say something worth finding lies in (.+)\.", "Dizem que há algo que vale a pena achar em $1.");

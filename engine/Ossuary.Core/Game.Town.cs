@@ -64,6 +64,7 @@ namespace Ossuary.Core
             Talking = null; TalkBuilding = null;
             TownZ = 0;
             Monsters.Clear();
+            NoteThreat();   // townsfolk are not enemies: leaving town is not a fight
             Say("You leave town and return to the road.", MessageKind.Neutral);
         }
 

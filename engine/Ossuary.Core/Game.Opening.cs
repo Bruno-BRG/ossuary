@@ -52,6 +52,7 @@ namespace Ossuary.Core
             Player.InsideDungeon = false;
             Map = null; Town = null;
             Monsters.Clear();
+            NoteThreat();   // the road holds no enemies until one steps out of it
             Log.Clear(); Transcript.Clear();
             foreach (var line in Story.Opening(World.CurrentRegionName)) Say(line, MessageKind.Narrative);
         }
