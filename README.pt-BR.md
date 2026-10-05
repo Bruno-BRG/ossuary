@@ -25,10 +25,11 @@ Desça pelo Ossuary, pegue o **Amuleto de Yendor** e traga de volta à luz do di
 num terminal estilo CRT; o jogo é uma exploração de masmorras por turnos com um mundo vivo na superfície.
 A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 
-### O que há na **versão 13**
+### O que há na **versão 14**
 
 | | |
 |---|---|
+| 🩸 **Carne e osso** *(novo)* | Todo golpe acerta algum lugar: perna quebrada faz mancar, braço ferido estraga a mira, golpe na cabeça atordoa, olho cortado enxerga menos, ferimentos sangram, saram e deixam cicatriz. Nos monstros também, cada um com seu corpo. |
 | ✨ **Magias que você vê** | 322 magias em 8 escolas, todas animadas: a bola de fogo é uma bola de fogo que voa e explode, o raio se bifurca, o meteoro cai. |
 | 📖 **55 livros** | Mago, necromante, clérigo/paladino, patrulheiro (natureza) e ladino (sombra) têm cerca de cinquenta magias cada, em cinco níveis de profundidade. |
 | ⚔️ **Itens com uma magia dentro** | O equipamento mágico aleatório vem imbuído com uma magia que combina com ele: espadas carregam ataques, armaduras carregam proteções, botas carregam saltos. E disparam sozinhos. |

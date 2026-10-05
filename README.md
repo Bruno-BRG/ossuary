@@ -26,10 +26,11 @@ Descend through the Ossuary, take the **Amulet of Yendor**, and bring it back to
 fixed 8×16 bitmap font on a CRT-style terminal; the world is a turn-based dungeon crawl with a living overworld above it.
 The seed *is* the save: same seed, same keys, same run.
 
-### What is in **version 13**
+### What is in **version 14**
 
 | | |
 |---|---|
+| 🩸 **Flesh and bone** *(new)* | A hit lands somewhere: legs break and you limp, arms spoil your aim, a blow to the head stuns, cut eyes see less, wounds bleed, heal and leave scars. Monsters too, each with its own body. |
 | ✨ **Spells you can see** | 322 spells in 8 schools, and every one is animated: a fireball is a ball of fire that flies and bursts, lightning forks, meteors fall. |
 | 📖 **55 spellbooks** | Wizard, necromancer, cleric/paladin, ranger (nature) and rogue (shadow) each have about fifty spells to find, in five depth tiers. |
 | ⚔️ **Items with a spell inside** | Random magic gear is imbued with a spell that fits what it is: swords carry attacks, armour carries wards, boots carry leaps. They fire on their own, too. |
