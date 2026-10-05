@@ -71,7 +71,7 @@ saw "cello", detuned-saw pad) plus noise ticks and thuds, all through one shared
 
 The engine resolves an effect at once and only *records* how it should look (`Fx.cs`, `Game.Fx.cs`): a timeline of steps, each a set of overlay cells in map coordinates, with no `Rng` and no
 state, so recording never changes the game. `Session.BuildFx` maps those cells to the screen grid (camera, square tiles, theme) and `desktop/src/fx.ts` plays them over the finished frame, about 45 ms a step,
-without asking the engine for anything. A new key or frame cuts an animation short. See [`spells-and-items.md`](spells-and-items.md#animations).
+without asking the engine for anything. A new key or frame cuts an animation short. See [`spells-and-items.md`](../design/spells-and-items.md#animations).
 
 ## Turns and display
 

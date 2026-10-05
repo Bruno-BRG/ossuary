@@ -72,6 +72,7 @@ namespace Ossuary.Core
             bool crit;
             var res = Battles.PlayerMelee(Player, m, Rng, out crit);
             Say(res.Message, res.Killed ? MessageKind.Kill : MessageKind.Combat);
+            WoundFrom(m, res, Bodies.EdgedWeapon(Player), crit);
 
             if (res.Killed)
             {
@@ -93,6 +94,7 @@ namespace Ossuary.Core
 
             var back = Battles.MeleeAttack(m, Player, Rng);
             Say(back.Message, back.Killed ? MessageKind.Death : MessageKind.Combat);
+            if (Bodies.Wounding(back.Kind)) WoundFrom(Player, back, Bodies.EdgedAttack(back.Kind), false);
             World.AdvanceTime(1);
             CheckDeath();
         }

@@ -90,4 +90,4 @@ directly leaves the name in English.
    entrance (`Game.BeginAtOverworld`), with the first text in the journal. The dungeon only opens
    when the player enters it.
 
-The story follows `docs/lore.md`. The save stores `Overworld` to reproduce the right start.
+The story follows `docs/game/lore.md`. The save stores `Overworld` to reproduce the right start.

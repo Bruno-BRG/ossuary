@@ -59,6 +59,7 @@ namespace Ossuary.Tests
             Test("the Annex: a portal, hard floors, a warden and a mantle", AnnexFlow);
             Test("English frames carry no Portuguese", EnglishFramesAreEnglish);
             Test("the stairs keys say they need Shift", KeyboardHints);
+            Test("bodies: hits land on parts, wounds hinder, bleed, heal and scar", BodiesAndWounds);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -73,9 +74,98 @@ namespace Ossuary.Tests
         {
             if (!condition) throw new Exception(message);
         }
+        /// <summary>Bodies and wounds (docs/roadmap/depth.md, section 1): parts by plan, severity from damage, effects, bleeding, mending, scars, Portuguese.</summary>
+        static void BodiesAndWounds()
+        {
+            var old = Loc.Current;
+            try
+            {
+                Loc.Current = Lang.En;
+                Assert(Bodies.PlanFor(Bestiary.Find("jackal")) == Bodies.Quadruped, "a jackal walks on four legs");
+                Assert(Bodies.PlanFor(Bestiary.Find("cave bat")) == Bodies.Winged, "a bat flies on wings");
+                Assert(Bodies.PlanFor(Bestiary.Find("cave spider")) == Bodies.Insect, "a spider has an insect plan");
+                Assert(Bodies.PlanFor(Bestiary.Find("floating eye")) == null && Bodies.PlanFor(Bestiary.Find("brown mold")) == null, "eyes and moulds have nothing to break");
+                Assert(!Bodies.Bleeds(new Monster(Bestiary.Find("skeleton"), new Rng(1))), "a skeleton does not bleed");
+
+                Assert(Bodies.Severity(2, 30, false) == 0, "a scratch leaves no wound");
+                Assert(Bodies.Severity(5, 30, false) == 1 && Bodies.Severity(10, 30, false) == 2, "grazed, then cut");
+                Assert(Bodies.Severity(16, 30, false) == 3 && Bodies.Severity(25, 30, false) == 4, "torn, then mangled");
+                Assert(Bodies.Severity(2, 30, true) == 1, "a critical cuts deeper");
+
+                // A heavy edged hit opens a wound on one part, says so, and bleeds.
+                var g = new Game(2024);
+                var p = g.Player;
+                p.HP = p.MaxHP;
+                int big = p.MaxHP * 60 / 100;
+                g.WoundFrom(p, new AttackResult { Hit = true, Damage = big }, true, false);
+                Assert(p.Wounds.Count == 1 && p.Wounds[0].Severity == 3, $"a 60% hit tears a part, got {p.Wounds.Count} wound(s)");
+                Assert(p.Wounds[0].Bleed > 0, "an edged wound bleeds");
+                Assert(g.Log.Exists(m => m.Text.StartsWith("Your " + p.Wounds[0].Part + " is torn")), "the log names the part");
+                var twin = new Game(2024); twin.Player.HP = twin.Player.MaxHP;
+                twin.WoundFrom(twin.Player, new AttackResult { Hit = true, Damage = big }, true, false);
+                Assert(twin.Player.Wounds[0].Part == p.Wounds[0].Part, "the part is the same for the same seed");
+                g.WoundFrom(p, new AttackResult { Hit = true, Damage = 1 }, false, false);
+                Assert(p.Wounds.Count == 1, "a light blow leaves nothing new");
+
+                // Effects by part.
+                p.Wounds.Clear();
+                p.Wounds.Add(new Wound { Part = "right leg", Kind = PartKind.Leg, Severity = 3 });
+                Assert(Bodies.Limp(p) == 1, "a broken leg makes the hero limp");
+                p.Wounds.Add(new Wound { Part = "left leg", Kind = PartKind.Leg, Severity = 4 });
+                Assert(Bodies.Limp(p) == 2, "two broken legs: crawling");
+                p.Wounds.Clear();
+                p.Wounds.Add(new Wound { Part = "right arm", Kind = PartKind.Arm, Severity = 3 });
+                Assert(Bodies.ArmPenalty(p) == 2, "the weapon arm costs full to-hit");
+                p.Wounds.Clear();
+                p.Wounds.Add(new Wound { Part = "left arm", Kind = PartKind.Arm, Severity = 3 });
+                Assert(Bodies.ArmPenalty(p) == 1, "the off arm costs half");
+                p.Wounds.Add(new Wound { Part = "left eye", Kind = PartKind.Eye, Severity = 2 });
+                Assert(Bodies.EyePenalty(p) == 2, "a cut eye shortens sight");
+                var dog = new Monster(Bestiary.Find("jackal"), new Rng(2));
+                dog.Wounds.Add(new Wound { Part = "front left leg", Kind = PartKind.Leg, Severity = 3 });
+                Assert(Bodies.Limp(dog) == 0, "one bad leg out of four is not a limp");
+                dog.Wounds.Add(new Wound { Part = "hind left leg", Kind = PartKind.Leg, Severity = 3 });
+                Assert(Bodies.Limp(dog) == 1, "two bad legs out of four is");
+                var bat = new Monster(Bestiary.Find("cave bat"), new Rng(3));
+                bat.Wounds.Add(new Wound { Part = "left wing", Kind = PartKind.Wing, Severity = 4 });
+                Assert(Bodies.Limp(bat) == 1, "a flier is slowed by its wings");
+
+                // Bleeding runs out; a healed bad wound leaves a scar; mending clears the rest.
+                p.Wounds.Clear();
+                p.Wounds.Add(new Wound { Part = "torso", Kind = PartKind.Torso, Severity = 2, Worst = 2, Edged = true, Bleed = 2, HealIn = 500 });
+                p.HP = p.MaxHP;
+                g.Monsters.Clear();
+                g.EndPlayerTurn(); g.EndPlayerTurn();
+                Assert(!Bodies.Bleeding(p), "bleeding stops after its turns");
+                Assert(g.Log.Exists(m => m.Text == "Your bleeding stops."), "and the log says so");
+                p.Wounds.Clear();
+                p.Wounds.Add(new Wound { Part = "left leg", Kind = PartKind.Leg, Severity = 1, Worst = 3, HealIn = 1 });
+                g.EndPlayerTurn();
+                Assert(p.Wounds.Count == 0 && p.Scars.Contains("left leg"), "a healed broken leg leaves a scar");
+                p.Wounds.Add(new Wound { Part = "head", Kind = PartKind.Head, Severity = 4, Worst = 4, Bleed = 5, HealIn = 2000 });
+                g.MendWounds(4);
+                Assert(p.Wounds.Count == 0 && p.Scars.Contains("head"), "a night's rest (or full healing) closes everything");
+
+                // The sheet shows them.
+                p.Wounds.Add(new Wound { Part = "right arm", Kind = PartKind.Arm, Severity = 3, Worst = 3, HealIn = 900 });
+                var hud = new GameHud(g); hud.Ui.Resize(110, 36);
+                g.UiState.Active = Panel.Character;
+                var sheet = hud.Draw().ToAscii();
+                Assert(sheet.Contains("Wounds: right arm broken") && sheet.Contains("Scars: left leg, head"), "the character sheet lists wounds and scars");
+
+                // Portuguese: the adjective follows the part's gender, the owner gets "do/da".
+                Loc.Current = Lang.Pt;
+                Assert(Loc.T("Your left leg is broken.") == "Sua perna esquerda está quebrada.", Loc.T("Your left leg is broken."));
+                Assert(Loc.T("Your right arm is cut.") == "Seu braço direito está cortado.", Loc.T("Your right arm is cut."));
+                Assert(Loc.T("The jackal's front left leg is torn.") == "A pata dianteira esquerda do chacal está dilacerada.", Loc.T("The jackal's front left leg is torn."));
+                Assert(Loc.T("The kobold bleeds to death.") == "O kobold sangra até morrer.", Loc.T("The kobold bleeds to death."));
+            }
+            finally { Loc.Current = old; }
+        }
+
 
         /// <summary>
-        /// The language is chosen once, for everything (docs/languages.md): a screen drawn in English must not carry a
+        /// The language is chosen once, for everything (docs/tech/languages.md): a screen drawn in English must not carry a
         /// Portuguese word, however it got there. Portuguese letters are the tell, and every text table keeps them.
         /// </summary>
         static void EnglishFramesAreEnglish()

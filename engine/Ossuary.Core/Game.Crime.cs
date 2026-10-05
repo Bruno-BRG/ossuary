@@ -6,7 +6,7 @@ using Ossuary.Core.World;
 namespace Ossuary.Core
 {
     /// <summary>
-    /// Crime and the Watch (docs/living-world.md). Two layers: hostility is local and short (a person is against the hero while
+    /// Crime and the Watch (docs/game/living-world.md). Two layers: hostility is local and short (a person is against the hero while
     /// they can see them, plus a short grace), the bounty is persistent and per region (neighbouring regions know half of it).
     /// Penalties follow the harm done: damage for a blow, a fixed heavy price for a death, and so on. Only witnessed crimes count.
     /// </summary>
@@ -108,6 +108,7 @@ namespace Ossuary.Core
             StruckAt(target);
             var res = Battles.PlayerMelee(Player, target, Rng, out _);
             Say(res.Message, res.Killed ? MessageKind.Kill : MessageKind.Combat);
+            WoundFrom(target, res, Bodies.EdgedWeapon(Player), false);
             Map.Version++;
             bool essential = target.Persona != null && target.Persona.Essential;
             bool killed = res.Killed && !essential;
@@ -169,6 +170,7 @@ namespace Ossuary.Core
                 HurtBy(Article(m));
                 var res = Battles.MeleeAttack(m, Player, Rng);
                 Say(res.Message, res.Killed ? MessageKind.Death : MessageKind.Combat);
+                if (Bodies.Wounding(res.Kind)) WoundFrom(Player, res, Bodies.EdgedAttack(res.Kind), false);
                 Map.Version++;
                 CheckDeath();
                 return true;

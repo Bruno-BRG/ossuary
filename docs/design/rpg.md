@@ -178,7 +178,7 @@ as a late phase, BG3/Divinity style.
 
 ## 7. Implementation roadmap
 
-Each part closes with: new headless tests, `fastcheck`, `docs/systems.md`
+Each part closes with: new headless tests, `fastcheck`, `docs/design/systems.md`
 updated and the full suite. One part at a time.
 
 | # | Part | Deliverable | Status |

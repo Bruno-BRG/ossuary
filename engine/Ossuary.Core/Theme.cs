@@ -6,7 +6,7 @@ using Ossuary.Core.World;
 namespace Ossuary.Core
 {
     /// <summary>
-    /// Every colour the game draws with, in one place ("Fósforo &amp; Osso", docs/visual.md).
+    /// Every colour the game draws with, in one place ("Fósforo &amp; Osso", docs/tech/visual.md).
     ///
     /// The palette is authored once, in the Ossuary preset (indigo darks, bone text,
     /// DawnBringer-derived accents). The other presets are *remaps* of it: Amber and

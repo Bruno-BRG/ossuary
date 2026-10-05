@@ -5,7 +5,7 @@
 **A dark-fantasy ASCII roguelike.** The world threw its dead, its kings and its gods into one pit.
 You climb down to steal what is left.
 
-![Version 13](https://img.shields.io/badge/version-13-c8a050?style=flat-square)
+![Version 14](https://img.shields.io/badge/version-14-c8a050?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-5fa85f?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-Windows%20x64-4a6ea8?style=flat-square)
 ![Engine](https://img.shields.io/badge/engine-C%23%20.NET%2010-7c4dff?style=flat-square)
@@ -62,10 +62,10 @@ The seed *is* the save: same seed, same keys, same run.
 
 ## Install (players)
 
-Download the installer `Ossuary_0.13.3_x64-setup.exe` (Windows x64) from a [release](https://github.com/Bruno-BRG/ossuary/releases)
+Download the installer `Ossuary_0.14.0_x64-setup.exe` (Windows x64) from a [release](https://github.com/Bruno-BRG/ossuary/releases)
 or the build output, and run it. No SDK is needed. WebView2 is required (preinstalled on Windows 11).
 
-> The public name of a release is just **Version N** (this one is **Version 13**). Installers and manifests use the matching
+> The public name of a release is just **Version N** (this one is **Version 14**). Installers and manifests use the matching
 > `0.N.0`, because Windows installers and npm/Cargo want three numbers.
 
 ## Build from source
@@ -88,7 +88,7 @@ Arrow keys, numpad or `hjkl` move; `yubn` are diagonals. `i` inventory, `c` char
 - In the spell list, `←`/`→` switch school, a letter or `Enter` casts, `◆` marks spells lent by your gear.
 - When a monster blocks the road: `Enter`, `Space`, `K` or `F` fight; `R` or `<` flee.
 
-The complete list is in [docs/controls.md](docs/controls.md).
+The complete list is in [docs/game/controls.md](docs/game/controls.md).
 
 ## How it is built
 
@@ -102,7 +102,7 @@ docs/                    architecture, systems, spells and items, lore
 ```
 
 The simulation lives only in C#; the front end draws the grid the engine sends and plays animations the engine records.
-Start with [docs/architecture.md](docs/architecture.md) and [docs/spells-and-items.md](docs/spells-and-items.md).
+Start with [docs/tech/architecture.md](docs/tech/architecture.md) and [docs/design/spells-and-items.md](docs/design/spells-and-items.md).
 
 ## Testing
 

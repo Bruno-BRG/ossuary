@@ -5,6 +5,24 @@
 Ossuary versions are a **single number** (Version 11, Version 12…), as in *Project Zomboid*. In the manifests (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) and in the installer name the version appears as `0.N.0`. The **save format** (`SaveData.Version`) uses the same number: change a rule, bump it, old saves stop loading.
 
+## Version 14 — Flesh and bone
+
+### Bodies and wounds
+- **A hit lands somewhere.** When a blow takes a real share of a creature's life (15% or more), it lands on a body part and leaves a wound on top of the damage. The log says where: "Your left leg is broken.", "The jackal's hind left leg is torn."
+- **Four severities, two kinds.** Bites, claws, blades and arrows graze, cut, tear and mangle; fists, clubs and kicks bruise, batter, break and crush. A critical cuts deeper, and hitting a hurt part again makes it worse.
+- **Wounds change the fight.** Broken legs make anything limp or crawl (wings, for fliers), hurt arms spoil the aim, a broken head stuns, a cut eye shortens sight and how far a monster notices you. A limping hero gives the monsters extra moves.
+- **Cuts bleed.** A few points a turn for a few turns. A monster can bleed to death (it counts as your kill), and so can you.
+- **Every creature has a body**: humanoids, four-legged beasts, insects and spiders, bats and birds, dragons. Moulds, floating eyes, wraiths, elementals and swarms have nothing to break; skeletons, golems and the dead break but do not bleed.
+- **Mending.** Wounds heal on their own with time; a torn or broken one leaves a scar. Healing spells and potions mend every wound a step, full healing and a night at the inn close them all, and the temple stops the bleeding.
+- **You can see it**: BLEEDING, LIMPING, CRAWLING and WOUNDED in the sidebar, *Wounds* and *Scars* on the character sheet and in the morgue, and looking at a monster lists its wounds. Everything reads in Portuguese with the right gender ("Sua perna esquerda está quebrada").
+
+### Docs
+- The `docs/` folder is organised by topic (`game/`, `design/`, `tech/`, `audio/`, `roadmap/`) with an index in `docs/README.md`.
+- A new depth roadmap, [`docs/roadmap/depth.md`](docs/roadmap/depth.md), collects the Dwarf Fortress-inspired ideas still to come: materials, generated history, relic biographies, fluids and tracking, mood, engravings, named enemies, sieges and legends.
+
+### Saves
+- The save format moves to **13**: where a blow lands is drawn from the dice, so Version 13 saves do not load.
+
 ## Version 13.3 — Every word, and a warning you hear
 
 A patch on Version 13 (`0.13.3` in the manifests). No rule changed, so Version 12 and 13 saves keep loading.
@@ -95,7 +113,7 @@ A patch on Version 13 (`0.13.2` in the manifests). No rule changed, so Version 1
 
 ### For developers
 - Save format moves to **version 11** (old saves do not load).
-- New `ArsenalTests` and `fx.test.ts`; documentation in [`docs/spells-and-items.md`](docs/spells-and-items.md); [CONTRIBUTING.md](CONTRIBUTING.md) and a new README.
+- New `ArsenalTests` and `fx.test.ts`; documentation in [`docs/spells-and-items.md`](docs/design/spells-and-items.md); [CONTRIBUTING.md](CONTRIBUTING.md) and a new README.
 
 ## Before version 11
 

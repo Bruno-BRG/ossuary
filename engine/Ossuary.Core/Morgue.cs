@@ -123,6 +123,14 @@ namespace Ossuary.Core
                 Line($"{p.Corruption}/{Game.CorruptionMax}" + (muts.Count > 0 ? "  " + string.Join(", ", muts) : ""));
             }
 
+            if (p.Wounds.Count > 0 || p.Scars.Count > 0)
+            {
+                Head("Body");
+                var wl = Game.WoundLines(p);
+                if (wl.Count > 0) Line(Loc.T("Wounds") + ": " + string.Join(", ", wl));
+                if (p.Scars.Count > 0) Line(Loc.T("Scars") + ": " + string.Join(", ", Game.ScarLines(p)));
+            }
+
             if (p.Rep.Count > 0 || g.ContractsDone > 0)
             {
                 Head("Standing");

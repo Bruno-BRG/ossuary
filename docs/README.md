@@ -1,26 +1,42 @@
-# Ossuary — system docs
+# Ossuary — docs
 
-The game's documentation folder. The operational source of truth (commands, rules,
-workflow) is `AGENTS.md` at the repo root. Here lives the *knowledge*: what the game is,
-how each system works and where it lives in the code.
+The game's documentation, in English. The operational source of truth (commands, rules, workflow) is
+[`AGENTS.md`](../AGENTS.md) at the repo root. Here lives the *knowledge*: what the game is, how each system works and where it
+lives in the code. Real captures are in [`shots/`](shots/).
 
-## Index
+## Tracking
 
-- [`desktop.md`](desktop.md) — Tauri runtime, architecture, protocol and distribution
-- [`overview.md`](overview.md) — what Ossuary is, pillars, game loop
-- [`architecture.md`](architecture.md) — layers, classes, dependency rules
-- [`systems.md`](systems.md) — dungeon, overworld, towns, combat, items, FOV…
-- [`rpg.md`](rpg.md) — research, catalog and roadmap of the RPG system (races, classes, magic, items)
-- [`spells-and-items.md`](spells-and-items.md) — 322 spells, 55 books, magic and unique items, and the spell **animations**
-- [`balance.md`](balance.md) — balance bot, baseline and tuning knobs
-- [`visual.md`](visual.md) — "Phosphor & Bone" art direction: palette, font, glyphs and layout
-- [`renderer.md`](renderer.md) — bitmap font, Canvas, CRT, themes, FOV, how to verify
-- [`controls.md`](controls.md) — full keyboard (vi-keys + verbs)
-- [`build-and-test.md`](build-and-test.md) — pipeline: scripts, CLI, builds, shots
-- [`living-world.md`](living-world.md) — plan for personas, dialogue, quest tracks, rumours, travellers and town events.
-- [`main-quest.md`](main-quest.md) — the main questline "The Seal": short and long path, truths, endings, essential NPCs.
 - [`todo.md`](todo.md) — **backlog and progress tracking** (what is left, what is done)
-- [`alpha.md`](alpha.md) — state of the playable alpha + roadmap
-- [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — how to contribute; [`../CHANGELOG.md`](../CHANGELOG.md) — what changed in each version
-- [`lore.md`](lore.md) — worldbuilding bible (tone, the Ossuary, factions, Yendor)
-- [`languages.md`](languages.md) — English/Portuguese, how to translate and the opening story
+- [`roadmap/depth.md`](roadmap/depth.md) — the depth track: Dwarf Fortress-inspired ideas (wounds, materials, history, named enemies)
+- [`roadmap/alpha.md`](roadmap/alpha.md) — state of the playable alpha (historical snapshot)
+- [`../CHANGELOG.md`](../CHANGELOG.md) — what changed in each version; [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — how to contribute
+
+## The game (`game/`)
+
+- [`overview.md`](game/overview.md) — what Ossuary is, pillars, game loop
+- [`controls.md`](game/controls.md) — full keyboard (vi-keys + verbs)
+- [`lore.md`](game/lore.md) — worldbuilding bible (tone, the Ossuary, factions, Yendor)
+- [`main-quest.md`](game/main-quest.md) — the main questline "The Seal": short and long path, truths, endings, essential NPCs
+- [`living-world.md`](game/living-world.md) — personas, dialogue, quest tracks, rumours, travellers and town events
+
+## Systems design (`design/`)
+
+- [`systems.md`](design/systems.md) — dungeon, overworld, towns, combat, items, FOV… and where each lives in the code
+- [`rpg.md`](design/rpg.md) — research, catalogue and roadmap of the RPG system (races, classes, magic, items)
+- [`spells-and-items.md`](design/spells-and-items.md) — 322 spells, 55 books, magic and unique items, and the spell animations
+- [`balance.md`](design/balance.md) — balance bot, baseline and tuning knobs
+
+## Engineering (`tech/`)
+
+- [`architecture.md`](tech/architecture.md) — layers, classes, dependency rules
+- [`desktop.md`](tech/desktop.md) — Tauri runtime, protocol and distribution
+- [`renderer.md`](tech/renderer.md) — bitmap font, Canvas, CRT, themes, FOV, how to verify
+- [`visual.md`](tech/visual.md) — "Phosphor & Bone" art direction: palette, font, glyphs and layout
+- [`languages.md`](tech/languages.md) — English/Portuguese, how to translate and the opening story
+- [`build-and-test.md`](tech/build-and-test.md) — pipeline: scripts, CLI, builds, shots
+
+## Audio (`audio/`)
+
+- [`music-prompts-phosphor.md`](audio/music-prompts-phosphor.md) — soundtrack prompts, machine + bone (the approved identity)
+- [`music-prompts-natural.md`](audio/music-prompts-natural.md) — soundtrack prompts, acoustic chamber version
+

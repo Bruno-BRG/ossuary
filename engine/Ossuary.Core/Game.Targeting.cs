@@ -85,6 +85,7 @@ namespace Ossuary.Core
             var res = Battles.PlayerRanged(Player, m, dist, Rng, out crit);
             if (res.Hit) m.Asleep = false;
             Say(res.Message, res.Killed ? MessageKind.Kill : MessageKind.Combat);
+            WoundFrom(m, res, true, crit);
             Player.GainSkill(Skill.Combat, 2);
             if (res.Killed) KillMonster(m);
             Map.Version++;
@@ -117,6 +118,7 @@ namespace Ossuary.Core
             {
                 Say(m.LongDescription, MessageKind.Info);
                 Say($"It is {m.ThreatLabel()}.", MessageKind.Info);
+                DescribeWounds(m);
                 return;
             }
 

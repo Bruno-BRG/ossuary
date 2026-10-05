@@ -62,6 +62,8 @@ namespace Ossuary.Core.Entities
         public int SwallowedBy = -1;
 
         public readonly List<Item> Inventory = new List<Item>();
+        /// <summary>Injuries on body parts (see <see cref="Bodies"/> and Game.Wounds.cs).</summary>
+        public readonly List<Wound> Wounds = new List<Wound>();
         public Item Wielded;
         public Item WornArmor;
         public Item WornShield;

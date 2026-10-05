@@ -7,7 +7,7 @@ namespace Ossuary.Core
     /// <summary>How a person carries themselves. Steers which lines they say and, later, how they react to violence.</summary>
     public enum Trait { Kind, Bitter, Proud, Coward, Greedy, Pious, Curious, Weary }
 
-    /// <summary>What a person needs. Personal quests are born from this (see docs/living-world.md).</summary>
+    /// <summary>What a person needs. Personal quests are born from this (see docs/game/living-world.md).</summary>
     public enum Want { None, KinLost, Debt, RareItem, Revenge, Passage, Peace }
 
     /// <summary>
@@ -45,7 +45,7 @@ namespace Ossuary.Core
         public static bool IsPersonalRole(TownRole role) =>
             role == TownRole.Citizen || role == TownRole.Scholar || role == TownRole.Beggar || role == TownRole.Adventurer || role == TownRole.Drunk || role == TownRole.Prisoner;
 
-        /// <summary>The roles the main questline leans on (see docs/main-quest.md).</summary>
+        /// <summary>The roles the main questline leans on (see docs/game/main-quest.md).</summary>
         public static bool IsEssentialRole(TownRole role) =>
             role == TownRole.Elder || role == TownRole.Scholar || role == TownRole.Captain || role == TownRole.Priest;
     }

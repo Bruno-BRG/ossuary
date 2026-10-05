@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Ossuary.Core
 {
-    /// <summary>Portuguese names and descriptions of every spell, keyed by spell id (see docs/languages.md). The test suite checks that none is missing.</summary>
+    /// <summary>Portuguese names and descriptions of every spell, keyed by spell id (see docs/tech/languages.md). The test suite checks that none is missing.</summary>
     public static partial class Loc
     {
         public static readonly Dictionary<string, (string Name, string Blurb)> SpellPt = new Dictionary<string, (string, string)>

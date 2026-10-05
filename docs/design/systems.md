@@ -41,6 +41,31 @@ Where each one lives (everything under `engine/Ossuary.Core/`):
 - Status: sleep, stun, confusion, blindness (FOV=1), hallucination, poison,
   amulet of strangulation.
 
+## Bodies and wounds (`Combat/Body.cs`, `Game.Wounds.cs`, `Loc.Body.cs`)
+
+- **Plans.** `Bodies.PlanFor(def)` picks a body plan from the monster's glyph (humanoid, quadruped, insect, winged, dragon); moulds,
+  floating eyes, wraiths, elementals, swarms and illusions get none and are never wounded. The hero is humanoid. Undead, skeletons,
+  golems and treants are wounded but do not bleed (`Bodies.Bleeds`).
+- **Where a hit lands.** After any player melee, ranged shot or ability blow, and after a monster's melee on the hero (dungeon, road
+  fight, the Watch), `WoundFrom` turns the hit into a wound when it took 15% or more of the defender's max HP (a critical counts 15
+  points more): grazed/bruised (15%), cut/battered (30%), torn/broken (50%), mangled/crushed (75%). One RNG draw picks the part by
+  weight. Bites, claws and points are *edged* (bleed, "cut", "torn"); blows, kicks and blunt weapons are not ("battered", "broken");
+  touches, drains and blasts never wound. Hitting a wounded part again worsens it by at least one step.
+- **Effects.** Legs (wings for fliers) at broken or worse: `Bodies.Limp` 1 = limping, 2 = crawling. A limping monster moves at 3/4
+  speed, a crawling one at 1/2 (`MoveSpeed`); a limping hero gives the monsters an extra move every 4th turn (every 2nd when crawling).
+  Arms cost to-hit (`ArmPenalty`: 1/2/4 by severity; the hero's off arm counts half). The head at broken or worse stuns (2 turns for the
+  hero, a lost turn for a monster). Each cut eye costs 2 squares of sight (FOV for the hero, `VisionRadius` and notice for monsters).
+- **Bleeding.** Edged wounds of severity 2+ bleed 1 HP a turn for 3/5/8 turns (+2 on the trunk). The hero's cause of death is
+  "blood loss"; a monster that bleeds out is the hero's kill. Regenerating monsters close a wound every 20 turns.
+- **Mending (the hero).** A wound heals by itself after it stops bleeding: 80/250/900/2000 turns by severity. A wound that was torn or
+  broken leaves a scar (`Player.Scars`, cosmetic for now). Healing spells and potions drop every wound one step and stop bleeding; full
+  healing and a night at the inn close all of them; the temple's cure stops bleeding.
+- **Shown.** One log line per new or worse wound ("Your left leg is broken.", "The jackal's hind left leg is torn."), pills BLEEDING /
+  LIMPING / CRAWLING / WOUNDED in the sidebar, *Wounds* and *Scars* on the character sheet and in the morgue, and the look command lists a
+  monster's wounds. Portuguese agrees the adjective with the part's gender (`Loc.BodyLine`).
+- Saves move to format **13** (hit locations draw from the RNG, so old key logs would replay differently).
+- Test: `bodies: hits land on parts, wounds hinder, bleed, heal and scar` (FeatureTests).
+
 ## Items (`Items/`, `Game.Items.cs`)
 
 - Kinds: Weapon, Armor, Shield, potion, Scroll, Wand, Food, Tool, Ring,
@@ -212,7 +237,7 @@ Full catalog, recipes, animations and items in [`spells-and-items.md`](spells-an
 - **Learning** (`r` on a book → `StudyBook`): one attempt per unknown spell, 2×level turns each; chance `Spells.LearnPct`; failure = dizziness
   (confusion), never damage. Refused with an enemy in view; classes without Mp cannot learn. **55 books** (`Spells.BookList`), across 5 depth tiers.
 - **Animations** (`Fx.cs`, `Game.Fx.cs`, `desktop/src/fx.ts`): every effect records an `FxTimeline` that goes in the frame (`Frame.fx`) and is played by the frontend.
-  See [`spells-and-items.md`](spells-and-items.md#animations) and [`renderer.md`](renderer.md).
+  See [`spells-and-items.md`](spells-and-items.md#animations) and [`renderer.md`](../tech/renderer.md).
 - Spell panel keys pass **without** the shortcut map (letters become selection, not movement) and enter the replay log normally.
 
 ## Auto-walk (`Game.Explore.cs`, `Game.Repeat.cs`, `Commands.DoAutoWalk`)
@@ -316,7 +341,7 @@ Full catalog, recipes, animations and items in [`spells-and-items.md`](spells-an
 
 - Shadow FOV (radius 10, +2 with ring of warning), symmetric, tested.
   Symmetric ray casting + corner reveal — see
-  [`renderer.md`](renderer.md) for why it is not slope shadowcasting.
+  [`renderer.md`](../tech/renderer.md) for why it is not slope shadowcasting.
 - `FindPath` (A*) + `FlowField`; a door becomes a passage, a sealed pocket = no route.
 
 ## Overworld (`World/`, `Game.Overworld.cs`)
@@ -339,7 +364,7 @@ The town is **vertical**: a `Town` holds one `GameMap` per floor (`Floors`,
 `z = 0` street, positive = upper floors, negative = basements). Every building has the
 same footprint on every floor, so the stairs put you at the same (x, y).
 `>` descends and `<` ascends (`Game.TownStairs`) - both are `Shift` plus `.` or `,`, on any layout
-(see the *Keyboards* section of [`controls.md`](controls.md)); the stairs alternate between two corners
+(see the *Keyboards* section of [`controls.md`](../game/controls.md)); the stairs alternate between two corners
 (A on even z, B on odd z) so the one you step on is never the one that continues.
 The header shows `▲2`/`▼1`; the map title becomes the building's name.
 

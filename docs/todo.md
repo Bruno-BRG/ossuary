@@ -16,6 +16,10 @@ reads this file before starting and updates it when done** (see `AGENTS.md`).
 
 ## Future ideas (nothing pending from the original backlog)
 
+> **Depth track.** The Dwarf Fortress-inspired ideas (body parts and wounds, materials, generated history, relic biographies,
+> fluids and tracking, mood, engravings, named enemies, sieges, legends) have their own list: [`roadmap/depth.md`](roadmap/depth.md).
+> *2026-10-05:* section 1, **bodies and wounds**, is in (save format 13); what is left of it is listed there.
+
 Everything that was listed has been implemented (see *Done*). What is left are extensions noted along the way:
 
 - [ ] **Music**: the menu already has the volume; nothing composed/synthesized yet (today only effects).
@@ -26,7 +30,7 @@ Everything that was listed has been implemented (see *Done*). What is left are e
 - [ ] **Martial techniques** for the Fighter (no Mp today): a "book" of strikes using Vigor in the same panel, with the same animations.
 - [ ] **Animations**: monsters casting spells (sorcerers, new bosses) and damage arriving *with* the projectile (today the spell is already resolved when the animation plays);
   per-element sound; a key to skip the whole animation.
-- [ ] **Balance bot** that uses the 322 spells (today it knows the ~40 old ones): see docs/balance.md.
+- [ ] **Balance bot** that uses the 322 spells (today it knows the ~40 old ones): see docs/design/balance.md.
 - [ ] **Second optional portal in another branch**; more corrupting relics.
 - [ ] **Items**: identify wands/potions/scrolls by use (today they are born identified by name), recharge wands at the shop, new cursed amulets.
 
@@ -73,7 +77,7 @@ Today (2026-10-03): townsfolk have a role and a line, the Guild board has two jo
 - [x] **Stingers rendered by code** (2026-10-04). `desktop/src/stingers.ts`: 15 short pieces from instrument models (bell, piano, harp, cello, organ, timpani, noise), played for the `levelup`, `quest`, `death`, `stairs` and `rest` cues and on victory; `npm run stingers` exports WAVs. Tests `stingers.test.ts`. Left: hooks for the endings, trap and new cycle (they exist but nothing triggers them yet; `danger` is wired now, see below).
 - [x] **A warning you cannot miss** (2026-10-04, review item): the `danger` cue, second in priority after death, is heard whenever the way is refused (a monster on the road, travelling past it: `Game.Overworld.cs`, `Game.Events.BeginRoadFight`) and once when a hostile first comes into view (`Game.Sound.NoteThreat`, called at the end of every turn and on arriving at a level), so a fight beginning is heard and not only read in the log. `audio.ts` plays it as the *Danger Spotted* stinger and holds the same cue back for 2.5 s (`cueCooldown`) so walking into the same blocker does not stack warnings; the `trap` stinger is still unused. Tests `SoundCues`, `audio.test.ts`.
 - [x] **The intro types out loud** (2026-10-04, review item): each tick of the story typewriter in `desktop/src/main.ts` plays the `click` blip the name field uses at creation, so the opening is heard letter by letter.
-- [x] **Keyboards: the stairs keys are symbols** (2026-10-04, review item): `>` and `<` have no key of their own on any layout (ABNT2 included). The stairs and portal messages now read "Press > (Shift + .)"; the Commands panel (`?`) lists the shift form and the `?`/ABNT2 key; the Controls panel prints "> is Shift + . on every keyboard, US or ABNT2." under the stairs lines (`Ui.KeyLayoutNote`); `docs/controls.md` has a *Keyboards (US and Portuguese)* section. Test `the stairs keys say they need Shift`.
+- [x] **Keyboards: the stairs keys are symbols** (2026-10-04, review item): `>` and `<` have no key of their own on any layout (ABNT2 included). The stairs and portal messages now read "Press > (Shift + .)"; the Commands panel (`?`) lists the shift form and the `?`/ABNT2 key; the Controls panel prints "> is Shift + . on every keyboard, US or ABNT2." under the stairs lines (`Ui.KeyLayoutNote`); `docs/game/controls.md` has a *Keyboards (US and Portuguese)* section. Test `the stairs keys say they need Shift`.
 - [x] **One language at a time, second pass** (2026-10-04, review item). The translation audit's findings, fixed:
   - **Composition.** `TownText.Translate` now runs a match through `Loc.TranslateMatch` (captures as names, contractions), so the reported sentence reads "Dizem que uma mina abandonada nas Colinas de Ferro ainda guarda algo que vale a caminhada." instead of leaving "an abandoned mine ... The Iron Hills" in English; `Loc.Finish` is the one last step of every pattern.
   - **Names.** `Loc.Names` gained the 12 dungeon entrances, the 7 landmarks, `The Annex`, `The Wilds`, `The Reach League`, the four houses and the five branch kings; tiles are registered with their gender (`TN`), so "You dig through the rubble" is "Você cava através dos escombros" and not "do escombros".
@@ -95,7 +99,7 @@ _(move here, with a date, whatever is completed)_
   (`overview`, `architecture`, `systems`, `controls`, `languages`, `todo`, `build-and-test`, `spells-and-items`). Root README, CONTRIBUTING, CHANGELOG and INSTALL link to the new names;
   the `*.pt-BR.md` variants stay as Portuguese translations of the root files.
 
-- [x] **Magic items imbued with spells + more variety** (2026-10-03). Details in [`spells-and-items.md`](spells-and-items.md#magic-items-with-spells-magicspellfitcs).
+- [x] **Magic items imbued with spells + more variety** (2026-10-03). Details in [`spells-and-items.md`](design/spells-and-items.md#magic-items-with-spells-magicspellfitcs).
   - `SpellFit` filters spells by item type (sword: attack and control; armor: protection; boots: movement; helm: senses; cloak: stealth; ring/amulet: what you cast on yourself);
     rare (55%) or magic (18%) equipment comes imbued (`Item.Imbue`, name "long sword of Frostbite"); *blank* rings and amulets only exist imbued. The spell is lent
     while the item is in use; weapons fire by themselves on a hit (14%) and worn pieces answer a blow (10%), for free and without spending a turn.
@@ -103,7 +107,7 @@ _(move here, with a date, whatever is completed)_
   - **+48 base items** (11 weapons, 5 armors, 4 helms, 4 gloves, 3 boots, 3 cloaks, 3 shields, 9 rings, 6 amulets), 4 blank amulets and **+22 affixes**.
   - Fixed: the old amulets were *rings* in the catalog (the real amulet, including life saving, never worked); they are now `ItemKind.Amulet`.
 
-- [x] **Spells, books, magic items, uniques and animations** (2026-10-03). Details in [`spells-and-items.md`](spells-and-items.md). Saves move to **version 11**.
+- [x] **Spells, books, magic items, uniques and animations** (2026-10-03). Details in [`spells-and-items.md`](design/spells-and-items.md). Saves move to **version 11**.
   - **Spell animations** (`Fx.cs`, `Game.Fx.cs`, `desktop/src/fx.ts`): the engine records an `FxTimeline` (23 pieces: projectile with trail, ray, jagged lightning, chain,
     cone, explosion, nova, rain, eruption, pillar, meteor, particle swarm, teleport…) that goes in `Frame.fx` and is played by the frontend over the frame, without asking for a turn.
     Geometry shared with damage (`Shapes`), per-element colors going through the theme, no Rng. Wands, scrolls, potions, bow shots, molotovs,

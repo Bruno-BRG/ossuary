@@ -40,7 +40,7 @@ only with the CRT on and is disabled with `prefers-reduced-motion`.
 
 **Spell animations** (`fx.ts`): a frame may carry `fx` (one array per step of [cell, glyph, fg, bg]) and `fxMs`; the frontend plays it over the finished
 frame, ~45 ms per step, without asking the engine for a turn, under the same `prefers-reduced-motion` rule as water. A new key or a new frame cuts the
-animation short. See [`spells-and-items.md`](spells-and-items.md#animations).
+animation short. See [`spells-and-items.md`](../design/spells-and-items.md#animations).
 
 The title (`title.ts`) is a client-only scene: sky, ruins, embers and a gradient
 logo; the embers move on a local tick and never query the engine.

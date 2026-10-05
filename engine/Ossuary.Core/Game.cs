@@ -248,6 +248,7 @@ namespace Ossuary.Core
             for (int i = 0; i < 2; i++)
                 if (Player.Rings[i] != null && Player.RingKnown[i] && Player.Rings[i].Name == "ring of warning") radius += 2;
             if (!Player.Blinded) radius += MutationSight();
+            if (!Player.Blinded) radius = Math.Max(2, radius - Bodies.EyePenalty(Player));
             Fov.Compute(Map, Player.X, Player.Y, radius, null);
             Map.Version++;
         }
@@ -451,6 +452,7 @@ namespace Ossuary.Core
             if (res.Hit) target.Asleep = false;
             if (res.Killed) { _killSneak = unaware; _killType = DamageType.Physical; }
             Say(res.Message, res.Killed ? MessageKind.Kill : MessageKind.Combat);
+            WoundFrom(target, res, Bodies.EdgedWeapon(Player), crit);
             Map.Version++;
             if (res.Hit) MeleeProcs(target, res.Damage, !res.Killed);
 
@@ -531,7 +533,13 @@ namespace Ossuary.Core
             DecrementStatus();
             TickSurfaces();
             Regenerate();
+            TickWounds();
             if (!(Player.BuffTurns("haste") > 0 && (Turn & 1) == 0)) RunMonsters();
+            {
+                // A limping hero gives the monsters an extra move every fourth turn; a crawling one, every other turn.
+                int limp = Bodies.Limp(Player);
+                if (limp > 0 && Turn % (limp == 1 ? 4 : 2) == 0) RunMonsters();
+            }
             UpdateFov();
             NoteThreat();
             CheckDeath();
@@ -640,6 +648,8 @@ namespace Ossuary.Core
                 if (m.IsDead) { Monsters.RemoveAt(i); continue; }
                 TickMonsterEffects(m);
                 if (m.IsDead) { Monsters.Remove(m); continue; }   // (a spell's damage over time may already have removed it)
+                TickMonsterWounds(m);
+                if (m.IsDead) { Monsters.Remove(m); continue; }
                 if (m.HeldTurns > 0) { m.HeldTurns--; continue; }
 
                 if (m.Asleep && m.SleepTurns > 0 && --m.SleepTurns == 0) { m.Asleep = false; m.Alert = 1; }
@@ -647,14 +657,14 @@ namespace Ossuary.Core
 
                 if (m.Confused && Rng.Chance(50))
                 {
-                    m.Energy += m.Speed;
+                    m.Energy += MoveSpeed(m);
                     if (m.Energy < 12) continue;
                     m.Energy -= 12;
                     TryMonsterStep(m, Rng.Range(-1, 2), Rng.Range(-1, 2));
                     continue;
                 }
 
-                m.Energy += m.Speed;
+                m.Energy += MoveSpeed(m);
                 if (m.Energy < 12) continue;
                 m.Energy -= 12;
                 if (m.Ally) { AllyTurn(m); continue; }
@@ -693,6 +703,7 @@ namespace Ossuary.Core
                 HurtBy(Article(m));
                 var res = Battles.MeleeAttack(m, Player, Rng);
                 Say(res.Message, res.Killed ? MessageKind.Death : MessageKind.Combat);
+                if (Bodies.Wounding(res.Kind)) WoundFrom(Player, res, Bodies.EdgedAttack(res.Kind), false);
                 if (res.Hit && !res.Killed && Player.Buffs.Count > 0) Retaliate(m);
                 if (res.Hit && !res.Killed) ImbueReaction();
                 if (m.Def.Trait != null) TraitAfterHit(m, res);
