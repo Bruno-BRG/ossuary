@@ -5,6 +5,28 @@
 As versões do Ossuary são numeradas só com **um número** (Versão 11, Versão 12…), como no *Project Zomboid*. Nos manifestos (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) e no nome do instalador a versão aparece como `0.N.0`. O **salvamento** (`SaveData.Version`) usa o mesmo número: mudou regra, sobe o número, saves antigos deixam de carregar.
 
+## Versão 15 — Ferro e ofício
+
+### Materiais
+- **Todo equipamento é feito de algo.** Cobre, bronze, ferro, aço, prata, ferro frio, mithril, adamantina, obsidiana, osso e madeira, cada um com seu peso, preço, fio e proteção. O nome diz ("espada longa de aço"); o ferro comum não é nomeado.
+- **Mais fundo, mais nobre**, e cada ramo puxa para um lado: metal bom nas Minas, osso e cobre nos Warrens, prata nos Sunken Vaults, vidro negro no Ashen Spire.
+- **Material contra criatura.** A prata queima os mortos e os lobisomens, o ferro frio as fadas, a obsidiana golens e gárgulas: "A prata morde fundo!".
+- **O equipamento gasta.** Armas ficam cegas e lascadas com o uso, armaduras amassam e ficam surradas, e cada estágio custa um ponto. Lâminas frágeis ou baratas podem se partir num crítico.
+- **O ferreiro conserta** e refunde sua arma ou armadura no metal do minério que você trouxer. Há minério nas Minas, ele se solta quando você cava, e a ferraria vende cobre e ferro.
+- **Perfuração fere fundo**: adagas, lanças, tridentes, flechas e ferrões deixam um ferimento pior num golpe forte.
+
+### Ofícios para todos
+- **Dezesseis ofícios, abertos a qualquer herói**: ferreiro, armeiro, fabricante de arcos, coureiro, alfaiate, joalheiro, alquimista, escriba, carpinteiro, ferramenteiro, luthier, cozinheiro, cervejeiro, minerador, músico, coletor. Cada um cresce com o trabalho, de Novato a Grão-mestre.
+- **Cerca de cem receitas**: espadas e armaduras no metal das barras que você fundir, arcos, couro, capas, anéis que tiram uma magia da pedra, poções, pergaminhos, picaretas e varas de pesca, alaúdes, harpas e pandeiros, pão, ensopado e cerveja.
+- **O lugar importa**: uma fogueira em qualquer canto, uma oficina na cidade ou a forja da ferraria. **A qualidade segue a mão**: tosca, comum, fina ou obra-prima com o nome de quem fez.
+- **Shift+B** fabrica o que dá, **Shift+J** mostra o livro de receitas inteiro, **Shift+G** coleta: carneie uma carcaça, ou passe duas horas na estrada tirando madeira, linho, cevada, ervas, mel, minério ou peixe da terra.
+- **Música**: toque um instrumento por moedas na cidade, ou para fazer criaturas dormirem lá embaixo.
+- **Mestres e encomendas**: cada oficina ensina seus ofícios até Oficial e oferece uma encomenda por semana. As lojas vendem matéria-prima e compram seu trabalho pela pilha.
+- **Você nunca precisa descer**: dá para viver de ofício desde o primeiro dia.
+
+### Saves
+- O formato de save vai para **15**: saves da Versão 14 não carregam.
+
 ## Versão 14 — Carne e osso
 
 ### Corpos e ferimentos

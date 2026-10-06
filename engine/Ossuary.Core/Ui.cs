@@ -1176,7 +1176,7 @@ namespace Ossuary.Core
                 { "Enter K  R", "road: fight / flee a monster in your way" },
                 { "g  d", "pick up / drop" },
                 { "i", "inventory" },
-                { "a", "apply a tool (pick-axe, lock pick)" },
+                { "a", "apply a tool (pick-axe, lock pick, an instrument)" },
                 { "w  W  T", "wield / wear / take off armour" },
                 { "P  R", "put on / remove a ring" },
                 { "r  z  Z", "read a scroll or book / zap a wand / cast a spell" },
@@ -1188,7 +1188,9 @@ namespace Ossuary.Core
                 { "s  Shift+S", "search for traps and doors / rest until healed" },
                 { "Shift+A", "disarm a trap you have found" },
                 { "Shift+E", "drink at a fountain (it may be tainted)" },
-                { "Shift+B", "craft: combine what you carry" },
+                { "Shift+B", "craft: make what your trades, pack and place allow" },
+                { "Shift+J", "every recipe, by trade and rank" },
+                { "Shift+G", "gather: butcher a carcass, or forage on the road" },
                 { "Shift+N", "train a skill with XP (Trained mode)" },
                 { "t  `  ~", "auto-explore / travel to the stairs / to an altar or fountain" },
                 { "l  x  X", "look / inspect / swap with" },
@@ -1327,6 +1329,12 @@ namespace Ossuary.Core
                 int cap = role.CapFor(kv.Key);
                 string capText = cap < 100 ? $"  (max {cap})" : "";
                 _t.Write(x + 2, y++, $"{Loc.T(kv.Key.ToString()),-10}{kv.Value,3}  {Loc.T(SkillRanks.Name(kv.Value)),-8}{Loc.T(capText)}", theme.Text, false, theme.Panel);
+            }
+            {
+                var trades = new System.Collections.Generic.List<string>();
+                foreach (var t in Items.Trades.All)
+                    if (p.TradeXp.TryGetValue(t.Id, out int xp) && xp > 0) trades.Add($"{Loc.T(t.Title)} {xp} ({Loc.T(Items.Trades.RankNames[Items.Trades.Rank(xp)])})");
+                if (trades.Count > 0) _t.WriteClipped(x, y++, Loc.T("Trades") + ": " + string.Join(", ", trades.ToArray()), theme.Info, iw, false, theme.Panel);
             }
             {
                 var houses = new System.Collections.Generic.List<string>();

@@ -5,7 +5,7 @@
 **A dark-fantasy ASCII roguelike.** The world threw its dead, its kings and its gods into one pit.
 You climb down to steal what is left.
 
-![Version 14](https://img.shields.io/badge/version-14-c8a050?style=flat-square)
+![Version 15](https://img.shields.io/badge/version-15-c8a050?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-5fa85f?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-Windows%20x64-4a6ea8?style=flat-square)
 ![Engine](https://img.shields.io/badge/engine-C%23%20.NET%2010-7c4dff?style=flat-square)
@@ -26,11 +26,12 @@ Descend through the Ossuary, take the **Amulet of Yendor**, and bring it back to
 fixed 8×16 bitmap font on a CRT-style terminal; the world is a turn-based dungeon crawl with a living overworld above it.
 The seed *is* the save: same seed, same keys, same run.
 
-### What is in **version 14**
+### What is in **version 15**
 
 | | |
 |---|---|
-| 🩸 **Flesh and bone** *(new)* | A hit lands somewhere: legs break and you limp, arms spoil your aim, a blow to the head stuns, cut eyes see less, wounds bleed, heal and leave scars. Monsters too, each with its own body. |
+| ⚒️ **Iron and craft** *(new)* | Gear is made of something: copper, bronze, steel, silver, cold iron, mithril, adamantine, obsidian, bone, wood. Silver sears the dead, gear wears and breaks, the smith repairs it. And anyone can live by a trade: 16 of them (smith, armourer, alchemist, cook, luthier, miner…), about 100 recipes, gathering on the road, music for coin, masters and commissions. You never have to go down. |
+| 🩸 **Flesh and bone** | A hit lands somewhere: legs break and you limp, arms spoil your aim, a blow to the head stuns, cut eyes see less, wounds bleed, heal and leave scars. Monsters too, each with its own body. |
 | ✨ **Spells you can see** | 322 spells in 8 schools, and every one is animated: a fireball is a ball of fire that flies and bursts, lightning forks, meteors fall. |
 | 📖 **55 spellbooks** | Wizard, necromancer, cleric/paladin, ranger (nature) and rogue (shadow) each have about fifty spells to find, in five depth tiers. |
 | ⚔️ **Items with a spell inside** | Random magic gear is imbued with a spell that fits what it is: swords carry attacks, armour carries wards, boots carry leaps. They fire on their own, too. |
@@ -63,10 +64,10 @@ The seed *is* the save: same seed, same keys, same run.
 
 ## Install (players)
 
-Download the installer `Ossuary_0.14.0_x64-setup.exe` (Windows x64) from a [release](https://github.com/Bruno-BRG/ossuary/releases)
+Download the installer `Ossuary_0.15.0_x64-setup.exe` (Windows x64) from a [release](https://github.com/Bruno-BRG/ossuary/releases)
 or the build output, and run it. No SDK is needed. WebView2 is required (preinstalled on Windows 11).
 
-> The public name of a release is just **Version N** (this one is **Version 14**). Installers and manifests use the matching
+> The public name of a release is just **Version N** (this one is **Version 15**). Installers and manifests use the matching
 > `0.N.0`, because Windows installers and npm/Cargo want three numbers.
 
 ## Build from source

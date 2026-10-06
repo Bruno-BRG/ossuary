@@ -39,9 +39,9 @@ Keys are remappable in Controls.
 
 `>` (`Shift` + `.`) descend — `<` (`Shift` + `,`) ascend (also building stairs in towns) — `g` or `,`
 pick up — `d` drop — `s` search (traps/secret doors) —
-`Shift+N` train a skill with XP (Trained mode) — `Shift+B` craft (combine what you carry: molotov, bone blade…; `a` on a molotov throws it) — `Shift+E` drink from a fountain (may corrupt) — `Shift+A` disarm a found trap (below or beside, preferably ahead) —
+`Shift+N` train a skill with XP (Trained mode) — `Shift+B` craft (what your trades, pack and place allow; `a` on a molotov throws it) — `Shift+J` every recipe — `Shift+G` gather (butcher a carcass, or forage on the road) — `Shift+E` drink from a fountain (may corrupt) — `Shift+A` disarm a found trap (below or beside, preferably ahead) —
 `k` (shift-K) kick / attack ahead (in town it strikes the person in front of you, and the Watch may notice) — `D` (shift) open door — `u` (shift-U)
-use key — `a` apply tool — `f`/`Q` fire
+use key — `a` apply tool (an instrument plays) — `f`/`Q` fire
 
 ## Equip and use
 

@@ -43,6 +43,8 @@ abilities, perks, skills, reputation reasons, the rival party and the hired comp
 - A capture that is a name goes through `Loc.Part`: "the jackal" becomes "o chacal", lists are split on ", ", a trailing rank or count ("Tough 2", "(x3)") is kept.
 - Item names are **composed** from their parts (`blessed`, `+N`, a prefix affix, the base, an `of X` tail): add the base to `Nm`, the tail to `OfPt`, the adjective to `Adj` **in the masculine
   form** - the feminine and the plural are derived, so "sturdy boots of the bear" reads "botas robustas do urso". A name that starts with its enchantment ("+2 dagger") is composed too.
+  A material in front of the base ("steel long sword") becomes an invariable "de X" right after the noun (`MatPt`: "espada longa de aço"), tried only when the
+  whole name does not parse, so "iron boots" stays one entry. Wear words (`blunted`, `chipped`, `dented`, `battered`) lead the name like `blessed` and agree at the end.
 - Every sentence ends in `Loc.Finish`: proper names substituted (`Loc.Names`) and the Portuguese contractions applied. Patterns kept in `TownText` go through `Loc.TranslateMatch`, which does the same over `Loc.Expand`.
 - Sentences about people use `Actor.Subj` / `Actor.Obj` ("The jackal" / "you" / "Dagny"); never write `the {TheName}` by hand around a named person.
 - Patterns live in `Loc.Game.cs` (play layer, HUD, sheets) and `Loc.Msgs.cs` (messages); newer patterns win. A pattern that is only a *decoration* of another string (the " : level N" tail of a

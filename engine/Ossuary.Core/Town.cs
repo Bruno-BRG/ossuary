@@ -722,13 +722,31 @@ namespace Ossuary.Core
             {
                 case ShopKind.Food: Basics(shop, rng, Catalogue.Food, 4); break;
                 case ShopKind.potion: Basics(shop, rng, Catalogue.Potions, 4); break;
-                case ShopKind.Weapon: Basics(shop, rng, Catalogue.Weapons, 3); break;
-                case ShopKind.Armor: Basics(shop, rng, Catalogue.Armor, 2); Basics(shop, rng, Catalogue.Shields, 1); break;
-                case ShopKind.Wand: Basics(shop, rng, Catalogue.Scrolls, 3); Basics(shop, rng, Catalogue.Wands, 2); break;
+                case ShopKind.Weapon:
+                    Basics(shop, rng, Catalogue.Weapons, 3);
+                    // A smithy keeps a little copper and iron for anyone who wants their gear poured anew (no RNG: the town stays the town).
+                    foreach (var ore in new[] { Materials.Ores[0], Materials.Ores[0], Materials.Ores[1], Materials.Ores[1] })
+                        shop.Stock.Add(new Item(ore, rng, GroundItems.NextUid()) { Identified = true });
+                    Staples(shop, rng, "iron bar", "iron bar", "copper bar", "log");
+                    break;
+                case ShopKind.Armor: Basics(shop, rng, Catalogue.Armor, 2); Basics(shop, rng, Catalogue.Shields, 1); Staples(shop, rng, "leather", "leather", "raw hide", "iron bar"); break;
+                case ShopKind.Wand: Basics(shop, rng, Catalogue.Scrolls, 3); Basics(shop, rng, Catalogue.Wands, 2); Staples(shop, rng, "parchment", "parchment", "ink", "ink"); break;
                 case ShopKind.Book: Basics(shop, rng, Catalogue.Books.Where(b => b.Tier <= 2).ToList(), 3); break;
-                case ShopKind.General: Basics(shop, rng, Catalogue.Tools, 3); Basics(shop, rng, Catalogue.Food, 2); break;
+                case ShopKind.General:
+                    Basics(shop, rng, Catalogue.Tools, 3); Basics(shop, rng, Catalogue.Food, 2);
+                    Staples(shop, rng, "log", "log", "flax", "flax", "thread", "thread", "cloth", "tallow", "fishing rod", "flute");
+                    break;
                 case ShopKind.Jewel: Basics(shop, rng, Catalogue.Rings, 2); Basics(shop, rng, Catalogue.Ornaments, 2); break;
             }
+            if (shop.Kind == ShopKind.potion) Staples(shop, rng, "glass flask", "glass flask", "glass flask", "healing herb", "healing herb", "nightshade");
+            if (shop.Kind == ShopKind.Food) Staples(shop, rng, "raw meat", "raw meat", "barley", "barley", "honey");
+        }
+
+        /// <summary>The raw goods a trade needs, one of each name given. Drawn from no RNG, so the town is the same town.</summary>
+        static void Staples(Shop shop, Rng rng, params string[] names)
+        {
+            foreach (string n in names)
+                if (Trades.TryDef(n, out var d)) shop.Stock.Add(new Item(d, rng, GroundItems.NextUid()) { Identified = true });
         }
 
         static void Basics(Shop shop, Rng rng, IReadOnlyList<ItemDef> list, int count)
@@ -751,7 +769,7 @@ namespace Ossuary.Core
                 case ShopKind.Tool: return d.Kind == ItemKind.Tool;
                 case ShopKind.Jewel: return d.Kind == ItemKind.Ring || d.Kind == ItemKind.Amulet || d.Kind == ItemKind.Gem || d.Kind == ItemKind.Ornament;
                 case ShopKind.Book: return d.Kind == ItemKind.Book || d.Kind == ItemKind.Scroll;
-                case ShopKind.General: return d.Kind == ItemKind.Tool || d.Kind == ItemKind.Ornament || d.Kind == ItemKind.Gem || d.Kind == ItemKind.Rock || d.Kind == ItemKind.Food;
+                case ShopKind.General: return d.Kind == ItemKind.Tool || d.Kind == ItemKind.Ornament || d.Kind == ItemKind.Gem || d.Kind == ItemKind.Rock || d.Kind == ItemKind.Food || d.Kind == ItemKind.Material;
                 case ShopKind.Temple: return d.Kind == ItemKind.Scroll || d.Kind == ItemKind.Book;
                 default: return false;
             }

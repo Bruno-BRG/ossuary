@@ -308,6 +308,12 @@ namespace Ossuary.Tests
             Eq("You are now wielding long sword.", "Você empunha a espada longa.");
             Eq("potion of healing", "poção de cura");
             Eq("scroll of the tempest", "pergaminho da tempestade");
+            // Materials and wear (Items/Materials.cs): "de X" after the noun, wear with the blessing at the end.
+            Eq("You pick up steel long sword.", "Você pega a espada longa de aço.");
+            Eq("You pick up chipped +1 keen cold iron dagger of the fox.", "Você pega a adaga de ferro frio afiada da raposa +1 lascada.");
+            Eq("iron boots", "botas de ferro");
+            Eq("Your steel dagger shatters!", "A adaga de aço se despedaça!");
+            Eq("iron ore", "minério de ferro");
         }
 
         static void Eq(string en, string pt)

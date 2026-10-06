@@ -156,6 +156,32 @@ Where each one lives (everything under `engine/Ossuary.Core/`):
   `LevelBuilder.PlaceLoot` places them; they stay unidentified until used.
 - Saves move to version 5.
 
+## Materials (`Items/Materials.cs`, `Game.Materials.cs`)
+
+- **Table** (`Materials.All`): copper, bronze, iron, steel, silver, cold iron, mithril, adamantine, obsidian, bone, wood. Each has a
+  weight and value percent, to-hit/damage/AC deltas against iron, a durability (blows per wear step), and flags: brittle, metal, bane.
+  Colours live in `Theme.MaterialColor`.
+- **Which items take one** (`Materials.StuffOf`): blades, axes, spears (edge: metals, bone, obsidian); clubs (metals, bone, wood);
+  staves and bows (wood, bone); mail, metal helms and gauntlets (metals, bone); shields (metals, wood, bone). Leather, cloaks, slings,
+  whips, crossbows, elven and bone-named items have none. `Item.Material` stores the id; **null is the default** (iron, or wood for
+  staves and bows), which is never named, so the starting kit and old names read as before.
+- **Generation**: `RollLoot` and monster carries call `Materials.Assign` by depth (copper and bronze shallow; steel from 3, silver from
+  4, cold iron from 5, obsidian from 6, mithril from 10, adamantine from 14). The pick is a hash of the world seed, the uid and the name,
+  so it **draws no simulation RNG**. Artifacts keep their base.
+- **Numbers**: the deltas go into `Item.Mods` (so combat, AC and the sheet use them with no extra code); `Item.Weight` feeds the
+  burden; `Item.BaseCost` feeds `TradeValue`. Mithril mail is half the weight and +2 AC; adamantine +2 damage and +3 AC.
+- **Banes** (`Materials.IsBane`, in `Battles.PlayerMelee`): silver against undead and were-creatures, cold iron against the fey (nymphs,
+  sprites, treants...), obsidian against constructs (golems, gargoyles, sentinels): +1d6+2 and "The silver bites deep!".
+- **Wear** (`Item.Wear`, `Item.Condition`): a weapon wears one per hit dealt, a worn piece one per hit taken (which piece follows the
+  damage, no RNG). At durability it is *blunted* / *dented* (-1), at twice *chipped* / *battered* (-2), and sells for less. A brittle
+  weapon already worn, or a cheap one (durability ≤ 200) chipped, can **shatter on a critical**. Artifacts do not wear.
+- **Ore** (`Materials.Ores`): copper, iron, silver, mithril and adamantine ore. The Mines put 2–4 lumps on each level, richer deeper;
+  every smithy stocks copper and iron.
+- **Smithy and armoury** (the Hone service): *Repair my gear* (10 + 40 per wear step, per piece) and *Pour my weapon / armour in X*,
+  one row per metal the pack has ore for (2 ore for a weapon, 3 for body armour; bronze from copper, steel and cold iron from iron).
+  Pouring keeps enchantment and affixes and resets wear.
+- Saves move to version 14.
+
 ## Character (`Entities/Player.cs`, `Entities/Roles.cs`, `Entities/Progression.cs`, `Game.Rpg.cs`)
 
 - **Creation** (`Panel.Create`, `Session.CreateKey`): name (≤16 ASCII,
@@ -301,11 +327,41 @@ Full catalog, recipes, animations and items in [`spells-and-items.md`](spells-an
 - `ArtifactDef.Set` ties a piece to an `ArtifactSetDef` (`Two`/`Three` bonuses, summed by `ArtifactSets.Bonus` in `Player.Gear`).
   `ArtifactDef.Corrupts` marks relics: `AmuletCorrupts` adds `WornRelics()` every 25 turns. One artifact per (branch, depth).
 
-## Crafting (`Game.Crafting.cs`)
+## Crafting for everyone (`Items/Trades.cs`, `Game.Crafting.cs`, `Game.Gathering.cs`, `Game.Workshops.cs`)
 
-- `Recipe` = (Id, Needs, Gather, Make). `CraftChoices` lists what the pack allows, as preview items (`Uid = −1 − index`);
-  `CommitChoice` with `CraftPrompt` calls `Craft`, which spends the ingredients and costs a turn. The **molotov** (`Crafted.Molotov`, a tool) uses
-  `TargetingMode.Throw` → `ThrowAt`: fire (`PutSurface`) on the target and the four walkable neighbors, `SetAlight` + fire damage on the monster.
+Any hero can live as a craftsman and never enter the dungeon: gather or buy raw goods, make things, sell them, take commissions.
+
+- **Trades** (`Trades.All`, 16): blacksmith, armourer, bowyer, leatherworker, tailor, jeweller, alchemist, scribe, carpenter, toolmaker,
+  luthier, cook, brewer, miner, musician, forager. `Player.TradeXp` by id; ranks at 0/20/60/150/300 xp: Novice, Apprentice, Journeyman,
+  Master, Grandmaster (`Trades.Rank`). Any class or race; xp comes from the work (`Game.GainTrade`, which announces a new rank).
+- **Goods** (`ItemKind.Material`): a bar per metal, log, plank, raw hide, leather, flax, thread, cloth, healing herb, swiftroot, nightshade,
+  glass flask, parchment, ink, tallow, barley, honey, raw meat, raw fish. **Meals** (food): roast meat, grilled fish, hearty stew, bread,
+  honey cake, ale, mead. **Instruments** (tools): flute, drum, tambourine, lute, horn, fiddle, harp. New tool: fishing rod.
+- **Recipes** (`Trades.Recipes`, ~100, data): trade, rank, station, product, needs (names or tokens `#remains`, `#blade`, `#light-armour`,
+  `#gem`) and bars. **Stations**: anywhere, a town workshop (`GameMode.TownMap`), or beside a forge tile (the smithy's back room).
+  A recipe with bars makes the piece **in the bar's metal**, and the metal asks for rank too (`Trades.MetalRank`: steel and silver 1,
+  cold iron 2, mithril and adamantine 3). Smelting (miner): copper/iron/silver/mithril/adamantine ore into bars; bronze from copper, steel and
+  cold iron from iron.
+- **Craft** (`Shift+B`): `CraftChoices` lists every plan the pack, place and ranks allow (one row per bar metal), as previews
+  (`Uid = −1 − index`, built without RNG); `Craft` spends the parts, rolls failure (none for rank-0 recipes, 10% per missing rank above the
+  recipe's), quality for gear (crude −1, plain, fine +1, masterwork +2 with the masterwork edge on weapons and the maker's name), a spell for
+  a jeweller's band or pendant (`ItemRoller`), and a bonus unit for a master's batches. A turn in the dungeon or town, an hour on the road.
+  `Shift+J` lists the whole book (`RecipeBook`), with a dot on what is still out of reach.
+- **Gathering** (`Shift+G`, `Game.Gather`): on a carcass, butcher it for raw meat and a hide (cook and leatherworker xp). On the road, two
+  hours by terrain: forest (logs with an axe, herbs, honey), grass and road (flax, barley, herbs, swiftroot), hills and mountains (ore with a
+  pick-axe), swamp (nightshade), water and shore (fish with a rod), ruins (copper ore); then the usual chance of an encounter. Digging rock
+  (`DigAt` → `MineVein`) breaks ore loose: 30% in the Mines, 6% elsewhere, +5% per miner rank.
+- **Music** (`a` on an instrument, `PlayInstrument`): in town the street pays once a day (rank, Cha, instrument); in the dungeon it may lull
+  visible creatures within 6 to sleep (never the mindless or undead); on the road it is practice.
+- **Workshops** (`TradesTaughtAt`): smithy (blacksmith, miner, toolmaker), armoury (armourer, leatherworker), alchemist, general store
+  (carpenter, tailor, bowyer), tavern (cook, brewer, musician, luthier), inn (cook), emporium (jeweller, scribe), library (scribe), guild
+  (forager). A master teaches the next rank up to journeyman (`LearnPrice`: 60, 240). Each workshop has one **commission** a week
+  (`CommissionOffer`, a function of town, week and building; a `Contract` of kind `make`), delivered at that workshop for gold, Guild
+  standing and trade xp.
+- **Shops** stock raw goods without drawing RNG (`Town.Staples`); goods and food sell by the stack (`ShopPrice`).
+- The **molotov** (`Crafted.Molotov`, alchemist rank 0, anywhere) uses `TargetingMode.Throw` → `ThrowAt`: fire on the target and the four
+  walkable neighbours, `SetAlight` + fire damage on the monster.
+- Saves move to version 15.
 
 ## Companions (`Game.Companions.cs`)
 
@@ -374,8 +430,8 @@ The header shows `▲2`/`▼1`; the map title becomes the building's name.
   There is always a tavern, general store, smithy and temple; the rest is drawn.
   Layouts in "door-relative" coordinates (u = width, v = depth), so
   the same mold serves lots to the north and south.
-- **Buildings**: Smithy (weapons; **sharpen** a weapon up to +3), Armory (armor;
-  **reinforce** armor up to +3), Alchemist (potions, lab in the basement),
+- **Buildings**: Smithy (weapons; **sharpen** a weapon up to +3; **repair** and **pour in a metal** from ore, see Materials), Armory (armor;
+  **reinforce** armor up to +3, repair and pour as well), Alchemist (potions, lab in the basement),
   Mage Tower/Emporium (wands and scrolls, **appraise** items, 3 floors),
   General store, Tavern (beer, meal, news, basement), Inn (**sleep**
   = heals everything and advances to morning, 2 floors of rooms), Temple (**heal**,

@@ -5,6 +5,28 @@
 Ossuary versions are a **single number** (Version 11, Version 12…), as in *Project Zomboid*. In the manifests (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) and in the installer name the version appears as `0.N.0`. The **save format** (`SaveData.Version`) uses the same number: change a rule, bump it, old saves stop loading.
 
+## Version 15 — Iron and craft
+
+### Materials
+- **Gear is made of something.** Copper, bronze, iron, steel, silver, cold iron, mithril, adamantine, obsidian, bone and wood, each with its own weight, price, edge and armour. The name says it ("steel long sword"); plain iron is not named.
+- **Deeper is finer**, and each branch leans its own way: good metal in the Mines, bone and copper in the Warrens, silver in the Sunken Vaults, black glass in the Ashen Spire.
+- **Material against creature.** Silver sears the dead and werebeasts, cold iron the fey, obsidian golems and gargoyles: "The silver bites deep!".
+- **Gear wears.** Weapons blunt and chip with use, armour dents and batters under blows, each step a point lost. Brittle or cheap blades can shatter on a critical.
+- **The smith repairs**, and pours your weapon or armour anew in a metal you bring as ore. Ore lies in the Mines, breaks loose when you dig, and the smithy sells copper and iron.
+- **Piercing wounds go deep**: daggers, spears, tridents, arrows and stings leave a worse wound on a hard blow.
+
+### Crafting for everyone
+- **Sixteen trades, open to any hero**: blacksmith, armourer, bowyer, leatherworker, tailor, jeweller, alchemist, scribe, carpenter, toolmaker, luthier, cook, brewer, miner, musician, forager. Each grows by the work, from Novice to Grandmaster.
+- **About a hundred recipes**: swords and plate in the metal of the bars you smelt, bows, leather, cloaks, rings that take a spell from their stone, potions, scrolls, pick-axes and fishing rods, lutes, harps and tambourines, bread, stew and ale.
+- **Where you work matters**: a fire anywhere, a town workshop, or the smithy's forge. **Quality follows the hand**: crude, plain, fine or a masterwork that carries the maker's name.
+- **Shift+B** makes what you can, **Shift+J** shows the whole recipe book, **Shift+G** gathers: butcher a carcass, or spend two hours on the road taking wood, flax, barley, herbs, honey, ore or fish from the land.
+- **Music**: play an instrument for coin in town, or to lull creatures to sleep below.
+- **Masters and commissions**: each workshop teaches its trades up to journeyman and posts a commission a week. Shops sell raw goods and buy your work by the stack.
+- **You never have to go down**: a hero can live by a trade from the first day.
+
+### Saves
+- The save format moves to **15**: Version 14 saves do not load.
+
 ## Version 14 — Flesh and bone
 
 ### Bodies and wounds

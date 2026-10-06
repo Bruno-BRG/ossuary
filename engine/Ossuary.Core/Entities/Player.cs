@@ -129,6 +129,11 @@ namespace Ossuary.Core.Entities
         public int Progress = 0;
         public bool NewGamePlus;
 
+        /// <summary>Experience in each trade (see Items/Trades.cs), by trade id. Absent means none.</summary>
+        public readonly Dictionary<string, int> TradeXp = new Dictionary<string, int>();
+        /// <summary>The last day the hero played for coin, so a town pays once a day.</summary>
+        public int LastBuskDay = -1;
+
         public readonly Dictionary<Skill, int> Skills = new Dictionary<Skill, int>
         {
             { Skill.Combat, 0 }, { Skill.Dodging, 0 }, { Skill.Stealth, 0 },

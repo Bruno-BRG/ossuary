@@ -224,6 +224,21 @@ namespace Ossuary.Core
                 ("venom-proof", "à prova de veneno"), ("venomous", "venenoso"), ("vital", "vital"), ("wintry", "invernal"),
                 ("blessed", "abençoado"), ("cursed", "amaldiçoado"), ("magical", "mágico"), ("enchanted", "encantado") })
                 Adj[a.Item1] = a.Item2;
+
+            // Wear (Items/Item.cs ConditionWord): it leads the name like blessed and cursed.
+            foreach (var a in new[] { ("blunted", "cego"), ("chipped", "lascado"), ("dented", "amassado"), ("battered", "surrado") })
+                Adj[a.Item1] = a.Item2;
+
+            // Materials (Items/Materials.cs): an invariable "de X" after the noun ("espada longa de aço").
+            foreach (var m in new[] { ("copper", "cobre"), ("bronze", "bronze"), ("iron", "ferro"), ("steel", "aço"), ("silver", "prata"),
+                ("cold iron", "ferro frio"), ("mithril", "mithril"), ("adamantine", "adamantina"), ("obsidian", "obsidiana"), ("bone", "osso"), ("wood", "madeira") })
+            {
+                MatPt[m.Item1] = "de " + m.Item2;
+                if (!Pt.ContainsKey(m.Item1)) Pt[m.Item1] = m.Item2;
+            }
+            foreach (var o in new[] { ("copper ore", "minério de cobre"), ("iron ore", "minério de ferro"), ("silver ore", "minério de prata"),
+                ("mithril ore", "minério de mithril"), ("adamantine ore", "minério de adamantina") })
+                N(o.Item1, o.Item2);
         }
 
         // ------------------------------------------------------------------ artifacts and sets
@@ -443,6 +458,10 @@ namespace Ossuary.Core
 
         static readonly Dictionary<string, (string Pt, bool Fem)> Head = new Dictionary<string, (string, bool)>();
         static readonly Dictionary<string, string> Adj = new Dictionary<string, string>();
+        /// <summary>Material word to its Portuguese "de X", longest names first when matching.</summary>
+        static readonly Dictionary<string, string> MatPt = new Dictionary<string, string>();
+        /// <summary>Words that lead an item name before its enchantment: blessing, curse, unknown magic and wear.</summary>
+        static readonly string[] LeadTags = { "blessed ", "cursed ", "magical ", "enchanted ", "blunted ", "chipped ", "dented ", "battered " };
 
         static string Feminine(string adj)
         {
@@ -492,7 +511,7 @@ namespace Ossuary.Core
             while (true)
             {
                 bool took = false;
-                foreach (string w in new[] { "blessed ", "cursed ", "magical ", "enchanted " })
+                foreach (string w in LeadTags)
                     if (s.StartsWith(w)) { tags.Add(w.Trim()); s = s.Substring(w.Length); took = true; }
                 var m = Regex.Match(s, @"^([+-]\d+) ");
                 if (m.Success) { enchant = m.Groups[1].Value; s = s.Substring(m.Length); took = true; }
@@ -501,16 +520,16 @@ namespace Ossuary.Core
             // One prefix affix.
             string pre = null;
             foreach (var kv in Adj)
-                if (kv.Key != "blessed" && kv.Key != "cursed" && kv.Key != "magical" && kv.Key != "enchanted" && s.StartsWith(kv.Key + " ")) { pre = kv.Key; s = s.Substring(kv.Key.Length + 1); break; }
+                if (System.Array.IndexOf(LeadTags, kv.Key + " ") < 0 && s.StartsWith(kv.Key + " ")) { pre = kv.Key; s = s.Substring(kv.Key.Length + 1); break; }
             // Base, with an optional "of X" suffix.
             (string Pt, bool Fem)? bas = null; string suffix = null, baseEn = null;
-            if (Nm.TryGetValue(s, out var whole)) { bas = whole; baseEn = s; }
-            else
+            void ParseBase(string t)
             {
+                if (Nm.TryGetValue(t, out var whole)) { bas = whole; baseEn = t; return; }
                 int at = 0;
-                while ((at = s.IndexOf(" of ", at, System.StringComparison.Ordinal)) >= 0)
+                while ((at = t.IndexOf(" of ", at, System.StringComparison.Ordinal)) >= 0)
                 {
-                    string head = s.Substring(0, at), tail = s.Substring(at + 4);
+                    string head = t.Substring(0, at), tail = t.Substring(at + 4);
                     if (OfPt.TryGetValue(tail, out var tp))
                     {
                         if (Nm.TryGetValue(head, out var hb)) { bas = hb; suffix = tp; baseEn = head; break; }
@@ -519,11 +538,22 @@ namespace Ossuary.Core
                     at += 4;
                 }
             }
+            ParseBase(s);
+            // A material in front of the base ("steel long sword"), tried only when the whole did not parse, so "iron boots" stays one name.
+            string mat = null;
+            if (bas == null)
+                foreach (var kv in MatPt)
+                    if (s.StartsWith(kv.Key + " ") && (mat == null || kv.Key.Length > mat.Length))
+                    {
+                        suffix = null; ParseBase(s.Substring(kv.Key.Length + 1));
+                        if (bas != null) { mat = kv.Key; break; }
+                    }
             if (bas == null) return null;
             bool fem = bas.Value.Fem;
             // "boots" is plural in both languages ("botas"): the adjective must follow the noun's number too.
             bool plural = baseEn.EndsWith("s", System.StringComparison.Ordinal) && baseEn != bas.Value.Pt && bas.Value.Pt.EndsWith("s", System.StringComparison.Ordinal);
             var sb = new StringBuilder(bas.Value.Pt);
+            if (mat != null) sb.Append(' ').Append(MatPt[mat]);
             if (pre != null) sb.Append(' ').Append(Agree(Adj[pre], fem, plural));
             if (suffix != null) sb.Append(' ').Append(suffix);
             if (enchant != null) sb.Append(' ').Append(enchant);

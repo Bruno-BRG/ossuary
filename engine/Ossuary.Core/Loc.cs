@@ -60,6 +60,7 @@ namespace Ossuary.Core
             AddMsgText();
             AddGameText();
             AddBodyText();
+            AddCraftText();
             var traps = new[] { ("spike trap", "armadilha de espetos", "uma"), ("hole", "buraco", "um"), ("dart trap", "armadilha de dardos", "uma"),
                                 ("teleport trap", "armadilha de teletransporte", "uma"), ("alarm trap", "armadilha de alarme", "uma"),
                                 ("fire trap", "armadilha de fogo", "uma"), ("web", "teia", "uma") };
@@ -208,7 +209,7 @@ namespace Ossuary.Core
             ["You know no abilities."] = "Você não conhece habilidades.", ["You know no spells."] = "Você não conhece magias.",
             ["Your gold"] = "Seu ouro", ["[DANGEROUS]"] = "[PERIGOSO]", ["[DEADLY]"] = "[MORTAL]", ["[WARY]"] = "[CAUTELOSO]",
             ["ability"] = "habilidade", ["adjacent"] = "adjacente", ["any key closes"] = "qualquer tecla fecha",
-            ["apply a tool (pick-axe, lock pick)"] = "usar ferramenta (picareta, gazua)", ["arrows"] = "setas",
+            ["apply a tool (pick-axe, lock pick, an instrument)"] = "usar ferramenta (picareta, gazua, um instrumento)", ["arrows"] = "setas",
             ["average"] = "médio", ["bare hands"] = "mãos nuas", ["  bare hands"] = "  mãos nuas", ["no armour"] = "sem armadura", ["  no armour"] = "  sem armadura",
             ["character sheet / discoveries"] = "ficha / descobertas", ["character"] = "ficha", ["climb"] = "subir",
             ["descend / climb"] = "descer / subir", ["descend"] = "descer", ["diagonals"] = "diagonais",
@@ -603,6 +604,8 @@ namespace Ossuary.Core
             R(@"(.+) takes your coin and your word\. They will follow you down\.", "$1 pega seu dinheiro e sua palavra. Vai te seguir lá para baixo."),
             R(@"The (.+) has fallen\.", "{a1} tombou."),
             R(@"You make (.+)\.", "Você faz $1."),
+            R(@"Your (.+) shows wear\.", "{a1} mostra desgaste."),
+            R(@"Your (.+) shatters!", "{a1} se despedaça!"),
             R(@"A cold draught\. Someone died here: (.+) the (.+)\.", "Uma corrente fria. Alguém morreu aqui: $1, $2."),
             R(@"A (.+) blocks your path!", "Algo barra seu caminho: {u1}!"),
             R(@"Attack it with k, or flee with <\. It is (.+)\.", "Ataque com k ou fuja com <. Parece $1."),

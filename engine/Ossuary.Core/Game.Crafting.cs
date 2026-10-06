@@ -6,19 +6,15 @@ using Ossuary.Core.Items;
 namespace Ossuary.Core
 {
     /// <summary>
-    /// Light crafting: combine what you carry into something better. A recipe is data (what it needs, what it makes);
-    /// the craft verb lists the ones the pack can afford and Craft builds the chosen one.
+    /// Crafting for everyone. Recipes are data (<see cref="Trades.Recipes"/>); the craft verb lists what the pack, the
+    /// place and the hero's trade ranks allow right now, and Craft builds the chosen one. Any hero learns any trade by
+    /// working at it (or from a master in town); ranks unlock harder recipes and finer metals, raise the quality of
+    /// gear and stop work from failing.
     /// </summary>
     public sealed partial class Game
     {
         public const string CraftPrompt = "Make what?";
-
-        sealed class Recipe
-        {
-            public string Id, Needs;
-            public Func<Player, List<Item>> Gather;     // the ingredient stacks, or null when something is missing
-            public Func<Game, Item> Make;
-        }
+        public const string RecipePrompt = "Every recipe";
 
         static bool IsRemains(Item it) => it.Def.Kind == ItemKind.Corpse && (it.Def.Name == "remains" || it.Def.Name == "skeleton corpse");
 
@@ -26,83 +22,240 @@ namespace Ossuary.Core
 
         static int Count(Player p, Func<Item, bool> match) { int n = 0; foreach (var it in p.Inventory) if (match(it)) n += Math.Max(1, it.Quantity); return n; }
 
-        static readonly Recipe[] Recipes =
-        {
-            new Recipe
-            {
-                Id = "molotov", Needs = "potion of oil + candle",
-                Gather = p => { var a = Find(p, i => i.Def.Name == "potion of oil"); var b = Find(p, i => i.Def.Name == "candle"); return a != null && b != null ? new List<Item> { a, b } : null; },
-                Make = g => new Item(Crafted.Molotov, g.Rng, g.NextUid()) { Identified = true },
-            },
-            new Recipe
-            {
-                Id = "bone-blade", Needs = "a blade + remains",
-                Gather = p => { var a = Find(p, i => i.Def.Kind == ItemKind.Weapon && i.Def.Class == ItemClass.Blade); var b = Find(p, IsRemains); return a != null && b != null ? new List<Item> { a, b } : null; },
-                Make = g => new Item(Crafted.BoneBlade, g.Rng, g.NextUid()) { Identified = true, Rarity = Rarity.Magic, Prefix = "vampiric" },
-            },
-            new Recipe
-            {
-                Id = "bone-armour", Needs = "armour + two remains",
-                Gather = p =>
-                {
-                    var a = Find(p, i => i.Def.Kind == ItemKind.Armor && i.Def.AC <= 3);
-                    var b = Find(p, IsRemains);
-                    return a != null && b != null && Count(p, IsRemains) >= 2 ? new List<Item> { a, b, b } : null;
-                },
-                Make = g => new Item(Crafted.BoneArmour, g.Rng, g.NextUid()) { Identified = true, Enchant = 1 },
-            },
-            new Recipe
-            {
-                Id = "extra-healing", Needs = "two potions of healing",
-                Gather = p =>
-                {
-                    var a = Find(p, i => i.Def.Name == "potion of healing");
-                    return a != null && Count(p, i => i.Def.Name == "potion of healing") >= 2 ? new List<Item> { a, a } : null;
-                },
-                Make = g =>
-                {
-                    foreach (var d in Catalogue.Potions) if (d.Name == "potion of extra healing") return new Item(d, g.Rng, g.NextUid()) { Identified = true };
-                    return null;
-                },
-            },
-        };
+        // ---------------------------------------------------------------- trades and ranks
 
-        /// <summary>Previews of what the pack can make now. Each carries its recipe index in <see cref="Item.Uid"/>.</summary>
+        public int TradeXp(string trade) => Player.TradeXp.TryGetValue(trade, out int xp) ? xp : 0;
+        public int TradeRank(string trade) => Trades.Rank(TradeXp(trade));
+
+        /// <summary>Work in a trade: the xp lands and a new rank is announced.</summary>
+        public void GainTrade(string trade, int amount)
+        {
+            if (amount <= 0 || Trades.Find(trade) == null) return;
+            int before = TradeRank(trade);
+            Player.TradeXp[trade] = TradeXp(trade) + amount;
+            int now = TradeRank(trade);
+            if (now > before) Say($"Your craft grows: {Trades.Find(trade).Title} is now {Trades.RankNames[now]}.", MessageKind.Good);
+        }
+
+        // ---------------------------------------------------------------- what can be made here
+
+        /// <summary>One way to make a recipe now: the recipe, the metal of the bars (if any) and the stacks it takes.</summary>
+        sealed class Plan
+        {
+            public RecipeDef Recipe;
+            public MaterialDef Metal;
+        }
+
+        List<Plan> _plans = new List<Plan>();
+
+        bool NearForge()
+        {
+            if (Map == null || Mode == GameMode.Overworld) return false;
+            for (int dy = -1; dy <= 1; dy++)
+                for (int dx = -1; dx <= 1; dx++)
+                    if (Map.InBounds(Player.X + dx, Player.Y + dy) && Map.Get(Player.X + dx, Player.Y + dy) == TileKind.Forge) return true;
+            return false;
+        }
+
+        public bool StationHere(Station s)
+        {
+            switch (s)
+            {
+                case Station.Forge: return NearForge();
+                case Station.Workshop: return Mode == GameMode.TownMap;
+                default: return true;
+            }
+        }
+
+        static bool Matches(Need n, Item it)
+        {
+            switch (n.Name)
+            {
+                case "#remains": return IsRemains(it);
+                case "#blade": return it.Def.Kind == ItemKind.Weapon && it.Def.Class == ItemClass.Blade;
+                case "#light-armour": return it.Def.Kind == ItemKind.Armor && it.Def.AC <= 3;
+                case "#gem": return it.Def.Name == "gemstone" || it.Def.Name == "piece of jade" || it.Def.Kind == ItemKind.Gem;
+                default: return it.Def.Name == n.Name;
+            }
+        }
+
+        /// <summary>The stacks a recipe would take from the pack, or null when something is missing.</summary>
+        List<(Item, int)> Gather(RecipeDef r, MaterialDef metal)
+        {
+            var parts = new List<(Item, int)>();
+            var used = new Dictionary<Item, int>();
+            bool Take(Func<Item, bool> match, int count)
+            {
+                foreach (var it in Player.Inventory)
+                {
+                    if (count <= 0) break;
+                    if (!match(it)) continue;
+                    int have = Math.Max(1, it.Quantity) - (used.TryGetValue(it, out int u) ? u : 0);
+                    if (have <= 0) continue;
+                    int t = Math.Min(have, count);
+                    used[it] = (used.TryGetValue(it, out int u2) ? u2 : 0) + t;
+                    parts.Add((it, t)); count -= t;
+                }
+                return count <= 0;
+            }
+            if (r.Bars > 0 && !Take(i => i.Def.Name == Trades.BarOf(metal), r.Bars)) return null;
+            foreach (var n in r.Needs) if (!Take(i => Matches(n, i), n.Count)) return null;
+            return parts;
+        }
+
+        /// <summary>Every way the hero can make something here and now.</summary>
+        List<Plan> Plans()
+        {
+            var list = new List<Plan>();
+            foreach (var r in Trades.Recipes)
+            {
+                if (TradeRank(r.Trade) < r.Rank || !StationHere(r.Station)) continue;
+                if (!Trades.TryDef(r.Product, out var def)) continue;
+                if (r.Bars == 0)
+                {
+                    if (Gather(r, null) != null) list.Add(new Plan { Recipe = r });
+                    continue;
+                }
+                foreach (var m in Materials.All)
+                {
+                    if (!m.Metal || !Materials.Takes(def, m) || TradeRank(r.Trade) < Math.Max(r.Rank, Trades.MetalRank(m))) continue;
+                    if (Gather(r, m) != null) list.Add(new Plan { Recipe = r, Metal = m });
+                }
+            }
+            return list;
+        }
+
+        /// <summary>The needs of a recipe as a line the player reads, each name already in their language.</summary>
+        public static string NeedsText(RecipeDef r, MaterialDef metal)
+        {
+            var bits = new List<string>();
+            string Word(string name)
+            {
+                switch (name)
+                {
+                    case "#remains": return Loc.T("remains");
+                    case "#blade": return Loc.T("a blade");
+                    case "#light-armour": return Loc.T("light armour");
+                    case "#gem": return Loc.T("a gem");
+                    default: return Loc.T(name);
+                }
+            }
+            if (r.Bars > 0) bits.Add(r.Bars + " x " + (metal != null ? Loc.T(Trades.BarOf(metal)) : Loc.T("metal bar")));
+            foreach (var n in r.Needs) bits.Add((n.Count > 1 ? n.Count + " x " : "") + Word(n.Name));
+            return string.Join(" + ", bits);
+        }
+
+        static string StationWord(Station s) => s == Station.Forge ? "forge" : s == Station.Workshop ? "town workshop" : "anywhere";
+
+        /// <summary>The finished item, before quality. Previews use it as is, so listing recipes draws no RNG.</summary>
+        Item Product(RecipeDef r, MaterialDef metal)
+        {
+            if (!Trades.TryDef(r.Product, out var def)) return null;
+            var it = new Item(def, Rng, NextUid()) { Identified = true, Quantity = r.Qty };
+            if (metal != null && Materials.Takes(def, metal)) Materials.Set(it, metal);
+            if (def.Name == "bone blade") { it.Rarity = Rarity.Magic; it.Prefix = "vampiric"; }
+            if (def.Name == "bone-studded armour") it.Enchant = 1;
+            it.Value = it.TradeValue;
+            return it;
+        }
+
+        /// <summary>Previews of what the pack can make now. Each carries its plan index in <see cref="Item.Uid"/>.</summary>
         public List<Item> CraftChoices()
         {
+            _plans = Plans();
             var list = new List<Item>();
-            for (int i = 0; i < Recipes.Length; i++)
+            for (int i = 0; i < _plans.Count; i++)
             {
-                if (Recipes[i].Gather(Player) == null) continue;
-                var preview = Recipes[i].Make(this);
+                var pl = _plans[i];
+                var preview = Product(pl.Recipe, pl.Metal);
                 if (preview == null) continue;
                 preview.Uid = -1 - i;
-                preview.ArtifactName = Loc.T(preview.Def.Name) + "   [" + Loc.T(Recipes[i].Needs) + "]";
+                string qty = pl.Recipe.Qty > 1 ? pl.Recipe.Qty + " x " : "";
+                preview.ArtifactName = qty + Loc.T(preview.Name) + "   [" + NeedsText(pl.Recipe, pl.Metal) + "]";
                 list.Add(preview);
             }
             return list;
         }
 
-        /// <summary>Builds the recipe a preview stood for: the ingredients go, the product arrives. Costs a turn.</summary>
+        /// <summary>Every recipe in the game, as read-only rows: trade and rank, product, needs, and where. A dot marks what is out of reach.</summary>
+        public List<Item> RecipeBook()
+        {
+            var list = new List<Item>();
+            foreach (var r in Trades.Recipes)
+            {
+                if (!Trades.TryDef(r.Product, out var def)) continue;
+                bool can = TradeRank(r.Trade) >= r.Rank;
+                var row = new Item(def, Rng, -1) { Identified = true };
+                row.ArtifactName = (can ? "" : "· ") + Loc.T(Trades.Find(r.Trade).Title) + " " + Loc.T(Trades.RankNames[r.Rank]) + ": "
+                    + Loc.T(def.Name) + "   [" + NeedsText(r, null) + "]  @ " + Loc.T(StationWord(r.Station));
+                list.Add(row);
+            }
+            return list;
+        }
+
+        /// <summary>Chance in a hundred that the work is spoiled: none for simple things, less with every rank above the recipe's.</summary>
+        int FailChance(RecipeDef r) => r.Rank == 0 ? 0 : Math.Max(0, 10 * (r.Rank + 1 - TradeRank(r.Trade)));
+
+        /// <summary>Builds the plan a preview stood for: the ingredients go, the product arrives. Costs a turn.</summary>
         public bool Craft(Item preview)
         {
             int index = (int)(-1 - preview.Uid);
-            if (index < 0 || index >= Recipes.Length) return false;
-            var r = Recipes[index];
-            var parts = r.Gather(Player);
+            if (index < 0 || index >= _plans.Count) return false;
+            var pl = _plans[index];
+            var r = pl.Recipe;
+            var parts = StationHere(r.Station) ? Gather(r, pl.Metal) : null;
             if (parts == null) { Say("You no longer have what that needs.", MessageKind.Warn); return false; }
-            var made = r.Make(this);
+            var made = Product(r, pl.Metal);
             if (made == null) return false;
-            foreach (var part in parts)
+            foreach (var (item, take) in parts)
             {
-                if (--part.Quantity <= 0) Player.Inventory.Remove(part);
-                if (part.Quantity < 0) part.Quantity = 0;
+                item.Quantity -= take;
+                if (item.Quantity <= 0) Player.Inventory.Remove(item);
             }
-            Player.Inventory.Add(made);
-            Player.GainSkill(Skill.Survival, 2);
-            Say($"You make {made.Name}.", MessageKind.Good);
+            int xp = 3 + 3 * r.Rank + (pl.Metal != null ? 2 * Trades.MetalRank(pl.Metal) : 0);
+            int fail = FailChance(r);
+            if (fail > 0 && Rng.Range(0, 100) < fail)
+            {
+                Say("You botch the work. The materials are ruined.", MessageKind.Warn);
+                GainTrade(r.Trade, xp / 2);
+            }
+            else
+            {
+                Finish(made, r);
+                Player.Inventory.Add(made);
+                GainTrade(r.Trade, xp);
+                if (made.Quantity > 1) Say($"You make {made.Quantity} x {made.Name}.", MessageKind.Good);
+                else Say($"You make {made.Name}.", MessageKind.Good);
+                CommissionMade(made);
+            }
             if (Mode == GameMode.Dungeon || Mode == GameMode.TownMap) EndPlayerTurn();
+            else if (Mode == GameMode.Overworld) World?.AdvanceTime(1);
             return true;
+        }
+
+        /// <summary>
+        /// The hand shows in the work. Gear rolls crude, plain, fine or masterwork by rank (a masterwork weapon carries the
+        /// masterwork edge and the maker's name); a ring or pendant draws a spell into its stone; a master makes one more of
+        /// anything that comes by the batch.
+        /// </summary>
+        void Finish(Item it, RecipeDef r)
+        {
+            int rank = TradeRank(r.Trade);
+            if (it.Def.Kind.IsGear() && it.Def.Name != "bone blade" && it.Def.Name != "bone-studded armour")
+            {
+                int roll = Rng.Range(0, 100) + 12 * (rank - r.Rank) + 6 * rank;
+                if (roll < 15) it.Enchant = -1;
+                else if (roll >= 110) { it.Enchant = 2; it.Rarity = Rarity.Magic; if (it.Def.Kind == ItemKind.Weapon && it.Prefix == null) it.Prefix = "masterwork"; it.Engraving = "made by " + Player.Name; }
+                else if (roll >= 85) { it.Enchant = 1; it.Rarity = Rarity.Magic; }
+                it.Identified = true;
+            }
+            else if ((it.Def.Kind == ItemKind.Ring || it.Def.Kind == ItemKind.Amulet) && Catalogue.IsBlank(it.Def.Name))
+            {
+                ItemRoller.Roll(it, Rng, 2 + 3 * rank);
+                it.Identified = true;
+            }
+            else if (r.Qty > 1 && rank >= 3) it.Quantity++;
+            it.Value = it.TradeValue;
         }
 
         // ---------------------------------------------------------------- throwing a molotov
@@ -141,3 +294,4 @@ namespace Ossuary.Core
         }
     }
 }
+

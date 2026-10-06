@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Ossuary.Core.Items
 {
-    public enum ItemKind { Weapon, Armor, Shield, Ring, Amulet, Wand, Scroll, Potion, Food, Gold, Gem, Tool, Corpse, Container, Book, Ornament, Statuette, Rock, Helm, Gloves, Boots, Cloak }
+    public enum ItemKind { Weapon, Armor, Shield, Ring, Amulet, Wand, Scroll, Potion, Food, Gold, Gem, Tool, Corpse, Container, Book, Ornament, Statuette, Rock, Helm, Gloves, Boots, Cloak, Material }
 
     public static class ItemKinds
     {
@@ -74,6 +74,10 @@ namespace Ossuary.Core.Items
         /// <summary>A spell the item carries (see <see cref="Magic.SpellFit"/>): lent to you while worn, and a weapon or armour also fires it by itself now and then.</summary>
         public string Imbue;
         public string Engraving;
+        /// <summary>A <see cref="Materials"/> id; null is the default of the item's kind (iron, or wood for staves and bows).</summary>
+        public string Material;
+        /// <summary>Blows dealt (weapon) or taken (armour) since the last repair. See <see cref="Condition"/>.</summary>
+        public int Wear;
 
         public Item(ItemDef def, Rng rng, long uid = 0)
         {
@@ -97,24 +101,75 @@ namespace Ossuary.Core.Items
                 var art = Artifacts.Find(ArtifactId); if (art != null) m.Add(art.Mods);
                 if (Def.Kind == ItemKind.Weapon) { m.ToHit += Enchant; m.Dmg += Enchant; }
                 else if (Def.Kind.IsWearable()) m.Ac += Enchant;
+                var mat = Materials.Find(Material);
+                int worn = Condition;
+                if (Def.Kind == ItemKind.Weapon) { m.ToHit += mat?.ToHit ?? 0; m.Dmg += (mat?.Dmg ?? 0) - worn; }
+                else if (Def.Kind.IsWearable()) m.Ac += (mat?.Ac ?? 0) - worn;
                 return m;
             }
         }
 
+        /// <summary>What it is made of: its own material, or the default of its kind (null when it has none, like a cloak).</summary>
+        public MaterialDef Mat => Materials.Find(Material) ?? Materials.DefaultFor(Materials.StuffOf(Def));
+
+        /// <summary>0 sound, 1 blunted or dented, 2 chipped or battered. Each step costs a point of damage or AC.</summary>
+        public int Condition
+        {
+            get
+            {
+                var mat = Mat;
+                if (mat == null || Wear < mat.Durability) return 0;
+                return Wear >= 2 * mat.Durability ? 2 : 1;
+            }
+        }
+
+        /// <summary>The word wear puts in front of the name, or null when sound.</summary>
+        public string ConditionWord
+        {
+            get
+            {
+                int c = Condition;
+                if (c == 0) return null;
+                if (Def.Kind == ItemKind.Weapon) return c == 1 ? "blunted" : "chipped";
+                return c == 1 ? "dented" : "battered";
+            }
+        }
+
+        /// <summary>Weight of one, after the material (mithril mail weighs half of iron).</summary>
+        public int Weight
+        {
+            get
+            {
+                var mat = Materials.Find(Material);
+                return mat == null ? Def.Weight : Math.Max(1, Def.Weight * mat.Weight / 100);
+            }
+        }
+
+        /// <summary>The catalogue price after the material.</summary>
+        public int BaseCost
+        {
+            get
+            {
+                var mat = Materials.Find(Material);
+                return mat == null ? Def.Cost : Math.Max(1, Def.Cost * mat.Value / 100);
+            }
+        }
+
         /// <summary>Armour class this piece gives, base plus enchantment and affixes.</summary>
-        public int TotalAc => Def.Kind.IsWearable() ? Def.AC + Mods.Ac : 0;
+        public int TotalAc => Def.Kind.IsWearable() ? Math.Max(0, Def.AC + Mods.Ac) : 0;
 
         /// <summary>What a shop thinks it is worth: base cost, grown by enchantment, affixes and rarity.</summary>
         public int TradeValue
         {
             get
             {
-                if (Rarity == Rarity.Artifact) return Def.Cost * 12 + 1000;
+                int cost = BaseCost;
+                if (Rarity == Rarity.Artifact) return cost * 12 + 1000;
                 int imbued = Imbue != null ? 150 * (Magic.Spells.Find(Imbue)?.Level ?? 1) : 0;
-                if (!Def.Kind.IsGear()) return Def.Cost + imbued;
+                if (!Def.Kind.IsGear()) return cost + imbued;
                 int affixes = (Prefix != null ? 1 : 0) + (Suffix != null ? 1 : 0);
-                int v = Def.Cost * (4 + Math.Max(0, Enchant) * 3 + affixes * 5) / 4 + imbued;
-                if (Rarity == Rarity.Artifact) v = Def.Cost * 12 + 1000;
+                int v = cost * (4 + Math.Max(0, Enchant) * 3 + affixes * 5) / 4 + imbued;
+                v = v * (4 - Condition) / 4;
                 return Math.Max(1, v);
             }
         }
@@ -127,14 +182,18 @@ namespace Ossuary.Core.Items
                 bool gear = Def.Kind.IsGear();
                 if (gear && ArtifactName == null)
                 {
-                    if (Rarity != Rarity.Common && !Identified) n = "magical " + Def.Name;
+                    var mat = Materials.Find(Material);
+                    string made = (mat != null ? mat.Name + " " : "") + Def.Name;
+                    if (Rarity != Rarity.Common && !Identified) n = "magical " + made;
                     else
                     {
                         string pre = Affixes.Find(Prefix)?.Name, suf = Affixes.Find(Suffix)?.Name;
                         if (suf == null && Imbue != null) suf = "of " + Magic.Spells.Find(Imbue)?.Name;
                         n = (Enchant != 0 ? (Enchant > 0 ? "+" : "") + Enchant + " " : "")
-                            + (pre != null ? pre + " " : "") + Def.Name + (suf != null ? " " + suf : "");
+                            + (pre != null ? pre + " " : "") + made + (suf != null ? " " + suf : "");
                     }
+                    string worn = ConditionWord;
+                    if (worn != null) n = worn + " " + n;
                 }
                 if (!gear && Imbue != null && ArtifactName == null) n = Identified ? Def.Name + " of " + Magic.Spells.Find(Imbue)?.Name : "enchanted " + Def.Name;
                 if (!Identified && (ArtifactName != null || (Def.Flags & ItemFlags.Cursed) != 0)) return n;

@@ -151,6 +151,17 @@ namespace Ossuary.Core
         public static bool Wounding(AttackKind k) => k != AttackKind.Touch && k != AttackKind.Drain && k != AttackKind.Explode;
 
         static readonly string[] BluntWeapons = { "mace", "club", "hammer", "staff", "flail", "morning star", "aklys", "maul", "cudgel" };
+        static readonly string[] PiercingWeapons = { "dagger", "spear", "trident", "rapier", "stiletto", "pike", "lance", "kris" };
+
+        /// <summary>A weapon that drives in rather than slicing or crushing: its hard blows leave deep wounds.</summary>
+        public static bool PiercingWeapon(Entities.Player p)
+        {
+            if (p.Wielded == null) return false;
+            string n = p.Wielded.Def.Name ?? "";
+            foreach (var w in PiercingWeapons) if (n.Contains(w)) return true;
+            return false;
+        }
+
         public static bool EdgedWeapon(Entities.Player p)
         {
             if (p.Wielded == null) return false;
@@ -209,4 +220,3 @@ namespace Ossuary.Core
         public static int BleedTime(int severity, PartKind kind) => severity < 2 ? 0 : (severity == 2 ? 3 : severity == 3 ? 5 : 8) + (kind == PartKind.Torso ? 2 : 0);
     }
 }
-

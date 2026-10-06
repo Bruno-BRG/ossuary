@@ -67,6 +67,7 @@ namespace Ossuary.Core
             Say($"You dig through the {Tiles.Get(t).Name} (effort {effort}).", MessageKind.Neutral);
             Map.Version++;
             Player.GainSkill(Skill.Survival, 1);
+            MineVein();
             EndPlayerTurn();
         }
 

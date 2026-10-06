@@ -2061,7 +2061,7 @@ namespace Ossuary.Tests
                         Assert(a != null && (weapon ? a.ForWeapon : a.ForArmor), id + " does not fit " + it.Def.Name);
                     }
                     if (it.Rarity == Rarity.Rare) Assert(it.Prefix != null && it.Suffix != null && it.Enchant >= 1, "rare items carry both affixes");
-                    Assert(it.TradeValue > it.Def.Cost, "magic items are worth more");
+                    Assert(it.TradeValue > it.BaseCost, "magic items are worth more");
                 }
             }
             Assert(gear[0] > 400 && gear[1] > 400, "plenty of gear in the table");

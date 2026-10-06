@@ -42,14 +42,32 @@ DF's signature: a hit lands *somewhere*. Today combat is HP plus status effects.
 
 A copper sword is not a steel sword.
 
-- [ ] **Material table** (`Items/Materials.cs`): bone, wood, copper, bronze, iron, steel, silver, cold iron, mithril, adamantine, obsidian.
-  Each has density (weight), edge, hardness and value multipliers, and a colour in `Theme.cs`.
-- [ ] **Items carry a material.** Weapons and armour get one at generation by depth and branch; the name shows it ("steel longsword").
-  Compose with affixes and PT gender agreement.
-- [ ] **Material versus creature.** Silver vs undead and lycanthropes, cold iron vs fey, obsidian vs constructs, bone that breaks.
-- [ ] **Wear and breakage.** Soft materials blunt and chip with use; repair at the smith; cheap gear can shatter on a crit.
-- [ ] **Forge uses ore.** Ore and bars found in the Mines feed `Game.Crafting.cs`; the smith works the material you bring.
-- [ ] **Material decides wound type** (with 1): edged → cuts, blunt → bruises and breaks, piercing → deep wounds.
+- [x] **Material table** (2026-10-05, `Items/Materials.cs`): bone, wood, copper, bronze, iron, steel, silver, cold iron, mithril, adamantine,
+  obsidian, with weight and value percent, to-hit/damage/AC deltas, durability and a colour in `Theme.MaterialColor`.
+- [x] **Items carry a material** (2026-10-05). Loot and monster gear get one by depth and branch (a seed hash, no RNG drawn: the Mines lean
+  to good metal, the Warrens to bone, wood and copper, the Vaults to silver, the Spire to obsidian); the default (iron, wood for staves and
+  bows) is not named, the rest leads the name ("steel long sword", PT "espada longa de aço").
+- [x] **Material versus creature** (2026-10-05). Silver vs undead and were-creatures, cold iron vs fey, obsidian vs constructs (+1d6+2);
+  bone and obsidian are brittle.
+- [x] **Wear and breakage** (2026-10-05, `Game.Materials.cs`). Blows dealt or taken wear gear (blunted/dented, then chipped/battered,
+  -1 each); repair at the smithy or armoury; brittle or cheap worn weapons can shatter on a critical.
+- [x] **Forge uses ore** (2026-10-05). Ore lies in the Mines, breaks loose when digging and is mined on hills; the miner smelts it into bars
+  at a forge, the blacksmith and armourer make new gear from bars in their metal, and the smith pours your weapon or body armour anew (2/3 ore).
+- [x] **Material decides wound type** (2026-10-05, with 1). Edged weapons cut, blunt ones bruise and break, and piercing ones (daggers,
+  spears, tridents, piercing monster attacks, missiles) leave deep wounds on a hard blow (`AttackResult.Deep`, a step worse as on a critical).
+- [x] **Crafting for everyone** (2026-10-05, save format 15; see `docs/design/systems.md`). The player can live a whole life without entering the dungeon: any class or
+  race learns any trade by practice or from a town master, with ranks (apprentice → journeyman → master) that unlock materials
+  (iron → steel → mithril/adamantine), quality and fewer failures. Trades: blacksmith (weapons), armourer (armour, shields),
+  bowyer/fletcher (bows, arrows), leatherworker, tailor/weaver (cloth, cloaks, robes), jeweller (rings, amulets, settings), alchemist
+  (potions, oils, poisons), scribe (scrolls, books), carpenter/woodworker, toolmaker (picks, lock picks, lanterns, traps), luthier and
+  instrument maker (lute, tambourine, flute, drum: a bard can make their own), cook and brewer, miner and smelter (ore to bars).
+  Gathering (mining, logging, skinning, herbs), workshops in town (anvil, loom, still, bench), selling what you make, and commissions
+  from townsfolk. Why: freedom to play as a craftsman, and a use for every material. Ties: masterwork (4), the smith, the economy (10).
+  Done: 16 trades with five ranks, ~100 recipes as data, goods, meals, instruments and the fishing rod, forge and workshop stations,
+  quality and failure by rank, the recipe book (`Shift+J`), gathering (`Shift+G`: butchering, foraging by terrain, mining veins),
+  music for coin or sleep, masters who teach to journeyman, weekly commissions, raw goods in the shops and stack prices.
+  Left: arrows as real ammunition, a loom and a still as their own tiles, crafted relics named after the maker (with 4), crafters in the
+  rival parties, and prices that follow what the hero sells (with 10).
 
 ## 3. Generated world history (P1, large)
 
