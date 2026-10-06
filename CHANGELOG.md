@@ -40,7 +40,7 @@ Ossuary versions are a **single number** (Version 11, Version 12…), as in *Pro
 
 ### Docs
 - The `docs/` folder is organised by topic (`game/`, `design/`, `tech/`, `audio/`, `roadmap/`) with an index in `docs/README.md`.
-- A new depth roadmap, [`docs/roadmap/depth.md`](docs/roadmap/depth.md), collects the Dwarf Fortress-inspired ideas still to come: materials, generated history, relic biographies, fluids and tracking, mood, engravings, named enemies, sieges and legends.
+- A new depth roadmap, the *Depth track* in [`docs/todo.md`](docs/todo.md), collects the Dwarf Fortress-inspired ideas still to come: materials, generated history, relic biographies, fluids and tracking, mood, engravings, named enemies, sieges and legends.
 
 ### Saves
 - The save format moves to **13**: where a blow lands is drawn from the dice, so Version 13 saves do not load.

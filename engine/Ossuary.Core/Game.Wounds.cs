@@ -5,7 +5,7 @@ using Ossuary.Core.Entities;
 namespace Ossuary.Core
 {
     /// <summary>
-    /// Bodies and wounds (docs/roadmap/depth.md, section 1). A hit that takes a real share of a creature's life lands on a
+    /// Bodies and wounds (docs/todo.md, Depth track 1). A hit that takes a real share of a creature's life lands on a
     /// body part and leaves a wound on top of the HP loss: legs make it limp, arms spoil its aim, a blow to the head stuns,
     /// eyes shorten its sight, and edges make it bleed. The hero's wounds mend over time (badly ones leave a scar);
     /// potions, rest at an inn and the temple speed that up.

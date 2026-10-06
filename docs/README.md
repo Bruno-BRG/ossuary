@@ -6,8 +6,8 @@ lives in the code. Real captures are in [`shots/`](shots/).
 
 ## Tracking
 
-- [`todo.md`](todo.md) — **backlog and progress tracking** (what is left, what is done)
-- [`roadmap/depth.md`](roadmap/depth.md) — the depth track: Dwarf Fortress-inspired ideas (wounds, materials, history, named enemies)
+- [`todo.md`](todo.md) — **backlog and progress tracking** (what is left, what is done), including the depth track: Dwarf Fortress-inspired
+  ideas (wounds, materials, crafting, history, named enemies), tutorials and the economy
 - [`roadmap/alpha.md`](roadmap/alpha.md) — state of the playable alpha (historical snapshot)
 - [`../CHANGELOG.md`](../CHANGELOG.md) — what changed in each version; [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — how to contribute
 
@@ -39,4 +39,3 @@ lives in the code. Real captures are in [`shots/`](shots/).
 
 - [`music-prompts-phosphor.md`](audio/music-prompts-phosphor.md) — soundtrack prompts, machine + bone (the approved identity)
 - [`music-prompts-natural.md`](audio/music-prompts-natural.md) — soundtrack prompts, acoustic chamber version
-
