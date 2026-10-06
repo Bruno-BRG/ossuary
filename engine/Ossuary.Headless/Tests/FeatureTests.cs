@@ -76,7 +76,7 @@ namespace Ossuary.Tests
         {
             if (!condition) throw new Exception(message);
         }
-        /// <summary>Bodies and wounds (docs/roadmap/depth.md, section 1): parts by plan, severity from damage, effects, bleeding, mending, scars, Portuguese.</summary>
+        /// <summary>Bodies and wounds (docs/todo.md, Depth track 1): parts by plan, severity from damage, effects, bleeding, mending, scars, Portuguese.</summary>
         static void MaterialsAndWear()
         {
             var old = Loc.Current;

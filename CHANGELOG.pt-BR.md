@@ -40,7 +40,7 @@ As versões do Ossuary são numeradas só com **um número** (Versão 11, Versã
 
 ### Documentação
 - A pasta `docs/` foi organizada por assunto (`game/`, `design/`, `tech/`, `audio/`, `roadmap/`), com um índice em `docs/README.md`.
-- Um roadmap novo de profundidade, [`docs/roadmap/depth.md`](docs/roadmap/depth.md), reúne as ideias inspiradas no Dwarf Fortress que ainda vêm: materiais, história gerada, biografia de relíquias, fluidos e rastros, humor, gravuras, inimigos com nome, cercos e lendas.
+- Um roadmap novo de profundidade, a seção *Depth track* de [`docs/todo.md`](docs/todo.md), reúne as ideias inspiradas no Dwarf Fortress que ainda vêm: materiais, história gerada, biografia de relíquias, fluidos e rastros, humor, gravuras, inimigos com nome, cercos e lendas.
 
 ### Saves
 - O formato do save passa para **13**: o lugar do golpe sai dos dados, então saves da Versão 13 não carregam.
