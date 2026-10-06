@@ -5,7 +5,7 @@
 **Um roguelike ASCII de fantasia sombria.** O mundo jogou seus mortos, seus reis e seus deuses num só poço.
 Você desce para roubar o que sobrou.
 
-![Versão 14](https://img.shields.io/badge/vers%C3%A3o-14-c8a050?style=flat-square)
+![Versão 15](https://img.shields.io/badge/vers%C3%A3o-15-c8a050?style=flat-square)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-5fa85f?style=flat-square)
 ![Plataforma](https://img.shields.io/badge/plataforma-Windows%20x64-4a6ea8?style=flat-square)
 ![Motor](https://img.shields.io/badge/motor-C%23%20.NET%2010-7c4dff?style=flat-square)
@@ -25,11 +25,12 @@ Desça pelo Ossuary, pegue o **Amuleto de Yendor** e traga de volta à luz do di
 num terminal estilo CRT; o jogo é uma exploração de masmorras por turnos com um mundo vivo na superfície.
 A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 
-### O que há na **versão 14**
+### O que há na **versão 15**
 
 | | |
 |---|---|
-| 🩸 **Carne e osso** *(novo)* | Todo golpe acerta algum lugar: perna quebrada faz mancar, braço ferido estraga a mira, golpe na cabeça atordoa, olho cortado enxerga menos, ferimentos sangram, saram e deixam cicatriz. Nos monstros também, cada um com seu corpo. |
+| ⚒️ **Ferro e ofício** *(novo)* | Todo equipamento é feito de algo: cobre, bronze, aço, prata, ferro frio, mithril, adamantina, obsidiana, osso, madeira. A prata queima os mortos, o equipamento gasta e quebra, o ferreiro conserta. E qualquer um pode viver de um ofício: são 16 (ferreiro, armeiro, alquimista, cozinheiro, luthier, minerador…), cerca de 100 receitas, coleta na estrada, música por moedas, mestres e encomendas. Você nunca precisa descer. |
+| 🩸 **Carne e osso** | Todo golpe acerta algum lugar: perna quebrada faz mancar, braço ferido estraga a mira, golpe na cabeça atordoa, olho cortado enxerga menos, ferimentos sangram, saram e deixam cicatriz. Nos monstros também, cada um com seu corpo. |
 | ✨ **Magias que você vê** | 322 magias em 8 escolas, todas animadas: a bola de fogo é uma bola de fogo que voa e explode, o raio se bifurca, o meteoro cai. |
 | 📖 **55 livros** | Mago, necromante, clérigo/paladino, patrulheiro (natureza) e ladino (sombra) têm cerca de cinquenta magias cada, em cinco níveis de profundidade. |
 | ⚔️ **Itens com uma magia dentro** | O equipamento mágico aleatório vem imbuído com uma magia que combina com ele: espadas carregam ataques, armaduras carregam proteções, botas carregam saltos. E disparam sozinhos. |
@@ -62,10 +63,10 @@ A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 
 ## Instalar (jogadores)
 
-Baixe o instalador `Ossuary_0.14.0_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
+Baixe o instalador `Ossuary_0.15.0_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
 ou na saída do build, e execute. Não precisa de SDK. É preciso o WebView2 (já vem no Windows 11).
 
-> O nome público de uma versão é só **Versão N** (esta é a **Versão 14**), como em *Project Zomboid*. Instaladores e manifestos usam o
+> O nome público de uma versão é só **Versão N** (esta é a **Versão 15**), como em *Project Zomboid*. Instaladores e manifestos usam o
 > `0.N.0` correspondente, porque instalador do Windows, npm e Cargo pedem três números.
 
 ## Compilar do código

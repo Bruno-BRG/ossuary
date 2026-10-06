@@ -13,6 +13,8 @@ namespace Ossuary.Core
         public string Prefix { get; set; }
         public string Suffix { get; set; }
         public int Rarity { get; set; }
+        /// <summary>Absent in older bones files, which read as the default material.</summary>
+        public string Material { get; set; }
     }
 
     /// <summary>
@@ -56,7 +58,7 @@ namespace Ossuary.Core
                 Level = Math.Max(1, Player.XpLevel > 0 ? Player.XpLevel : Player.Level),
                 Cause = DeathCause ?? "unknown causes", Branch = Branch, Depth = Depth,
             };
-            void Add(Item it) { if (it != null && b.Gear.Count < 8) b.Gear.Add(new BonesItem { Def = it.Def.Name, Enchant = it.Enchant, Prefix = it.Prefix, Suffix = it.Suffix, Rarity = (int)it.Rarity }); }
+            void Add(Item it) { if (it != null && b.Gear.Count < 8) b.Gear.Add(new BonesItem { Def = it.Def.Name, Enchant = it.Enchant, Prefix = it.Prefix, Suffix = it.Suffix, Rarity = (int)it.Rarity, Material = it.Material }); }
             Add(Player.Wielded);
             foreach (var piece in Player.WornPieces()) Add(piece);
             return b;
@@ -106,7 +108,7 @@ namespace Ossuary.Core
             foreach (var g in b.Gear)
             {
                 if (!Catalogue.TryFindGear(g.Def, out var gd)) continue;
-                m.Inventory.Add(new Item(gd, rng, NextUid()) { Enchant = g.Enchant, Prefix = g.Prefix, Suffix = g.Suffix, Rarity = (Rarity)g.Rarity });
+                m.Inventory.Add(new Item(gd, rng, NextUid()) { Enchant = g.Enchant, Prefix = g.Prefix, Suffix = g.Suffix, Rarity = (Rarity)g.Rarity, Material = Materials.Find(g.Material) != null ? g.Material : null });
             }
             return m;
         }

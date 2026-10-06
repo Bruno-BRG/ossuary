@@ -249,6 +249,7 @@ namespace Ossuary.Core
                 var w = HonableWeapon(); var a = HonableArmour();
                 Add("hone", "Hone my weapon", w != null ? HonePrice(w) : 0, w != null);
                 Add("reinforce", "Reinforce my armour", a != null ? HonePrice(a) + 20 : 0, a != null);
+                AddSmithyRows(Add);
             }
             if ((s & Service.Quest) != 0) Add("story", "Ask about the Ossuary", 0);
             if ((s & Service.Quest) != 0) Add("board", "Read the notice board", 0);
@@ -258,9 +259,11 @@ namespace Ossuary.Core
                 for (int i = 0; i < offers.Count; i++)
                     Add("offer:" + i, $"Take a job: {offers[i].Describe()} (pays {offers[i].Reward}g)", 0, Contracts.Count < MaxContracts);
                 for (int i = 0; i < Contracts.Count; i++)
-                    Add("turnin:" + i, $"Report: {Contracts[i].Describe()} ({Math.Min(Contracts[i].Done, Contracts[i].Count)}/{Contracts[i].Count})", 0, Contracts[i].Complete);
+                    if (Contracts[i].Kind != "make")
+                        Add("turnin:" + i, $"Report: {Contracts[i].Describe()} ({Math.Min(Contracts[i].Done, Contracts[i].Count)}/{Contracts[i].Count})", 0, Contracts[i].Complete);
             }
             if ((s & Service.Rumor) != 0 && (s & Service.Quest) == 0) Add("rumor", "Ask for news", (s & Service.Ale) != 0 ? 4 : 0);
+            AddWorkshopRows(Add);
             if (Talking != null && CanTalk(Talking)) Add("talk", "Talk", 0);
             Add("leave", "Take my leave", 0);
             return rows;
@@ -289,6 +292,8 @@ namespace Ossuary.Core
             if (CurrentDialogue != null) return DialogueAction(id);
             if (id == "talk") { StartDialogue(Talking); return false; }
             if (id.StartsWith("offer:") || id.StartsWith("turnin:")) return ContractAction(id);
+            if (SmithyAction(id)) return false;
+            if (WorkshopAction(id)) return false;
             switch (id)
             {
                 case "leave": return true;

@@ -73,6 +73,7 @@ namespace Ossuary.Core
             var res = Battles.PlayerMelee(Player, m, Rng, out crit);
             Say(res.Message, res.Killed ? MessageKind.Kill : MessageKind.Combat);
             WoundFrom(m, res, Bodies.EdgedWeapon(Player), crit);
+            AfterBlow(res, crit);
 
             if (res.Killed)
             {
@@ -95,6 +96,7 @@ namespace Ossuary.Core
             var back = Battles.MeleeAttack(m, Player, Rng);
             Say(back.Message, back.Killed ? MessageKind.Death : MessageKind.Combat);
             if (Bodies.Wounding(back.Kind)) WoundFrom(Player, back, Bodies.EdgedAttack(back.Kind), false);
+            ArmourTakesBlow(back);
             World.AdvanceTime(1);
             CheckDeath();
         }
@@ -156,6 +158,8 @@ namespace Ossuary.Core
         {
             int basePrice = item.TradeValue;
             if (basePrice <= 0) basePrice = 5;
+            // Goods and food come in stacks: the stack is priced, so ten logs are not sold for the price of one.
+            if (item.Def.Kind == ItemKind.Material || item.Def.Kind == ItemKind.Food || item.Def.Kind == ItemKind.Rock) basePrice *= Math.Max(1, item.Quantity);
             int markup = 100 + shop.Gold / 60;
             int price = Haggle(basePrice * markup / 100, Houses.Guild);
             if (item.Def.Kind == ItemKind.Gold) price = 1;

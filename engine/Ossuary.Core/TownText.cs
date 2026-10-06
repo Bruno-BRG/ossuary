@@ -445,6 +445,9 @@ namespace Ossuary.Core
                 ["Main"] = "Principal", ["Guild"] = "Guilda", ["Watch"] = "Guarda", ["Temple"] = "Templo", ["Cult"] = "Culto",
                 ["Personal"] = "Pessoal", ["Rival"] = "Rival", ["Region"] = "Região",
                 ["It costs"] = "Custa", ["Leave"] = "Sair", ["Service"] = "Serviço", ["Talk"] = "Conversa",
+                ["Repair my gear"] = "Consertar meu equipamento",
+                ["The smith hammers out the dents and grinds a fresh edge."] = "O ferreiro desamassa o metal e afia um fio novo.",
+                ["The smith shakes their head: not with what you brought."] = "O ferreiro balança a cabeça: não com o que você trouxe.",
             }) Pt[kv.Key] = kv.Value;
 
             Rumours.Translations(R);
@@ -461,6 +464,9 @@ namespace Ossuary.Core
             R(@"You step up to (.+)\.", "Você se aproxima de $1.");
             R(@"The edge is true again\. (.+) is better than it was\.", "O fio está firme de novo. $1 está melhor do que antes.");
             R(@"Fresh rivets and a new lining\. (.+) will turn a blow better now\.", "Rebites novos e forro novo. $1 vai aparar melhor os golpes agora.");
+            R(@"Pour my weapon in (.+) \((\d+) x (.+)\)", "Refundir minha arma em $1 ($2 x $3)");
+            R(@"Pour my armour in (.+) \((\d+) x (.+)\)", "Refundir minha armadura em $1 ($2 x $3)");
+            R(@"The smith melts your ore and pours it\. You get back (.+)\.", "O ferreiro funde seu minério e o derrama no molde. Você recebe {u1}.");
             R(@"You learn that it is (.+)\.", "Você descobre que é $1.");
             R(@"The Amulet lies (\d+) levels down, at the bottom of the Dungeons\.", "O Amuleto está $1 níveis abaixo, no fundo das Masmorras.");
         }

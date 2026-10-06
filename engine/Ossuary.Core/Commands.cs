@@ -70,6 +70,8 @@ namespace Ossuary.Core
                 case "s": return DoSearch();
                 case "disarm": return DoDisarm();
                 case "craft": return DoCraft();
+                case "gather": _g.Gather(); return true;
+                case "recipes": _g.PushChoice(Game.RecipePrompt, _g.RecipeBook()); return true;
                 case "train": return DoTrain();
                 case "drink": return DoDrinkFountain();
                 case "x": _g.PushTargeting(TargetingMode.Inspect); return true;
@@ -317,15 +319,15 @@ namespace Ossuary.Core
             if (tool.Name == "pick-axe") { _g.PushTargeting(TargetingMode.Dig); return true; }
             if (tool.Name == "lock pick") { _g.PushTargeting(TargetingMode.PickLock); return true; }
             if (tool.Name == "molotov") { _g.UiState.ThrowItem = tool; _g.PushTargeting(TargetingMode.Throw); return true; }
+            if (Trades.IsInstrument(tool)) { _g.PlayInstrument(tool); return true; }
             _g.Say($"You cannot work out how to use {tool.Name}.", MessageKind.Info);
             return true;
         }
 
         bool DoCraft()
         {
-            if (_g.Mode == GameMode.Overworld) { _g.Say("There is no room to work on the road.", MessageKind.Info); return true; }
             var choices = _g.CraftChoices();
-            if (choices.Count == 0) { _g.Say("You have nothing you can combine into something better.", MessageKind.Info); return true; }
+            if (choices.Count == 0) { _g.Say("You have nothing you can make here. Shift+J lists every recipe.", MessageKind.Info); return true; }
             _g.PushChoice(Game.CraftPrompt, choices);
             return true;
         }
@@ -718,6 +720,7 @@ namespace Ossuary.Core
             if (prompt == Game.OfferPrompt) { _g.OfferItem(chosen); return true; }
             if (prompt == Game.SacrificePrompt) { _g.SacrificeCorpse(chosen); return true; }
             if (prompt == Game.CraftPrompt) { _g.Craft(chosen); return true; }
+            if (prompt == Game.RecipePrompt) return true;
             if (prompt == Game.TrainPrompt) { _g.Train(chosen); return true; }
             if (prompt == Game.AppraisePrompt)
             {

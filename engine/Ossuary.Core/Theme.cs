@@ -219,8 +219,14 @@ namespace Ossuary.Core
             if (it.Rarity == Rarity.Artifact) return H(0xFF8A3D);
             if (it.Rarity == Rarity.Rare) return H(0xFFD24A);
             if (it.Rarity == Rarity.Magic) return H(0x6FA8FF);
+            // Plain gear of a non-default material, and ore, show the metal.
+            var mat = Materials.Find(it.Material);
+            if (mat == null && Materials.IsOre(it)) mat = Materials.Find(it.Def.Name.Substring(0, it.Def.Name.Length - 4).Replace(' ', '-'));
+            if (mat == null) mat = Trades.BarMetal(it.Def.Name);
+            if (mat != null) return H(MaterialColor(mat.Id));
             switch (it.Def.Kind)
             {
+                case ItemKind.Material: return H(0xC8B090);
                 case ItemKind.Weapon: return H(0xD0C0A0);
                 case ItemKind.Armor: return H(0xA0B0C0);
                 case ItemKind.Shield: return H(0xA0B0C0);
@@ -242,6 +248,26 @@ namespace Ossuary.Core
 
         /// <summary>Item colour for UI lists (already remapped).</summary>
         public Rgb ItemColor(Item it) => Remap(ItemRaw(it), false);
+
+        /// <summary>The colour of each material, raw Ossuary-space hex.</summary>
+        public static int MaterialColor(string id)
+        {
+            switch (id)
+            {
+                case "copper": return 0xD08850;
+                case "bronze": return 0xC8A060;
+                case "iron": return 0xA8A8B0;
+                case "steel": return 0xC8D4E0;
+                case "silver": return 0xE8ECF4;
+                case "cold-iron": return 0x8898B0;
+                case "mithril": return 0xB8E8F8;
+                case "adamantine": return 0x8FD0A8;
+                case "obsidian": return 0x7A6890;
+                case "bone": return 0xE8DCC0;
+                case "wood": return 0xA87848;
+                default: return 0xD8CFC0;
+            }
+        }
 
         /// <summary>Raw colour of a monster definition (content data, hex).</summary>
         public static Rgb Mon(int hex) => H(hex);

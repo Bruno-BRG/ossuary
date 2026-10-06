@@ -13,8 +13,8 @@ namespace Ossuary.Core
         public int Count, Done, Reward;
         public bool Complete => Done >= Count;
 
-        public string Describe() => Kind == "hunt"
-            ? $"Hunt {Count} {Target} in {Branch}"
+        public string Describe() => Kind == "hunt" ? $"Hunt {Count} {Target} in {Branch}"
+            : Kind == "make" ? $"Craft for the town: {Target}"
             : $"Reach depth {Count} of {Branch}";
         public string Key => Kind + "|" + Branch + "|" + Target + "|" + Count + "|" + Giver;
     }

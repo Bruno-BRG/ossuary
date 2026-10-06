@@ -5,7 +5,7 @@
 Obrigado por querer ajudar. Este guia diz **como o projeto é organizado**, **o que não quebrar** e **como adicionar as coisas mais comuns**
 (magias, itens, animações, traduções) em poucas linhas. O código e os commits ficam em inglês/português à vontade; a documentação em `docs/` é em português.
 
-> **Versão e licença.** O jogo está na **Versão 14** (nos manifestos: `0.14.0`). O projeto usa a [licença MIT](LICENSE): ao contribuir,
+> **Versão e licença.** O jogo está na **Versão 15** (nos manifestos: `0.15.0`). O projeto usa a [licença MIT](LICENSE): ao contribuir,
 > você concorda que o seu código seja distribuído sob ela. A fonte `unscii-16` tem atribuição própria ([assets/fonts/NOTICE.md](assets/fonts/NOTICE.md)).
 
 ## Sumário

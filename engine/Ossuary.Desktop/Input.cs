@@ -30,6 +30,7 @@ namespace Ossuary.Desktop
                 if (shift && code == "KeyL") return "l";
                 if (shift && code == "KeyU") return "u";
                 if (shift && code == "KeyB") return "craft";
+                if (shift && code == "KeyJ") return "recipes";
                 if (shift && code == "KeyN") return "train";
                 return move;
             }
@@ -40,7 +41,7 @@ namespace Ossuary.Desktop
                 case "Numpad5": case "Numpad0": return ".";
                 case "Slash": return "?";
                 case "KeyI": return "i";
-                case "KeyG": return "g";
+                case "KeyG": return shift ? "gather" : "g";
                 case "KeyD": return shift ? "D" : "d";
                 case "KeyA": return shift ? "disarm" : "a";
                 case "KeyF": return "f";

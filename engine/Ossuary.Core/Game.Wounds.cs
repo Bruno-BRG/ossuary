@@ -18,7 +18,7 @@ namespace Ossuary.Core
             if (!res.Hit || res.Killed || defender.HP <= 0) return;
             var plan = Bodies.PlanOf(defender);
             if (plan == null) return;
-            int sev = Bodies.Severity(res.Damage, defender.MaxHP, critical);
+            int sev = Bodies.Severity(res.Damage, defender.MaxHP, critical || res.Deep);
             if (sev == 0) return;
 
             int roll = Rng.Range(0, plan.TotalWeight);

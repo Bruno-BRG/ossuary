@@ -109,6 +109,7 @@ namespace Ossuary.Core
             var res = Battles.PlayerMelee(Player, target, Rng, out _);
             Say(res.Message, res.Killed ? MessageKind.Kill : MessageKind.Combat);
             WoundFrom(target, res, Bodies.EdgedWeapon(Player), false);
+            AfterBlow(res, false);
             Map.Version++;
             bool essential = target.Persona != null && target.Persona.Essential;
             bool killed = res.Killed && !essential;
@@ -171,6 +172,7 @@ namespace Ossuary.Core
                 var res = Battles.MeleeAttack(m, Player, Rng);
                 Say(res.Message, res.Killed ? MessageKind.Death : MessageKind.Combat);
                 if (Bodies.Wounding(res.Kind)) WoundFrom(Player, res, Bodies.EdgedAttack(res.Kind), false);
+                ArmourTakesBlow(res);
                 Map.Version++;
                 CheckDeath();
                 return true;

@@ -60,6 +60,8 @@ namespace Ossuary.Tests
             Test("English frames carry no Portuguese", EnglishFramesAreEnglish);
             Test("the stairs keys say they need Shift", KeyboardHints);
             Test("bodies: hits land on parts, wounds hinder, bleed, heal and scar", BodiesAndWounds);
+            Test("materials: names, numbers, banes, wear, ore and the smith", MaterialsAndWear);
+            Test("crafting for everyone: trades, recipes, forge, gathering, music and workshops", CraftingForEveryone);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -75,6 +77,223 @@ namespace Ossuary.Tests
             if (!condition) throw new Exception(message);
         }
         /// <summary>Bodies and wounds (docs/roadmap/depth.md, section 1): parts by plan, severity from damage, effects, bleeding, mending, scars, Portuguese.</summary>
+        static void MaterialsAndWear()
+        {
+            var old = Loc.Current;
+            try
+            {
+                Loc.Current = Lang.En;
+                bool found = Catalogue.TryFindGear("long sword", out var swordDef);
+                found &= Catalogue.TryFindGear("chain mail", out var mailDef);
+                Assert(found, "catalogue gear");
+                var rng = new Rng(9);
+                var iron = new Item(swordDef, rng, 1) { Identified = true };
+                var steel = new Item(swordDef, rng, 2) { Identified = true };
+                Materials.Set(steel, Materials.Find("steel"));
+                Assert(iron.Name == "long sword" && iron.Material == null && iron.Mat.Id == "iron", "the default material is iron and is not named: " + iron.Name);
+                Assert(steel.Name == "steel long sword", "the material leads the name: " + steel.Name);
+                Assert(steel.Mods.ToHit == iron.Mods.ToHit + 1 && steel.Mods.Dmg == iron.Mods.Dmg + 1, "steel hits harder");
+                Assert(steel.TradeValue > iron.TradeValue * 2, "steel is worth more");
+                var mith = new Item(mailDef, rng, 3) { Identified = true };
+                int ironAc = mith.TotalAc, ironWeight = mith.Weight;
+                Materials.Set(mith, Materials.Find("mithril"));
+                Assert(mith.Weight == ironWeight / 2 && mith.TotalAc == ironAc + 2, "mithril mail is half the weight and turns more");
+                Materials.Set(mith, Materials.Find("iron"));
+                Assert(mith.Material == null, "setting the default stores nothing");
+                Assert(!Materials.Takes(mailDef, Materials.Find("wood")) && !Materials.Takes(mailDef, Materials.Find("obsidian")), "no wooden or glass mail");
+                Catalogue.TryFindGear("cloak", out var cloakDef);
+                Assert(Materials.StuffOf(cloakDef) == Stuff.None && new Item(cloakDef, rng, 4).Mat == null, "a cloak has no material");
+
+                // Material against creature.
+                Assert(Materials.IsBane(Materials.Find("silver"), new Monster(Bestiary.Find("skeleton"), new Rng(1))), "silver against the dead");
+                Assert(!Materials.IsBane(Materials.Find("silver"), new Monster(Bestiary.Find("jackal"), new Rng(1))), "silver is only silver to a jackal");
+                Assert(Materials.IsBane(Materials.Find("cold-iron"), new Monster(Bestiary.Find("wood nymph"), new Rng(1))), "cold iron against the fey");
+                Assert(Materials.IsBane(Materials.Find("obsidian"), new Monster(Bestiary.Find("ore golem"), new Rng(1))), "obsidian against constructs");
+                var g = new Game(77);
+                var silver = new Item(swordDef, rng, 5) { Identified = true };
+                Materials.Set(silver, Materials.Find("silver"));
+                g.Player.Wielded = silver;
+                bool seared = false;
+                for (int i = 0; i < 200 && !seared; i++)
+                {
+                    var skel = new Monster(Bestiary.Find("skeleton"), new Rng((ulong)i + 1));
+                    skel.HP = 999;
+                    seared = Battles.PlayerMelee(g.Player, skel, g.Rng, out _).Bane;
+                }
+                Assert(seared, "a silver hit on a skeleton is a bane hit");
+
+                // Wear: a step costs a point, the name says so, repair restores it.
+                var worn = new Item(swordDef, rng, 6) { Identified = true };
+                int fresh = worn.Mods.Dmg;
+                worn.Wear = worn.Mat.Durability;
+                Assert(worn.Condition == 1 && worn.Name == "blunted long sword" && worn.Mods.Dmg == fresh - 1, "blunted: " + worn.Name);
+                worn.Wear = worn.Mat.Durability * 2;
+                Assert(worn.Condition == 2 && worn.Name.StartsWith("chipped"), "chipped: " + worn.Name);
+                Assert(worn.TradeValue < iron.TradeValue, "worn gear sells for less");
+
+                // Assignment by depth: no simulation RNG drawn, same answer for the same seed, rarer metals deeper.
+                var r1 = new Rng(4242);
+                long calls = r1.Calls;
+                int deepRare = 0, shallowRare = 0;
+                for (int i = 0; i < 400; i++)
+                {
+                    var a = new Item(swordDef, r1, 1000 + i); Materials.Assign(a, r1.Seed, 1);
+                    var b = new Item(swordDef, r1, 1000 + i); Materials.Assign(b, r1.Seed, 1);
+                    Assert(a.Material == b.Material, "the pick is stable");
+                    if (a.Material == "mithril" || a.Material == "adamantine") shallowRare++;
+                    var d = new Item(swordDef, r1, 5000 + i); Materials.Assign(d, r1.Seed, 16);
+                    if (d.Material == "mithril" || d.Material == "adamantine") deepRare++;
+                }
+                Assert(r1.Calls == calls, "assigning a material draws no RNG");
+                Assert(shallowRare == 0 && deepRare > 0, $"mithril and adamantine only deep (shallow {shallowRare}, deep {deepRare})");
+                int spire = 0, plain = 0;
+                for (int i = 0; i < 600; i++)
+                {
+                    var a = new Item(swordDef, r1, 9000 + i); Materials.Assign(a, r1.Seed, 8, "The Ashen Spire"); if (a.Material == "obsidian") spire++;
+                    var b = new Item(swordDef, r1, 9000 + i); Materials.Assign(b, r1.Seed, 8); if (b.Material == "obsidian") plain++;
+                }
+                Assert(spire > plain, $"the Spire is black glass (spire {spire}, elsewhere {plain})");
+
+                // A spear drives in: a hard blow wounds as deep as a critical.
+                Catalogue.TryFindGear("spear", out var spearDef);
+                var lancer = new Game(78);
+                lancer.Player.Wielded = new Item(spearDef, rng, 10);
+                Assert(Bodies.PiercingWeapon(lancer.Player) && !Bodies.PiercingWeapon(g.Player), "a spear pierces, a sword does not");
+
+                // The smith pours a weapon anew from ore the hero brings, and repairs.
+                var p = g.Player;
+                p.Wielded = new Item(swordDef, rng, 7) { Identified = true, Wear = 400 };
+                p.Gold = 5000;
+                Assert(g.ReforgeOptions(p.Wielded).Count == 0, "no ore, nothing to pour");
+                p.Inventory.Add(new Item(Materials.Ores[1], rng, 8));
+                p.Inventory.Add(new Item(Materials.Ores[1], rng, 9));
+                var opts = g.ReforgeOptions(p.Wielded);
+                Assert(opts.Exists(m => m.Id == "steel") && opts.Exists(m => m.Id == "cold-iron") && !opts.Exists(m => m.Id == "iron"), "iron ore offers steel and cold iron");
+                Assert(g.SmithyAction("reforge:w:steel"), "the reforge row is a smithy row");
+                Assert(p.Wielded.Material == "steel" && p.Wielded.Wear == 0 && Count(p, "iron ore") == 0, "steel, sound, and the ore is spent");
+                Assert(p.Gold == 5000 - g.ReforgePrice(Materials.Find("steel")), "the smith was paid");
+                p.Wielded.Wear = 600;
+                int price = g.RepairPrice();
+                Assert(price > 0 && g.SmithyAction("repair") && p.Wielded.Wear == 0, "repair makes it sound");
+                Assert(Materials.OreAt(1, 0).Name.EndsWith(" ore") && Materials.OreAt(9, 0).Name == "adamantine ore", "the deep Mines hold adamantine");
+            }
+            finally { Loc.Current = old; }
+        }
+
+        static int Count(Player p, string name) { int n = 0; foreach (var it in p.Inventory) if (it.Def.Name == name) n += it.Quantity; return n; }
+
+        static void CraftingForEveryone()
+        {
+            var old = Loc.Current;
+            try
+            {
+                Loc.Current = Lang.En;
+                // The book is whole: every trade exists, every product and ingredient is a real item with Portuguese.
+                foreach (var r in Trades.Recipes)
+                {
+                    Assert(Trades.Find(r.Trade) != null, "unknown trade " + r.Trade);
+                    Assert(Trades.TryDef(r.Product, out _), "unknown product " + r.Product);
+                    Assert(Loc.KnowsName(r.Product), "no Portuguese for " + r.Product);
+                    foreach (var n in r.Needs)
+                        Assert(n.Name.StartsWith("#") || (Trades.TryDef(n.Name, out _) && Loc.KnowsName(n.Name)), r.Id + " needs unknown " + n.Name);
+                    if (r.Bars > 0) Assert(Trades.TryDef(r.Product, out var d) && Materials.StuffOf(d) != Stuff.None, r.Id + " takes bars but has no material");
+                }
+                foreach (var t in Trades.All) Assert(Trades.Recipes.Length > 0 && (t.Id == "musician" || t.Id == "forager" || Array.Exists(Trades.Recipes, r => r.Trade == t.Id)), t.Id + " has no recipes");
+                Assert(Trades.Rank(0) == 0 && Trades.Rank(20) == 1 && Trades.Rank(300) == 4, "rank thresholds");
+
+                var g = Game.NewHero(4040, "Maker", "human", "fighter");
+                var p = g.Player;
+                g.Monsters.Clear();
+                p.Inventory.Clear();
+                Assert(g.RecipeBook().Count == Trades.Recipes.Length, "the recipe book lists every recipe");
+
+                // A cook on the road: meat roasts anywhere, and the trade grows with the work.
+                p.Inventory.Add(new Item(Def("raw meat"), g.Rng, 1) { Quantity = 8 });
+                var roast = g.CraftChoices().Find(i => i.Def.Name == "roast meat");
+                Assert(roast != null, "raw meat roasts anywhere");
+                Assert(g.CraftChoices().Find(i => i.Def.Name == "loaf of bread") == null, "a town recipe is not offered in the dungeon");
+                for (int i = 0; i < 6; i++) g.Craft(g.CraftChoices().Find(c => c.Def.Name == "roast meat"));
+                Assert(Count(p, "roast meat") == 6 && g.TradeXp("cook") == 18, "six roasts, 18 xp: " + g.TradeXp("cook"));
+                g.Craft(g.CraftChoices().Find(c => c.Def.Name == "roast meat"));
+                Assert(g.TradeRank("cook") == 1 && g.Log.Exists(m => m.Text.StartsWith("Your craft grows: Cook is now Apprentice")), "the cook becomes an apprentice");
+
+                // At the forge: the bar's metal is the blade's, and finer metals ask for rank.
+                p.Inventory.Clear();
+                g.Map.Set(p.X + 1, p.Y, TileKind.Forge);
+                p.Inventory.Add(new Item(Def("steel bar"), g.Rng, 2) { Quantity = 3 });
+                Assert(g.CraftChoices().Count == 0, "a novice cannot work steel");
+                p.Inventory.Add(new Item(Def("iron bar"), g.Rng, 3));
+                var dagger = g.CraftChoices().Find(c => c.Def.Name == "dagger");
+                Assert(dagger != null && dagger.Material == null, "an iron bar makes an iron dagger");
+                p.TradeXp["blacksmith"] = 60;
+                var sword = g.CraftChoices().Find(c => c.Def.Name == "long sword" && c.Material == "steel");
+                Assert(sword != null, "a journeyman forges a steel long sword");
+                g.Craft(sword);
+                var made = p.Inventory.Find(i => i.Def.Name == "long sword");
+                Assert(made != null && made.Material == "steel" && made.Identified && made.Enchant >= -1 && made.Enchant <= 2, "the sword is steel, known, of some quality");
+                Assert(Count(p, "steel bar") == 0 && Count(p, "iron bar") == 1, "three steel bars spent, the iron kept");
+                g.Map.Set(p.X + 1, p.Y, TileKind.Floor);
+                Assert(!g.StationHere(Station.Forge), "no forge, no forging");
+
+                // Butchering a carcass underfoot.
+                p.Inventory.Clear();
+                var corpse = new ItemDef { Name = "jackal corpse", Glyph = '%', Kind = ItemKind.Corpse, Weight = 60 };
+                GroundItems.Add(g.Map.Number, p.X, p.Y, new Item(corpse, g.Rng, 4));
+                g.Gather();
+                Assert(Count(p, "raw meat") >= 1 && Count(p, "raw hide") == 1, "meat and a hide");
+                var pile = GroundItems.At(g.Map.Number, p.X, p.Y);
+                Assert(pile == null || !pile.Exists(i => i.Def.Name == "jackal corpse"), "the carcass is used");
+                Assert(g.CraftChoices().Exists(c => c.Def.Name == "leather"), "a hide tans into leather anywhere");
+
+                // Music lulls what listens.
+                p.TradeXp["musician"] = 300;
+                var rat = new Monster(Bestiary.Find("giant rat"), g.Rng) { X = p.X + 1, Y = p.Y, Alert = 1 };
+                g.Map.Set(p.X + 1, p.Y, TileKind.Floor);
+                g.Monsters.Add(rat); g.UpdateFov();
+                var lute = new Item(Def("lute"), g.Rng, 5);
+                for (int i = 0; i < 10 && !rat.Asleep; i++) { rat.Asleep = false; g.PlayInstrument(lute); }
+                Assert(rat.Asleep, "a master's tune puts a rat to sleep");
+                g.Monsters.Clear();
+
+                // A master in town teaches, and a workshop pays for a commission.
+                Assert(Array.IndexOf(Game.TradesTaughtAt(BuildingKind.Smithy), "blacksmith") >= 0, "the smithy teaches smithing");
+                p.Gold = 1000;
+                p.TradeXp.Remove("toolmaker");
+                Assert(g.WorkshopAction("learn:toolmaker") && g.TradeRank("toolmaker") == 1 && p.Gold == 1000 - Game.LearnPrice(0), "the master teaches apprentice");
+                var smithy = new Building { Kind = BuildingKind.Smithy, Name = "The Rusty Anvil" };
+                var offer = g.CommissionOffer(smithy);
+                Assert(offer != null && offer.Kind == "make" && offer.Reward > 0, "the smithy has a commission");
+                g.Contracts.Clear(); g.AcceptContract(offer);
+                Assert(g.Contracts.Count == 1 && g.CommissionOffer(smithy) == null, "taken, it is no longer offered");
+                p.Inventory.Add(new Item(Def(offer.Target), g.Rng, 6) { Identified = true });
+                int gold = p.Gold;
+                Assert(g.WorkshopAction("deliver:0") && g.Contracts.Count == 0 && p.Gold == gold + offer.Reward, "delivered and paid");
+
+                // On the road: an axe fells wood in a forest, a field gives flax, a hill without a pick gives no ore.
+                var w = new Game(5151);
+                w.LeaveToOverworld();
+                w.Player.Inventory.Clear();
+                w.Player.Inventory.Add(new Item(Def("axe"), w.Rng, 7));
+                bool Stand(Ossuary.Core.World.OverworldTerrain kind)
+                {
+                    for (int y = 0; y < w.World.H; y++)
+                        for (int x = 0; x < w.World.W; x++)
+                        {
+                            var t = w.World.Get(x, y);
+                            if (t.Terrain == kind && t.Feature == Ossuary.Core.World.OverworldFeature.None) { w.World.PlayerX = x; w.World.PlayerY = y; return true; }
+                        }
+                    return false;
+                }
+                if (Stand(Ossuary.Core.World.OverworldTerrain.Forest)) { w.ActiveEncounter = false; w.Gather(); Assert(Count(w.Player, "log") >= 1, "an axe fells a log in the forest"); }
+                if (Stand(Ossuary.Core.World.OverworldTerrain.Grass)) { w.ActiveEncounter = false; w.Gather(); Assert(Count(w.Player, "flax") >= 1, "a field gives flax"); }
+                if (Stand(Ossuary.Core.World.OverworldTerrain.Hills)) { w.ActiveEncounter = false; w.Gather(); Assert(!w.Player.Inventory.Exists(i => Materials.IsOre(i)), "no pick, no ore"); }
+                Assert(w.TradeXp("forager") > 0, "foraging is a trade too");
+            }
+            finally { Loc.Current = old; }
+        }
+
+        static ItemDef Def(string name) { Trades.TryDef(name, out var d); return d; }
+
         static void BodiesAndWounds()
         {
             var old = Loc.Current;

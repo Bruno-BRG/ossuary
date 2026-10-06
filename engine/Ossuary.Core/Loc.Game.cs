@@ -13,6 +13,11 @@ namespace Ossuary.Core
 
         static void AddGameText()
         {
+            // ---- materials in combat (Game.Materials.cs)
+            P("The silver bites deep!", "A prata morde fundo!");
+            P("The cold iron bites deep!", "O ferro frio morde fundo!");
+            P("The obsidian bites deep!", "A obsidiana morde fundo!");
+
             // ---- words that appear inside composed lines
             foreach (var kv in new[] {
                 ("peaceful", "pacífico"), ("weak", "fraco"), ("somewhat dangerous", "um pouco perigoso"), ("dangerous", "perigoso"),

@@ -19,6 +19,9 @@ reads this file before starting and updates it when done** (see `AGENTS.md`).
 > **Depth track.** The Dwarf Fortress-inspired ideas (body parts and wounds, materials, generated history, relic biographies,
 > fluids and tracking, mood, engravings, named enemies, sieges, legends) have their own list: [`roadmap/depth.md`](roadmap/depth.md).
 > *2026-10-05:* section 1, **bodies and wounds**, is in (save format 13); what is left of it is listed there.
+> *2026-10-05:* section 2, **materials**, is in (save format 14): table, names, banes, wear, ore and the smith, materials by branch and deep
+> piercing wounds. **Crafting for everyone** is in too (save format 15): 16 trades open to any hero, ~100 recipes, gathering, music,
+> masters and commissions; what is left of it is listed at the end of section 2.
 
 Everything that was listed has been implemented (see *Done*). What is left are extensions noted along the way:
 
@@ -33,6 +36,32 @@ Everything that was listed has been implemented (see *Done*). What is left are e
 - [ ] **Balance bot** that uses the 322 spells (today it knows the ~40 old ones): see docs/design/balance.md.
 - [ ] **Second optional portal in another branch**; more corrupting relics.
 - [ ] **Items**: identify wands/potions/scrolls by use (today they are born identified by name), recharge wands at the shop, new cursed amulets.
+
+## Tutorials (first-time guidance)
+
+The game is getting big: each system should explain itself the first time it is used, once, and never again.
+
+- [ ] **First-time hints** (`Game.Tutorial.cs`): a short guided popup the first time the hero crafts, casts a spell, enters a dungeon,
+  reaches a town, opens a shop, gathers, levels up, gets wounded, finds an altar, meets the road, takes a job. It points at the keys
+  ("press Shift+B, pick a row, Enter") and walks the steps; it closes itself when the step is done.
+- [ ] **Seen once, remembered per install** in the settings (not per run): a list of hints already shown, so a new hero is not taught twice.
+- [ ] **Skip them**: an option *Tutorials: on / off* in F2, asked at the first launch ("Have you played before?"), plus *reset tutorials*.
+- [ ] **UI as data**: the hint is a `TextBuilder` panel from the Core; the frontend only draws it. Text in EN with PT in `Loc`.
+- [ ] Tests: each hint fires once, never with tutorials off, and does not advance a turn or change the replay.
+
+## Economy and market
+
+Now that the hero can make things, the world needs somewhere to sell them, and prices that mean something.
+
+- [ ] **Supply and demand per town**: each good has a price that moves with stock; selling ten swords to one smith drops what he pays,
+  and the price recovers over the days. Towns differ (a mine town pays little for ore and much for bread).
+- [ ] **A market square**: stalls (`BuildingKind.Stall` already exists) where traders buy and sell goods, open on market days.
+- [ ] **Buy orders and sell orders**: townsfolk post what they want (bring 5 leather, pays 90) and what they offer; ties with commissions.
+- [ ] **Your own stall or shop**: rent a counter, leave goods with a price, come back to coin (sold while you were away).
+- [ ] **Caravans carry goods between towns** (with *Living world 7* and depth 10): prices travel with them, a raided road starves a town.
+- [ ] **Haggling and reputation**: Cha, the Guild standing and a trader's mood move prices; a known master crafter sells higher.
+- [ ] **Money sinks**: rent, tolls, guild dues, repairs, so gold keeps its worth over a long, peaceful life.
+- [ ] **Price history** in the journal, so the hero can see where to sell.
 
 ## Living world (NPCs, quest tracks, other people)
 
@@ -192,6 +221,9 @@ _(move here, with a date, whatever is completed)_
   1st bonus, 3 = 2nd (summed in `Player.Gear`). **Relics** (`Corrupts`): *Hollow Ribs*, *Gravedigger's Spade*, *Gnawed Cowl*: strong, but each
   one worn gives +1 corruption every 25 turns (`Game.WornRelics`). Shown on the Character sheet. Test `SetsAndRelics`.
 
+- [x] **Crafting for everyone** (2026-10-05). `Items/Trades.cs`, `Game.Crafting.cs`, `Game.Gathering.cs`, `Game.Workshops.cs`: 16 trades (smith to
+  musician) any hero can learn, ~100 recipes, forge and workshop stations, quality by rank, `Shift+J` recipe book, `Shift+G` gathering,
+  instruments, masters and weekly commissions. Builds on **materials** (2026-10-05, `Items/Materials.cs`, `Game.Materials.cs`).
 - [x] **Light crafting** (2026-10-02). `Shift+B` (`Game.Crafting.cs`, `Items/Crafted.cs`): recipes as data — **molotov** (oil potion + candle),
   **bone blade** (blade + remains; comes *vampiric*), **bone-studded armour** (light armor + 2 remains, +1) and **extra healing** (2 healings).
   The molotov is applied with `a` and thrown (new `TargetingMode.Throw`, range 7): fire on the target and the 4 neighbors. Defs outside the loot tables.

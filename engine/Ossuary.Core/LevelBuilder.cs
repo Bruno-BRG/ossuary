@@ -105,7 +105,11 @@ namespace Ossuary.Core
                 {
                     int idx = rng.WeightedIndex(def.CarryWeights);
                     if (idx >= 0 && idx < def.Carries.Length)
-                        m.Inventory.Add(new Item(def.Carries[idx], rng, GroundItems.NextUid()));
+                    {
+                        var carried = new Item(def.Carries[idx], rng, GroundItems.NextUid());
+                        Materials.Assign(carried, rng.Seed, depth, map.BranchName);
+                        m.Inventory.Add(carried);
+                    }
                 }
                 if (rng.Chance(15))
                 {
@@ -133,8 +137,17 @@ namespace Ossuary.Core
             {
                 int x, y;
                 if (!TryFindOpenFloor(map, rng, out x, out y)) continue;
-                var item = RollLoot(rng, depth);
+                var item = RollLoot(rng, depth, map.BranchName);
                 if (item != null) GroundItems.Add(map.Number, x, y, item);
+            }
+
+            // The Mines give up ore: two to four lumps a level, copper and iron near the top, silver, mithril and adamantine deeper.
+            if (map.BranchName == "The Mines of Dwarfdeep")
+            {
+                int veins = 2 + rng.Range(0, 3);
+                for (int i = 0; i < veins; i++)
+                    if (TryFindOpenFloor(map, rng, out int ox, out int oy))
+                        GroundItems.Add(map.Number, ox, oy, new Item(Materials.OreAt(levelDepth, rng.Range(0, 100)), rng, GroundItems.NextUid()) { Identified = true });
             }
 
             // Each branch hides one named artifact on a fixed level.
@@ -149,7 +162,7 @@ namespace Ossuary.Core
                 int x, y;
                 if (TryFindOpenFloor(map, rng, out x, out y))
                 {
-                    var loot = RollLoot(rng, depth + 4);
+                    var loot = RollLoot(rng, depth + 4, map.BranchName);
                     if (loot != null)
                     {
                         loot.Identified = true;
@@ -172,7 +185,7 @@ namespace Ossuary.Core
                 {
                     for (int i = 0; i < 3; i++)
                     {
-                        var item = RollLoot(rng, depth + 2);
+                        var item = RollLoot(rng, depth + 2, map.BranchName);
                         if (item != null) GroundItems.Add(map.Number, site.Cells[site.Cells.Count - 1 - i * 2] % map.W, site.Cells[site.Cells.Count - 1 - i * 2] / map.W, item);
                     }
                     var gold = new Item(GoldDef, rng, GroundItems.NextUid()) { Quantity = 60 + depth * 25 };
@@ -197,7 +210,7 @@ namespace Ossuary.Core
                         }
                     for (int i = 0; i < 3; i++)
                     {
-                        var item = RollLoot(rng, depth + 3);
+                        var item = RollLoot(rng, depth + 3, map.BranchName);
                         int c = site.Cells[site.Cells.Count - 1 - i];
                         if (item != null) GroundItems.Add(map.Number, c % map.W, c / map.W, item);
                     }
@@ -221,7 +234,7 @@ namespace Ossuary.Core
         }
 
         /// <summary>Depth-weighted loot table: more wands and scrolls deeper, weapons and armour shallow.</summary>
-        public static Item RollLoot(Rng rng, int depth)
+        public static Item RollLoot(Rng rng, int depth, string branch = null)
         {
             int roll = rng.Range(0, 100);
             ItemDef def;
@@ -248,6 +261,7 @@ namespace Ossuary.Core
             else def = GoldDef;
 
             var item = new Item(def, rng, GroundItems.NextUid());
+            Materials.Assign(item, rng.Seed, depth, branch);
             ItemRoller.Roll(item, rng, depth);
             if (def.Kind == ItemKind.Gold)
             {

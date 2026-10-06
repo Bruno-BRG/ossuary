@@ -137,6 +137,7 @@ namespace Ossuary.Core
             if (res.Hit) target.Asleep = false;
             Say(res.Message, res.Killed ? MessageKind.Kill : MessageKind.Combat);
             WoundFrom(target, res, Bodies.EdgedWeapon(Player), crit);
+            AfterBlow(res, crit);
             if (res.Hit) MeleeProcs(target, res.Damage, !res.Killed);
             Player.GainSkill(Skill.Combat, res.Hit ? 1 : 0);
             if (res.Killed) { KillMonster(target); return false; }

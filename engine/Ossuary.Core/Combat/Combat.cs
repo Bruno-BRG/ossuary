@@ -14,6 +14,10 @@ namespace Ossuary.Core
         public bool Killed;
         /// <summary>The monster attack used (wounds read it: bites and claws cut, blows bruise and break).</summary>
         public AttackKind Kind;
+        /// <summary>The weapon's material was a bane to the target (silver on the dead, cold iron on the fey...).</summary>
+        public bool Bane;
+        /// <summary>A piercing blow that went in deep: the wound it leaves is a step worse, as on a critical.</summary>
+        public bool Deep;
     }
 
     /// <summary>
@@ -66,7 +70,8 @@ namespace Ossuary.Core
             bool killed = defender.HP <= 0;
             string verb = killed ? "kill" : "hit";
             string msg = $"{attacker.Subj} {verb}s {defender.Obj} for {dmg} damage.";
-            return new AttackResult { Hit = true, Damage = dmg, Message = msg, Killed = killed, Kind = kind };
+            bool deep = (kind == AttackKind.Pierce || kind == AttackKind.PierceOrHit || kind == AttackKind.PierceOrClaw) && dmg >= 5;
+            return new AttackResult { Hit = true, Damage = dmg, Message = msg, Killed = killed, Kind = kind, Deep = deep };
         }
 
         /// <summary>Player melee attack against a monster. Accounts for the wielded weapon and strength.</summary>
@@ -109,11 +114,14 @@ namespace Ossuary.Core
 
             int dmg = rng.Roll(dice, sides, dmgBonus) * dmgMult;
             if (dmg < 1) dmg = 1;
+            // Silver sears the dead, cold iron the fey, obsidian bites into things that were made.
+            bool bane = player.Wielded != null && Materials.IsBane(Materials.Find(player.Wielded.Material), target);
+            if (bane) dmg += rng.Roll(1, 6, 2);
             target.HP -= dmg;
             bool killed = target.HP <= 0;
             string critText = critical ? " with a critical hit" : "";
             string msg = $"You {(killed ? "kill" : "hit")} {target.Obj}{critText} for {dmg} damage.";
-            return new AttackResult { Hit = true, Damage = dmg, Message = msg, Killed = killed };
+            return new AttackResult { Hit = true, Damage = dmg, Message = msg, Killed = killed, Bane = bane, Deep = Bodies.PiercingWeapon(player) && dmg >= 5 };
         }
 
         /// <summary>Ranged attack with to-hit reduced by distance, NetHack style.</summary>
@@ -135,7 +143,7 @@ namespace Ossuary.Core
             bool killed = target.HP <= 0;
             return new AttackResult
             {
-                Hit = true, Damage = dmg, Killed = killed,
+                Hit = true, Damage = dmg, Killed = killed, Deep = dmg >= 5,
                 Message = $"The missile {(killed ? "kills" : "hits")} {target.Obj} for {dmg} damage."
             };
         }

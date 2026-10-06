@@ -102,6 +102,10 @@ namespace Ossuary.Core
             var skills = new List<string>();
             foreach (var kv in p.Skills) if (kv.Value > 0) skills.Add($"{Loc.U(kv.Key.ToString())} {kv.Value}");
             if (skills.Count > 0) Line(Loc.T("Skills") + ": " + string.Join(", ", skills));
+            var trades = new List<string>();
+            foreach (var t in Items.Trades.All)
+                if (p.TradeXp.TryGetValue(t.Id, out int txp) && txp > 0) trades.Add($"{Loc.U(t.Title)} {txp} ({Loc.U(Items.Trades.RankNames[Items.Trades.Rank(txp)])})");
+            if (trades.Count > 0) Line(Loc.T("Trades") + ": " + string.Join(", ", trades));
 
             var perks = new List<string>();
             foreach (var kv in p.Perks)

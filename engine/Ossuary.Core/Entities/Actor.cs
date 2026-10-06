@@ -106,7 +106,7 @@ namespace Ossuary.Core.Entities
         public int WeightCarried()
         {
             int w = 0;
-            for (int i = 0; i < Inventory.Count; i++) w += Inventory[i].Def.Weight * Inventory[i].Quantity;
+            for (int i = 0; i < Inventory.Count; i++) w += Inventory[i].Weight * Inventory[i].Quantity;
             return w;
         }
 
