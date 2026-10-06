@@ -20,7 +20,7 @@ composition produces a `TextBuilder`.
 - `desktop/src-tauri/`: Rust window, local transport, process lifecycle and packaging.
 - `assets/fonts/unscii-16.hex`: canonical 8×16 font; attribution in NOTICE.md.
 - `docs/`: documentation in English, by topic: `game/`, `design/`, `tech/`, `audio/`, `roadmap/`; index in `docs/README.md`; real captures in `docs/shots/`.
-- `docs/todo.md`: backlog and progress tracking, organized by category.
+- `docs/todo.md`: backlog and progress tracking, by topic (combat, magic, items, crafting, economy, towns, world...), one line per item.
 
 ## Commands
 
@@ -74,8 +74,8 @@ The package ships `ossuary.exe` and the engine `ossuary-engine.exe` side by side
 
 ## Work and validation
 
-0. Before starting, read `docs/todo.md`; when finished, update it (mark `[x]` with a date,
-   `[~]` if partial, and record new ideas in the right category). It is our progress tracking.
+0. Before starting, read `docs/todo.md`; when finished, update it in its one format (`[~]` with *has / left* when partial,
+   a finished item moves to *Done* with its date, new ideas go in their topic in one line). It is our progress tracking.
 1. Type-check while editing.
 2. Headless suite before and after Core changes; dump panels for layout.
 3. Full suite before closing and a build after distributable changes.
