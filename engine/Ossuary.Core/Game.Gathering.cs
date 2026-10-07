@@ -105,7 +105,7 @@ namespace Ossuary.Core
                     Say("Little grows here.", MessageKind.Info);
                     break;
             }
-            World.AdvanceTime(2);
+            PassHours(2);
             if (got.Count == 0) Say("You spend two hours searching and find nothing of use.", MessageKind.Info);
             else Say("You spend two hours gathering.", MessageKind.Neutral);
             foreach (var (name, n) in got) Receive(name, n);

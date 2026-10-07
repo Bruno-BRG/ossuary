@@ -63,8 +63,26 @@ Where each one lives (everything under `engine/Ossuary.Core/`):
 - **Shown.** One log line per new or worse wound ("Your left leg is broken.", "The jackal's hind left leg is torn."), pills BLEEDING /
   LIMPING / CRAWLING / WOUNDED in the sidebar, *Wounds* and *Scars* on the character sheet and in the morgue, and the look command lists a
   monster's wounds. Portuguese agrees the adjective with the part's gender (`Loc.BodyLine`).
+- **Called shots.** `Shift+F` cycles `Player.Aim` through anywhere, head, arms, legs, eyes, wings and tail (pill AIM in the sidebar).
+  Melee, shots, road fights and ability blows pay `Bodies.AimPenalty` to hit (−2 limbs, wings and tail, −3 head, −5 eyes); a hit then draws
+  its part among the parts of that kind and always leaves at least a graze. A target without that kind of part takes the hit anywhere.
+- **Losing parts.** An edged hit that mangles a monster's arm, leg, wing or tail on its own (or on a critical) severs it: it never mends,
+  bleeds 10 turns and reads "severed". The hero is mangled but never severed. A mangled arm lets go: a monster is `Disarmed` (drops
+  carried weapons, its weapon-type attacks do half damage), the hero drops a weapon held in the right hand. A wing broken on a flier
+  grounds it (`Grounded`; a dragon also moves a step slower).
+- **Wounded monsters.** A monster with a mind that is limping at half HP or less breaks and runs once (`Fled`, 10 turns of fear). A
+  monster whose eyes are all cut is blind (`Bodies.Blind`): half its swings go at a random neighbouring square, hitting whatever stands
+  there. Look shows blind, cannot fly and a useless weapon arm.
+- **More wounds.** Monsters wound each other (rivals, allies, blind swings), and spells of force, frost, lightning and fire wound like a
+  blunt blow. Snakes (`viper`, `giant python`) use the serpent plan: head, body, tail and eyes; a broken tail leaves them crawling.
+- **Treatment.** A `bandage` (`a`; every hero starts with two, the temple sells them, a tailor cuts three from a cloth anywhere) stops all
+  bleeding and marks every wound `Bound`, mending twice as fast until it is hurt again. Catching fire sears open cuts shut. Hours that
+  pass outside the turn loop (road travel, fights and flight, gathering, events, the cells) mend as 30 turns each (`PassHours`).
+- **Scars that count.** The first scar on the head or an eye costs 1 Cha; each scar (up to two) adds 1 to intimidation (the road toll
+  bluff). The first time a townsperson talks with a scarred hero, the log notes their eyes on it.
 - Saves move to format **13** (hit locations draw from the RNG, so old key logs would replay differently).
 - Test: `bodies: hits land on parts, wounds hinder, bleed, heal and scar` (FeatureTests).
+- Saves move to format **16** for the rest of the track; test `combat and bodies: called shots, severing, …` (FeatureTests).
 
 ## Items (`Items/`, `Game.Items.cs`)
 
@@ -234,6 +252,10 @@ Where each one lives (everything under `engine/Ossuary.Core/`):
   cures poison), War Cry (living creatures within 6 cells flee), Vanish (invisible 12 turns). Without Vigor or
   with an invalid target: refuses **without spending a turn**. Each martial class starts with one
   (`RoleDef.StartPerks`: Fighter power-strike, Rogue backstab, Ranger aimed-shot, Paladin lay-on-hands).
+- **Martial techniques** (`AbilityDef.Level` > 0): the Fighter starts with *a manual of strikes*; reading it (`r`) teaches a Fighter,
+  Paladin or Adventurer every technique their level allows, and rereading later teaches the rest. Hamstring (3 Vigor, level 1: a leg wound
+  one step worse), Disarming Blow (5, level 3: the arm, two steps worse), Skull Crack (6, level 5: the head, two steps worse, stuns), Lunge
+  (4, level 7: steps in from two squares away and strikes ×2). They live in the abilities panel (`Shift+V`) and animate like spells.
 - The Character panel shows perks with rank; saves moved to version 4.
 
 ## Magic (`Magic/Spells*.cs`, `Game.Magic*.cs`)

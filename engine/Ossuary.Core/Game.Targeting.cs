@@ -83,10 +83,10 @@ namespace Ossuary.Core
             bool crit;
             int fromX = Player.X, fromY = Player.Y;
             Fx((tl, s) => FxLib.Bolt(tl, s, fromX, fromY, x, y, Elem.Wind, '\0', 3));
-            var res = Battles.PlayerRanged(Player, m, dist, Rng, out crit);
+            var res = Battles.PlayerRanged(Player, m, dist, Rng, out crit, 1, -Bodies.AimPenalty(Player.Aim));
             if (res.Hit) m.Asleep = false;
             Say(res.Message, res.Killed ? MessageKind.Kill : MessageKind.Combat);
-            WoundFrom(m, res, true, crit);
+            WoundFrom(m, res, true, crit, Player.Aim);
             Player.GainSkill(Skill.Combat, 2);
             if (res.Killed) KillMonster(m);
             Map.Version++;

@@ -536,7 +536,7 @@ namespace Ossuary.Tests
                 try { cmd.Execute(a); }
                 catch (Exception e) { throw new Exception("action " + a + " threw: " + e.Message); }
 
-                if (g.UiState.Targeting != TargetingMode.None)
+                if (g.UiState.Targeting != TargetingMode.None && g.Map != null)
                     g.ResolveTargeting(rng.Range(0, g.Map.W), rng.Range(0, g.Map.H));
                 if (g.PendingChoice.Active && g.PendingChoice.Items.Count > 0)
                     cmd.CommitChoice(g.PendingChoice.Items[rng.Range(0, g.PendingChoice.Items.Count)]);
@@ -1782,7 +1782,7 @@ namespace Ossuary.Tests
             {
                 Assert(a.Cost > 0 && !string.IsNullOrEmpty(a.Blurb), a.Id + " cost/text");
                 Assert(a.Target == AbilityTarget.Self || a.Range > 0, a.Id + " needs reach");
-                Assert(System.Array.Exists(Progression.All, d => d.GrantsAbility == a.Id), a.Id + " has no perk that teaches it");
+                Assert(a.Level > 0 || System.Array.Exists(Progression.All, d => d.GrantsAbility == a.Id), a.Id + " has no perk (or manual) that teaches it");
             }
             foreach (var r in Roles.All) foreach (var perk in r.StartPerks) Assert(Progression.Find(perk) != null, r.Id + " starts with unknown perk");
 

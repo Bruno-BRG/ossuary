@@ -18,7 +18,7 @@ How a system works lives in [`design/systems.md`](design/systems.md); what shipp
 
 | Topic | Where it stands | Next |
 |---|---|---|
-| [Combat and bodies](#combat-and-bodies) | wounds, bleeding, scars, deep piercing | bandages, called shots, severed parts |
+| [Combat and bodies](#combat-and-bodies) | wounds, called shots, severed parts, bandages, martial techniques | limbs as trophies, burns |
 | [Magic](#magic) | 322 spells, 55 books, animations | monsters that cast, ice × lightning |
 | [Items and materials](#items-and-materials) | materials, wear, repair, relics, sets | identify by use, relic biographies |
 | [Crafting and trades](#crafting-and-trades) | 16 trades, ~100 recipes, gathering | arrows, named masterworks |
@@ -39,13 +39,9 @@ generated history that relics, engravings and legends read from.
 
 ## Combat and bodies
 
-- [~] **Bleeding**: has edged wounds that bleed and kill; left blood on the floor (see *World*), bandages and cauterising.
-- [~] **Treatment**: has potions, spells, the inn, the temple and slow mending; left a bandage tool and travel time that counts toward healing.
-- [~] **Scars**: has scars on the sheet and in the morgue; left a small effect (−1 Cha, +1 intimidation) and people who notice them.
-- [~] **Wounded monsters**: has limping, lost aim and sight, bleeding, wounds in look; left a crippled monster that flees and a blind one that swings wild.
-- [ ] **Called shots and severed parts**: aim at a part; a mangled arm drops its weapon; limbs can be severed; wings ground a flier.
-- [ ] **More wounds**: monster against monster, spells that wound, a serpent body plan once snakes exist.
-- [ ] **Martial techniques**: a book of strikes for the Fighter, paid with Vigor, in the spell panel with the same animations.
+- [ ] **Severed parts as things**: a cut-off limb lies on the floor as an item (a trophy, butchery, a quest token); blood stays in *World*.
+- [ ] **Burns as wounds**: fire and acid get their own words (scorched, charred) and scars, instead of counting as blunt blows.
+- [ ] **Techniques for the other martial roles**: a rogue's and a ranger's manual, and techniques bought from the Guild's masters.
 
 ## Magic
 
@@ -159,6 +155,12 @@ The game is big: each system should explain itself once, the first time, and nev
 One line per feature, newest first inside each topic. Details: the [changelog](../CHANGELOG.md) and [`design/systems.md`](design/systems.md).
 
 **Combat and bodies**
+- 2026-10-06 · **Martial techniques**: the Fighter's manual of strikes teaches Hamstring, Disarming Blow, Skull Crack and Lunge by level, paid with Vigor in the abilities panel, animated (`Abilities.cs`, `Game.Abilities.cs`).
+- 2026-10-06 · **More wounds**: monsters wound each other, force/frost/lightning/fire spells wound, snakes with a serpent body (`Game.Wounds.cs`, `Combat/Body.cs`, `Bestiary.cs`).
+- 2026-10-06 · **Called shots and severed parts**: Shift+F aims at a part; edges sever monster limbs; a mangled arm drops its weapon; wings ground fliers (`Game.Wounds.cs`).
+- 2026-10-06 · **Wounded monsters**: a crippled monster flees once, a blind one swings at random squares (`Game.Wounds.cs`).
+- 2026-10-06 · **Scars that count**: a face scar costs 1 Cha, scars add intimidation, townsfolk notice them (`Game.Wounds.cs`, `Game.Dialogue.cs`).
+- 2026-10-06 · **Treatment and bleeding**: bandages (start kit, temple, tailor), fire cauterises, road time mends (`Game.Wounds.cs`); blood on the floor moved to *World*.
 - 2026-10-05 · **Deep piercing wounds**: daggers, spears, tridents, stings and missiles wound a step deeper on a hard blow (`AttackResult.Deep`).
 - 2026-10-05 · **Bodies and wounds**: body plans, hit location, four severities, limping, aim, stun, sight, bleeding, mending, scars (`Combat/Body.cs`, `Game.Wounds.cs`).
 - 2026-10-02 · **Stealth and noise**: notice radius from stealth, light feet and noise (`Game.Stealth.cs`).

@@ -60,6 +60,7 @@ namespace Ossuary.Tests
             Test("English frames carry no Portuguese", EnglishFramesAreEnglish);
             Test("the stairs keys say they need Shift", KeyboardHints);
             Test("bodies: hits land on parts, wounds hinder, bleed, heal and scar", BodiesAndWounds);
+            Test("combat and bodies: called shots, severing, grounding, flight, blindness, bandages, fire, travel, scars, strikes, serpents", CombatAndBodies);
             Test("materials: names, numbers, banes, wear, ore and the smith", MaterialsAndWear);
             Test("crafting for everyone: trades, recipes, forge, gathering, music and workshops", CraftingForEveryone);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
@@ -75,6 +76,113 @@ namespace Ossuary.Tests
         static void Assert(bool condition, string message)
         {
             if (!condition) throw new Exception(message);
+        }
+
+        /// <summary>The rest of the combat-and-bodies track: aiming, losing parts, crippled and blind monsters, treatment, scars that count, the Fighter's strikes.</summary>
+        static void CombatAndBodies()
+        {
+            var old = Loc.Current;
+            try
+            {
+                Loc.Current = Lang.En;
+                var g = new Game(31337);
+                var p = g.Player;
+                g.Monsters.Clear();
+
+                // Called shots: the hit lands on the aimed kind of part and always leaves a mark; smaller parts cost more to hit.
+                var orc = new Monster(Bestiary.Find("orc"), new Rng(5)) { X = p.X, Y = p.Y }; orc.MaxHP = orc.HP = 100;
+                g.WoundFrom(orc, new AttackResult { Hit = true, Damage = 1 }, true, false, PartKind.Leg);
+                Assert(orc.Wounds.Count == 1 && orc.Wounds[0].Kind == PartKind.Leg && orc.Wounds[0].Severity == 1, "an aimed scratch lands on a leg");
+                Assert(Bodies.AimPenalty(PartKind.Eye) > Bodies.AimPenalty(PartKind.Head) && Bodies.AimPenalty(PartKind.Head) > Bodies.AimPenalty(PartKind.Leg), "eyes are hardest, then the head");
+                g.CycleAim();
+                Assert(p.Aim == PartKind.Head && g.Log.Exists(m => m.Text == "You aim for the head (-3 to hit)."), "Shift+F aims for the head first");
+                p.Aim = null;
+
+                // Severed parts: a mangling edge takes a monster's arm off, and its weapon goes with it.
+                orc.Wounds.Clear();
+                g.WoundFrom(orc, new AttackResult { Hit = true, Damage = 90 }, true, false, PartKind.Arm);
+                Assert(orc.Wounds[0].Severed && orc.Disarmed, "the arm is severed and the orc disarmed");
+                Assert(g.Log.Exists(m => m.Text.EndsWith("arm is severed.")), "the log says severed");
+                int count = orc.Wounds.Count;
+                Assert(Bodies.Limp(orc) == 0, "an arm does not make it limp");
+                p.MaxHP = p.HP = 100;
+                g.WoundFrom(p, new AttackResult { Hit = true, Damage = 90 }, true, false, PartKind.Leg);
+                Assert(p.Wounds.Count == 1 && !p.Wounds[0].Severed && p.Wounds[0].Severity == 4, "the hero is mangled, never cut apart");
+
+                // Wings ground a flier; a crippled, half-dead beast runs; two cut eyes blind.
+                var bat = new Monster(Bestiary.Find("cave bat"), new Rng(3)); bat.MaxHP = bat.HP = 100;
+                g.WoundFrom(bat, new AttackResult { Hit = true, Damage = 60 }, false, false, PartKind.Wing);
+                Assert(bat.Grounded, "a broken wing grounds a bat");
+                var dog = new Monster(Bestiary.Find("jackal"), new Rng(2)); dog.MaxHP = 100; dog.HP = 40;
+                dog.Wounds.Add(new Wound { Part = "front left leg", Kind = PartKind.Leg, Severity = 3 });
+                dog.Wounds.Add(new Wound { Part = "hind left leg", Kind = PartKind.Leg, Severity = 3 });
+                g.WoundFrom(dog, new AttackResult { Hit = true, Damage = 20 }, false, false, PartKind.Head);
+                Assert(dog.Fled && dog.FearTurns > 0, "a crippled jackal flees");
+                var blind = new Monster(Bestiary.Find("orc"), new Rng(7));
+                blind.Wounds.Add(new Wound { Part = "right eye", Kind = PartKind.Eye, Severity = 2 });
+                Assert(!Bodies.Blind(blind), "one eye still sees");
+                blind.Wounds.Add(new Wound { Part = "left eye", Kind = PartKind.Eye, Severity = 2 });
+                Assert(Bodies.Blind(blind), "two cut eyes: blind");
+
+                // Serpents.
+                Assert(Bodies.PlanFor(Bestiary.Find("viper")) == Bodies.Serpent && Bodies.PlanFor(Bestiary.Find("giant python")) == Bodies.Serpent, "snakes have a serpent body");
+                var viper = new Monster(Bestiary.Find("viper"), new Rng(1));
+                viper.Wounds.Add(new Wound { Part = "tail", Kind = PartKind.Tail, Severity = 3 });
+                Assert(Bodies.Limp(viper) == 2, "a snake with a broken tail crawls");
+
+                // Bandages stop bleeding and double mending; fire sears cuts shut.
+                var band = p.Inventory.Find(i => i.Def.Name == "bandage");
+                Assert(band != null && band.Quantity == 2, "every hero starts with two bandages");
+                p.Wounds.Clear(); p.HP = p.MaxHP;
+                p.Wounds.Add(new Wound { Part = "torso", Kind = PartKind.Torso, Severity = 2, Worst = 2, Edged = true, Bleed = 5, HealIn = 250 });
+                Assert(g.ApplyBandage(band) && !Bodies.Bleeding(p) && p.Wounds[0].Bound && band.Quantity == 1, "a bandage binds the wound");
+                int before = p.Wounds[0].HealIn;
+                g.EndPlayerTurn();
+                Assert(p.Wounds[0].HealIn == before - 2, "a bound wound mends twice as fast");
+                Assert(!g.ApplyBandage(band) && band.Quantity == 1, "nothing left to bind costs nothing");
+                p.Wounds[0].Bleed = 4; p.WetTurns = 0; p.BurnTurns = 0;
+                g.SetAlight(p);
+                Assert(!Bodies.Bleeding(p), "catching fire sears the cut shut");
+                p.BurnTurns = 0;
+
+                // A face scar costs a point of Cha and adds to intimidation.
+                p.Wounds.Clear(); p.Scars.Clear();
+                int cha = p.Cha;
+                p.Wounds.Add(new Wound { Part = "head", Kind = PartKind.Head, Severity = 1, Worst = 3, HealIn = 1 });
+                g.EndPlayerTurn();
+                Assert(p.Cha == cha - 1 && g.Intimidation == 1, "a scarred face: -1 Cha, +1 intimidation");
+                Assert(Game.HasFaceScar(p), "the head scar is on the face");
+
+                // Travel counts toward mending.
+                var road = Game.NewHero(77, "Walker", "human", "fighter"); road.LeaveToOverworld();
+                road.Player.Wounds.Add(new Wound { Part = "left arm", Kind = PartKind.Arm, Severity = 1, Worst = 1, HealIn = 25 });
+                for (int i = 0; i < 20 && road.Player.Wounds.Count > 0; i++)
+                {
+                    if (road.Mode != GameMode.Overworld) road.LeaveToOverworld();
+                    road.ActiveEncounter = false; road.CurrentEvent = null; road.UiState.Active = Panel.None;
+                    road.Player.HP = road.Player.MaxHP;
+                    road.OverworldMove(i % 2 == 0 ? 1 : -1, 0);
+                }
+                Assert(road.Player.Wounds.Count == 0, "an hour on the road mends a graze");
+
+                // The Fighter's manual teaches the strikes the hero's level allows.
+                var f = Game.NewGameWithRole(5, "fighter");
+                f.Monsters.Clear();
+                var manual = f.Player.Inventory.Find(i => i.Def.Name == Abilities.StrikesBook);
+                Assert(manual != null, "the Fighter carries the manual of strikes");
+                f.StudyBook(manual);
+                Assert(f.Player.Abilities.Contains("hamstring") && !f.Player.Abilities.Contains("lunge"), "level 1 learns Hamstring and not Lunge");
+                var w = Game.NewGameWithRole(5, "wizard");
+                w.Player.Abilities.Clear();
+                w.StudyBook(manual);
+                Assert(w.Player.Abilities.Count == 0, "a wizard cannot follow the drills");
+
+                // Portuguese.
+                Loc.Current = Lang.Pt;
+                Assert(Loc.T("The orc's left arm is severed.").Contains("decepado"), "severed in Portuguese: " + Loc.T("The orc's left arm is severed."));
+                Assert(Loc.T("The jackal turns to flee.") != "The jackal turns to flee.", "fleeing in Portuguese");
+            }
+            finally { Loc.Current = old; }
         }
         /// <summary>Bodies and wounds (docs/todo.md, Depth track 1): parts by plan, severity from damage, effects, bleeding, mending, scars, Portuguese.</summary>
         static void MaterialsAndWear()

@@ -201,7 +201,7 @@ namespace Ossuary.Core
         public void ServeSentence()
         {
             int days = SentenceDays(BountyHere());
-            World.AdvanceTime(24 * days);
+            PassHours(24 * days);
             Player.Nutrient = Math.Max(Math.Min(Player.Nutrient, 400), Player.Nutrient - 40 * days);
             Player.HP = Math.Max(1, Player.HP);
             ClearBountyHere();

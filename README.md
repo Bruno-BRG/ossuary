@@ -5,7 +5,7 @@
 **A dark-fantasy ASCII roguelike.** The world threw its dead, its kings and its gods into one pit.
 You climb down to steal what is left.
 
-![Version 15](https://img.shields.io/badge/version-15-c8a050?style=flat-square)
+![Version 16](https://img.shields.io/badge/version-16-c8a050?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-5fa85f?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-Windows%20x64-4a6ea8?style=flat-square)
 ![Engine](https://img.shields.io/badge/engine-C%23%20.NET%2010-7c4dff?style=flat-square)
@@ -26,11 +26,12 @@ Descend through the Ossuary, take the **Amulet of Yendor**, and bring it back to
 fixed 8×16 bitmap font on a CRT-style terminal; the world is a turn-based dungeon crawl with a living overworld above it.
 The seed *is* the save: same seed, same keys, same run.
 
-### What is in **version 15**
+### What is in **version 16**
 
 | | |
 |---|---|
-| ⚒️ **Iron and craft** *(new)* | Gear is made of something: copper, bronze, steel, silver, cold iron, mithril, adamantine, obsidian, bone, wood. Silver sears the dead, gear wears and breaks, the smith repairs it. And anyone can live by a trade: 16 of them (smith, armourer, alchemist, cook, luthier, miner…), about 100 recipes, gathering on the road, music for coin, masters and commissions. You never have to go down. |
+| 🪓 **Blood and bone** *(new)* | Aim your blows (`Shift+F`): at the legs, the weapon arm, the eyes, the wings. Edges sever monster limbs, a mangled arm drops its weapon, a broken wing brings a flier down, crippled beasts run and blinded ones swing wild. Bandages, fire that cauterises, scars people notice, snakes, and a Fighter's manual of strikes paid with Vigor. |
+| ⚒️ **Iron and craft** | Gear is made of something: copper, bronze, steel, silver, cold iron, mithril, adamantine, obsidian, bone, wood. Silver sears the dead, gear wears and breaks, the smith repairs it. And anyone can live by a trade: 16 of them (smith, armourer, alchemist, cook, luthier, miner…), about 100 recipes, gathering on the road, music for coin, masters and commissions. You never have to go down. |
 | 🩸 **Flesh and bone** | A hit lands somewhere: legs break and you limp, arms spoil your aim, a blow to the head stuns, cut eyes see less, wounds bleed, heal and leave scars. Monsters too, each with its own body. |
 | ✨ **Spells you can see** | 322 spells in 8 schools, and every one is animated: a fireball is a ball of fire that flies and bursts, lightning forks, meteors fall. |
 | 📖 **55 spellbooks** | Wizard, necromancer, cleric/paladin, ranger (nature) and rogue (shadow) each have about fifty spells to find, in five depth tiers. |
@@ -64,10 +65,10 @@ The seed *is* the save: same seed, same keys, same run.
 
 ## Install (players)
 
-Download the installer `Ossuary_0.15.0_x64-setup.exe` (Windows x64) from a [release](https://github.com/Bruno-BRG/ossuary/releases)
+Download the installer `Ossuary_0.16.0_x64-setup.exe` (Windows x64) from a [release](https://github.com/Bruno-BRG/ossuary/releases)
 or the build output, and run it. No SDK is needed. WebView2 is required (preinstalled on Windows 11).
 
-> The public name of a release is just **Version N** (this one is **Version 15**). Installers and manifests use the matching
+> The public name of a release is just **Version N** (this one is **Version 16**). Installers and manifests use the matching
 > `0.N.0`, because Windows installers and npm/Cargo want three numbers.
 
 ## Build from source
@@ -84,7 +85,7 @@ The full guide is in [INSTALL.md](INSTALL.md) ([pt-BR](INSTALL.pt-BR.md)). Quick
 ## Controls
 
 Arrow keys, numpad or `hjkl` move; `yubn` are diagonals. `i` inventory, `c` character, `g` pick up, `>` / `<` stairs,
-`Shift+Z` spells, `r` read, `z` zap a wand, `q` quaff, `P` put on a ring or amulet, `?` help, `F2` options, `F3` CRT, `F4` palette, `F11` fullscreen.
+`Shift+Z` spells, `Shift+V` abilities, `Shift+F` aim at a body part, `r` read, `z` zap a wand, `q` quaff, `P` put on a ring or amulet, `?` help, `F2` options, `F3` CRT, `F4` palette, `F11` fullscreen.
 
 - In towns, bump into a person to talk, and into a counter, notice board or altar to trade.
 - In the spell list, `←`/`→` switch school, a letter or `Enter` casts, `◆` marks spells lent by your gear.

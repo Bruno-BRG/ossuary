@@ -645,6 +645,7 @@ namespace Ossuary.Core
                 int limp = Bodies.Limp(p);
                 if (limp > 0) Pill(limp == 1 ? "LIMPING" : "CRAWLING", theme.Warn);
                 else if (p.Wounds.Count > 0 && !Bodies.Bleeding(p)) Pill("WOUNDED", theme.Warn);
+                if (p.Aim != null) Pill(Loc.T("AIM") + " " + Loc.T(p.Aim.Value.ToString().ToUpperInvariant()), theme.Info);
                 foreach (var kv in p.Buffs) Pill(Spells.BuffLabel(kv.Key).ToUpperInvariant(), theme.Info);
                 y++;
             }

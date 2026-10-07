@@ -110,6 +110,7 @@ namespace Ossuary.Core
                 a.BurnTurns = 4;
                 Say($"The {m.TheName} catches fire!", MessageKind.Good);
             }
+            if (a.BurnTurns > 0) Cauterise(a);
             if (Map != null && SurfaceInfo.Flammable(Map.SurfaceAt(a.X, a.Y))) PutSurface(a.X, a.Y, SurfaceKind.Fire, 4);
         }
 

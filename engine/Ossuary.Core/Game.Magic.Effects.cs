@@ -230,6 +230,9 @@ namespace Ossuary.Core
             {
                 Say($"{verb} the {m.TheName} for {dmg} damage.", MessageKind.Combat);
                 if (!m.Ally) { m.Alert = 1; m.Dormant = false; }
+                // Force, frost, lightning and fire break bodies like a blow (fire never leaves a cut that bleeds); poison and the rest only sicken.
+                if (type == DamageType.Physical || type == DamageType.Cold || type == DamageType.Lightning || type == DamageType.Fire)
+                    WoundFrom(m, new AttackResult { Hit = true, Damage = dmg }, false, false);
             }
             Aftermath(m, type, dmg, res);
             return dmg;
@@ -399,6 +402,7 @@ namespace Ossuary.Core
                     var res = Battles.MeleeAttack(a, foe, Rng);
                     if (res.Hit) foe.Asleep = false;
                     Say(res.Hit ? $"The {a.Name} hits the {foe.TheName} for {res.Damage}." : $"The {a.Name} misses the {foe.TheName}.", MessageKind.Combat);
+                    if (Bodies.Wounding(res.Kind)) WoundFrom(foe, res, Bodies.EdgedAttack(res.Kind), false);
                     if (res.Killed) { _killByAlly = true; KillMonster(foe); }
                     else if (res.Hit) { foe.Alert = 1; foe.Dormant = false; }
                     return;
@@ -446,6 +450,7 @@ namespace Ossuary.Core
                 if (!a.Ally || a.IsDead || Pathfinder.Chebyshev(m.X, m.Y, a.X, a.Y) != 1) continue;
                 var res = Battles.MeleeAttack(m, a, Rng);
                 if (res.Hit) Say($"The {m.Name} hits the {a.Name}.", MessageKind.Combat);
+                if (Bodies.Wounding(res.Kind)) WoundFrom(a, res, Bodies.EdgedAttack(res.Kind), false);
                 if (res.Killed) { Say($"The {a.Name} is destroyed.", MessageKind.Info); a.HP = 0; Monsters.Remove(a); Map.Version++; }
                 return true;
             }

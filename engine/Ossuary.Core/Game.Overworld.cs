@@ -24,7 +24,7 @@ namespace Ossuary.Core
             World.PlayerX = nx;
             World.PlayerY = ny;
             World.CurrentRegionName = World.RegionAt(nx, ny).Name;
-            World.AdvanceTime(1);
+            PassHours(1);
             World.Discover(5);
 
             var t = World.Get(nx, ny);
@@ -60,7 +60,7 @@ namespace Ossuary.Core
             if (!ActiveEncounter) return;
             EncounterMonster = null;
             ActiveEncounter = false;
-            World.AdvanceTime(1);
+            PassHours(1);
             Say("You break away and run.", MessageKind.Neutral);
         }
 
@@ -70,9 +70,9 @@ namespace Ossuary.Core
             var m = EncounterMonster;
 
             bool crit;
-            var res = Battles.PlayerMelee(Player, m, Rng, out crit);
+            var res = Battles.PlayerMelee(Player, m, Rng, out crit, 1, -Bodies.AimPenalty(Player.Aim));
             Say(res.Message, res.Killed ? MessageKind.Kill : MessageKind.Combat);
-            WoundFrom(m, res, Bodies.EdgedWeapon(Player), crit);
+            WoundFrom(m, res, Bodies.EdgedWeapon(Player), crit, Player.Aim);
             AfterBlow(res, crit);
 
             if (res.Killed)
@@ -89,7 +89,7 @@ namespace Ossuary.Core
                 if (leveled) AnnounceLevelUp();
                 ActiveEncounter = false;
                 EncounterMonster = null;
-                World.AdvanceTime(1);
+                PassHours(1);
                 return;
             }
 
@@ -97,7 +97,7 @@ namespace Ossuary.Core
             Say(back.Message, back.Killed ? MessageKind.Death : MessageKind.Combat);
             if (Bodies.Wounding(back.Kind)) WoundFrom(Player, back, Bodies.EdgedAttack(back.Kind), false);
             ArmourTakesBlow(back);
-            World.AdvanceTime(1);
+            PassHours(1);
             CheckDeath();
         }
 
@@ -125,7 +125,7 @@ namespace Ossuary.Core
             World.PlayerX = x;
             World.PlayerY = y;
             World.CurrentRegionName = to.Name;
-            World.AdvanceTime(hours);
+            PassHours(hours);
             World.Discover(Math.Max(5, dist / 3));
 
             if (from.Name != to.Name) Say($"You travel {hours} hours into {to.Name}.", MessageKind.Narrative);

@@ -51,7 +51,7 @@ namespace Ossuary.Core.Entities
                 Description = "Holds the line. Strong and hardy, slow to learn magic.",
                 StrMod = 2, ConMod = 2, DexMod = 1, IntMod = -1,
                 StartPerks = new[] { "power-strike" }, MpBase = 0, MpPerLevel = 0, SkillCaps = new Dictionary<Skill, int> { { Skill.Magic, 40 } }, HpPerLevel = 5, Gold = 20, Rations = 2,
-                Weapon = "short sword", Armor = "ring mail",
+                Weapon = "short sword", Armor = "ring mail", Book = Abilities.StrikesBook,
                 StartingSkills = new Dictionary<Skill, int> { { Skill.Combat, 10 }, { Skill.Survival, 5 } },
                 Titles = new[] { "Squire", "Warrior", "Knight", "Champion" },
             },

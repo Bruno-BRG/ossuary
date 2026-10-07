@@ -77,6 +77,7 @@ namespace Ossuary.Core
             new KeyAction("eat", "Eat", "Items", "KeyE", new[] { "KeyE" }),
 
             new KeyAction("fire", "Fire at target", "Combat", "KeyF", new[] { "KeyF", "KeyQ" }),
+            new KeyAction("aim", "Aim at a body part", "Combat", "Shift+KeyF", new[] { "Shift+KeyF" }),
             new KeyAction("kick", "Kick / attack ahead", "Combat", "Shift+KeyK", new[] { "Shift+KeyK" }),
             new KeyAction("use", "Use key", "Combat", "Shift+KeyU", new[] { "Shift+KeyU" }),
             new KeyAction("door", "Open door", "Combat", "Shift+KeyD", new[] { "Shift+KeyD" }),

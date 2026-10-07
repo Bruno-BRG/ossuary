@@ -52,6 +52,7 @@ namespace Ossuary.Core
                 case "d": return DoDrop();
                 case "a": return DoApply();
                 case "f": return DoShoot();
+                case "aim": _g.CycleAim(); return true;
                 case "w": return DoWield();
                 case "W": return DoWear();
                 case "T": return DoRemoveArmor();
@@ -319,6 +320,7 @@ namespace Ossuary.Core
             if (tool.Name == "pick-axe") { _g.PushTargeting(TargetingMode.Dig); return true; }
             if (tool.Name == "lock pick") { _g.PushTargeting(TargetingMode.PickLock); return true; }
             if (tool.Name == "molotov") { _g.UiState.ThrowItem = tool; _g.PushTargeting(TargetingMode.Throw); return true; }
+            if (tool.Name == "bandage") { _g.ApplyBandage(tool); return true; }
             if (Trades.IsInstrument(tool)) { _g.PlayInstrument(tool); return true; }
             _g.Say($"You cannot work out how to use {tool.Name}.", MessageKind.Info);
             return true;

@@ -5,6 +5,20 @@
 Ossuary versions are a **single number** (Version 11, Version 12…), as in *Project Zomboid*. In the manifests (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) and in the installer name the version appears as `0.N.0`. The **save format** (`SaveData.Version`) uses the same number: change a rule, bump it, old saves stop loading.
 
+## Version 16 — Blood and bone
+
+### Combat and bodies
+- **Called shots.** Shift+F picks where you aim: head, arms, legs, eyes, wings or tail. Smaller targets are harder to hit, and an aimed hit always leaves a mark.
+- **Severed parts.** A heavy edge can take off a monster's arm, leg, wing or tail. A mangled arm drops its weapon and hits half as hard; a broken wing brings a flier down.
+- **Wounded monsters act like it.** A crippled creature at half health turns and runs; one with both eyes cut swings at random, sometimes into its friends.
+- **More wounds.** Monsters wound each other, and force, frost, lightning and fire spells break bodies too. Vipers and giant pythons arrive with a serpent's body.
+- **Bandages.** Every hero starts with two; the temple sells them and a tailor cuts three from a cloth. They stop bleeding and double the pace of mending. Fire sears cuts shut, and hours on the road count toward healing.
+- **Scars that count.** A scar on the face costs a point of Charisma, scars make road bandits think twice, and townsfolk notice them.
+- **Martial techniques.** The Fighter carries a manual of strikes: Hamstring, Disarming Blow, Skull Crack and Lunge, learned by level and paid with Vigor.
+
+### Saves
+- The save format moves to **16**: Version 15 saves do not load.
+
 ## Version 15 — Iron and craft
 
 ### Materials

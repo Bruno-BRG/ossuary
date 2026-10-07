@@ -66,6 +66,7 @@ namespace Ossuary.Core
             var res = Battles.MeleeAttack(m, rival, Rng);
             if (Map.IsVisible(m.X, m.Y) || Map.IsVisible(rival.X, rival.Y))
                 Say(res.Hit ? $"The {m.Name} fights the {rival.Name}: {res.Damage} damage." : $"The {m.Name} swings at the {rival.Name} and misses.", MessageKind.Info);
+            if (Bodies.Wounding(res.Kind)) WoundFrom(rival, res, Bodies.EdgedAttack(res.Kind), false);
             if (res.Killed)
             {
                 rival.HP = 0;

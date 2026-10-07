@@ -60,6 +60,41 @@ namespace Ossuary.Core
             switch (id)
             {
                 case "power-strike": Blow(target, 2, 2, "power strike"); break;
+                case "hamstring":
+                    {
+                        int tx2 = target.X, ty2 = target.Y;
+                        Fx((tl, s) => FxLib.Slash(tl, s, tx2, ty2, Elem.Blood));
+                        Blow(target, 1, 0, "hamstring", PartKind.Leg, 1);
+                        break;
+                    }
+                case "disarming-blow":
+                    {
+                        int tx2 = target.X, ty2 = target.Y;
+                        Fx((tl, s) => FxLib.Slash(tl, s, tx2, ty2, Elem.Wind));
+                        Blow(target, 1, 0, "disarming blow", PartKind.Arm, 2);
+                        break;
+                    }
+                case "skull-crack":
+                    {
+                        int tx2 = target.X, ty2 = target.Y;
+                        Fx((tl, s) => FxLib.Shatter(tl, s, tx2, ty2, Elem.Earth, 1));
+                        Blow(target, 1, 0, "skull crack", PartKind.Head, 2);
+                        break;
+                    }
+                case "lunge":
+                    {
+                        int fx0 = p.X, fy0 = p.Y, tx2 = target.X, ty2 = target.Y;
+                        if (Pathfinder.Chebyshev(p.X, p.Y, target.X, target.Y) > 1)
+                        {
+                            int sx = p.X + Math.Sign(target.X - p.X), sy = p.Y + Math.Sign(target.Y - p.Y);
+                            if (!Map.CanStep(p.X, p.Y, sx, sy, false) || MonsterAt(sx, sy) != null) { p.Vigor += ab.Cost; Say("Something is in the way.", MessageKind.Warn); return false; }
+                            p.X = sx; p.Y = sy;
+                            UpdateFov();
+                        }
+                        Fx((tl, s) => FxLib.Bolt(tl, s, fx0, fy0, tx2, ty2, Elem.Wind, '-', 1));
+                        Blow(target, 2, 0, "lunge");
+                        break;
+                    }
                 case "backstab":
                     {
                         bool unaware = target.Asleep || target.Alert == 0 || target.FearTurns > 0 || target.Confused;
@@ -128,21 +163,44 @@ namespace Ossuary.Core
             return true;
         }
 
-        /// <summary>One melee blow with a multiplier. Returns true when the target survives.</summary>
-        bool Blow(Monster target, int mult, int hitBonus, string label)
+        /// <summary>
+        /// One melee blow with a multiplier. A technique names the part it goes for (<paramref name="aim"/>, no penalty, the wound
+        /// <paramref name="bump"/> steps worse); otherwise the hero's own aim applies with its usual cost. Returns true when the target survives.
+        /// </summary>
+        bool Blow(Monster target, int mult, int hitBonus, string label, PartKind? aim = null, int bump = 0)
         {
             bool unaware = target.Asleep || target.Alert == 0 || target.FearTurns > 0 || target.Confused;
+            if (aim == null) { aim = Player.Aim; hitBonus -= Bodies.AimPenalty(aim); }
             var res = Battles.PlayerMelee(Player, target, Rng, out bool crit, mult, hitBonus);
             if (res.Killed) { _killSneak = unaware; _killType = DamageType.Physical; }
             if (res.Hit) target.Asleep = false;
             Say(res.Message, res.Killed ? MessageKind.Kill : MessageKind.Combat);
-            WoundFrom(target, res, Bodies.EdgedWeapon(Player), crit);
+            WoundFrom(target, res, Bodies.EdgedWeapon(Player), crit, aim, bump);
             AfterBlow(res, crit);
             if (res.Hit) MeleeProcs(target, res.Damage, !res.Killed);
             Player.GainSkill(Skill.Combat, res.Hit ? 1 : 0);
             if (res.Killed) { KillMonster(target); return false; }
             if (res.Hit) { target.Alert = 1; target.Dormant = false; }
             return res.Hit && !target.IsDead;
+        }
+
+        /// <summary>Reading the manual of strikes: the drilled roles learn every technique their level allows; the rest wait.</summary>
+        void StudyStrikes()
+        {
+            var p = Player;
+            if (Array.IndexOf(Abilities.Drilled, p.RoleId) < 0) { Say("The drills assume years in a shield wall you never stood in.", MessageKind.Info); return; }
+            if (p.Blinded || p.Confused) { Say("You cannot read like this."); return; }
+            int learned = 0, next = 0;
+            foreach (var t in Abilities.Techniques())
+            {
+                if (p.Abilities.Contains(t.Id)) continue;
+                if (t.Level > p.Level) { if (next == 0 || t.Level < next) next = t.Level; continue; }
+                p.Abilities.Add(t.Id);
+                learned++;
+                Say($"You learn {t.Name}!", MessageKind.Good);
+            }
+            if (learned == 0) Say(next > 0 ? $"You know every drill you are ready for. The next asks for level {next}." : "You already know every strike in the manual.", MessageKind.Info);
+            else { p.GainSkill(Skill.Combat, 2 * learned); if (Mode == GameMode.Dungeon || Mode == GameMode.TownMap) EndPlayerTurn(); }
         }
     }
 }

@@ -202,6 +202,7 @@ namespace Ossuary.Core.Items
                 T("mirror",            '(',  10,  2, ItemClass.Light),
                 T("blindfold",         '(',  50,  2, ItemClass.Light),
                 T("unicorn horn",      '(', 100, 20, ItemClass.None, ItemFlags.Special),
+                T("bandage",           '(',   6,  1, ItemClass.Light),
             };
 
             AddMoreItems();
@@ -210,6 +211,7 @@ namespace Ossuary.Core.Items
             foreach (var bk in Magic.Spells.BookList) books.Add(new ItemDef { Name = bk.Name, Glyph = '+', Kind = ItemKind.Book, Cost = bk.Cost, Weight = 40, Tier = bk.Tier, Flags = ItemFlags.Uncursed });
             books.Add(B("a book of stone lore",  '+', 120));
             books.Add(B("a guidebook to the deep",'+', 80));
+            books.Add(B(Entities.Abilities.StrikesBook,   '+', 150));
             _books = books.ToArray();
 
             _ornaments = new[] {
