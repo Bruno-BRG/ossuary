@@ -121,6 +121,8 @@ namespace Ossuary.Core.Entities
         public readonly List<string> Mutated = new List<string>();
         /// <summary>Body parts that carry a scar from a wound that healed after being torn, broken or worse.</summary>
         public readonly List<string> Scars = new List<string>();
+        /// <summary>The part the hero's blows and shots aim for (Shift+F cycles it); null strikes wherever they land.</summary>
+        public PartKind? Aim;
         public int Turns;
         public bool InsideDungeon;
         public string CurrentBranch = "";

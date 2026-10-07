@@ -5,6 +5,20 @@
 As versões do Ossuary são numeradas só com **um número** (Versão 11, Versão 12…), como no *Project Zomboid*. Nos manifestos (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) e no nome do instalador a versão aparece como `0.N.0`. O **salvamento** (`SaveData.Version`) usa o mesmo número: mudou regra, sobe o número, saves antigos deixam de carregar.
 
+## Versão 16 — Sangue e osso
+
+### Combate e corpos
+- **Golpes mirados.** Shift+F escolhe onde mirar: cabeça, braços, pernas, olhos, asas ou cauda. Alvos menores são mais difíceis de acertar, e um golpe mirado sempre deixa marca.
+- **Partes decepadas.** Um fio pesado pode arrancar o braço, a perna, a asa ou a cauda de um monstro. Um braço destroçado larga a arma e bate com metade da força; uma asa quebrada derruba quem voa.
+- **Monstros feridos agem como feridos.** Uma criatura aleijada com metade da vida se vira e foge; uma com os dois olhos cortados golpeia às cegas, às vezes nos próprios aliados.
+- **Mais ferimentos.** Monstros ferem uns aos outros, e magias de força, gelo, raio e fogo também quebram corpos. Víboras e pítons gigantes chegam com corpo de serpente.
+- **Ataduras.** Todo herói começa com duas; o templo vende e um alfaiate corta três de um pano. Elas param o sangramento e dobram o ritmo da cura. O fogo cauteriza cortes, e as horas na estrada contam para sarar.
+- **Cicatrizes que contam.** Uma cicatriz no rosto custa um ponto de Carisma, cicatrizes fazem bandidos da estrada pensarem duas vezes, e o povo das cidades repara nelas.
+- **Técnicas marciais.** O Guerreiro carrega um manual de golpes: Jarrete, Golpe Desarmante, Racha-Crânio e Estocada, aprendidos por nível e pagos com Vigor.
+
+### Salvamentos
+- O formato de salvamento passa para **16**: saves da Versão 15 não carregam.
+
 ## Versão 15 — Ferro e ofício
 
 ### Materiais

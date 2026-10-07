@@ -770,7 +770,7 @@ namespace Ossuary.Core
                 case ShopKind.Jewel: return d.Kind == ItemKind.Ring || d.Kind == ItemKind.Amulet || d.Kind == ItemKind.Gem || d.Kind == ItemKind.Ornament;
                 case ShopKind.Book: return d.Kind == ItemKind.Book || d.Kind == ItemKind.Scroll;
                 case ShopKind.General: return d.Kind == ItemKind.Tool || d.Kind == ItemKind.Ornament || d.Kind == ItemKind.Gem || d.Kind == ItemKind.Rock || d.Kind == ItemKind.Food || d.Kind == ItemKind.Material;
-                case ShopKind.Temple: return d.Kind == ItemKind.Scroll || d.Kind == ItemKind.Book;
+                case ShopKind.Temple: return d.Kind == ItemKind.Scroll || (d.Kind == ItemKind.Book && d.Name != Entities.Abilities.StrikesBook) || d.Name == "bandage";
                 default: return false;
             }
         }

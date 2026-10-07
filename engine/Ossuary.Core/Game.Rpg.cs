@@ -38,6 +38,7 @@ namespace Ossuary.Core
             Player.Inventory.Add(new Item(ration, Rng, NextUid()) { Identified = true, Quantity = role.Rations });
             if (!string.IsNullOrEmpty(role.Tool))
                 Player.Inventory.Add(new Item(KitDef(role.Tool, Catalogue.Tools, "lock pick"), Rng, NextUid()) { Identified = true });
+            Player.Inventory.Add(new Item(KitDef("bandage", Catalogue.Tools, null), Rng, NextUid()) { Identified = true, Quantity = 2 });
         }
 
         static ItemDef KitDef(string name, IReadOnlyList<ItemDef> list, string fallback)

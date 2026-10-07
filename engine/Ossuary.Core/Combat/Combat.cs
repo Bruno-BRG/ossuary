@@ -64,6 +64,8 @@ namespace Ossuary.Core
 
             int dmg = rng.Roll(dice, sides, 0);
             dmg += bonusDamage;
+            // A ruined weapon arm: whatever it struck with, it strikes with half the force.
+            if (attacker.Disarmed && (kind == AttackKind.Hit || kind == AttackKind.Pierce || kind == AttackKind.PierceOrHit || kind == AttackKind.HitOrClaw)) dmg /= 2;
             if (dmg < 1) dmg = 1;
 
             defender.HP -= dmg;

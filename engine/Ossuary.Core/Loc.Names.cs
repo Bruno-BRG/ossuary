@@ -40,6 +40,7 @@ namespace Ossuary.Core
             N("yellow mold", "mofo amarelo"); N("gray mold", "mofo cinzento"); N("gas spore", "esporo de gás");
             N("little lizard", "lagartinho"); N("floating eye", "olho flutuante"); N("cave spider", "aranha das cavernas", true);
             N("centipede", "centopeia", true); N("human zombie", "zumbi humano"); N("skeleton", "esqueleto");
+            N("viper", "víbora", true); N("giant python", "píton gigante");
             N("gnome mummy", "múmia gnoma", true); N("jackal warden", "guardião chacal"); N("stalker", "espreitador");
             N("troll", "troll"); N("ogre", "ogro"); N("ogre lord", "lorde ogro"); N("hill giant", "gigante da colina");
             N("werenothing", "lobisnada"); N("wood nymph", "ninfa do bosque", true); N("dwarf lord", "lorde anão");
@@ -163,6 +164,7 @@ namespace Ossuary.Core
                 ("bag of holding", "bolsa de contenção", true), ("blindfold", "venda", true), ("candle", "vela", true), ("chest", "baú", false), ("large box", "caixa grande", true),
                 ("lock pick", "gazua", true), ("magic lamp", "lâmpada mágica", true), ("mirror", "espelho", false), ("oilskin sack", "saco impermeável", false),
                 ("pick-axe", "picareta", true), ("tinning kit", "kit de estanhar", false), ("unicorn horn", "chifre de unicórnio", false),
+                ("bandage", "atadura", true),
                 ("ashwood staff", "cajado de freixo", false), ("axe", "machado", false), ("bardiche", "bardiche", true), ("bastard sword", "espada bastarda", true),
                 ("battle axe", "machado de batalha", false), ("bone staff", "cajado de osso", false), ("claymore", "claymore", true), ("club", "clava", true), ("crossbow", "besta", true),
                 ("crystal staff", "cajado de cristal", false), ("cutlass", "alfanje", false), ("dagger", "adaga", true), ("druid's crook", "cajado do druida", false),
@@ -193,6 +195,7 @@ namespace Ossuary.Core
                 ("a bestiary of the unseen", "um bestiário do invisível"), ("a book of grave-bargains", "um livro de barganhas da cova"), ("a book of illusions", "um livro de ilusões"),
                 ("a book of mercy", "um livro da misericórdia"), ("a book of prayers", "um livro de preces"), ("a book of shadows", "um livro de sombras"),
                 ("a book of stone lore", "um livro do saber da pedra"), ("a book of wards", "um livro de proteções"), ("a book of weather", "um livro do clima"),
+                ("a manual of strikes", "um manual de golpes"),
                 ("a book of whispers", "um livro de sussurros"), ("a breviary of the faithful", "um breviário dos fiéis"), ("a charnel primer", "uma cartilha do ossuário"),
                 ("a codex of beast-shapes", "um códice de formas de fera"), ("a codex of storms", "um códice de tempestades"), ("a cutpurse's primer", "uma cartilha do batedor de carteiras"),
                 ("a druid's handbook", "um manual do druida"), ("a folio of flames", "um fólio de chamas"), ("a folio of glamours", "um fólio de encantos"),

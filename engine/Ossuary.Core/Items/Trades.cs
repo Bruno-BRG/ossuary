@@ -246,6 +246,7 @@ namespace Ossuary.Core.Items
             X("tailor", 0, Shop, "cloth", "3 thread"),
             X("tailor", 0, Shop, "cloak", "2 cloth"),
             X("tailor", 0, Shop, "blindfold", "cloth"),
+            X("tailor", 0, Any, "bandage", "cloth", 0, 3),
             X("tailor", 3, Shop, "cloak of elvenkind", "4 cloth + 2 thread + #gem"),
 
             // jeweller (a band or pendant takes a spell from the stone; see Game.Crafting)

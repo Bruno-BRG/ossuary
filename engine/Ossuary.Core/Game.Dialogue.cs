@@ -37,6 +37,7 @@ namespace Ossuary.Core
             Talking = m;
             if (!_dialogueFromCounter) TalkBuilding = DialogueBuilding;
             UiState.Active = Panel.Service;
+            NoticeScar(m);
             d.OnOpen?.Invoke(this, m);
             Goto(Dialogue.Start);
         }

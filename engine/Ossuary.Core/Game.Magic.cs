@@ -228,6 +228,7 @@ namespace Ossuary.Core
         public void StudyBook(Item book)
         {
             var p = Player;
+            if (book.Def.Name == Abilities.StrikesBook) { StudyStrikes(); return; }
             var ids = Spells.InBook(book.Def.Name);
             if (ids.Length == 0) { Say($"You skim {book.Name}. Nothing in it you can use.", MessageKind.Info); return; }
             if (p.MpMax <= 0) { Say("The symbols mean nothing to you; you have no gift for magic.", MessageKind.Info); return; }

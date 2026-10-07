@@ -120,7 +120,7 @@ namespace Ossuary.Core
                         break;
                     }
                 case "camp:rest":
-                    p.HP = p.MaxHP; p.Mp = p.MpMax; World.AdvanceTime(8);
+                    p.HP = p.MaxHP; p.Mp = p.MpMax; PassHours(8);
                     Tell("You sleep by the dead fire, one eye open. Nothing comes. (8 hours)", MessageKind.Good);
                     break;
                 case "caravan:buy-rations": if (!Pay(Haggle(20, Houses.Guild))) return false; GiveItem("food ration", 2); Tell("Two rations, wrapped in waxed cloth.", MessageKind.Good); break;
@@ -155,7 +155,7 @@ namespace Ossuary.Core
                     AddRep(Houses.Watch, 5, "putting down road bandits");
                     break;
                 case "toll:bluff":
-                    if (Rng.Range(0, 20) + (Player.Cha - 10) / 2 + RepOf(Houses.Watch) / 10 >= 12) Tell("They look at each other, and at the empty road behind you, and step aside.", MessageKind.Good);
+                    if (Rng.Range(0, 20) + (Player.Cha - 10) / 2 + Intimidation + RepOf(Houses.Watch) / 10 >= 12) Tell("They look at each other, and at the empty road behind you, and step aside.", MessageKind.Good);
                     else { int fee = Math.Min(Player.Gold, 30 + Player.Level * 6); Player.Gold -= fee; Tell($"They are not fooled, and they are not gentle. (-{fee} gold)", MessageKind.Bad); }
                     break;
                 case "corpse:loot":
@@ -212,7 +212,7 @@ namespace Ossuary.Core
                     Tell(TownText.L("They watch you do it. They will remember your face, if they live.", "Eles veem você fazer isso. Vão lembrar do seu rosto, se viverem."), MessageKind.Warn);
                     break;
                 case "corpse:bury":
-                    World.AdvanceTime(1);
+                    PassHours(1);
                     AddRep(Houses.Temple, 4, "burying a stranger");
                     if (p.God == "aurel") AddPiety(3, null);
                     Tell("It takes an hour and a borrowed spade. You say the words you remember.", MessageKind.Good);

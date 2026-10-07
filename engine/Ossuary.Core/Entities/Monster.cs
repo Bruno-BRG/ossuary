@@ -81,6 +81,8 @@ namespace Ossuary.Core.Entities
         /// <summary>Spell states: held fast or stunned (loses its turns), damage over time, and taking extra from every hit.</summary>
         public int HeldTurns, DotTurns, DotDmg, VulnTurns;
         public DamageType DotType;
+        /// <summary>Wounds that changed how it fights: its weapon arm is ruined, it broke and ran once, a wing gave out.</summary>
+        public bool Disarmed, Fled, Grounded;
 
         // Townsfolk: bestiary bodies used as people. They never start a fight; bumping one talks to it.
         public bool Townsperson;

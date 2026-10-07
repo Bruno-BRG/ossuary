@@ -448,11 +448,11 @@ namespace Ossuary.Core
             }
             bool crit;
             bool unaware = target.Asleep || target.Alert == 0 || target.FearTurns > 0 || target.Confused;
-            var res = Battles.PlayerMelee(Player, target, Rng, out crit);
+            var res = Battles.PlayerMelee(Player, target, Rng, out crit, 1, -Bodies.AimPenalty(Player.Aim));
             if (res.Hit) target.Asleep = false;
             if (res.Killed) { _killSneak = unaware; _killType = DamageType.Physical; }
             Say(res.Message, res.Killed ? MessageKind.Kill : MessageKind.Combat);
-            WoundFrom(target, res, Bodies.EdgedWeapon(Player), crit);
+            WoundFrom(target, res, Bodies.EdgedWeapon(Player), crit, Player.Aim);
             AfterBlow(res, crit);
             Map.Version++;
             if (res.Hit) MeleeProcs(target, res.Damage, !res.Killed);
@@ -688,6 +688,7 @@ namespace Ossuary.Core
             if (dist == 1)
             {
                 if (Player.BuffTurns("sanctuary") > 0 && Rng.Chance(70)) return;   // a hush: it cannot bring itself to strike
+                if (WildSwing(m)) return;
                 if (m.Def.Explodes)
                 {
                     int dmg = Rng.Range(4, 12);

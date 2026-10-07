@@ -123,6 +123,8 @@ Magic items show only "magical ..." until wielded/worn or identified.
 
 `Shift+V` opens abilities (they spend Vigor; adjacent ones hit the single hostile neighbor, otherwise open the aim).
 `Shift+C` opens the advances panel (opens by itself on level-up): arrows or letter choose, `Enter` takes.
+`Shift+F` picks the body part to aim for (anywhere, head, arms, legs, eyes, wings, tail); it costs no turn and shows as AIM in the sidebar.
+`a` on a bandage binds your wounds.
 
 ## Magic
 

@@ -79,6 +79,10 @@ namespace Ossuary.Core.Entities
               new[] { AttackKind.Bite }, new[] { 1 }, new[] { 2 }, new[] { 0 }, 6, 4, 4, flys: true);
             M("centipede", 'S', 0xC0A040, 3, 14, 6, 12, 50, 3, 18, AiKind.Hunt, Alignment.Neutral,
               new[] { AttackKind.Bite }, new[] { 1 }, new[] { 3 }, new[] { 0 }, 6, 4, 4);
+            M("viper", 'S', 0x70A040, 2, 9, 7, 15, 100, 2, 12, AiKind.Ambush, Alignment.Neutral,
+              new[] { AttackKind.Bite }, new[] { 1 }, new[] { 4 }, new[] { 0 }, 6, 3, 3);
+            M("giant python", 'S', 0x907040, 6, 30, 6, 9, 1500, 7, 20, AiKind.Hunt, Alignment.Neutral,
+              new[] { AttackKind.Bite, AttackKind.Grab }, new[] { 1, 1 }, new[] { 6, 4 }, new[] { 1, 1 }, 7, 8, 8);
             M("human zombie", 'Z', 0xA0C090, 4, 16, 8, 6, 1450, 4, 25, AiKind.Hunt, Alignment.Neutral,
               new[] { AttackKind.ClawOrBite, AttackKind.Grab }, new[] { 1, 1 }, new[] { 3, 3 }, new[] { 2, 2 }, 8, 6, 8,
               undead: true, mindless: true, corpse: 10);

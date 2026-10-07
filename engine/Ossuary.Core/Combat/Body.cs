@@ -52,8 +52,12 @@ namespace Ossuary.Core
         public int Bleed;
         /// <summary>Turns until it mends by itself (the hero only).</summary>
         public int HealIn;
+        /// <summary>Cut clean off (monsters only): it never mends and counts as the worst wound there is.</summary>
+        public bool Severed;
+        /// <summary>Bound with a bandage: it stopped bleeding and mends twice as fast.</summary>
+        public bool Bound;
 
-        public string Adjective => Bodies.Adjective(Severity, Edged);
+        public string Adjective => Severed ? "severed" : Bodies.Adjective(Severity, Edged);
     }
 
     public static class Bodies
@@ -88,7 +92,12 @@ namespace Ossuary.Core
             P("left wing", PartKind.Wing, 8), P("right wing", PartKind.Wing, 8),
             P("tail", PartKind.Tail, 6));
 
-        public static readonly BodyPlan[] All = { Humanoid, Quadruped, Insect, Winged, Dragon };
+        /// <summary>Snakes move with the length behind the head: a broken tail leaves them crawling.</summary>
+        public static readonly BodyPlan Serpent = new BodyPlan("serpent", PartKind.Tail,
+            P("head", PartKind.Head, 18), P("body", PartKind.Torso, 46), P("tail", PartKind.Tail, 32),
+            P("right eye", PartKind.Eye, 2), P("left eye", PartKind.Eye, 2));
+
+        public static readonly BodyPlan[] All = { Humanoid, Quadruped, Insect, Winged, Dragon, Serpent };
 
         /// <summary>The plan of an actor; null for things with no body to break (moulds, eyes, wraiths, elementals, swarms, illusions).</summary>
         public static BodyPlan PlanOf(Actor a) => a is Monster m ? PlanFor(m.Def) : Humanoid;
@@ -99,6 +108,7 @@ namespace Ossuary.Core
             if (n.Contains("swarm") || n.Contains("mirror image") || n.Contains("shadow double") || n.Contains("spectral") || n.Contains("spiritual")
                 || n.Contains("elemental") || n.Contains("wraith") || n == "werenothing") return null;
             if (n == "grid bug") return Insect;
+            if (n.Contains("snake") || n.Contains("viper") || n.Contains("python") || n.Contains("adder") || n.Contains("serpent")) return Serpent;
             switch (d.Glyph)
             {
                 case '*': case '/': case 'e': case 'F': case 'j': case 'b': case 'P': case 'v': return null;
@@ -120,7 +130,7 @@ namespace Ossuary.Core
 
         static readonly string[] EdgedWords = { "", "grazed", "cut", "torn", "mangled" };
         static readonly string[] BluntWords = { "", "bruised", "battered", "broken", "crushed" };
-        public static IEnumerable<string> AllAdjectives() { for (int i = 1; i <= 4; i++) { yield return EdgedWords[i]; yield return BluntWords[i]; } }
+        public static IEnumerable<string> AllAdjectives() { for (int i = 1; i <= 4; i++) { yield return EdgedWords[i]; yield return BluntWords[i]; } yield return "severed"; }
         public static string Adjective(int severity, bool edged) => (edged ? EdgedWords : BluntWords)[Math.Max(1, Math.Min(4, severity))];
 
         /// <summary>
@@ -212,6 +222,39 @@ namespace Ossuary.Core
         }
 
         public static bool Bleeding(Actor a) { foreach (var w in a.Wounds) if (w.Bleed > 0) return true; return false; }
+
+        /// <summary>Every eye it has is cut or worse: it fights by sound and swings wild.</summary>
+        public static bool Blind(Actor a)
+        {
+            var plan = PlanOf(a);
+            if (plan == null || a.Wounds.Count == 0) return false;
+            int eyes = 0, bad = 0;
+            foreach (var p in plan.Parts) if (p.Kind == PartKind.Eye) eyes++;
+            foreach (var w in a.Wounds) if (w.Kind == PartKind.Eye && w.Severity >= 2) bad++;
+            return eyes > 0 && bad >= eyes;
+        }
+
+        /// <summary>Does this plan have a part of that kind to aim at?</summary>
+        public static bool Has(BodyPlan plan, PartKind kind) { if (plan != null) foreach (var p in plan.Parts) if (p.Kind == kind) return true; return false; }
+
+        /// <summary>What a called shot costs to hit: the smaller the part, the harder.</summary>
+        public static int AimPenalty(PartKind? aim)
+        {
+            if (aim == null) return 0;
+            switch (aim.Value)
+            {
+                case PartKind.Eye: return 5;
+                case PartKind.Head: return 3;
+                case PartKind.Torso: return 0;
+                default: return 2;
+            }
+        }
+
+        /// <summary>The parts a called shot cycles through, in order (null = wherever it lands).</summary>
+        public static readonly PartKind?[] AimCycle = { null, PartKind.Head, PartKind.Arm, PartKind.Leg, PartKind.Eye, PartKind.Wing, PartKind.Tail };
+
+        public static string AimName(PartKind? aim) => aim == null ? "anywhere" : aim.Value == PartKind.Eye ? "the eyes" : aim.Value == PartKind.Arm ? "the arms"
+            : aim.Value == PartKind.Leg ? "the legs" : aim.Value == PartKind.Wing ? "the wings" : aim.Value == PartKind.Tail ? "the tail" : "the head";
 
         /// <summary>Turns a wound of this severity takes to mend by itself.</summary>
         public static int HealTime(int severity) => severity <= 1 ? 80 : severity == 2 ? 250 : severity == 3 ? 900 : 2000;
