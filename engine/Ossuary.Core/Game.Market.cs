@@ -77,7 +77,7 @@ namespace Ossuary.Core
         {
             switch (d.Kind)
             {
-                case ItemKind.Weapon: return "weapons";
+                case ItemKind.Weapon: case ItemKind.Ammo: return "weapons";
                 case ItemKind.Armor: case ItemKind.Shield: case ItemKind.Helm: case ItemKind.Gloves: case ItemKind.Boots: case ItemKind.Cloak: return "armour";
                 case ItemKind.Potion: return "potions";
                 case ItemKind.Scroll: case ItemKind.Book: return "books and scrolls";
@@ -96,7 +96,7 @@ namespace Ossuary.Core
         {
             int v = Math.Max(1, it.TradeValue);
             var k = it.Def.Kind;
-            if (k == ItemKind.Material || k == ItemKind.Food || k == ItemKind.Rock) v *= Math.Max(1, it.Quantity);
+            if (k == ItemKind.Material || k == ItemKind.Food || k == ItemKind.Rock || k == ItemKind.Ammo) v *= Math.Max(1, it.Quantity);
             return v;
         }
 
@@ -138,7 +138,7 @@ namespace Ossuary.Core
         {
             GlutOf(town, cls);
             var m = MarketOf(town);
-            int units = it.Def.Kind == ItemKind.Material || it.Def.Kind == ItemKind.Food || it.Def.Kind == ItemKind.Rock ? 1 + it.Quantity / 5 : 1;
+            int units = it.Def.Kind == ItemKind.Material || it.Def.Kind == ItemKind.Food || it.Def.Kind == ItemKind.Rock || it.Def.Kind == ItemKind.Ammo ? 1 + it.Quantity / 10 : 1;
             m.Glut[cls] = Math.Min(12, (m.Glut.TryGetValue(cls, out int g) ? g : 0) + units);
         }
 

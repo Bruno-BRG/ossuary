@@ -73,6 +73,7 @@ namespace Ossuary.Core.Items
                 case ItemKind.Helm: return n.Contains("leather") ? Stuff.None : Stuff.Mail;
                 case ItemKind.Gloves: return n.Contains("gauntlet") ? Stuff.Mail : Stuff.None;
                 case ItemKind.Shield: return Stuff.Shield;
+                case ItemKind.Ammo: return n.Contains("stone") ? Stuff.None : Stuff.Edge;
                 default: return Stuff.None;
             }
         }

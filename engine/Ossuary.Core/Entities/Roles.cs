@@ -20,6 +20,9 @@ namespace Ossuary.Core.Entities
         public string Armor;
         public string Shield;
         public string Book;
+        /// <summary>A bow, crossbow or sling carried in the pack, and how much it starts with to loose.</summary>
+        public string Launcher;
+        public int AmmoCount;
         public string Tool;
         public Dictionary<Skill, int> StartingSkills = new Dictionary<Skill, int>();
         public string[] Titles = new string[0];
@@ -61,6 +64,7 @@ namespace Ossuary.Core.Entities
                 DexMod = 3, IntMod = 1, StrMod = -1,
                 StartPerks = new[] { "backstab" }, MpBase = 0, MpPerLevel = 1, SkillCaps = new Dictionary<Skill, int> { { Skill.Magic, 50 } }, HpPerLevel = 4, Gold = 40, Rations = 2,
                 Weapon = "dagger", Armor = "leather armour", Tool = "lock pick", Book = "a cutpurse's primer", StartSpells = new[] { "throwing-knives", "hex" },
+                Launcher = "sling", AmmoCount = 15,
                 StartingSkills = new Dictionary<Skill, int> { { Skill.Stealth, 10 }, { Skill.Search, 10 }, { Skill.Dodging, 5 }, { Skill.Magic, 4 } },
                 Titles = new[] { "Footpad", "Thief", "Shadow", "Master Thief" },
             },
@@ -88,6 +92,7 @@ namespace Ossuary.Core.Entities
                 DexMod = 2, WisMod = 1, ConMod = 1, IntMod = -1,
                 StartPerks = new[] { "aimed-shot" }, MpBase = 0, MpPerLevel = 1, MpStat = 'W', SkillCaps = new Dictionary<Skill, int> { { Skill.Magic, 50 } }, HpPerLevel = 5, Gold = 25, Rations = 3,
                 Weapon = "spear", Armor = "leather armour", Book = "a druid's handbook", StartSpells = new[] { "thorn-dart", "barkskin" },
+                Launcher = "short bow", AmmoCount = 30,
                 StartingSkills = new Dictionary<Skill, int> { { Skill.Survival, 10 }, { Skill.Combat, 5 }, { Skill.Stealth, 5 }, { Skill.Magic, 4 } },
                 Titles = new[] { "Tracker", "Hunter", "Warden", "Beastmaster" },
             },

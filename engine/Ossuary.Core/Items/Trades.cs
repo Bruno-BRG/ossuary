@@ -151,6 +151,7 @@ namespace Ossuary.Core.Items
                 Add(Catalogue.Cloaks); Add(Catalogue.Rings); Add(Catalogue.Amulets); Add(Catalogue.Potions); Add(Catalogue.Scrolls); Add(Catalogue.Food);
                 Add(Catalogue.Tools); Add(Catalogue.Ornaments); Add(Catalogue.Misc);
                 Add(new[] { Crafted.Molotov, Crafted.BoneBlade, Crafted.BoneArmour });
+                Add(Ammo.All);
                 Add(Materials.Ores); Add(Bars); Add(Goods); Add(Meals); Add(Instruments); Add(NewTools);
                 _defs = d;
             }
@@ -171,6 +172,9 @@ namespace Ossuary.Core.Items
                 }
             return new RecipeDef { Id = trade + ":" + product, Trade = trade, Rank = rank, Station = st, Product = product, Needs = list.ToArray(), Bars = bars, Qty = qty };
         }
+
+        /// <summary>A second recipe for the same product needs its own id.</summary>
+        static RecipeDef Named(string id, RecipeDef r) { r.Id = id; return r; }
 
         const Station Any = Station.Anywhere, Shop = Station.Workshop, Forge = Station.Forge;
 
@@ -230,6 +234,11 @@ namespace Ossuary.Core.Items
             X("bowyer", 0, Shop, "short bow", "log + 2 thread"),
             X("bowyer", 2, Shop, "crossbow", "2 plank + iron bar + 2 thread"),
             X("bowyer", 3, Shop, "elven bow", "2 log + 3 thread + mithril bar"),
+            // fletching: shafts and fire-hardened points anywhere, metal heads at the forge (silver arrows for the dead)
+            X("bowyer", 0, Any, "arrow", "log + thread", 0, 8),
+            Named("bowyer:headed-arrow", X("bowyer", 1, Forge, "arrow", "log + thread", 1, 12)),
+            X("bowyer", 1, Forge, "crossbow bolt", "plank", 1, 10),
+            X("bowyer", 0, Any, "sling stone", "#rock", 0, 6),
 
             // leatherworker
             X("leatherworker", 0, Any, "leather", "raw hide"),

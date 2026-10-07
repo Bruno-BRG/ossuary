@@ -76,6 +76,7 @@ namespace Ossuary.Core
                 case "train": return DoTrain();
                 case "drink": return DoDrinkFountain();
                 case "x": _g.PushTargeting(TargetingMode.Inspect); return true;
+                case "examine": return DoExamine();
                 case "l": _g.PushTargeting(TargetingMode.Look); return true;
                 case "X": return DoSwapWith();
 
@@ -291,7 +292,7 @@ namespace Ossuary.Core
             for (int i = 0; i < stack.Count; i++)
             {
                 _g.Say($"You pick up {stack[i].Name}.", MessageKind.Good);
-                p.Inventory.Add(stack[i]);
+                _g.Pack(stack[i]);
             }
             GroundItems.RemoveCell(_g.Map.Number, p.X, p.Y);
             _g.Cue("pickup");
@@ -348,6 +349,13 @@ namespace Ossuary.Core
         {
             _g.MakeNoise(2);
             _g.PushTargeting(TargetingMode.Shoot);
+            return true;
+        }
+
+        bool DoExamine()
+        {
+            var it = ChooseItem(Game.ExaminePrompt, _ => true);
+            if (it != null) _g.ExamineItem(it);
             return true;
         }
 
@@ -722,6 +730,7 @@ namespace Ossuary.Core
             if (prompt == Game.OfferPrompt) { _g.OfferItem(chosen); return true; }
             if (prompt == Game.SacrificePrompt) { _g.SacrificeCorpse(chosen); return true; }
             if (prompt == Game.CraftPrompt) { _g.Craft(chosen); return true; }
+            if (prompt == Game.ExaminePrompt) { _g.ExamineItem(chosen); return true; }
             if (prompt == Game.RecipePrompt) return true;
             if (prompt == Game.StallPrompt)
             {

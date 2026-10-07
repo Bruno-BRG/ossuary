@@ -127,7 +127,7 @@ namespace Ossuary.Core
                 case "aimed-shot":
                     {
                         int dist = Pathfinder.Chebyshev(p.X, p.Y, target.X, target.Y);
-                        var res = Battles.PlayerRanged(p, target, dist, Rng, out _, 2, 4);
+                        var res = Loose(target, dist, out _, 2, 4);
                         if (res.Hit) target.Asleep = false;
                         Say(res.Message, res.Killed ? MessageKind.Kill : MessageKind.Combat);
                         WoundFrom(target, res, true, false);

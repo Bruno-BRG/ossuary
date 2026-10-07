@@ -5,7 +5,7 @@
 **Um roguelike ASCII de fantasia sombria.** O mundo jogou seus mortos, seus reis e seus deuses num só poço.
 Você desce para roubar o que sobrou.
 
-![Versão 17](https://img.shields.io/badge/vers%C3%A3o-17-c8a050?style=flat-square)
+![Versão 18](https://img.shields.io/badge/vers%C3%A3o-18-c8a050?style=flat-square)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-5fa85f?style=flat-square)
 ![Plataforma](https://img.shields.io/badge/plataforma-Windows%20x64-4a6ea8?style=flat-square)
 ![Motor](https://img.shields.io/badge/motor-C%23%20.NET%2010-7c4dff?style=flat-square)
@@ -25,11 +25,12 @@ Desça pelo Ossuary, pegue o **Amuleto de Yendor** e traga de volta à luz do di
 num terminal estilo CRT; o jogo é uma exploração de masmorras por turnos com um mundo vivo na superfície.
 A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 
-### O que há na **versão 17**
+### O que há na **versão 18**
 
 | | |
 |---|---|
-| 🪙 **Moeda e caravana** *(novo)* | Cada cidade tem um mercado que se lembra de você: encha um ferreiro de espadas e ele paga menos por dias, uma caravana barateia um tipo de mercadoria, uma estrada saqueada encarece. Dias de feira trazem mercadores de fora, um quadro semanal mostra o que o povo quer e oferece, e você pode alugar um balcão que vende enquanto está fora. Carisma, o humor do comerciante, a Guilda e o nome de um mestre mexem nos preços; pedágios, aluguel e taxas mantêm o ouro valendo. O diário lembra onde as coisas venderam. |
+| 🏹 **Da forja ao mercado** *(novo)* | Arcos, bestas e fundas disparam flechas, virotes e pedras de verdade: cada tiro gasta uma, e você recolhe onde caiu. Faça as suas, com ponta de prata para os mortos. A melhor obra de um mestre às vezes ganha nome e vira relíquia de quem a fez. `Shift+I` examina qualquer coisa: metal, autor, qualidade, desgaste, valor. Os ferreiros da cidade vendem o próprio trabalho assinado. |
+| 🪙 **Moeda e caravana** | Cada cidade tem um mercado que se lembra de você: encha um ferreiro de espadas e ele paga menos por dias, uma caravana barateia um tipo de mercadoria, uma estrada saqueada encarece. Dias de feira trazem mercadores de fora, um quadro semanal mostra o que o povo quer e oferece, e você pode alugar um balcão que vende enquanto está fora. Carisma, o humor do comerciante, a Guilda e o nome de um mestre mexem nos preços; pedágios, aluguel e taxas mantêm o ouro valendo. O diário lembra onde as coisas venderam. |
 | 🪓 **Sangue e osso** | Mire seus golpes (`Shift+F`): nas pernas, no braço da arma, nos olhos, nas asas. Lâminas decepam membros de monstros, um braço destroçado larga a arma, uma asa quebrada derruba quem voa, feras aleijadas fogem e as cegadas golpeiam a esmo. Ataduras, fogo que cauteriza, cicatrizes que as pessoas notam, serpentes e um manual de golpes do Guerreiro pago com Vigor. |
 | ⚒️ **Ferro e ofício** | Todo equipamento é feito de algo: cobre, bronze, aço, prata, ferro frio, mithril, adamantina, obsidiana, osso, madeira. A prata queima os mortos, o equipamento gasta e quebra, o ferreiro conserta. E qualquer um pode viver de um ofício: são 16 (ferreiro, armeiro, alquimista, cozinheiro, luthier, minerador…), cerca de 100 receitas, coleta na estrada, música por moedas, mestres e encomendas. Você nunca precisa descer. |
 | 🩸 **Carne e osso** | Todo golpe acerta algum lugar: perna quebrada faz mancar, braço ferido estraga a mira, golpe na cabeça atordoa, olho cortado enxerga menos, ferimentos sangram, saram e deixam cicatriz. Nos monstros também, cada um com seu corpo. |
@@ -65,10 +66,10 @@ A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 
 ## Instalar (jogadores)
 
-Baixe o instalador `Ossuary_0.17.0_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
+Baixe o instalador `Ossuary_0.18.0_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
 ou na saída do build, e execute. Não precisa de SDK. É preciso o WebView2 (já vem no Windows 11).
 
-> O nome público de uma versão é só **Versão N** (esta é a **Versão 17**), como em *Project Zomboid*. Instaladores e manifestos usam o
+> O nome público de uma versão é só **Versão N** (esta é a **Versão 18**), como em *Project Zomboid*. Instaladores e manifestos usam o
 > `0.N.0` correspondente, porque instalador do Windows, npm e Cargo pedem três números.
 
 ## Compilar do código

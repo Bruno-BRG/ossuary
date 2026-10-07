@@ -106,6 +106,7 @@ namespace Ossuary.Core
             foreach (var t in Items.Trades.All)
                 if (p.TradeXp.TryGetValue(t.Id, out int txp) && txp > 0) trades.Add($"{Loc.U(t.Title)} {txp} ({Loc.U(Items.Trades.RankNames[Items.Trades.Rank(txp)])})");
             if (trades.Count > 0) Line(Loc.T("Trades") + ": " + string.Join(", ", trades));
+            if (p.Works.Count > 0) Line(Loc.T("Named works") + ": " + string.Join(", ", p.Works.ConvertAll(Loc.U)));
 
             var perks = new List<string>();
             foreach (var kv in p.Perks)

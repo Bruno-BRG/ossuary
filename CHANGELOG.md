@@ -5,6 +5,21 @@
 Ossuary versions are a **single number** (Version 11, Version 12…), as in *Project Zomboid*. In the manifests (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) and in the installer name the version appears as `0.N.0`. The **save format** (`SaveData.Version`) uses the same number: change a rule, bump it, old saves stop loading.
 
+## Version 18 — Forge to market
+
+### Crafting, items and the market
+- **Ammunition.** Bows loose arrows, crossbows bolts, slings stones. Each shot spends one; it lands where you aimed and you pick it up again, unless it snapped. A silver or cold iron head is a bane like a blade of that metal. With no launcher, or nothing to loose, you hurl a stone.
+- **Fletching.** Bowyers make arrows from a log and a thread anywhere, metal-headed arrows and bolts at the forge, and sling stones from rocks. A journeyman's headed arrows come out +1.
+- **Rangers and rogues start ready to shoot**: a short bow and 30 arrows, a sling and 15 stones.
+- **Named masterworks.** A master's masterwork sometimes earns a name ("Ashtooth, +3 masterwork steel long sword") and becomes a relic of its maker: worth far more, and listed in the morgue.
+- **Examine an item** (Shift+I): what it is, its numbers, material, maker and quality, engraving, wear and worth.
+- **The town smith's own work.** Smithies and armouries sell a piece their smith made and signed, and smithies sell ammunition by the bundle.
+- Ammunition, goods and food merge into one stack when picked up or made; ammunition trades as weapons and sells by the stack. Goods now show in the inventory.
+- A troubled beggar or scholar no longer gets a favour their own conversation hid.
+
+### Saves
+- The save format moves to **18**: Version 17 saves do not load.
+
 ## Version 17 — Coin and caravan
 
 ### Economy and market

@@ -369,6 +369,20 @@ Any hero can live as a craftsman and never enter the dungeon: gather or buy raw 
   recipe's), quality for gear (crude −1, plain, fine +1, masterwork +2 with the masterwork edge on weapons and the maker's name), a spell for
   a jeweller's band or pendant (`ItemRoller`), and a bonus unit for a master's batches. A turn in the dungeon or town, an hour on the road.
   `Shift+J` lists the whole book (`RecipeBook`), with a dot on what is still out of reach.
+- **Named masterworks**: when a master (20%) or grandmaster (33%, `NamedChance`) rolls a masterwork, it becomes a relic: +3, a proper
+  name (`Masterworks.Coin`, a hash of seed and uid, so naming draws no RNG) in front of what it is (`Item.Title`: "Ashtooth, +3 masterwork
+  steel long sword"), twice the trade value plus 300, a line in the log and a *Named works* line in the morgue (`Player.Works`). Every crafted
+  thing remembers its maker (`Item.Maker`).
+- **Ammunition** (`Items/Ammo.cs`, `Game.Ammo.cs`, `ItemKind.Ammo`): arrows (1d6) for bows, crossbow bolts (1d8) for crossbows, sling
+  stones (1d6) for slings. `f` and Aimed Shot use the launcher in hand, or the first one in the pack that has something to loose
+  (`Quiver`); damage is the ammunition's dice plus the launcher's pull (`Ammo.Pull`: sling 1, bow 2, elven bow and crossbow 3), both
+  enchantments and the head's metal, and a silver or cold iron head is a bane like a blade of that metal. Each shot spends one piece
+  (`Spend`): it lands at the target and stacks there, unless it snapped (arrows 30% on a hit, bolts 20%, stones 10%; a third of that on a
+  miss). No launcher or nothing to loose: a hurled stone, 1d4+1. Bowyer recipes: 8 arrows from a log and a thread anywhere, 12 metal-headed
+  arrows or 10 bolts per bar at the forge (+1 from a journeyman), 6 sling stones from a rock. Rangers start with a short bow and 30 arrows,
+  rogues with a sling and 15 stones; smithies sell bundles; loot has quivers. Ammunition, goods, rocks and food merge into one stack when
+  picked up or made (`Game.Pack`).
+- **Examine** (`Shift+I`, `DescribeItem`): what the thing is, its numbers, material, maker and quality, engraving, wear and worth.
 - **Gathering** (`Shift+G`, `Game.Gather`): on a carcass, butcher it for raw meat and a hide (cook and leatherworker xp). On the road, two
   hours by terrain: forest (logs with an axe, herbs, honey), grass and road (flax, barley, herbs, swiftroot), hills and mountains (ore with a
   pick-axe), swamp (nightshade), water and shore (fish with a rod), ruins (copper ore); then the usual chance of an encounter. Digging rock
@@ -383,7 +397,7 @@ Any hero can live as a craftsman and never enter the dungeon: gather or buy raw 
 - **Shops** stock raw goods without drawing RNG (`Town.Staples`); goods and food sell by the stack (`ShopPrice`).
 - The **molotov** (`Crafted.Molotov`, alchemist rank 0, anywhere) uses `TargetingMode.Throw` → `ThrowAt`: fire on the target and the four
   walkable neighbours, `SetAlight` + fire damage on the monster.
-- Saves move to version 15.
+- Saves move to version 15; ammunition and named masterworks to 18.
 
 ## Companions (`Game.Companions.cs`)
 
@@ -484,7 +498,13 @@ The header shows `▲2`/`▼1`; the map title becomes the building's name.
 ## Economy and market (`Game.Market.cs`, `Loc.Market.cs`)
 
 - **Goods classes** (`GoodsClass`): weapons, armour, potions, books and scrolls, wands, jewellery, food, raw goods, tools.
-  Goods, food and rocks price by the stack (`StackValue`).
+  Ammunition trades as weapons. Goods, food, rocks and ammunition price by the stack (`StackValue`); a bundle of ammunition
+  gluts the market by 1 + qty/10.
+- **Town smiths' work** (`TownGen.LocalWork`): every smithy and armoury sells one piece its smith made and signed
+  (`Item.Maker`, a given name) in bronze, iron or steel, 40% of them fine (+1). Smithies also sell arrows, bolts and sling stones
+  by the bundle, and general stores sling stones.
+- **The hero's name**: signed work sells for a quarter more once the hero is a master (`MastersWork`); a named masterwork is
+  worth twice the piece plus 300 (`Item.TradeValue`).
 - **Town taste** (`TownTaste`): -15..+15% per town and class, a hash of seed, town and class.
 - **Glut** (`TownMarket.Glut`): each sale into a town adds units to its class (1, or 1 + qty/5 for a stack, cap 12); what the
   town pays falls `GlutStep` (6%) per unit and recovers `GlutRecovery` (2) units a day. Stored per town: it is what the hero did.

@@ -64,6 +64,7 @@ namespace Ossuary.Tests
             Test("combat and bodies: called shots, severing, grounding, flight, blindness, bandages, fire, travel, scars, strikes, serpents", CombatAndBodies);
             Test("materials: names, numbers, banes, wear, ore and the smith", MaterialsAndWear);
             Test("crafting for everyone: trades, recipes, forge, gathering, music and workshops", CraftingForEveryone);
+            Test("forge to market: ammunition, fletching, named masterworks, examining, the town smith's work", ForgeToMarket);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -290,6 +291,103 @@ namespace Ossuary.Tests
         }
 
         static int Count(Player p, string name) { int n = 0; foreach (var it in p.Inventory) if (it.Def.Name == name) n += it.Quantity; return n; }
+        /// <summary>Forge to market: ammunition spent and picked up, fletching, named masterworks, examining, and the town smith's signed work.</summary>
+        static void ForgeToMarket()
+        {
+            var old = Loc.Current;
+            try
+            {
+                Loc.Current = Lang.En;
+                // A ranger starts with a bow and a quiver; each shot spends one arrow, and most land where they were aimed.
+                var g = Game.NewHero(5150, "Fletch", "human", "ranger");
+                var p = g.Player;
+                g.Monsters.Clear();
+                Assert(p.Inventory.Exists(i => i.Def.Name == "short bow") && Count(p, "arrow") == 30, "a ranger carries a short bow and 30 arrows");
+                var (bow, quiver) = g.Quiver();
+                Assert(bow != null && bow.Def.Name == "short bow" && quiver != null && quiver.Def.Name == "arrow", "the bow in the pack is fed from the quiver");
+                int tx = p.X + 3, ty = p.Y;
+                for (int x = p.X + 1; x <= tx; x++) g.Map.Set(x, ty, TileKind.Floor);
+                g.UpdateFov();
+                for (int i = 0; i < 10; i++) { g.UiState.Targeting = TargetingMode.Shoot; g.ResolveTargeting(tx, ty); }
+                Assert(Count(p, "arrow") == 20 && g.AmmoSpent == 10, "ten shots spend ten arrows: " + Count(p, "arrow"));
+                var pile = GroundItems.At(g.Map.Number, tx, ty);
+                int landed = 0;
+                if (pile != null) foreach (var it in pile) if (it.Def.Name == "arrow") landed += it.Quantity;
+                Assert(landed >= 1 && landed <= 10 && pile.FindAll(i => i.Def.Name == "arrow").Count == 1, "the arrows land in one bundle: " + landed);
+                p.X = tx; p.Y = ty;
+                new Commands(g).Execute("g");
+                Assert(Count(p, "arrow") == 20 + landed && p.Inventory.FindAll(i => i.Def.Name == "arrow").Count == 1, "picked up, they rejoin the quiver");
+
+                // At a monster: the arrow spends, the hit can land, and a silver head is a bane to the dead.
+                var rat = new Monster(Bestiary.Find("giant rat"), g.Rng) { X = p.X + 2, Y = p.Y, HP = 999 };
+                g.Map.Set(p.X + 1, p.Y, TileKind.Floor); g.Map.Set(p.X + 2, p.Y, TileKind.Floor);
+                g.Monsters.Add(rat); g.UpdateFov();
+                int before = Count(p, "arrow");
+                g.UiState.Targeting = TargetingMode.Shoot; g.ResolveTargeting(rat.X, rat.Y);
+                Assert(Count(p, "arrow") == before - 1, "a shot at a monster spends an arrow");
+                g.Monsters.Clear();
+                var silver = new Item(Def("arrow"), g.Rng, 77) { Identified = true };
+                Materials.Set(silver, Materials.Find("silver"));
+                Assert(silver.Name == "silver arrow" && silver.Mat.Id == "silver", "a silver-headed arrow says so");
+
+                // With no launcher the shot is a hurled stone, and nothing is spent.
+                var f = Game.NewHero(5151, "Rock", "human", "fighter");
+                f.Monsters.Clear();
+                Assert(f.Quiver().Launcher == null, "a fighter has no launcher");
+                for (int x = f.Player.X + 1; x <= f.Player.X + 2; x++) f.Map.Set(x, f.Player.Y, TileKind.Floor);
+                f.UpdateFov();
+                f.UiState.Targeting = TargetingMode.Shoot; f.ResolveTargeting(f.Player.X + 2, f.Player.Y);
+                Assert(f.AmmoSpent == 0 && f.Log.Exists(m => m.Text == "You hurl a stone into empty air."), "no bow, a stone");
+
+                // Fletching: shafts anywhere, metal heads at the forge, and a journeyman's headed arrows are fine work.
+                p.Inventory.Clear();
+                p.Inventory.Add(new Item(Def("log"), g.Rng, 80) { Quantity = 3 });
+                p.Inventory.Add(new Item(Def("thread"), g.Rng, 81) { Quantity = 3 });
+                g.Craft(g.CraftChoices().Find(c => c.Def.Name == "arrow"));
+                Assert(Count(p, "arrow") == 8, "a log and a thread make eight arrows");
+                g.Map.Set(p.X + 1, p.Y, TileKind.Forge);
+                p.Inventory.Add(new Item(Def("silver bar"), g.Rng, 82));
+                p.TradeXp["bowyer"] = 60;
+                var headed = g.CraftChoices().Find(c => c.Def.Name == "arrow" && c.Material == "silver");
+                Assert(headed != null, "a silver bar heads a batch of arrows");
+                g.Craft(headed);
+                var batch = p.Inventory.Find(i => i.Def.Name == "arrow" && i.Material == "silver");
+                Assert(batch != null && batch.Quantity == 12 && batch.Enchant == 1 && batch.Maker == "Fletch", "twelve +1 silver arrows by Fletch: " + batch?.Quantity + " " + batch?.Enchant + " " + batch?.Maker);
+                Assert(Game.StackValue(batch) == 12 * batch.TradeValue, "ammunition sells by the stack");
+
+                // A grandmaster's best work sometimes earns a name and becomes a relic.
+                p.Inventory.Clear();
+                p.TradeXp["blacksmith"] = 300;
+                Item named = null;
+                for (int i = 0; i < 80 && named == null; i++)
+                {
+                    p.Inventory.Add(new Item(Def("iron bar"), g.Rng, 1000 + i) { Quantity = 3 });
+                    g.Craft(g.CraftChoices().Find(c => c.Def.Name == "long sword"));
+                    named = p.Inventory.Find(it => it.Title != null);
+                }
+                Assert(named != null && named.Enchant == 3 && named.Name.StartsWith(named.Title + ", "), "a named masterwork: " + named?.Name);
+                Assert(p.Works.Count == 1 && p.Works[0] == named.Name, "the morgue keeps the name");
+                var plain = p.Inventory.Find(it => it.Def.Name == "long sword" && it.Title == null && it.Enchant == 2);
+                Assert(plain == null || named.TradeValue > plain.TradeValue * 2, "a name doubles the price");
+                Assert(Morgue.Text(g, Morgue.Summarize(g)).Contains("Named works: " + named.Name), "the morgue lists named works");
+                var lines = g.DescribeItem(named);
+                Assert(lines.Contains("Made by Fletch, a named masterwork.") && lines.Exists(l => l.StartsWith("Made of iron")) && lines.Exists(l => l.StartsWith("Sound (")), "examining tells maker, metal and wear: " + string.Join(" | ", lines));
+                Loc.Current = Lang.Pt;
+                string pt = Loc.U(named.Name);
+                Assert(pt.StartsWith(named.Title + ", ") && pt.Contains("espada longa"), "the name stays, the sword is translated: " + pt);
+                Assert(Loc.T("Made by Fletch, a named masterwork.") == "Feito por Fletch, uma obra-prima com nome.", "examine lines are translated: " + Loc.T("Made by Fletch, a named masterwork."));
+                Loc.Current = Lang.En;
+
+                // The town smith stocks arrows by the bundle and a piece of their own, signed.
+                var shop = new Shop { Kind = ShopKind.Weapon, Name = "test smithy" };
+                TownGen.StockShop(shop, new Rng(9), 3);
+                Assert(shop.Stock.Exists(i => i.Def.Name == "arrow" && i.Quantity == 20), "the smithy sells arrows by the bundle");
+                var local = shop.Stock.Find(i => i.Maker != null);
+                Assert(local != null && local.Def.Kind == ItemKind.Weapon, "the smithy sells its own signed work");
+            }
+            finally { Loc.Current = old; }
+        }
+
 
         static void CraftingForEveryone()
         {

@@ -40,7 +40,7 @@ namespace Ossuary.Desktop
                 case "Comma": return shift ? "<" : "g";
                 case "Numpad5": case "Numpad0": return ".";
                 case "Slash": return "?";
-                case "KeyI": return "i";
+                case "KeyI": return shift ? "examine" : "i";
                 case "KeyG": return shift ? "gather" : "g";
                 case "KeyD": return shift ? "D" : "d";
                 case "KeyA": return shift ? "disarm" : "a";

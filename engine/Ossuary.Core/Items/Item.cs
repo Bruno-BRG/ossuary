@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Ossuary.Core.Items
 {
-    public enum ItemKind { Weapon, Armor, Shield, Ring, Amulet, Wand, Scroll, Potion, Food, Gold, Gem, Tool, Corpse, Container, Book, Ornament, Statuette, Rock, Helm, Gloves, Boots, Cloak, Material }
+    public enum ItemKind { Weapon, Armor, Shield, Ring, Amulet, Wand, Scroll, Potion, Food, Gold, Gem, Tool, Corpse, Container, Book, Ornament, Statuette, Rock, Helm, Gloves, Boots, Cloak, Material, Ammo }
 
     public static class ItemKinds
     {
@@ -74,6 +74,10 @@ namespace Ossuary.Core.Items
         /// <summary>A spell the item carries (see <see cref="Magic.SpellFit"/>): lent to you while worn, and a weapon or armour also fires it by itself now and then.</summary>
         public string Imbue;
         public string Engraving;
+        /// <summary>The proper name a named masterwork carries in front of what it is ("Ashtooth, +3 masterwork steel long sword").</summary>
+        public string Title;
+        /// <summary>Who made it, when somebody did: the hero, or a town's smith. Null for found things.</summary>
+        public string Maker;
         /// <summary>A <see cref="Materials"/> id; null is the default of the item's kind (iron, or wood for staves and bows).</summary>
         public string Material;
         /// <summary>Blows dealt (weapon) or taken (armour) since the last repair. See <see cref="Condition"/>.</summary>
@@ -166,10 +170,12 @@ namespace Ossuary.Core.Items
                 int cost = BaseCost;
                 if (Rarity == Rarity.Artifact) return cost * 12 + 1000;
                 int imbued = Imbue != null ? 150 * (Magic.Spells.Find(Imbue)?.Level ?? 1) : 0;
-                if (!Def.Kind.IsGear()) return cost + imbued;
+                if (!Def.Kind.IsGear()) return cost + imbued + Math.Max(0, Enchant) * cost / 2;
                 int affixes = (Prefix != null ? 1 : 0) + (Suffix != null ? 1 : 0);
                 int v = cost * (4 + Math.Max(0, Enchant) * 3 + affixes * 5) / 4 + imbued;
                 v = v * (4 - Condition) / 4;
+                // A named masterwork is a relic of its maker: it sells for twice the piece, and a name is worth something by itself.
+                if (Title != null) v = v * 2 + 300;
                 return Math.Max(1, v);
             }
         }
@@ -195,7 +201,13 @@ namespace Ossuary.Core.Items
                     string worn = ConditionWord;
                     if (worn != null) n = worn + " " + n;
                 }
+                if (Def.Kind == ItemKind.Ammo)
+                {
+                    var mat = Materials.Find(Material);
+                    n = (Enchant != 0 ? (Enchant > 0 ? "+" : "") + Enchant + " " : "") + (mat != null ? mat.Name + " " : "") + Def.Name;
+                }
                 if (!gear && Imbue != null && ArtifactName == null) n = Identified ? Def.Name + " of " + Magic.Spells.Find(Imbue)?.Name : "enchanted " + Def.Name;
+                if (Title != null && ArtifactName == null) n = Title + ", " + n;
                 if (!Identified && (ArtifactName != null || (Def.Flags & ItemFlags.Cursed) != 0)) return n;
                 if ((Def.Flags & ItemFlags.Blessed) != 0) return "blessed " + n;
                 if ((Def.Flags & ItemFlags.Cursed) != 0) return "cursed " + n;

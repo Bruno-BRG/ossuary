@@ -1036,8 +1036,8 @@ namespace Ossuary.Core
         static readonly ItemKind[] KindOrder =
         {
             ItemKind.Weapon, ItemKind.Armor, ItemKind.Shield, ItemKind.Helm, ItemKind.Gloves, ItemKind.Boots, ItemKind.Cloak, ItemKind.Ring, ItemKind.Amulet,
-            ItemKind.Wand, ItemKind.Scroll, ItemKind.Potion, ItemKind.Food, ItemKind.Tool,
-            ItemKind.Book, ItemKind.Gem, ItemKind.Ornament, ItemKind.Gold,
+            ItemKind.Ammo, ItemKind.Wand, ItemKind.Scroll, ItemKind.Potion, ItemKind.Food, ItemKind.Tool,
+            ItemKind.Material, ItemKind.Rock, ItemKind.Book, ItemKind.Gem, ItemKind.Ornament, ItemKind.Statuette, ItemKind.Container, ItemKind.Corpse, ItemKind.Gold,
         };
 
         static string KindName(ItemKind k)
@@ -1052,6 +1052,8 @@ namespace Ossuary.Core
                 case ItemKind.Potion: return "Potions";
                 case ItemKind.Food: return "Food";
                 case ItemKind.Tool: return "Tools";
+                case ItemKind.Ammo: return "Ammunition";
+                case ItemKind.Material: case ItemKind.Rock: return "Goods";
                 case ItemKind.Book: return "Books";
                 default: return "Other";
             }
@@ -1190,6 +1192,7 @@ namespace Ossuary.Core
                 { "Shift+A", "disarm a trap you have found" },
                 { "Shift+E", "drink at a fountain (it may be tainted)" },
                 { "Shift+B", "craft: make what your trades, pack and place allow" },
+                { "Shift+I", "examine an item: material, maker, wear and worth" },
                 { "Shift+J", "every recipe, by trade and rank" },
                 { "Shift+G", "gather: butcher a carcass, or forage on the road" },
                 { "Shift+N", "train a skill with XP (Trained mode)" },
