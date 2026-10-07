@@ -61,6 +61,7 @@ namespace Ossuary.Core
             AddGameText();
             AddBodyText();
             AddCraftText();
+            AddMarketText();
             var traps = new[] { ("spike trap", "armadilha de espetos", "uma"), ("hole", "buraco", "um"), ("dart trap", "armadilha de dardos", "uma"),
                                 ("teleport trap", "armadilha de teletransporte", "uma"), ("alarm trap", "armadilha de alarme", "uma"),
                                 ("fire trap", "armadilha de fogo", "uma"), ("web", "teia", "uma") };

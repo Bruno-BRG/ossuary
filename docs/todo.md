@@ -22,7 +22,7 @@ How a system works lives in [`design/systems.md`](design/systems.md); what shipp
 | [Magic](#magic) | 322 spells, 55 books, animations | monsters that cast, ice × lightning |
 | [Items and materials](#items-and-materials) | materials, wear, repair, relics, sets | identify by use, relic biographies |
 | [Crafting and trades](#crafting-and-trades) | 16 trades, ~100 recipes, gathering | arrows, named masterworks |
-| [Economy and market](#economy-and-market) | shops, stack prices, commissions | supply and demand, a market square |
+| [Economy and market](#economy-and-market) | glut, caravans, market square, orders, your counter, tolls, price history | caravans you can meet on the road |
 | [Towns and people](#towns-and-people) | personas, dialogue, quests, crime, rumours | Guild jobs on the quest engine, theft |
 | [World and history](#world-and-history) | overworld, six branches, the Annex | generated history, blood and traces |
 | [Creatures](#creatures) | factions, bosses, branch natives | named survivors, ecology |
@@ -32,7 +32,7 @@ How a system works lives in [`design/systems.md`](design/systems.md); what shipp
 | [Audio](#audio) | 18 tracks, 15 stingers, effects | the missing boss tracks |
 | [Technical and quality](#technical-and-quality) | headless suites, soak, balance bot | a language gate worth reading |
 
-**Next up**: tutorials, then the economy, then blood and traces with richer look descriptions, then named survivors and mood, then the
+**Next up**: tutorials, then blood and traces with richer look descriptions, then named survivors and mood, then the
 generated history that relics, engravings and legends read from.
 
 ---
@@ -67,14 +67,9 @@ generated history that relics, engravings and legends read from.
 
 ## Economy and market
 
-- [ ] **Supply and demand per town**: prices move with stock (ten swords sold to one smith lower what he pays) and recover over days; towns differ.
-- [ ] **Market square**: stalls (`BuildingKind.Stall`) where traders buy and sell goods on market days.
-- [ ] **Buy and sell orders**: townsfolk post what they want and what they offer; ties with commissions.
-- [ ] **Your own stall or shop**: rent a counter, price your goods, come back to the coin.
-- [ ] **Caravans carry goods**: prices travel between towns with them; a raided road starves a town.
-- [ ] **Haggling and reputation**: Cha, Guild standing and a trader's mood move prices; a known master sells higher.
-- [ ] **Money sinks**: rent, tolls, dues and repairs, so gold keeps its worth over a long, quiet life.
-- [ ] **Price history** in the journal, to see where to sell.
+- [ ] **Caravans on the road**: the week's caravan as travellers you can meet, escort or rob, so the hero decides a raided road.
+- [ ] **A haggle verb**: offer a price at the counter, the trader's mood answers, a failed haggle sours them for the day.
+- [ ] **Merchants' memory**: a trader you cheated or flooded remembers it in their dialogue (reads the ledger).
 
 ## Towns and people
 
@@ -170,6 +165,9 @@ One line per feature, newest first inside each topic. Details: the [changelog](.
 - 2026-10-03 · **322 spells, 55 books, animations**: eight schools, recipes as data, every spell animated (`Game.Magic.Recipes.cs`, `Fx.cs`).
 - 2026-10-02 · **Corruption and surface spells**: Steam Burst, Create Oil, Ossify, Reshape Flesh, Marrow Bolt, Purify, Ice Lance.
 - 2026-10-02 · **Mourne, rival gods, sacrifice and trials** (`Game.Gods.cs`).
+
+**Economy and market**
+- 2026-10-06 · **Town markets**: supply and demand by goods class with a glut that recovers over days, town tastes, weekly caravans and raided roads, market-day traders on the stalls, a weekly order board, a rented counter that sells while you are away, haggling by Cha, mood, Guild and a master's name, gate tolls, rent and Guild dues, price history in the journal (`Game.Market.cs`, `Loc.Market.cs`).
 
 **Items and materials**
 - 2026-10-05 · **Materials**: eleven materials by depth and branch, banes, wear and shattering, repair and recasting from ore (`Items/Materials.cs`, `Game.Materials.cs`).

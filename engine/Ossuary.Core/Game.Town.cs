@@ -53,6 +53,7 @@ namespace Ossuary.Core
             Say(TownText.SizeBlurb(town.Size), MessageKind.Info);
             var today = TownEventToday();
             if (today != TownEventKind.None) Say(EventAnnouncement(today), MessageKind.Quest);
+            ArriveAtMarket();
         }
 
         public void LeaveTown()
@@ -251,6 +252,7 @@ namespace Ossuary.Core
                 Add("reinforce", "Reinforce my armour", a != null ? HonePrice(a) + 20 : 0, a != null);
                 AddSmithyRows(Add);
             }
+            if ((s & Service.Quest) != 0) Add("dues", DuesUntil > MarketDay ? "Guild dues (paid this week)" : "Pay Guild dues (better prices for a week)", DuesPrice, DuesUntil <= MarketDay);
             if ((s & Service.Quest) != 0) Add("story", "Ask about the Ossuary", 0);
             if ((s & Service.Quest) != 0) Add("board", "Read the notice board", 0);
             if ((s & Service.Quest) != 0)
@@ -264,6 +266,7 @@ namespace Ossuary.Core
             }
             if ((s & Service.Rumor) != 0 && (s & Service.Quest) == 0) Add("rumor", "Ask for news", (s & Service.Ale) != 0 ? 4 : 0);
             AddWorkshopRows(Add);
+            AddMarketRows(Add);
             if (Talking != null && CanTalk(Talking)) Add("talk", "Talk", 0);
             Add("leave", "Take my leave", 0);
             return rows;
@@ -294,6 +297,7 @@ namespace Ossuary.Core
             if (id.StartsWith("offer:") || id.StartsWith("turnin:")) return ContractAction(id);
             if (SmithyAction(id)) return false;
             if (WorkshopAction(id)) return false;
+            if (MarketAction(id)) return false;
             switch (id)
             {
                 case "leave": return true;

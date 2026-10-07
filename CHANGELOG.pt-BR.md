@@ -5,6 +5,22 @@
 As versões do Ossuary são numeradas só com **um número** (Versão 11, Versão 12…), como no *Project Zomboid*. Nos manifestos (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) e no nome do instalador a versão aparece como `0.N.0`. O **salvamento** (`SaveData.Version`) usa o mesmo número: mudou regra, sobe o número, saves antigos deixam de carregar.
 
+## Versão 17 — Moeda e caravana
+
+### Economia e mercado
+- **Oferta e procura.** Cada cidade tem seus gostos por armas, armaduras, poções, livros, varinhas, joias, comida, matérias-primas e ferramentas. Venda dez espadas a um ferreiro e o que a cidade paga por lâminas cai; o preço se recupera em poucos dias.
+- **Caravanas e estradas saqueadas.** Toda semana chega uma caravana (um tipo de mercadoria fica barato e o excedente da cidade é comprado) ou a estrada é saqueada (esse tipo fica caro). Regiões perigosas são mais saqueadas. A notícia te recebe no portão.
+- **A praça do mercado.** As barracas abrem um menu. Em dia de feira, mercadores de fora expõem suas mercadorias e as barracas pagam mais.
+- **O quadro de encomendas.** Toda semana a cidade pede duas coisas, pagando bem (muitas vezes algo que você pode fabricar), e oferece uma barata.
+- **Seu próprio balcão.** Alugue um balcão por uma semana, exponha até oito coisas, peça preço barato, justo ou caro e volte pelas moedas: ele vende enquanto você está fora.
+- **Barganha.** Carisma, o humor do comerciante (mostrado no balcão), a reputação na Guilda e a taxa da Guilda mexem nos preços. Seu trabalho assinado vende por um quarto a mais quando você é mestre.
+- **Gastos.** Pedágio no portão de vilas e cidades (amigos da Guarda entram de graça), aluguel do balcão e taxa da Guilda.
+- **Histórico de preços.** O diário (F7) lista os últimos preços que você viu, cidade a cidade.
+- Matérias-primas e comida vendem por pilha, e a loja agora paga do próprio bolso.
+
+### Salvamentos
+- O formato de save passa para **17**: saves da Versão 16 não carregam.
+
 ## Versão 16 — Sangue e osso
 
 ### Combate e corpos

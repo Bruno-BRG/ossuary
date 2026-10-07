@@ -723,6 +723,12 @@ namespace Ossuary.Core
             if (prompt == Game.SacrificePrompt) { _g.SacrificeCorpse(chosen); return true; }
             if (prompt == Game.CraftPrompt) { _g.Craft(chosen); return true; }
             if (prompt == Game.RecipePrompt) return true;
+            if (prompt == Game.StallPrompt)
+            {
+                _g.StallPut(chosen);
+                if (_g.TalkBuilding != null) _g.UiState.Active = Panel.Service;
+                return true;
+            }
             if (prompt == Game.TrainPrompt) { _g.Train(chosen); return true; }
             if (prompt == Game.AppraisePrompt)
             {

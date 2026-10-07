@@ -50,6 +50,7 @@ namespace Ossuary.Tests
             Test("rumours point at real things and depend on who tells them", RumoursWithTeeth);
             Test("crime: witnesses, bounty by region, arrest, jail, murder, essentials", CrimeAndTheWatch);
             Test("town events: schedule, prices, closed doors, a job for the Watch", TownEvents);
+            Test("markets: glut, caravans, orders, a rented counter, dues and tolls", Markets);
             Test("travellers on the road: pilgrim, peddler, refugees, delver", RoadTravellers);
             Test("main questline: documents, the Reader, truths, endings, new cycle", MainQuestline);
             Test("a rival party races the hero down the Dungeons", RivalRace);
@@ -2022,6 +2023,113 @@ namespace Ossuary.Tests
                 gs.Flags.Add("boss.slain." + bossId); gs.QuestCheck();
                 Assert(hook.Status == QStatus.Done, "felling the boss should finish its Region quest");
             }
+        }
+
+        static void Markets()
+        {
+            var g = new Game(2468); g.LeaveToOverworld(); g.EnterTown("Marketon");
+            g.Player.Gold = 5000;
+            var smithy = g.Town.Buildings.Find(b => b.Kind == BuildingKind.Smithy && b.Shop != null);
+            Assert(smithy != null, "a smithy to sell to");
+            var shop = smithy.Shop; shop.Gold = 100000;
+            g.OpenShop(shop);
+
+            // Selling into one trader floods the town: what it pays falls, and it recovers over days.
+            int first = g.SellPct(shop, "weapons");
+            for (int i = 0; i < 5; i++)
+            {
+                var w = new Item(Catalogue.Weapons[0], g.Rng, 9000 + i) { Identified = true };
+                g.Player.Inventory.Add(w);
+                Assert(g.SellToShop(shop, w), "the smith buys a blade");
+            }
+            int flooded = g.SellPct(shop, "weapons");
+            Assert(flooded < first - 20, "a glut lowers what weapons fetch (" + first + " -> " + flooded + ")");
+            g.World.Day += 10;
+            Assert(g.SellPct(shop, "weapons") > flooded + 20, "and the town forgets in a few days");
+            Assert(g.PriceHistory.Exists(n => n.Town == g.Town.Name && n.Class == "weapons"), "the journal remembers what weapons fetched");
+            g.CloseShop();
+
+            // The week's road is a pure function of seed, town and week, and a raid makes a class dear.
+            var twin = new Game(2468); twin.LeaveToOverworld(); twin.EnterTown("Marketon");
+            bool raided = false;
+            for (int d = 1; d < 400; d += 7)
+            {
+                g.World.Day = d; twin.World.Day = d;
+                var news = g.CaravanThisWeek(out string cls);
+                Assert(twin.CaravanThisWeek(out string c2) == news && c2 == cls, "the same road for the same week");
+                if (news == Game.CaravanNews.Raided && !raided)
+                {
+                    raided = true;
+                    string other = cls == "food" ? "tools" : "food";
+                    Assert(g.BuyPct(null, cls) - g.TownTaste(g.Town.Name, cls) > g.BuyPct(null, other) - g.TownTaste(g.Town.Name, other) + 25, "a raided road makes " + cls + " dear");
+                }
+            }
+            Assert(raided, "in 400 days some road is raided");
+
+            // The market square: a stall keeper opens a menu with the order board and a counter for rent.
+            g.World.Day = 30;
+            var stall = g.Town.Buildings.Find(b => b.Kind == BuildingKind.Stall && b.Keeper != null);
+            Assert(stall != null, "a market stall");
+            g.TalkTo(stall.Keeper);
+            Assert(g.UiState.Active == Panel.Service && g.TalkBuilding == stall, "a stall opens its menu");
+            var orders = g.OrdersThisWeek();
+            twin.World.Day = 30;
+            var twinOrders = twin.OrdersThisWeek();
+            Assert(orders.Count > 0 && orders.Count == twinOrders.Count && orders[0].Item == twinOrders[0].Item, "the order board is the same for everyone this week");
+            var wanted = orders.Find(o => o.Wanted);
+            if (wanted != null)
+            {
+                g.Player.Inventory.Add(new Item(wanted.Def, g.Rng, 9100) { Identified = true });
+                int gold = g.Player.Gold;
+                g.ServiceAction("order:" + wanted.Id);
+                Assert(g.Player.Gold == gold + wanted.Price, "a wanted order pays");
+                Assert(!g.OrdersThisWeek().Exists(o => o.Id == wanted.Id), "and is taken off the board");
+            }
+
+            // A rented counter sells while the hero is away; the coin waits.
+            int before = g.Player.Gold;
+            g.ServiceAction("rent");
+            Assert(g.Renting && g.Player.Gold == before - g.RentPrice && g.RentPaid > 0, "renting a counter costs rent");
+            for (int i = 0; i < 4; i++)
+            {
+                var it = new Item(Catalogue.Weapons[0], g.Rng, 9200 + i) { Identified = true };
+                g.Player.Inventory.Add(it);
+                g.StallPut(it);
+            }
+            Assert(g.Market.Counter.Count == 4, "four things on the counter");
+            g.ServiceAction("stall-tier"); g.ServiceAction("stall-tier");   // fair -> dear -> cheap
+            Assert(g.Market.Tier == 0, "the asking price cycles");
+            g.World.Day += 7;
+            g.SettleStall();
+            Assert(g.Market.Takings > 0 && g.Market.Counter.Count < 4, "a cheap counter sells within a week");
+            int taken = g.Market.Takings; before = g.Player.Gold;
+            g.ServiceAction("stall-collect");
+            Assert(g.Player.Gold == before + taken && g.Market.Takings == 0, "the takings are collected");
+            g.World.Day += 3; g.SettleStall();
+            Assert(!g.Renting, "the rent runs out after a week");
+            g.UiState.Active = Panel.None;
+
+            // Guild dues raise what members are paid for a week.
+            var hall = g.Town.Buildings.Find(b => (b.Services & Service.Quest) != 0 && b.Keeper != null);
+            if (hall != null)
+            {
+                int plain = g.SellPct(shop, "armour");
+                g.TalkTo(hall.Keeper);
+                Pick(g, "Pay Guild dues");
+                Assert(g.SellPct(shop, "armour") > plain, "dues pay off in better prices");
+                g.UiState.Active = Panel.None;
+            }
+
+            // Every market line has its Portuguese.
+            var lang = Loc.Current;
+            try
+            {
+                Loc.Current = Lang.Pt;
+                foreach (string en in new[] { Game.CaravanLine(Game.CaravanNews.Raided, "weapons"), "Wanted: iron bar (pays 30 gold)", "Asking price: dear",
+                    "Collect your takings (12 gold)", "You pay the gate toll: 5 gold.", g.Town.Name + ": armour sell at 90% (day 3)", "Rent a counter for a week" })
+                    Assert(Loc.T(en) != en, "no Portuguese for: " + en);
+            }
+            finally { Loc.Current = lang; }
         }
 
         static int RowIdx(Game g, string label) => g.ServiceRows().FindIndex(r => r.Label.Contains(label));
