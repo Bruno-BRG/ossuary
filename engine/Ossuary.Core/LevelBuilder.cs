@@ -254,7 +254,8 @@ namespace Ossuary.Core
             else if (roll < 68) def = PickDeep(Catalogue.Potions, rng, depth);
             else if (roll < 74) def = PickDeep(Catalogue.Rings, rng, depth);
             else if (roll < 78) def = PickDeep(Catalogue.Amulets, rng, depth);
-            else if (roll < 84) def = Pick(Catalogue.Tools, rng);
+            else if (roll < 81) def = Pick(Catalogue.Tools, rng);
+            else if (roll < 84) def = Ammo.All[rng.Range(0, Ammo.All.Length)];
             else if (roll < 89) def = Pick(Catalogue.Food, rng);
             else if (roll < 93) def = Pick(Catalogue.Ornaments, rng);
             else if (roll < 97) def = PickBook(rng, depth);
@@ -268,6 +269,8 @@ namespace Ossuary.Core
                 item.Quantity = Math.Max(1, rng.Range(4 + depth * 2, 30 + depth * 22));
                 item.Identified = true;
             }
+            // Ammunition lies in bundles: a dropped quiver, a pouch of stones.
+            if (def.Kind == ItemKind.Ammo) { item.Quantity = rng.Range(5, 16); item.Identified = true; }
             return item;
         }
 

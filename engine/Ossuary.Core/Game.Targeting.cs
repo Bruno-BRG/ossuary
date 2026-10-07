@@ -76,14 +76,22 @@ namespace Ossuary.Core
             if (x == Player.X && y == Player.Y) { Say("You cannot shoot yourself."); return; }
             var m = MonsterAt(x, y);
             if (m != null && m.Ally) { Say("You would hit your ally."); return; }
-            if (m == null) { Say("You loose an arrow into empty air."); EndPlayerTurn(); return; }
             if (!Fov.HasLine(Map, Player.X, Player.Y, x, y)) { Say("You do not have a clear shot."); return; }
+            if (m == null)
+            {
+                var (launcher, ammo) = Quiver();
+                if (launcher != null && ammo != null) { Say("You loose a shot into empty air."); Spend(ammo, x, y, false); }
+                else Say("You hurl a stone into empty air.");
+                Map.Version++;
+                EndPlayerTurn();
+                return;
+            }
 
             int dist = Pathfinder.Chebyshev(Player.X, Player.Y, x, y);
             bool crit;
             int fromX = Player.X, fromY = Player.Y;
             Fx((tl, s) => FxLib.Bolt(tl, s, fromX, fromY, x, y, Elem.Wind, '\0', 3));
-            var res = Battles.PlayerRanged(Player, m, dist, Rng, out crit, 1, -Bodies.AimPenalty(Player.Aim));
+            var res = Loose(m, dist, out crit, 1, -Bodies.AimPenalty(Player.Aim));
             if (res.Hit) m.Asleep = false;
             Say(res.Message, res.Killed ? MessageKind.Kill : MessageKind.Combat);
             WoundFrom(m, res, true, crit, Player.Aim);

@@ -127,7 +127,8 @@ namespace Ossuary.Core
         }
 
         /// <summary>Ranged attack with to-hit reduced by distance, NetHack style.</summary>
-        public static AttackResult PlayerRanged(Player player, Monster target, int distance, Rng rng, out bool critical, int dmgMult = 1, int hitBonus = 0)
+        public static AttackResult PlayerRanged(Player player, Monster target, int distance, Rng rng, out bool critical, int dmgMult = 1, int hitBonus = 0,
+            int dice = 1, int sides = 4, int dmgBonus = 1, MaterialDef head = null)
         {
             critical = false;
             int toHit = 4 + (player.Dex - 10) + 2 * player.PerkRank("keen-eye") + hitBonus;
@@ -139,13 +140,16 @@ namespace Ossuary.Core
             if (roll < threshold) return new AttackResult { Message = $"The missile misses {target.Obj}." };
             if (roll >= 19) critical = true;
 
-            int dmg = rng.Roll(2, 4, 0) * dmgMult;
+            int dmg = Math.Max(1, rng.Roll(dice, sides, dmgBonus)) * dmgMult;
             if (critical) dmg *= 2;
+            // A silver head sears the dead as a silver blade does.
+            bool bane = Materials.IsBane(head, target);
+            if (bane) dmg += rng.Roll(1, 6, 2);
             target.HP -= dmg;
             bool killed = target.HP <= 0;
             return new AttackResult
             {
-                Hit = true, Damage = dmg, Killed = killed, Deep = dmg >= 5,
+                Hit = true, Damage = dmg, Killed = killed, Deep = dmg >= 5, Bane = bane,
                 Message = $"The missile {(killed ? "kills" : "hits")} {target.Obj} for {dmg} damage."
             };
         }

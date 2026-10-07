@@ -20,9 +20,9 @@ How a system works lives in [`design/systems.md`](design/systems.md); what shipp
 |---|---|---|
 | [Combat and bodies](#combat-and-bodies) | wounds, called shots, severed parts, bandages, martial techniques | limbs as trophies, burns |
 | [Magic](#magic) | 322 spells, 55 books, animations | monsters that cast, ice × lightning |
-| [Items and materials](#items-and-materials) | materials, wear, repair, relics, sets | identify by use, relic biographies |
-| [Crafting and trades](#crafting-and-trades) | 16 trades, ~100 recipes, gathering | arrows, named masterworks |
-| [Economy and market](#economy-and-market) | glut, caravans, market square, orders, your counter, tolls, price history | caravans you can meet on the road |
+| [Items and materials](#items-and-materials) | materials, wear, repair, relics, sets, examine, ammunition | identify by use, relic biographies |
+| [Crafting and trades](#crafting-and-trades) | 16 trades, ~105 recipes, gathering, fletching, named masterworks | loom and still, monster archers |
+| [Economy and market](#economy-and-market) | glut, caravans, market square, orders, your counter, tolls, price history, town smiths' work | caravans you can meet on the road |
 | [Towns and people](#towns-and-people) | personas, dialogue, quests, crime, rumours | Guild jobs on the quest engine, theft |
 | [World and history](#world-and-history) | overworld, six branches, the Annex | generated history, blood and traces |
 | [Creatures](#creatures) | factions, bosses, branch natives | named survivors, ecology |
@@ -56,14 +56,15 @@ generated history that relics, engravings and legends read from.
 - [ ] **Shop services**: recharge wands; new cursed amulets; more corrupting relics.
 - [ ] **Relic biographies**: who forged it, of what, for whom, who carried it, how it was lost (reads *World and history*).
 - [ ] **Deeds written into relics**: a boss killed with a relic adds a line; the morgue prints its whole story.
-- [ ] **Item descriptions**: material, craftsmanship, wear, engravings and previous owners when you look at it.
+- [~] **Item descriptions**: has Shift+I with numbers, material, maker, quality, engraving, wear and worth; left previous owners and the look (`l`) at items on the floor.
 
 ## Crafting and trades
 
-- [ ] **Arrows as ammunition**: fletched, carried, spent and picked up again.
 - [ ] **Loom and still as tiles**: tailoring and brewing at their own stations, like the forge.
-- [ ] **Named masterworks**: rarely a crafted piece gets a name and the hero as its maker, and becomes a relic.
-- [ ] **Crafters elsewhere**: rival parties and townsfolk who make and sell their own work.
+- [~] **Crafters elsewhere**: has the town smith's signed piece in every smithy and armoury; left rival parties and other townsfolk making and selling over time.
+- [ ] **Monster archers with real ammunition**: kobold and goblin archers loose arrows that lie on the floor afterwards, and drop their quivers.
+- [ ] **A quiver slot**: choose which stack to loose (silver for the dead, plain for the rest) instead of the best one by default.
+- [ ] **Named works in the world**: the hero's named masterworks show up in rumours and in the hands of whoever bought them.
 
 ## Economy and market
 
@@ -167,9 +168,11 @@ One line per feature, newest first inside each topic. Details: the [changelog](.
 - 2026-10-02 · **Mourne, rival gods, sacrifice and trials** (`Game.Gods.cs`).
 
 **Economy and market**
+- 2026-10-07 · **Town smiths' work**: every smithy and armoury sells a piece its smith made and signed, smithies sell ammunition by the bundle, ammunition trades by the stack (`Town.cs`, `Game.Market.cs`).
 - 2026-10-06 · **Town markets**: supply and demand by goods class with a glut that recovers over days, town tastes, weekly caravans and raided roads, market-day traders on the stalls, a weekly order board, a rented counter that sells while you are away, haggling by Cha, mood, Guild and a master's name, gate tolls, rent and Guild dues, price history in the journal (`Game.Market.cs`, `Loc.Market.cs`).
 
 **Items and materials**
+- 2026-10-07 · **Ammunition**: arrows, bolts and sling stones loosed by the matching launcher, spent one a shot and picked up again, metal heads that bane, stacks that merge (`Items/Ammo.cs`, `Game.Ammo.cs`).
 - 2026-10-05 · **Materials**: eleven materials by depth and branch, banes, wear and shattering, repair and recasting from ore (`Items/Materials.cs`, `Game.Materials.cs`).
 - 2026-10-03 · **Items with a spell inside**: gear imbued by kind, +48 bases, +22 affixes (`Magic/SpellFit.cs`).
 - 2026-10-03 · **43 uniques and 4 sets** across every branch, many lending a spell.
@@ -177,6 +180,8 @@ One line per feature, newest first inside each topic. Details: the [changelog](.
 - 2026-10-02 · **Vaults and caches**: locked vaults with a brass key, trapped hidden caches (`Gen/Vaults.cs`).
 
 **Crafting and trades**
+- 2026-10-07 · **Arrows as ammunition**: fletching anywhere, metal-headed arrows and bolts at the forge, sling stones from rocks; rangers and rogues start with a launcher (`Items/Trades.cs`, `Game.Ammo.cs`).
+- 2026-10-07 · **Named masterworks**: a master's masterwork sometimes gets a name and the hero as its maker, becomes a relic worth far more, and enters the morgue (`Game.Crafting.cs`, `Items/Masterworks.cs`).
 - 2026-10-05 · **Crafting for everyone**: 16 trades, ~100 recipes, forge and workshops, quality by rank, recipe book, gathering, music, masters, commissions (`Items/Trades.cs`, `Game.Crafting.cs`, `Game.Gathering.cs`, `Game.Workshops.cs`).
 - 2026-10-02 · **Light crafting**: molotov, bone blade, bone armour, extra healing (`Items/Crafted.cs`).
 

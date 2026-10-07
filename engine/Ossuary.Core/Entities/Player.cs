@@ -133,6 +133,8 @@ namespace Ossuary.Core.Entities
 
         /// <summary>Experience in each trade (see Items/Trades.cs), by trade id. Absent means none.</summary>
         public readonly Dictionary<string, int> TradeXp = new Dictionary<string, int>();
+        /// <summary>The named masterworks this hero made, as they were called when finished, for the morgue.</summary>
+        public readonly List<string> Works = new List<string>();
         /// <summary>The last day the hero played for coin, so a town pays once a day.</summary>
         public int LastBuskDay = -1;
 

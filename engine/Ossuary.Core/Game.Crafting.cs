@@ -75,6 +75,7 @@ namespace Ossuary.Core
                 case "#blade": return it.Def.Kind == ItemKind.Weapon && it.Def.Class == ItemClass.Blade;
                 case "#light-armour": return it.Def.Kind == ItemKind.Armor && it.Def.AC <= 3;
                 case "#gem": return it.Def.Name == "gemstone" || it.Def.Name == "piece of jade" || it.Def.Kind == ItemKind.Gem;
+                case "#rock": return it.Def.Kind == ItemKind.Rock && !Materials.IsOre(it);
                 default: return it.Def.Name == n.Name;
             }
         }
@@ -137,6 +138,7 @@ namespace Ossuary.Core
                     case "#blade": return Loc.T("a blade");
                     case "#light-armour": return Loc.T("light armour");
                     case "#gem": return Loc.T("a gem");
+                    case "#rock": return Loc.T("a stone");
                     default: return Loc.T(name);
                 }
             }
@@ -222,10 +224,11 @@ namespace Ossuary.Core
             else
             {
                 Finish(made, r);
-                Player.Inventory.Add(made);
+                Pack(made);
                 GainTrade(r.Trade, xp);
                 if (made.Quantity > 1) Say($"You make {made.Quantity} x {made.Name}.", MessageKind.Good);
                 else Say($"You make {made.Name}.", MessageKind.Good);
+                if (made.Title != null) NameMasterwork(made);
                 CommissionMade(made);
             }
             if (Mode == GameMode.Dungeon || Mode == GameMode.TownMap) EndPlayerTurn();
@@ -241,11 +244,19 @@ namespace Ossuary.Core
         void Finish(Item it, RecipeDef r)
         {
             int rank = TradeRank(r.Trade);
+            it.Maker = Player.CharName;
             if (it.Def.Kind.IsGear() && it.Def.Name != "bone blade" && it.Def.Name != "bone-studded armour")
             {
                 int roll = Rng.Range(0, 100) + 12 * (rank - r.Rank) + 6 * rank;
                 if (roll < 15) it.Enchant = -1;
-                else if (roll >= 110) { it.Enchant = 2; it.Rarity = Rarity.Magic; if (it.Def.Kind == ItemKind.Weapon && it.Prefix == null) it.Prefix = "masterwork"; it.Engraving = "made by " + Player.Name; }
+                else if (roll >= 110)
+                {
+                    it.Enchant = 2; it.Rarity = Rarity.Magic;
+                    if (it.Def.Kind == ItemKind.Weapon && it.Prefix == null) it.Prefix = "masterwork";
+                    it.Engraving = "made by " + Player.CharName;
+                    // Now and then a master's best work outgrows the workshop: it gets a name of its own and becomes a relic.
+                    if (rank >= 3 && Rng.Range(0, 100) < NamedChance(rank)) { it.Enchant = 3; it.Title = Masterworks.Coin(Rng.Seed, it.Uid); }
+                }
                 else if (roll >= 85) { it.Enchant = 1; it.Rarity = Rarity.Magic; }
                 it.Identified = true;
             }
@@ -254,9 +265,13 @@ namespace Ossuary.Core
                 ItemRoller.Roll(it, Rng, 2 + 3 * rank);
                 it.Identified = true;
             }
+            else if (it.Def.Kind == ItemKind.Ammo && rank >= 2 && r.Bars > 0) { it.Enchant = 1; if (rank >= 3) it.Quantity++; }
             else if (r.Qty > 1 && rank >= 3) it.Quantity++;
             it.Value = it.TradeValue;
         }
+
+        /// <summary>Chance in a hundred that a master's masterwork gets a name: one in five for a master, one in three for a grandmaster.</summary>
+        public static int NamedChance(int rank) => rank >= 4 ? 33 : rank >= 3 ? 20 : 0;
 
         // ---------------------------------------------------------------- throwing a molotov
 

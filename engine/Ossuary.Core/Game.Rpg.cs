@@ -39,6 +39,12 @@ namespace Ossuary.Core
             if (!string.IsNullOrEmpty(role.Tool))
                 Player.Inventory.Add(new Item(KitDef(role.Tool, Catalogue.Tools, "lock pick"), Rng, NextUid()) { Identified = true });
             Player.Inventory.Add(new Item(KitDef("bandage", Catalogue.Tools, null), Rng, NextUid()) { Identified = true, Quantity = 2 });
+            // A ranger carries a short bow and a quiver, a rogue a sling and a pouch of stones: the shot key means something from turn one.
+            if (!string.IsNullOrEmpty(role.Launcher) && Trades.TryDef(role.Launcher, out var launcher) && Trades.TryDef(Ammo.AmmoFor(launcher), out var ammo))
+            {
+                Player.Inventory.Add(new Item(launcher, Rng, NextUid()) { Identified = true });
+                Player.Inventory.Add(new Item(ammo, Rng, NextUid()) { Identified = true, Quantity = role.AmmoCount });
+            }
         }
 
         static ItemDef KitDef(string name, IReadOnlyList<ItemDef> list, string fallback)

@@ -63,6 +63,7 @@ namespace Ossuary.Core
             new KeyAction("get", "Pick up", "Items", "KeyG", new[] { "KeyG", "Comma", "KeyP" }),
             new KeyAction("drop", "Drop", "Items", "KeyD", new[] { "KeyD" }),
             new KeyAction("inventory", "Inventory", "Items", "KeyI", new[] { "KeyI" }),
+            new KeyAction("examine", "Examine an item", "Items", "Shift+KeyI", new[] { "Shift+KeyI" }),
             new KeyAction("apply", "Apply a tool", "Items", "KeyA", new[] { "KeyA" }),
             new KeyAction("wield", "Wield weapon", "Items", "KeyW", new[] { "KeyW" }),
             new KeyAction("wear", "Wear armour", "Items", "Shift+KeyW", new[] { "Shift+KeyW" }),

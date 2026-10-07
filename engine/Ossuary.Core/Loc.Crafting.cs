@@ -24,6 +24,18 @@ namespace Ossuary.Core
                 ("horn", "trompa", true), ("fiddle", "rabeca", true), ("harp", "harpa", true), ("fishing rod", "vara de pesca", true) })
                 N(n.Item1, n.Item2, n.Item3);
 
+            // ---- ammunition (Items/Ammo.cs, Game.Ammo.cs)
+            N("arrow", "flecha", true); N("crossbow bolt", "virote"); N("sling stone", "pedra de funda", true);
+            foreach (var kv in new[] {
+                ("a stone", "uma pedra"), ("Ammunition", "Munição"), ("Goods", "Mercadorias"), ("Examine an item", "Examinar um item"),
+                ("Examine what?", "Examinar o quê?"), ("Named works", "Obras nomeadas"),
+                ("You loose a shot into empty air.", "Você dispara no ar vazio."), ("You hurl a stone into empty air.", "Você arremessa uma pedra no ar vazio."),
+                ("a named masterwork", "uma obra-prima com nome"), ("masterwork", "obra-prima"), ("fine work", "trabalho fino"),
+                ("plain work", "trabalho simples"), ("crude work", "trabalho tosco"),
+                ("examine an item: material, maker, wear and worth", "examinar um item: material, autor, desgaste e valor"),
+                ("blunted", "cego"), ("chipped", "lascado"), ("dented", "amassado"), ("battered", "surrado"),
+            }) P(kv.Item1, kv.Item2);
+
             // ---- trades: lowercase inside sentences, a title on the sheet; ranks
             foreach (var t in new[] {
                 ("blacksmith", "ferreiro"), ("armourer", "armeiro"), ("bowyer", "fabricante de arcos"), ("leatherworker", "coureiro"),
@@ -76,6 +88,20 @@ namespace Ossuary.Core
                 R(@"Commission: make (.+) \((\d+) gold\)", "Encomenda: fazer {u1} ($2 de ouro)"),
                 R(@"Deliver: (.+) \((\d+) gold\)", "Entregar: {u1} ($2 de ouro)"),
                 R(@"Craft for the town: (.+)", "Fazer para a cidade: {u1}"),
+                R(@"You have nothing for the (.+)\. You hurl a stone\.", "Você não tem o que disparar com {a1}. Você arremessa uma pedra."),
+                R(@"The work is too fine to be nameless\. You call it (.+)\.", "A obra é boa demais para ficar sem nome. Você a chama de $1."),
+                R(@"You look closely at (.+)\.", "Você examina {a1} de perto."),
+                R(@"A named work: (.+)\.", "Uma obra com nome: $1."),
+                R(@"Damage (\d+)d(\d+)([+-]\d+), to hit ([+-]\d+)\.", "Dano $1d$2$3, acerto $4."),
+                R(@"Looses (.+), pull ([+-]\d+)\.", "Dispara {u1}, tração $2."),
+                R(@"Ammunition: (\d+)d(\d+)([+-]\d+) a shot\.", "Munição: $1d$2$3 por disparo."),
+                R(@"Armour (\d+)\.", "Armadura $1."),
+                R(@"Made of (.+)\.", "Feito de $1."),
+                R(@"Made by (.+), (a named masterwork|masterwork|fine work|plain work|crude work)\.", "Feito por $1, $2."),
+                R(@"Engraved: (.+)", "Gravado: $1"),
+                R(@"Sound \((\d+) of (\d+) blows\)\.", "Inteiro ($1 de $2 golpes)."),
+                R(@"Worn: (blunted|chipped|dented|battered) \((\d+) blows\)\.", "Gasto: $1 ($2 golpes)."),
+                R(@"Worth about (\d+) gold\.", "Vale cerca de $1 de ouro."),
             });
         }
     }

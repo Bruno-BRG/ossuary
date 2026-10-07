@@ -500,10 +500,21 @@ namespace Ossuary.Core
         {
             if (Nm.TryGetValue(en, out var direct)) return direct;
             if (_itemMemo.TryGetValue(en, out var memo)) return memo;
+            // A named masterwork: its proper name stays, what it is gets translated ("Ashtooth, espada longa de aço").
+            var titled = TitledRx.Match(en);
+            if (titled.Success)
+            {
+                var rest = ItemPt(titled.Groups[2].Value);
+                (string, bool)? named = rest == null ? ((string, bool)?)null : (titled.Groups[1].Value + ", " + rest.Value.Pt, rest.Value.Fem);
+                _itemMemo[en] = named;
+                return named;
+            }
             (string, bool)? res = ComposeItem(en);
             _itemMemo[en] = res;
             return res;
         }
+
+        static readonly Regex TitledRx = new Regex(@"^([A-Z][a-z]+), (.+)$", RegexOptions.CultureInvariant);
 
         static (string Pt, bool Fem)? ComposeItem(string en)
         {

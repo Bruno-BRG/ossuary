@@ -728,13 +728,19 @@ namespace Ossuary.Core
                     foreach (var ore in new[] { Materials.Ores[0], Materials.Ores[0], Materials.Ores[1], Materials.Ores[1] })
                         shop.Stock.Add(new Item(ore, rng, GroundItems.NextUid()) { Identified = true });
                     Staples(shop, rng, "iron bar", "iron bar", "copper bar", "log");
+                    Quiver(shop, rng, "arrow", 20); Quiver(shop, rng, "crossbow bolt", 15); Quiver(shop, rng, "sling stone", 20);
+                    LocalWork(shop, rng, Catalogue.Weapons);
                     break;
-                case ShopKind.Armor: Basics(shop, rng, Catalogue.Armor, 2); Basics(shop, rng, Catalogue.Shields, 1); Staples(shop, rng, "leather", "leather", "raw hide", "iron bar"); break;
+                case ShopKind.Armor:
+                    Basics(shop, rng, Catalogue.Armor, 2); Basics(shop, rng, Catalogue.Shields, 1); Staples(shop, rng, "leather", "leather", "raw hide", "iron bar");
+                    LocalWork(shop, rng, Catalogue.Armor);
+                    break;
                 case ShopKind.Wand: Basics(shop, rng, Catalogue.Scrolls, 3); Basics(shop, rng, Catalogue.Wands, 2); Staples(shop, rng, "parchment", "parchment", "ink", "ink"); break;
                 case ShopKind.Book: Basics(shop, rng, Catalogue.Books.Where(b => b.Tier <= 2).ToList(), 3); break;
                 case ShopKind.General:
                     Basics(shop, rng, Catalogue.Tools, 3); Basics(shop, rng, Catalogue.Food, 2);
                     Staples(shop, rng, "log", "log", "flax", "flax", "thread", "thread", "cloth", "tallow", "fishing rod", "flute");
+                    Quiver(shop, rng, "sling stone", 15);
                     break;
                 case ShopKind.Jewel: Basics(shop, rng, Catalogue.Rings, 2); Basics(shop, rng, Catalogue.Ornaments, 2); break;
             }
@@ -750,6 +756,35 @@ namespace Ossuary.Core
         }
 
         static void Basics(Shop shop, Rng rng, IReadOnlyList<ItemDef> list, int count)
+        {
+            BasicsInner(shop, rng, list, count);
+        }
+
+        /// <summary>A stack of ammunition the shop sells by the piece.</summary>
+        static void Quiver(Shop shop, Rng rng, string name, int count)
+        {
+            if (Trades.TryDef(name, out var d)) shop.Stock.Add(new Item(d, rng, GroundItems.NextUid()) { Identified = true, Quantity = count });
+        }
+
+        /// <summary>
+        /// The house's own work: a piece the town's smith made and signed, in a plain metal of the region, sometimes fine.
+        /// Its maker's name stays on it wherever it goes (see Game.DescribeItem).
+        /// </summary>
+        static void LocalWork(Shop shop, Rng rng, IReadOnlyList<ItemDef> list)
+        {
+            var pool = new List<ItemDef>();
+            foreach (var d in list) if (d.Tier <= 2 && Materials.StuffOf(d) != Stuff.None && (d.Flags & ItemFlags.Special) == 0) pool.Add(d);
+            if (pool.Count == 0) return;
+            var it = new Item(pool[rng.Range(0, pool.Count)], rng, GroundItems.NextUid()) { Identified = true, Maker = TownText.GivenName(rng) };
+            int roll = rng.Range(0, 100);
+            var metal = Materials.Find(roll < 20 ? "bronze" : roll < 75 ? "iron" : "steel");
+            if (Materials.Takes(it.Def, metal)) Materials.Set(it, metal);
+            if (rng.Range(0, 100) < 40) { it.Enchant = 1; it.Rarity = Rarity.Magic; }
+            it.Value = it.TradeValue;
+            shop.Stock.Add(it);
+        }
+
+        static void BasicsInner(Shop shop, Rng rng, IReadOnlyList<ItemDef> list, int count)
         {
             if (list.Count == 0) return;
             for (int i = 0; i < count; i++)

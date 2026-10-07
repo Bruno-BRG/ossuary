@@ -41,9 +41,9 @@ namespace Ossuary.Core
             return p;
         }
 
-        /// <summary>People who may ask the hero for a favour of their own.</summary>
+        /// <summary>People who may ask the hero for a favour of their own. The beggar and the scholar speak their own authored lines (the Cult, the Reader), so a favour of theirs could never be asked.</summary>
         public static bool IsPersonalRole(TownRole role) =>
-            role == TownRole.Citizen || role == TownRole.Scholar || role == TownRole.Beggar || role == TownRole.Adventurer || role == TownRole.Drunk || role == TownRole.Prisoner;
+            role == TownRole.Citizen || role == TownRole.Adventurer || role == TownRole.Drunk || role == TownRole.Prisoner;
 
         /// <summary>The roles the main questline leans on (see docs/game/main-quest.md).</summary>
         public static bool IsEssentialRole(TownRole role) =>

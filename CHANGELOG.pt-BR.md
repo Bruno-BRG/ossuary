@@ -5,6 +5,21 @@
 As versões do Ossuary são numeradas só com **um número** (Versão 11, Versão 12…), como no *Project Zomboid*. Nos manifestos (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) e no nome do instalador a versão aparece como `0.N.0`. O **salvamento** (`SaveData.Version`) usa o mesmo número: mudou regra, sobe o número, saves antigos deixam de carregar.
 
+## Versão 18 — Da forja ao mercado
+
+### Ofícios, itens e mercado
+- **Munição.** Arcos disparam flechas, bestas disparam virotes, fundas disparam pedras. Cada disparo gasta uma; ela cai onde você mirou e pode ser recolhida, a menos que tenha quebrado. Uma ponta de prata ou de ferro frio é letal como uma lâmina desse metal. Sem lançador, ou sem o que disparar, você arremessa uma pedra.
+- **Flechas feitas à mão.** O fabricante de arcos faz flechas com uma tora e uma linha em qualquer lugar, flechas com ponta de metal e virotes na forja, e pedras de funda a partir de rochas. As flechas com ponta de um oficial saem +1.
+- **Patrulheiros e ladinos começam prontos para atirar**: um arco curto e 30 flechas, uma funda e 15 pedras.
+- **Obras-primas com nome.** A obra-prima de um mestre às vezes ganha nome ("Ashtooth, espada longa de aço de mestre +3") e vira relíquia de quem a fez: vale muito mais e aparece no necrotério.
+- **Examinar um item** (Shift+I): o que é, seus números, material, autor e qualidade, gravação, desgaste e valor.
+- **O trabalho do ferreiro da cidade.** Ferrarias e armarias vendem uma peça assinada pelo próprio ferreiro, e as ferrarias vendem munição em feixes.
+- Munição, matérias-primas e comida se juntam numa pilha só ao pegar ou fabricar; munição é negociada como arma e vendida por pilha. As matérias-primas agora aparecem no inventário.
+- Um mendigo ou estudioso preocupado não recebe mais um pedido que a própria conversa escondia.
+
+### Salvamentos
+- O formato de salvamento passa para **18**: saves da Versão 17 não carregam.
+
 ## Versão 17 — Moeda e caravana
 
 ### Economia e mercado
