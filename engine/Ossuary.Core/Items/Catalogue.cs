@@ -118,6 +118,9 @@ namespace Ossuary.Core.Items
                 R("amulet of ESP",           '"', 150),
                 R("amulet of life saving",   '"', 300),
                 R("amulet of strangulation", '"', 300, ItemFlags.Cursed),
+                R("amulet of the leech",     '"', 350, ItemFlags.Cursed),
+                R("amulet of restless sleep", '"', 300, ItemFlags.Cursed),
+                R("amulet of the hungry dead", '"', 350, ItemFlags.Cursed),
                 R("amulet versus poison",    '"', 200),
             };
 

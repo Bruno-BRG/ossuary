@@ -5,6 +5,32 @@
 As versões do Ossuary são numeradas só com **um número** (Versão 11, Versão 12…), como no *Project Zomboid*. Nos manifestos (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) e no nome do instalador a versão aparece como `0.N.0`. O **salvamento** (`SaveData.Version`) usa o mesmo número: mudou regra, sobe o número, saves antigos deixam de carregar.
 
+## Versão 19 — Todos os ofícios
+
+### Itens e materiais
+- **Identificar pelo uso.** Poções, pergaminhos e varinhas começam como o que parecem ("poção âmbar turva", "varinha retorcida de carvalho"), diferentes a cada partida. Beba, leia ou use uma, compre, mande avaliar ou leia identificação, e você conhece aquele tipo para sempre. O F6 conta o que você já conhece.
+- **Serviços de loja.** Sábios em empórios e bibliotecas recarregam varinhas (a segunda vez é um risco). Sacerdotes tiram maldições.
+- **Amuletos amaldiçoados.** A sanguessuga, o sono inquieto e os mortos famintos: fortes, com um preço, e não saem do pescoço até um sacerdote tirar a maldição.
+- **Mais relíquias.** O Gume que Chora, a Malha de Tutano e a Coroa do Poço, todas corruptoras.
+- **Relíquias com história.** O mundo agora tem um passado gerado da semente: três séculos de ferreiros, reis, cavaleiros e senhores da guerra, guerras, pestes, cidades fundadas e queimadas, e o ano em que o Poço se abriu. Cada item único tem uma biografia tirada dele (quem forjou, de quê, para quem, quem carregou, como se perdeu), e as bibliotecas leem as crônicas em voz alta.
+- **Feitos gravados nas relíquias.** Mate um chefe com relíquias na mão ou no corpo e cada uma lembra disso. O necrotério imprime a história de cada relíquia.
+- **Donos anteriores.** Equipamento tomado de um monstro lembra de onde veio, e o de um herói morto também. Examine (Shift+I) ou olhe (`l`) uma coisa sozinha no chão para ler tudo.
+
+### Ofícios
+- **Tear e alambique.** Tecido e capas se fazem no tear do armazém; cerveja e hidromel no alambique da taverna ou do alquimista. Toda ferraria agora tem uma forja ao seu alcance.
+- **Artesãos pelo mundo.** Toda semana o ferreiro, o armeiro, o alfaiate e o alquimista põem à venda trabalho novo assinado, e nos dias de feira o grupo rival vende flechas e o que trouxe lá de baixo.
+- **Monstros arqueiros.** Kobolds, gnomos e orcs com fundas, arcos e bestas atiram de longe com munição de verdade, que cai aos seus pés.
+- **Escolha sua munição** (Shift+Y): prata para os mortos, comum para o resto.
+- **Suas obras com nome pelo mundo.** Venda uma e, dias depois, alguém da cidade compra e passa a carregá-la; as tavernas falam dela e de você.
+
+### Economia e mercado
+- **Caravanas na estrada.** A caravana que você encontra é a da cidade mais próxima. Escolte e as mercadorias chegam e você recebe; roube e a cidade passa falta e a Guarda quer você.
+- **Pechincha** (`o` no balcão): ofereça 90, 75 ou 60 por cento. Carisma, o humor do comerciante e a Guilda decidem; uma recusa azeda o comerciante pelo resto do dia.
+- **Comerciantes lembram.** Inunde um com mercadoria, venda algo amaldiçoado ou estragado, ou pechinche bem, e ele recebe você e cobra de acordo.
+
+### Salvamentos
+- O formato de salvamento passa para **19**: saves da Versão 18 não carregam.
+
 ## Versão 18 — Da forja ao mercado
 
 ### Ofícios, itens e mercado

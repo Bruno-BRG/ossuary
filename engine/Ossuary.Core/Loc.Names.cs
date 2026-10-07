@@ -500,6 +500,8 @@ namespace Ossuary.Core
         {
             if (Nm.TryGetValue(en, out var direct)) return direct;
             if (_itemMemo.TryGetValue(en, out var memo)) return memo;
+            var look = AppearancePt(en);
+            if (look != null) return look;
             // A named masterwork: its proper name stays, what it is gets translated ("Ashtooth, espada longa de aço").
             var titled = TitledRx.Match(en);
             if (titled.Success)

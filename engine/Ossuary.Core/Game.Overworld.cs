@@ -145,8 +145,11 @@ namespace Ossuary.Core
             InShop = true;
             ShopName = shop.Name;
             RefreshStall(shop);
+            LocalCraftsmen(shop);
             NoteShopPrices(shop);
             Say($"You step up to {shop.Name}.", MessageKind.Neutral);
+            string greeting = TraderGreeting(shop);
+            if (greeting != null) Say(greeting, MessageKind.Info);
         }
 
         public void CloseShop()
@@ -181,7 +184,7 @@ namespace Ossuary.Core
             if (Player.Gold < price) { Say("You cannot afford that."); return false; }
             Player.Gold -= price;
             shop.Gold += price;
-            Player.Inventory.Add(item);
+            Pack(item);
             Say($"You buy {item.Name} for {price} gold.", MessageKind.Good);
             shop.Stock.Remove(item);
             return true;
@@ -203,7 +206,8 @@ namespace Ossuary.Core
             shop.Gold -= value;
             Player.Gold += value;
             shop.Stock.Add(item);
-            if (Town != null) { AddGlut(Town.Name, cls, item); NotePrice(cls, SellPct(shop, cls)); }
+            WorkSold(item, shop);
+            if (Town != null) { AddGlut(Town.Name, cls, item); NotePrice(cls, SellPct(shop, cls)); TraderNotes(shop, item, cls); }
             Say($"You sell {item.Name} for {value} gold.", MessageKind.Good);
             return true;
         }

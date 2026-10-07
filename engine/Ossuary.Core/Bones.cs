@@ -108,7 +108,9 @@ namespace Ossuary.Core
             foreach (var g in b.Gear)
             {
                 if (!Catalogue.TryFindGear(g.Def, out var gd)) continue;
-                m.Inventory.Add(new Item(gd, rng, NextUid()) { Enchant = g.Enchant, Prefix = g.Prefix, Suffix = g.Suffix, Rarity = (Rarity)g.Rarity, Material = Materials.Find(g.Material) != null ? g.Material : null });
+                var kept = new Item(gd, rng, NextUid()) { Enchant = g.Enchant, Prefix = g.Prefix, Suffix = g.Suffix, Rarity = (Rarity)g.Rarity, Material = Materials.Find(g.Material) != null ? g.Material : null };
+                kept.AddOwner(TownText.L($"{b.Name}, a hero who died on this level", $"{b.Name}, que morreu neste nível"));
+                m.Inventory.Add(kept);
             }
             return m;
         }

@@ -135,6 +135,8 @@ namespace Ossuary.Core.Entities
         public readonly Dictionary<string, int> TradeXp = new Dictionary<string, int>();
         /// <summary>The named masterworks this hero made, as they were called when finished, for the morgue.</summary>
         public readonly List<string> Works = new List<string>();
+        /// <summary>The ammunition stack the hero chose to loose first (Shift+Y), by uid; 0 lets the quiver pick the best.</summary>
+        public long QuiverUid;
         /// <summary>The last day the hero played for coin, so a town pays once a day.</summary>
         public int LastBuskDay = -1;
 

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Ossuary.Core.Items
 {
     /// <summary>Where a recipe can be worked: anywhere (a knife and a fire will do), at a town workshop, or beside a forge.</summary>
-    public enum Station { Anywhere, Workshop, Forge }
+    public enum Station { Anywhere, Workshop, Forge, Loom, Still }
 
     public sealed class TradeDef
     {
@@ -176,7 +176,7 @@ namespace Ossuary.Core.Items
         /// <summary>A second recipe for the same product needs its own id.</summary>
         static RecipeDef Named(string id, RecipeDef r) { r.Id = id; return r; }
 
-        const Station Any = Station.Anywhere, Shop = Station.Workshop, Forge = Station.Forge;
+        const Station Any = Station.Anywhere, Shop = Station.Workshop, Forge = Station.Forge, Loom = Station.Loom, Still = Station.Still;
 
         public static readonly RecipeDef[] Recipes =
         {
@@ -252,11 +252,11 @@ namespace Ossuary.Core.Items
 
             // tailor
             X("tailor", 0, Any, "thread", "2 flax"),
-            X("tailor", 0, Shop, "cloth", "3 thread"),
-            X("tailor", 0, Shop, "cloak", "2 cloth"),
+            X("tailor", 0, Loom, "cloth", "3 thread"),
+            X("tailor", 0, Loom, "cloak", "2 cloth"),
             X("tailor", 0, Shop, "blindfold", "cloth"),
             X("tailor", 0, Any, "bandage", "cloth", 0, 3),
-            X("tailor", 3, Shop, "cloak of elvenkind", "4 cloth + 2 thread + #gem"),
+            X("tailor", 3, Loom, "cloak of elvenkind", "4 cloth + 2 thread + #gem"),
 
             // jeweller (a band or pendant takes a spell from the stone; see Game.Crafting)
             X("jeweller", 1, Forge, "silver band", "silver bar + #gem"),
@@ -311,8 +311,8 @@ namespace Ossuary.Core.Items
             X("cook", 1, Any, "food ration", "2 roast meat + loaf of bread"),
 
             // brewer
-            X("brewer", 0, Shop, "mug of ale", "2 barley", 0, 2),
-            X("brewer", 1, Shop, "bottle of mead", "2 honey"),
+            X("brewer", 0, Still, "mug of ale", "2 barley", 0, 2),
+            X("brewer", 1, Still, "bottle of mead", "2 honey"),
         };
 
         public static RecipeDef FindRecipe(string id) { foreach (var r in Recipes) if (r.Id == id) return r; return null; }

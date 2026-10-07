@@ -28,6 +28,7 @@ namespace Ossuary.Core
         public void Pack(Item it)
         {
             if (it == null) return;
+            Recognise(it);
             if (Stacks(it.Def.Kind))
                 foreach (var have in Player.Inventory)
                     if (have != it && SameStack(have, it)) { have.Quantity += Math.Max(1, it.Quantity); return; }
@@ -60,6 +61,7 @@ namespace Ossuary.Core
             foreach (var it in Player.Inventory)
             {
                 if (it.Def.Kind != ItemKind.Ammo || it.Def.Name != want || it.Quantity <= 0) continue;
+                if (Player.QuiverUid != 0 && it.Uid == Player.QuiverUid) return it;
                 if (best == null || Score(it) > Score(best)) best = it;
             }
             return best;
@@ -101,6 +103,59 @@ namespace Ossuary.Core
 
         /// <summary>Pieces loosed this run, for the tests and the morgue.</summary>
         public int AmmoSpent;
+        // ---------------------------------------------------------------- choosing what to loose
+
+        public const string QuiverPrompt = "Loose which first?";
+
+        /// <summary>The hero picks the stack the quiver reaches for first (silver for the dead, plain for the rest).</summary>
+        public void ChooseQuiver(Item stack)
+        {
+            if (stack == null || stack.Def.Kind != ItemKind.Ammo) return;
+            Player.QuiverUid = stack.Uid;
+            Say($"You will loose {stack.Name} first.", MessageKind.Info);
+        }
+
+        // ---------------------------------------------------------------- monster archers
+
+        /// <summary>
+        /// A monster with a bow, crossbow or sling and something to loose shoots from range instead of closing in: a hit, a miss or
+        /// a dodge, and the piece lands at the hero's feet unless it snapped. True when it shot.
+        /// </summary>
+        public bool MonsterShoots(Monster m, int dist)
+        {
+            if (dist < 2 || dist > 7 || m.Ally || m.Townsperson || Map == null) return false;
+            Item launcher = null, ammo = null;
+            foreach (var it in m.Inventory) if (Ammo.IsLauncher(it)) { launcher = it; break; }
+            if (launcher == null) return false;
+            string want = Ammo.AmmoFor(launcher.Def);
+            foreach (var it in m.Inventory) if (it.Def.Kind == ItemKind.Ammo && it.Def.Name == want && it.Quantity > 0) { ammo = it; break; }
+            if (ammo == null || !Map.IsVisible(m.X, m.Y) || !Fov.HasLine(Map, m.X, m.Y, Player.X, Player.Y)) return false;
+            if (!Rng.Chance(dist <= 2 ? 40 : 75)) return false;
+
+            int fromX = m.X, fromY = m.Y, toX = Player.X, toY = Player.Y;
+            Fx((tl, s) => FxLib.Bolt(tl, s, fromX, fromY, toX, toY, Elem.Wind, '\0', 3));
+            MakeNoise(1);
+            if (--ammo.Quantity <= 0) m.Inventory.Remove(ammo);
+            int toHit = (m.Def.ToHit != null && m.Def.ToHit.Length > 0 ? m.Def.ToHit[0] : 2) + launcher.Enchant;
+            int roll = toHit + Rng.Dice(20);
+            bool hit = roll >= 20 - Player.ArmorClass() + 1 + dist / 2 && Rng.Dice(100) >= Player.Evasion() * 3;
+            string what = ammo.Def.Name;
+            if (hit)
+            {
+                int dmg = Math.Max(1, Rng.Roll(ammo.Def.Damage, ammo.Def.Sides, Ammo.Pull(launcher.Def) - 1 + ammo.Enchant));
+                Player.HP -= dmg;
+                HurtBy(Article(m));
+                Say($"The {m.Name} shoots: the {what} hits you for {dmg} damage.", MessageKind.Combat);
+                CheckDeath();
+            }
+            else Say($"The {m.Name} shoots: the {what} misses you.", MessageKind.Combat);
+            // The piece lands where the hero stands, unless it snapped: it is the hero's to pick up.
+            if (Rng.Range(0, 100) >= Ammo.BreakChance(ammo.Def, hit))
+                GroundItems.Add(Map.Number, toX, toY, new Item(ammo.Def, Rng, NextUid()) { Identified = true, Material = ammo.Material, Quantity = 1 });
+            Map.Version++;
+            return true;
+        }
+
 
         // ---------------------------------------------------------------- named masterworks
 
@@ -139,6 +194,7 @@ namespace Ossuary.Core
                 lines.Add(word == null ? $"Sound ({it.Wear} of {mat.Durability} blows)." : $"Worn: {word} ({it.Wear} blows).");
             }
             if (d.Kind != ItemKind.Gold) lines.Add($"Worth about {Math.Max(1, StackValue(it))} gold.");
+            foreach (string line in RelicStory(it)) lines.Add(line);
             return lines;
 
             string Signed(int v) => v >= 0 ? "+" + v : v.ToString();
@@ -146,6 +202,51 @@ namespace Ossuary.Core
 
         static string Quality(Item it) =>
             it.Title != null ? "a named masterwork" : it.Enchant >= 2 ? "masterwork" : it.Enchant == 1 ? "fine work" : it.Enchant < 0 ? "crude work" : "plain work";
+
+        /// <summary>
+        /// What the world remembers of a thing: a unique's biography from the chronicle (once it is known for what it is), the
+        /// people who had it before the hero, and the deeds done with it. English lines, their Portuguese registered beside them.
+        /// </summary>
+        public List<string> RelicStory(Item it)
+        {
+            var lines = new List<string>();
+            if (it == null) return lines;
+            var art = Artifacts.Find(it.ArtifactId);
+            if (art != null && it.Identified)
+                foreach (var (en, pt) in Ossuary.Core.World.History.Biography(Rng.Seed, art.Id, art.Name, it.Mat?.Name))
+                    lines.Add(TownText.L(en, pt));
+            if (it.Owners != null) foreach (string o in it.Owners) lines.Add($"Once carried by {o}.");
+            if (it.Deeds != null) foreach (string d in it.Deeds) lines.Add(d);
+            return lines;
+        }
+
+        /// <summary>A gear item changes hands: it remembers who had it, in both languages.</summary>
+        void HandedDown(Item it, string en, string pt)
+        {
+            if (it == null || (!it.Def.Kind.IsGear() && it.Def.Kind != ItemKind.Ring && it.Def.Kind != ItemKind.Amulet)) return;
+            it.AddOwner(TownText.L(en, pt));
+        }
+
+        /// <summary>A boss or unique falls: every relic the hero has in hand or on writes the deed into itself.</summary>
+        void RelicsRemember(Monster m)
+        {
+            if (m.BossId == null && !m.Unique) return;
+            int day = World != null ? World.Day : 0;
+            string where = Branch + " " + Depth;
+            var relics = new List<Item>();
+            if (Player.Wielded != null && Player.Wielded.IsRelic) relics.Add(Player.Wielded);
+            foreach (var piece in Player.WornPieces()) if (piece.IsRelic) relics.Add(piece);
+            if (Player.Amulet != null && Player.Amulet.IsRelic) relics.Add(Player.Amulet);
+            for (int i = 0; i < 2; i++) if (Player.Rings[i] != null && Player.Rings[i].IsRelic) relics.Add(Player.Rings[i]);
+            foreach (var r in relics)
+            {
+                bool hand = r == Player.Wielded;
+                string en = hand ? $"Slew the {m.Name} on {where}, day {day}, in the hand of {Player.CharName}."
+                                 : $"Was worn by {Player.CharName} when the {m.Name} fell on {where}, day {day}.";
+                r.AddDeed(en);
+            }
+            if (relics.Count > 0) Say($"Your relics will remember the {m.Name}.", MessageKind.Good);
+        }
 
         public void ExamineItem(Item it)
         {

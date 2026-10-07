@@ -48,12 +48,15 @@ namespace Ossuary.Core
 
         List<Plan> _plans = new List<Plan>();
 
-        bool NearForge()
+        bool NearForge() => NearTile(TileKind.Forge);
+
+        /// <summary>A station tile in one of the eight cells around the hero (the forge, a loom, a still).</summary>
+        bool NearTile(TileKind k)
         {
             if (Map == null || Mode == GameMode.Overworld) return false;
             for (int dy = -1; dy <= 1; dy++)
                 for (int dx = -1; dx <= 1; dx++)
-                    if (Map.InBounds(Player.X + dx, Player.Y + dy) && Map.Get(Player.X + dx, Player.Y + dy) == TileKind.Forge) return true;
+                    if (Map.InBounds(Player.X + dx, Player.Y + dy) && Map.Get(Player.X + dx, Player.Y + dy) == k) return true;
             return false;
         }
 
@@ -62,6 +65,8 @@ namespace Ossuary.Core
             switch (s)
             {
                 case Station.Forge: return NearForge();
+                case Station.Loom: return NearTile(TileKind.Loom);
+                case Station.Still: return NearTile(TileKind.Still);
                 case Station.Workshop: return Mode == GameMode.TownMap;
                 default: return true;
             }
@@ -147,7 +152,7 @@ namespace Ossuary.Core
             return string.Join(" + ", bits);
         }
 
-        static string StationWord(Station s) => s == Station.Forge ? "forge" : s == Station.Workshop ? "town workshop" : "anywhere";
+        static string StationWord(Station s) => s == Station.Forge ? "forge" : s == Station.Loom ? "loom" : s == Station.Still ? "still" : s == Station.Workshop ? "town workshop" : "anywhere";
 
         /// <summary>The finished item, before quality. Previews use it as is, so listing recipes draws no RNG.</summary>
         Item Product(RecipeDef r, MaterialDef metal)

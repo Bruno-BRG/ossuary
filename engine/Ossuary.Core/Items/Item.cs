@@ -78,6 +78,18 @@ namespace Ossuary.Core.Items
         public string Title;
         /// <summary>Who made it, when somebody did: the hero, or a town's smith. Null for found things.</summary>
         public string Maker;
+        /// <summary>Who had it before the hero, oldest first ("a kobold, in The Dungeons 3"). Shown when examined.</summary>
+        public List<string> Owners;
+        /// <summary>What was done with it that the world should remember: a boss slain with a relic. Shown when examined and in the morgue.</summary>
+        public List<string> Deeds;
+        /// <summary>Times a shop has recharged this wand; each one after the first risks it.</summary>
+        public int Recharged;
+
+        public void AddOwner(string who) { if (string.IsNullOrEmpty(who)) return; Owners ??= new List<string>(); if (Owners.Count < 6) Owners.Add(who); }
+        public void AddDeed(string what) { if (string.IsNullOrEmpty(what)) return; Deeds ??= new List<string>(); if (Deeds.Count < 12) Deeds.Add(what); }
+
+        /// <summary>A relic: a unique artifact or a named masterwork. Deeds are written into these.</summary>
+        public bool IsRelic => Rarity == Rarity.Artifact || ArtifactId != null || Title != null;
         /// <summary>A <see cref="Materials"/> id; null is the default of the item's kind (iron, or wood for staves and bows).</summary>
         public string Material;
         /// <summary>Blows dealt (weapon) or taken (armour) since the last repair. See <see cref="Condition"/>.</summary>
@@ -184,6 +196,8 @@ namespace Ossuary.Core.Items
         {
             get
             {
+                // A potion, scroll or wand nobody has told you about is only what it looks like.
+                if (!Identified && ArtifactName == null && Appearances.Hidden(Def)) { string look = Appearances.For(Def); if (look != null) return look; }
                 string n = ArtifactName ?? Def.Name;
                 bool gear = Def.Kind.IsGear();
                 if (gear && ArtifactName == null)

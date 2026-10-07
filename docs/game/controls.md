@@ -41,7 +41,7 @@ Keys are remappable in Controls.
 pick up — `d` drop — `s` search (traps/secret doors) —
 `Shift+N` train a skill with XP (Trained mode) — `Shift+B` craft (what your trades, pack and place allow; `a` on a molotov throws it) — `Shift+J` every recipe — `Shift+I` examine an item (material, maker, quality, wear, worth) — `Shift+G` gather (butcher a carcass, or forage on the road) — `Shift+E` drink from a fountain (may corrupt) — `Shift+A` disarm a found trap (below or beside, preferably ahead) —
 `k` (shift-K) kick / attack ahead (in town it strikes the person in front of you, and the Watch may notice) — `D` (shift) open door — `u` (shift-U)
-use key — `a` apply tool (an instrument plays) — `f`/`Q` fire (a bow, crossbow or sling in hand or pack looses arrows, bolts or stones, which you pick up again; without one you hurl a stone)
+use key — `a` apply tool (an instrument plays) — `f`/`Q` fire (a bow, crossbow or sling in hand or pack looses arrows, bolts or stones, which you pick up again; without one you hurl a stone) — `Shift+Y` choose which ammunition to loose first
 
 ## Equip and use
 
@@ -66,7 +66,7 @@ quit and erased on resume; no `F5`), the **Dive** (starts on level 5) and **Nake
 
 A monster blocking the road: `Enter`, `Space`, `K` or `F` attack; `R` or `<` (`Shift` + `,`)
 flee. In town, bumping into people talks to them and bumping into a counter, notice
-board or altar opens the shop or service menu (letters choose, Esc leaves).
+board or altar opens the shop or service menu (letters choose, Esc leaves). At a counter, `b` buys, `s` sells and `o` haggles over the thing under the cursor: offer 90, 75 or 60 percent, and a refusal sours the trader for the day.
 
 ## Look and travel
 

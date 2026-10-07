@@ -60,6 +60,9 @@ namespace Ossuary.Core
         public int OwnerName;
         public Monster Keeper;
         public int Gold;
+        /// <summary>The house's craftsman, who signs what the shop makes; and the last week their new work was set out.</summary>
+        public string Maker;
+        public int LocalWeek = -1;
     }
 
     /// <summary>A walled town: streets, a plaza, buildings with several floors, and the people in them.</summary>
@@ -378,6 +381,10 @@ namespace Ossuary.Core
             shop.Keeper = keeper;
             // A second pair of hands: someone browsing the stock.
             if (p.R.Chance(70)) Person(p, b, TownRole.Citizen, 0, ku + 1, 1, 1, null);
+            // A station on the customer's side of the counter, so a hero can work there: the smith's forge, the general store's loom.
+            if (b.Kind == BuildingKind.Smithy) Workbench(p, b, TileKind.Forge, vc);
+            if (b.Kind == BuildingKind.General) Workbench(p, b, TileKind.Loom, vc);
+            if (b.Kind == BuildingKind.Alchemist) Workbench(p, b, TileKind.Still, vc);
         }
 
         static Shop MakeShop(Plan p, Building b, ShopKind kind)
@@ -410,6 +417,40 @@ namespace Ossuary.Core
 
         static void Tavern(Plan p, Building b)
         {
+            TavernInner(p, b);
+        }
+
+        /// <summary>
+        /// Puts a work station in the customer's half of a building (rows before the counter at <paramref name="counterRow"/>), in the
+        /// first floor cell from the back corner that keeps clear of doors and stairs, has nobody standing on it and stays reachable.
+        /// </summary>
+        static void Workbench(Plan p, Building b, TileKind k, int counterRow)
+        {
+            var map = p.Floor(0);
+            for (int v = 1; v <= counterRow - 2; v++)
+                for (int u = b.W - 2; u >= 1; u--)
+                {
+                    int x = p.X(u), y = p.Y(v);
+                    var t = map.Get(x, y);
+                    if (t != TileKind.Floor && t != TileKind.FloorAlt) continue;
+                    if (p.T.Npcs.Exists(n => n.Floor == 0 && n.X == x && n.Y == y)) continue;
+                    int open = 0; bool nearDoor = false;
+                    for (int dy = -1; dy <= 1; dy++)
+                        for (int dx = -1; dx <= 1; dx++)
+                        {
+                            if (dx == 0 && dy == 0) continue;
+                            var n = map.Get(x + dx, y + dy);
+                            if (Tiles.IsDoor(n) || Tiles.IsStairs(n)) nearDoor = true;
+                            if (Tiles.Walkable(n) && !Tiles.IsDoor(n) && !Tiles.IsStairs(n)) open++;
+                        }
+                    if (nearDoor || open < 4) continue;
+                    map.Set(x, y, k);
+                    return;
+                }
+        }
+
+        static void TavernInner(Plan p, Building b)
+        {
             p.B = b;
             b.Services = Service.Ale | Service.Meal | Service.Rumor;
             for (int u = 1; u <= 5; u++) p.Put(0, u, 5, TileKind.Counter);
@@ -417,6 +458,8 @@ namespace Ossuary.Core
             p.Put(0, 9, 6, TileKind.Hearth);
             foreach (int[] t in new[] { new[] { 3, 2 }, new[] { 7, 2 }, new[] { 7, 4 }, new[] { 8, 4 } }) p.Put(0, t[0], t[1], TileKind.Table);
             b.CounterX = p.X(3); b.CounterY = p.Y(5);
+            // The tavern brews its own: a still by the hearth, where the brewer (or the hero) works.
+            p.Put(0, 7, 6, TileKind.Still);
             b.Keeper = Person(p, b, TownRole.Barkeep, 0, 3, 6, 0, null);
             Person(p, b, TownRole.Bard, 0, 8, 2, 1, null);
             Person(p, b, TownRole.Drunk, 0, 6, 3, 1, null);
@@ -770,18 +813,20 @@ namespace Ossuary.Core
         /// The house's own work: a piece the town's smith made and signed, in a plain metal of the region, sometimes fine.
         /// Its maker's name stays on it wherever it goes (see Game.DescribeItem).
         /// </summary>
-        static void LocalWork(Shop shop, Rng rng, IReadOnlyList<ItemDef> list)
+        internal static Item LocalWork(Shop shop, Rng rng, IReadOnlyList<ItemDef> list)
         {
             var pool = new List<ItemDef>();
             foreach (var d in list) if (d.Tier <= 2 && Materials.StuffOf(d) != Stuff.None && (d.Flags & ItemFlags.Special) == 0) pool.Add(d);
-            if (pool.Count == 0) return;
-            var it = new Item(pool[rng.Range(0, pool.Count)], rng, GroundItems.NextUid()) { Identified = true, Maker = TownText.GivenName(rng) };
+            if (pool.Count == 0) return null;
+            shop.Maker ??= TownText.GivenName(rng);
+            var it = new Item(pool[rng.Range(0, pool.Count)], rng, GroundItems.NextUid()) { Identified = true, Maker = shop.Maker };
             int roll = rng.Range(0, 100);
             var metal = Materials.Find(roll < 20 ? "bronze" : roll < 75 ? "iron" : "steel");
             if (Materials.Takes(it.Def, metal)) Materials.Set(it, metal);
             if (rng.Range(0, 100) < 40) { it.Enchant = 1; it.Rarity = Rarity.Magic; }
             it.Value = it.TradeValue;
             shop.Stock.Add(it);
+            return it;
         }
 
         static void BasicsInner(Shop shop, Rng rng, IReadOnlyList<ItemDef> list, int count)

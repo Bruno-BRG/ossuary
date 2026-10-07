@@ -127,6 +127,8 @@ namespace Ossuary.Core
             {
                 Say(m.LongDescription, MessageKind.Info);
                 Say($"It is {m.ThreatLabel()}.", MessageKind.Info);
+                string work = CarriedWork(m);
+                if (work != null) Say(work, MessageKind.Info);
                 DescribeWounds(m);
                 return;
             }
@@ -142,6 +144,12 @@ namespace Ossuary.Core
             {
                 Say($"({x},{y}) {TerrainName(t)}, with:", MessageKind.Info);
                 foreach (var s in notes) Say("  " + s, MessageKind.Info);
+                // A single thing on the floor is worth a closer look: what it is made of, who made it, who had it.
+                if (items != null && items.Count == 1 && Map.IsVisible(x, y))
+                {
+                    var lines = DescribeItem(items[0]);
+                    for (int i = 1; i < lines.Count; i++) Say("  " + lines[i], MessageKind.Info);
+                }
             }
             else Say($"({x},{y}) {TerrainName(t)}.", MessageKind.Info);
         }

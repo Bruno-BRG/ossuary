@@ -1141,7 +1141,7 @@ namespace Ossuary.Tests
                 var t = TownGen.Generate("Testhold" + i, rng, 3);
                 Assert(t.Map != null, "no map");
                 Assert(t.EntryX >= 0 && t.Map.Walkable(t.EntryX, t.EntryY), "entry point not walkable");
-                Assert(t.Shops.Count >= 4, "only " + t.Shops.Count + " shops");
+                Assert(t.Shops.Count >= (t.Size == "hamlet" ? 3 : 4), "a " + t.Size + " with only " + t.Shops.Count + " shops");
                 foreach (var s in t.Shops)
                 {
                     Assert(s.Stock.Count > 0, s.Name + " has empty stock");

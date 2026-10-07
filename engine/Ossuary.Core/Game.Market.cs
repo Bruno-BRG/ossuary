@@ -114,7 +114,7 @@ namespace Ossuary.Core
         public int TownTaste(string town, string cls) => (int)(Rumours.Hash(Rng.Seed ^ 0x7A57EUL, town + "|" + cls, 0) % 31) - 15;
 
         /// <summary>The trader's mood today, -8..+8 percent in the hero's favour.</summary>
-        public int TraderMood(Shop shop) => shop == null ? 0 : (int)(Rumours.Hash(Rng.Seed ^ 0x300DUL, shop.Name, MarketDay) % 17) - 8;
+        public int TraderMood(Shop shop) => shop == null ? 0 : Math.Max(-12, Math.Min(10, (int)(Rumours.Hash(Rng.Seed ^ 0x300DUL, shop.Name, MarketDay) % 17) - 8 + MemoryMood(shop)));
 
         public static string MoodWord(int mood) => mood >= 5 ? "cheerful" : mood <= -5 ? "sour" : "even";
 
@@ -157,6 +157,7 @@ namespace Ossuary.Core
             int week = MarketDay / 7;
             uint h = Rumours.Hash(Rng.Seed ^ 0xCA7A7UL, Town.Name, week);
             cls = Classes[(h >> 8) % (uint)Classes.Length];
+            if (CaravanFate.TryGetValue(Town.Name + "|" + week, out var fate)) return fate;
             int danger = World.RegionAt(World.PlayerX, World.PlayerY).Depth;
             int raid = Math.Min(45, 12 + danger * 2);
             int roll = (int)(h % 100);
@@ -252,9 +253,11 @@ namespace Ossuary.Core
                 if (TownEventToday() == TownEventKind.Market)
                 {
                     int depth = Math.Max(1, World.RegionAt(World.PlayerX, World.PlayerY).Depth / 3);
+                    bool rival = false;
                     foreach (var s in Town.Shops)
                     {
                         if (!AtStall(s)) continue;
+                        if (!rival) { RivalStall(s, bucket); rival = true; }
                         var rng = new Rng(Rng.Seed ^ TownSalt(Town.Name + "|" + s.Name) ^ (ulong)(bucket * 92821 + 7));
                         for (int i = 0; i < 3; i++)
                         {
@@ -469,6 +472,7 @@ namespace Ossuary.Core
         void ArriveAtMarket()
         {
             GateToll();
+            WorksFindBuyers();
             FoldCaravan();
             SettleStall();
             var news = CaravanThisWeek(out string cls);

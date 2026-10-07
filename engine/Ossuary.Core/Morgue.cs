@@ -149,6 +149,22 @@ namespace Ossuary.Core
             for (int i = 0; i < p.Rings.Length; i++) if (p.Rings[i] != null) Line(Loc.T("Ring") + ": " + Loc.U(p.Rings[i].Name));
             if (p.Amulet != null) Line(Loc.T("Amulet") + ": " + Loc.U(p.Amulet.Name));
 
+            // The relics the hero carried, with their stories and what was done with them.
+            var relics = new List<Item>();
+            if (p.Wielded != null && p.Wielded.IsRelic) relics.Add(p.Wielded);
+            foreach (var piece in p.WornPieces()) if (piece.IsRelic) relics.Add(piece);
+            if (p.Amulet != null && p.Amulet.IsRelic) relics.Add(p.Amulet);
+            for (int i = 0; i < p.Rings.Length; i++) if (p.Rings[i] != null && p.Rings[i].IsRelic) relics.Add(p.Rings[i]);
+            foreach (var it in p.Inventory) if (it.IsRelic) relics.Add(it);
+            if (relics.Count > 0)
+            {
+                Head("Relics");
+                foreach (var it in relics)
+                {
+                    Line(Loc.U(it.Name));
+                    foreach (string s in g.RelicStory(it)) Line("  " + Loc.T(s));
+                }
+            }
             Head("Inventory");
             if (p.Inventory.Count == 0) Line(Loc.T("(empty)"));
             foreach (var it in p.Inventory) Line("  " + Loc.U(it.Name));

@@ -113,7 +113,7 @@ namespace Ossuary.Core
                 if (!CastCore(id, tx, ty, source, power)) return false;
             }
             finally { _itemPower = 0; }
-            source.Identified = true;
+            Learn(source);
             if (source.Def.Kind == ItemKind.Wand) source.ChargesUsed++;
             else if (source.Def.Kind == ItemKind.Scroll) { source.ChargesUsed++; if (source.RemainingCharges <= 0) Player.Inventory.Remove(source); }
             else if (--source.Quantity <= 0) Player.Inventory.Remove(source);

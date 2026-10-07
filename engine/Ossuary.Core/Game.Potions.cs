@@ -12,7 +12,7 @@ namespace Ossuary.Core
             if (potion == null || potion.Def.Kind != ItemKind.Potion) return;
             var p = Player;
             if (ItemSpells.TryGet(potion.Def.Name, out var potionSpell)) { UseSpellItem(potion, potionSpell); return; }
-            potion.Identified = true;
+            Learn(potion);
             if (--potion.Quantity <= 0) p.Inventory.Remove(potion);
             string n = potion.Def.Name;
 

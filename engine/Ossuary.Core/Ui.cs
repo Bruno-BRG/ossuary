@@ -1193,6 +1193,7 @@ namespace Ossuary.Core
                 { "Shift+E", "drink at a fountain (it may be tainted)" },
                 { "Shift+B", "craft: make what your trades, pack and place allow" },
                 { "Shift+I", "examine an item: material, maker, wear and worth" },
+                { "Shift+Y", "choose which ammunition to loose first" },
                 { "Shift+J", "every recipe, by trade and rank" },
                 { "Shift+G", "gather: butcher a carcass, or forage on the road" },
                 { "Shift+N", "train a skill with XP (Trained mode)" },
@@ -1248,6 +1249,9 @@ namespace Ossuary.Core
             KeyValue(x, y++, "Gold carried", _g.CarryingGold().ToString(), theme.Gold, theme);
             KeyValue(x, y++, "Levels mapped", _g.Dungeon.LevelCount.ToString(), theme.Text, theme);
             KeyValue(x, y++, "Regions seen", _g.RegionsSeen().ToString(), theme.Text, theme);
+            KeyValue(x, y++, "Potions known", _g.KnownCount(ItemKind.Potion) + "/" + Catalogue.Potions.Count, theme.Text, theme);
+            KeyValue(x, y++, "Scrolls known", _g.KnownCount(ItemKind.Scroll) + "/" + Catalogue.Scrolls.Count, theme.Text, theme);
+            KeyValue(x, y++, "Wands known", _g.KnownCount(ItemKind.Wand) + "/" + Catalogue.Wands.Count, theme.Text, theme);
             KeyValue(x, y++, "Seed", _g.Rng.Seed.ToString(), theme.Dim, theme);
         }
 
@@ -1826,7 +1830,7 @@ namespace Ossuary.Core
                 }
             }
 
-            _t.WriteClipped(px + 3, py + ph - 2, "Enter/b buy   s sell   hjkl move   Esc leave", theme.Dim, pw - 6, false, theme.Panel);
+            _t.WriteClipped(px + 3, py + ph - 2, "Enter/b buy   o haggle   s sell   hjkl move   Esc leave", theme.Dim, pw - 6, false, theme.Panel);
         }
 
         // ------------------------------------------------------------------ menu

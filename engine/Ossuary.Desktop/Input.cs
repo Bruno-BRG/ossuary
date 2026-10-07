@@ -32,6 +32,7 @@ namespace Ossuary.Desktop
                 if (shift && code == "KeyB") return "craft";
                 if (shift && code == "KeyJ") return "recipes";
                 if (shift && code == "KeyN") return "train";
+                if (shift && code == "KeyY") return "quiver";
                 return move;
             }
             switch (code)

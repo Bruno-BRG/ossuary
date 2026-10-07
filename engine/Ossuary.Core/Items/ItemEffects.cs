@@ -76,6 +76,10 @@ namespace Ossuary.Core.Items
 
             // ---- amulets
             ["amulet versus poison"] = new ItemMods { ResPoison = 60 },
+            // Cursed: strong on the neck, and they will not come off until a priest lifts the curse (Game.Services.cs).
+            ["amulet of the leech"] = new ItemMods { Dmg = 2, LifeSteal = 10 },
+            ["amulet of restless sleep"] = new ItemMods { Mp = 10, SpellPower = 1 },
+            ["amulet of the hungry dead"] = new ItemMods { Str = 2, Con = 1 },
             ["amulet of health"] = new ItemMods { Hp = 15 },
             ["amulet of the magi"] = new ItemMods { Mp = 10, SpellFocus = 5 },
             ["amulet of warding"] = new ItemMods { Ac = 2, Evasion = 1 },

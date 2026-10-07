@@ -71,6 +71,7 @@ namespace Ossuary.Core
         public Game(ulong seed, string roleId, string raceId, string charName)
         {
             Rng = new Rng(seed);
+            Items.Appearances.Seed = seed;
             Dungeon = new Dungeon(Rng);
             Player = new Player(Rng, roleId, raceId) { Name = "you", CharName = Heroes.CleanName(charName) };
             World = OverworldGen.Generate(96, 60, seed ^ 0xA5A5A5A5UL);
@@ -476,6 +477,7 @@ namespace Ossuary.Core
             ContractKill(m);
             QuestKill(m);
             if (m.BossId != null || m.Unique) RecordDeed(Deed.Killed, m.Name, m.BossId != null ? 3 : 2);
+            RelicsRemember(m);
             if (m.BossId != null) BossFalls(m);
             if (m.BonesKey != null) { LaidToRest.Add(m.BonesKey); Say("The restless shade is laid to rest at last.", MessageKind.Good); }
             Player.Kills++;
@@ -487,7 +489,11 @@ namespace Ossuary.Core
             for (int i = 0; i < m.Inventory.Count; i++)
             {
                 if (m.Inventory[i].Def.Kind == ItemKind.Gold) Player.Gold += m.Inventory[i].Quantity;
-                else GroundItems.Add(Map.Number, m.X, m.Y, m.Inventory[i]);
+                else
+                {
+                    HandedDown(m.Inventory[i], $"a {m.Name}, slain on {Branch} {Depth}", $"{Loc.Indefinite(m.Name)}, abatido em {Loc.PtOf(Branch)} {Depth}");
+                    GroundItems.Add(Map.Number, m.X, m.Y, m.Inventory[i]);
+                }
             }
             if (m.Def.CorpseValue > 0 && Rng.Chance(60))
             {
@@ -562,6 +568,7 @@ namespace Ossuary.Core
             if (Difficulty == Difficulty.Classic) { p.Hunger = 0; return; }
             if (p.PerkRank("gourmand") == 0 || (Turn & 1) == 1) p.Nutrient--;
             p.Nutrient -= MutationHunger();
+            p.Nutrient -= GearHunger();
             if (p.Nutrient > 0) { p.Hunger = 0; return; }
 
             p.Hunger++;
@@ -639,6 +646,7 @@ namespace Ossuary.Core
                 Player.HP -= Rng.Range(1, 4); HurtBy("an amulet of strangulation");
                 Say("The amulet tightens around your throat!", MessageKind.Bad);
             }
+            CursedAmuletTick();
         }
 
         void RunMonsters()
@@ -718,6 +726,7 @@ namespace Ossuary.Core
             LearnFromHiding(m, dist);
             bool canSee = dist <= NoticeRadius(m) && !Player.Invisible && !m.Dormant;
             if (canSee) { m.Alert = 1; m.Dormant = false; }
+            if (m.Alert == 1 && canSee && MonsterShoots(m, dist)) return;
 
             switch (m.Def.Ai)
             {

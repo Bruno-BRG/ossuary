@@ -33,6 +33,8 @@ namespace Ossuary.Core
         Board,          // notice board
         Grave,
         Hearth,
+        Loom,           // a weaver's frame: tailoring
+        Still,          // copper pot and coil: brewing
     }
 
     [Flags]
@@ -73,7 +75,7 @@ namespace Ossuary.Core
 
             // Size to the last enum member, not to Portal: Rubble/Altar/Fountain sit beyond it
             // and the Set() calls below would write past the end.
-            var d = new TileDef[(int)TileKind.Hearth + 1];
+            var d = new TileDef[(int)TileKind.Still + 1];
             for (int i = 0; i < d.Length; i++) d[i] = new TileDef { Glyph = '?', Flags = 0, Name = "void" };
 
             void Set(TileKind k, char g, TileFlags f, string n)
@@ -118,6 +120,8 @@ namespace Ossuary.Core
             Set(TileKind.Board, '□', Solid, "notice board");
             Set(TileKind.Grave, '†', Open | TileFlags.Alt, "grave");
             Set(TileKind.Hearth, '♦', Solid, "hearth");
+            Set(TileKind.Loom, '╬', Solid, "loom");
+            Set(TileKind.Still, '¤', Solid, "still");
             return d;
         }
 

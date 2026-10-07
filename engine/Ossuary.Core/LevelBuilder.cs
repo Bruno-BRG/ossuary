@@ -109,6 +109,9 @@ namespace Ossuary.Core
                         var carried = new Item(def.Carries[idx], rng, GroundItems.NextUid());
                         Materials.Assign(carried, rng.Seed, depth, map.BranchName);
                         m.Inventory.Add(carried);
+                        // An archer comes with something to loose, and drops what it did not shoot.
+                        if (Ammo.IsLauncher(carried) && Trades.TryDef(Ammo.AmmoFor(carried.Def), out var ammoDef))
+                            m.Inventory.Add(new Item(ammoDef, rng, GroundItems.NextUid()) { Identified = true, Quantity = rng.Range(6, 13) });
                     }
                 }
                 if (rng.Chance(15))

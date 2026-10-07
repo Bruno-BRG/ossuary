@@ -330,6 +330,7 @@ namespace Ossuary.Desktop
                     Hud.Cmd.Execute("shop-buy"); if (!Game.InShop) ui.Active = Panel.None;
                 }
                 else if (code == "KeyS") Hud.Cmd.Execute("shop-sell");
+                else if (code == "KeyO") Hud.Cmd.Execute("shop-haggle");
                 else if (Input.Step(code, out int dx, out int dy))
                 {
                     int n = Game.CurrentShop?.Stock.Count ?? 0;

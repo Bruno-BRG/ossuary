@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Ossuary.Core;
 using Ossuary.Core.Entities;
 using Ossuary.Core.Items;
@@ -65,6 +66,7 @@ namespace Ossuary.Tests
             Test("materials: names, numbers, banes, wear, ore and the smith", MaterialsAndWear);
             Test("crafting for everyone: trades, recipes, forge, gathering, music and workshops", CraftingForEveryone);
             Test("forge to market: ammunition, fletching, named masterworks, examining, the town smith's work", ForgeToMarket);
+            Test("items, trades and markets: identify by use, services, relics and history, stations, crafters, archers, quiver, works, caravans, haggling, memory", ItemsTradesMarkets);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -72,7 +74,7 @@ namespace Ossuary.Tests
         static void Test(string name, Action body)
         {
             try { body(); _pass++; Console.WriteLine("  ok   " + name); }
-            catch (Exception e) { _fail++; Console.WriteLine("  FAIL " + name + ": " + e.Message); }
+            catch (Exception e) { _fail++; Console.WriteLine("  FAIL " + name + ": " + e.Message + (e.GetType() != typeof(Exception) ? " at " + e.StackTrace?.Split((char)10)[0].Trim() : "")); }
         }
 
         static void Assert(bool condition, string message)
@@ -291,6 +293,198 @@ namespace Ossuary.Tests
         }
 
         static int Count(Player p, string name) { int n = 0; foreach (var it in p.Inventory) if (it.Def.Name == name) n += it.Quantity; return n; }
+        /// <summary>Version 19: identify by use, item services, relics with a history, stations, crafters, archers, the quiver, works in the world, caravans, haggling and memory.</summary>
+        static void ItemsTradesMarkets()
+        {
+            var old = Loc.Current;
+            try
+            {
+                Loc.Current = Lang.En;
+                var g = new Game(7719);
+                var p = g.Player;
+                g.Monsters.Clear();
+
+                // Identify by use: every potion kind looks different, and drinking one teaches the kind.
+                var looks = new HashSet<string>();
+                foreach (var d in Catalogue.Potions) looks.Add(Appearances.For(d));
+                Assert(looks.Count == Catalogue.Potions.Count, "every potion has its own look");
+                var healDef = Catalogue.Potions.First(d => d.Name == "potion of healing");
+                var unknown = new Item(healDef, g.Rng, 5001);
+                string look = unknown.Name;
+                Assert(look != "potion of healing" && look.EndsWith(" potion"), "an unknown potion is only its look: " + look);
+                g.Pack(unknown);
+                g.Quaff(unknown);
+                Assert(g.KnownKinds.Contains("potion of healing") && g.Log.Exists(m => m.Text.StartsWith("You learn what the " + look)), "drinking teaches the kind");
+                var second = new Item(healDef, g.Rng, 5002);
+                g.Pack(second);
+                Assert(second.Identified && second.Name == "potion of healing", "the next one is known on sight");
+                Loc.Current = Lang.Pt;
+                Assert(Loc.U(look).StartsWith("poção "), "the look is translated: " + Loc.U(look));
+                Loc.Current = Lang.En;
+
+                // Services: a sage recharges a wand, a cursed amulet will not come off until a priest lifts it.
+                p.Gold = 5000;
+                var wandDef = Catalogue.Wands.First(d => d.Name.StartsWith("wand of"));
+                var wand = new Item(wandDef, g.Rng, 5003) { Identified = true };
+                wand.ChargesUsed = wand.Charges;
+                p.Inventory.Add(wand);
+                Assert(g.RechargeWand(wand) && wand.ChargesUsed == 0 && wand.Recharged == 1, "a spent wand is full again");
+                Assert(Game.RechargeRisk(wand) == 30, "the second recharge is a risk");
+                var leech = new Item(Catalogue.Amulets.First(d => d.Name == "amulet of the leech"), g.Rng, 5004);
+                p.Amulet = leech; p.RefreshGear();
+                new Commands(g).Execute("R");
+                Assert(p.Amulet == leech && g.Log.Exists(m => m.Text.StartsWith("The amulet will not come off")), "a cursed amulet stays on");
+                g.LiftCurses();
+                new Commands(g).Execute("R");
+                Assert(p.Amulet == null, "a lifted curse lets it go");
+                foreach (string id in new[] { "weeping-edge", "marrow-mail", "ossuary-crown" })
+                    Assert(Artifacts.Find(id)?.Corrupts == true && Loc.KnowsName(Artifacts.Find(id).Name), id + " is a corrupting relic with Portuguese");
+
+                // History: a chronicle from the seed, the same twice, and a relic's biography read from it.
+                var c = Ossuary.Core.World.History.Of(g.Rng.Seed);
+                Assert(c.Figures.Count >= 20 && c.Events.Count >= 10 && c.PitOpened < c.Now, "a chronicle of people and events");
+                var bio = Ossuary.Core.World.History.Biography(g.Rng.Seed, "weeping-edge", "The Weeping Edge", "steel");
+                var bio2 = Ossuary.Core.World.History.Biography(g.Rng.Seed, "weeping-edge", "The Weeping Edge", "steel");
+                Assert(bio.Count >= 3 && bio[0].En.StartsWith("Forged of steel by ") && bio[0].Pt.StartsWith("Forjado de aço por ") && bio[bio.Count - 1].En.StartsWith("Lost in the year"), "forged, made for, lost");
+                Assert(string.Join("|", bio.Select(b => b.En)) == string.Join("|", bio2.Select(b => b.En)), "a biography is a function of the seed");
+
+                // Deeds: a unique killed with a relic in hand is written into it; a monster's gear remembers its owner.
+                var edge = new Item(Catalogue.Weapons.First(d => d.Name == "long sword"), g.Rng, 5005) { ArtifactId = "weeping-edge", ArtifactName = "The Weeping Edge", Rarity = Rarity.Artifact, Identified = true };
+                p.Wielded = edge;
+                var boss = new Monster(Bestiary.Find("orc"), g.Rng) { X = p.X + 1, Y = p.Y, Unique = true };
+                g.Monsters.Add(boss); g.KillMonster(boss);
+                Assert(edge.Deeds != null && edge.Deeds[0].StartsWith("Slew the orc on "), "the relic remembers the kill");
+                var story = g.DescribeItem(edge);
+                Assert(story.Exists(l => l.StartsWith("Forged of ")) && story.Exists(l => l.StartsWith("Slew the orc")), "examining reads the biography and the deeds");
+                Assert(Morgue.Text(g, Morgue.Summarize(g)).Contains("Relics"), "the morgue prints the relics");
+                var kobold = new Monster(Bestiary.Find("kobold"), g.Rng) { X = p.X + 1, Y = p.Y };
+                var dagger = new Item(Catalogue.Weapons.First(d => d.Name == "dagger"), g.Rng, 5006);
+                kobold.Inventory.Clear(); kobold.Inventory.Add(dagger);
+                g.Map.Set(p.X + 1, p.Y, TileKind.Floor);
+                g.Monsters.Add(kobold); g.KillMonster(kobold);
+                Assert(dagger.Owners != null && dagger.Owners[0].StartsWith("a kobold, slain on "), "taken from a kobold");
+
+                // Monster archers loose real ammunition, which lands at the hero's feet.
+                var archer = new Monster(Bestiary.Find("kobold"), g.Rng) { X = p.X + 4, Y = p.Y, Alert = 1 };
+                archer.Inventory.Clear();
+                archer.Inventory.Add(new Item(Def("sling"), g.Rng, 5007));
+                archer.Inventory.Add(new Item(Def("sling stone"), g.Rng, 5008) { Quantity = 20 });
+                for (int x = p.X; x <= p.X + 4; x++) g.Map.Set(x, p.Y, TileKind.Floor);
+                g.Monsters.Add(archer); g.UpdateFov();
+                int shots = 0;
+                for (int i = 0; i < 10; i++) if (g.MonsterShoots(archer, 4)) shots++;
+                Assert(shots > 0 && archer.Inventory.Find(i => i.Def.Name == "sling stone").Quantity == 20 - shots, "the kobold slings stones: " + shots);
+                g.Monsters.Clear();
+
+                // The quiver: the hero's pick wins over the best stack.
+                p.Inventory.Clear();
+                p.Inventory.Add(new Item(Def("short bow"), g.Rng, 5009));
+                var plain = new Item(Def("arrow"), g.Rng, 5010) { Quantity = 5, Identified = true };
+                var silver = new Item(Def("arrow"), g.Rng, 5011) { Quantity = 5, Identified = true, Enchant = 1 };
+                p.Inventory.Add(plain); p.Inventory.Add(silver);
+                Assert(g.Quiver().Ammo == silver, "the better stack by default");
+                g.ChooseQuiver(plain);
+                Assert(g.Quiver().Ammo == plain, "the chosen stack first");
+
+                // A loom and a still: weaving and brewing at their own stations.
+                p.Inventory.Clear();
+                p.Inventory.Add(new Item(Def("thread"), g.Rng, 5012) { Quantity = 3 });
+                Assert(!g.CraftChoices().Exists(i => i.Def.Name == "cloth"), "no loom, no cloth");
+                g.Map.Set(p.X + 1, p.Y, TileKind.Loom);
+                Assert(g.CraftChoices().Exists(i => i.Def.Name == "cloth"), "cloth at a loom");
+                g.Map.Set(p.X + 1, p.Y, TileKind.Still);
+                p.Inventory.Add(new Item(Def("barley"), g.Rng, 5013) { Quantity = 2 });
+                Assert(g.CraftChoices().Exists(i => i.Def.Name == "mug of ale"), "ale at a still");
+                for (int s = 0; s < 6; s++)
+                {
+                    var t = TownGen.Generate("Stationton" + s, new Rng((ulong)(300 + s)), 2);
+                    var map = t.Map;
+                    bool Reachable(TileKind k)
+                    {
+                        for (int y = 1; y < map.H - 1; y++)
+                            for (int x = 1; x < map.W - 1; x++)
+                                if (map.Get(x, y) == k)
+                                    for (int dy = -1; dy <= 1; dy++) for (int dx = -1; dx <= 1; dx++) if (map.Walkable(x + dx, y + dy) && !Tiles.IsDoor(map.Get(x + dx, y + dy))) return true;
+                        return false;
+                    }
+                    Assert(Reachable(TileKind.Loom) && Reachable(TileKind.Still) && Reachable(TileKind.Forge), "town " + s + " has a loom, a still and a forge a hero can stand beside");
+                }
+
+                // Crafters elsewhere: a week later the smith has new signed work.
+                var h = new Game(7720); h.LeaveToOverworld();
+                string town = h.CaravanTown();
+                Assert(town != null, "a town on the map");
+                h.EnterTown(town);
+                h.Player.Gold = 5000;
+                var smithy = h.Town.Buildings.Find(b => b.Kind == BuildingKind.Smithy && b.Shop != null).Shop;
+                h.OpenShop(smithy);
+                int signed = smithy.Stock.Count(i => i.Maker != null && i.Maker == smithy.Maker);
+                h.CloseShop();
+                h.World.Day += 7;
+                h.OpenShop(smithy);
+                Assert(smithy.Stock.Count(i => i.Maker != null && i.Maker == smithy.Maker) == Math.Min(signed + 1, 4) && h.Log.Exists(m => m.Text.EndsWith("has set out new work this week.")), "the smith set out new work");
+
+                // Haggling: an offer is taken or sours the trader; a soured trader will not bargain again today and says so.
+                h.Player.Cha = 30;
+                h.UiState.ShopIndex = 0;
+                h.BeginHaggle();
+                Assert(h.PendingChoice.Items.Count == 3, "three offers");
+                var bought = smithy.Stock[0];
+                bool taken = h.ResolveHaggle(h.PendingChoice.Items[0]);
+                h.PendingChoice.Clear();
+                Assert(taken ? h.Player.Inventory.Contains(bought) : h.SourToday(smithy), "an offer is taken or refused");
+                h.RecordDeed(Game.Soured, smithy.Name);
+                int moodSour = h.TraderMood(smithy);
+                h.BeginHaggle();
+                Assert(!h.PendingChoice.Active && h.TraderGreeting(smithy).Contains("You again"), "a soured trader will not haggle");
+
+                // Memory: a cursed thing sold is remembered, and it shows in the greeting and the mood.
+                var armoury = h.Town.Buildings.Find(b => b.Kind == BuildingKind.Armoury && b.Shop != null)?.Shop ?? h.Town.Shops.First(s => s != smithy);
+                armoury.Gold = 100000;
+                h.OpenShop(armoury);
+                int before = h.MemoryMood(armoury);
+                var junk = new Item(Catalogue.Amulets.First(d => d.Name == "amulet of strangulation"), h.Rng, 5014);
+                h.Player.Inventory.Add(junk);
+                h.SellToShop(armoury, junk);
+                Assert(h.MemoryMood(armoury) <= before - 4 && h.TraderGreeting(armoury).Contains("rotten"), "the trader remembers being cheated");
+                h.CloseShop();
+
+                // Named works in the world: one sold sits on the shelf, then a townsperson buys and carries it, and the taverns talk.
+                var work = new Item(Catalogue.Weapons.First(d => d.Name == "long sword"), h.Rng, 5015) { Identified = true, Title = "Ashtooth", Maker = h.Player.CharName, Enchant = 3, Rarity = Rarity.Magic };
+                h.Player.Inventory.Add(work);
+                smithy.Gold = 100000;
+                h.SellToShop(smithy, work);
+                h.World.Day += Game.WorkShelfDays;
+                h.WorksFindBuyers();
+                var sold = h.SoldWorks.Find(w => w.Title == "Ashtooth");
+                Assert(sold != null && sold.Buyer != null && h.Town.Npcs.Exists(n => n.Inventory.Contains(work)), "a townsperson bought it");
+                bool talk = false;
+                for (int i = 0; i < 12 && !talk; i++) talk = h.HearRumour().Contains("carries Ashtooth");
+                Assert(talk, "the tavern talks about who carries it");
+
+                // Caravans on the road: robbing the nearest town's caravan raids its road this week.
+                var k = new Game(7721); k.LeaveToOverworld();
+                string dest = k.CaravanTown();
+                k.OpenEvent("caravan", "A caravan", "carts");
+                Assert(k.ServiceRows().Exists(r => r.Id == "rob") && k.ServiceRows().Exists(r => r.Id == "escort"), "escort or rob");
+                k.ServiceAction("rob");
+                k.EnterTown(dest);
+                Assert(k.CaravanThisWeek(out _) == Game.CaravanNews.Raided && k.BountyHere() >= 0, "the robbed caravan never came");
+
+                // Every new line the player reads has its Portuguese.
+                Loc.Current = Lang.Pt;
+                foreach (string en in new[] {
+                    "You learn what the murky amber potion is: potion of healing.", "The kobold shoots: the sling stone hits you for 3 damage.",
+                    "Offer 75%: 120 gold for long sword", "Hilde folds their arms. \"You again. Buy, or go.\"", "You will loose arrow first.",
+                    "Ride with them to Ravensgate as a guard (45 gold)", "Odo has set out new work this week.", "Your relics will remember the orc.",
+                    "Recharge a wand", "Lift a curse", "Read the chronicles", "Potions known", "loom", "still", "amulet of the leech",
+                    edge.Deeds[0], "Once carried by " + dagger.Owners[0] + "." })
+                    Assert(Loc.T(en) != en, "no Portuguese for: " + en);
+            }
+            finally { Loc.Current = old; }
+        }
+
+
         /// <summary>Forge to market: ammunition spent and picked up, fletching, named masterworks, examining, and the town smith's signed work.</summary>
         static void ForgeToMarket()
         {

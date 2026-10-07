@@ -43,7 +43,7 @@ namespace Ossuary.Core.Entities
               new[] { AttackKind.Bite, AttackKind.ClawOrBite }, new[] { 1, 1 }, new[] { 1, 1 }, new[] { 3, 3 }, 6, 3, 4);
             M("kobold", 'k', 0x8A6A3C, 1, 6, 8, 12, 400, 1, 7, AiKind.Hunt, Alignment.ChaoticEvil,
               new[] { AttackKind.ClawOrBite, AttackKind.PierceOrHit }, new[] { 1, 1 }, new[] { 4, 3 }, new[] { 2, 3 }, 8, 3, 5,
-              carries: new[] { ItemDefs.Club }, carryW: new[] { 40 });
+              carries: new[] { ItemDefs.Club, ItemDefs.Sling, ItemDefs.ShortBow }, carryW: new[] { 40, 15, 15 });
             M("dwarf", 'h', 0xC09050, 4, 18, 10, 10, 900, 2, 14, AiKind.Hunt, Alignment.LawfulGood,
               new[] { AttackKind.Hit }, new[] { 1, 1 }, new[] { 6, 3 }, new[] { 3, 2 }, 8, 5, 7,
               carries: new[] { ItemDefs.Axe, ItemDefs.Dagger, ItemDefs.PickAxe }, carryW: new[] { 40, 40, 20 });
@@ -56,7 +56,7 @@ namespace Ossuary.Core.Entities
               new[] { AttackKind.Hit }, new[] { 1, 1 }, new[] { 6, 3 }, new[] { 4, 3 }, 9, 6, 7);
             M("orc", 'o', 0x60A050, 4, 16, 8, 12, 1200, 3, 20, AiKind.Hunt, Alignment.ChaoticEvil,
               new[] { AttackKind.PierceOrHit }, new[] { 1, 1 }, new[] { 4, 3 }, new[] { 2, 3 }, 8, 5, 7,
-              carries: new[] { ItemDefs.Axe, ItemDefs.Mace, ItemDefs.Dagger }, carryW: new[] { 30, 40, 30 });
+              carries: new[] { ItemDefs.Axe, ItemDefs.Mace, ItemDefs.Dagger, ItemDefs.Crossbow }, carryW: new[] { 30, 40, 30, 15 });
             M("orc shaman", 'o', 0x60D050, 7, 30, 8, 12, 1100, 5, 20, AiKind.Hunt, Alignment.ChaoticEvil,
               new[] { AttackKind.ClawOrBite }, new[] { 1 }, new[] { 2 }, new[] { 2 }, 8, 7, 7,
               carries: new[] { ItemDefs.Club }, carryW: new[] { 100 });

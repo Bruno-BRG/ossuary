@@ -137,6 +137,8 @@ namespace Ossuary.Core
             T(TileKind.Board, 0xF2D77A, 0x2E1A10);
             T(TileKind.Grave, 0x8F8AA8, 0x14121E);
             T(TileKind.Hearth, 0xFF9A3A, 0x3A1408);
+            T(TileKind.Loom, 0xD8C8A0, 0x2A2018);
+            T(TileKind.Still, 0xE0904A, 0x2A1810);
         }
 
         // ------------------------------------------------------------------ remap
