@@ -77,6 +77,12 @@ namespace Ossuary.Core
                 case "drink": return DoDrinkFountain();
                 case "x": _g.PushTargeting(TargetingMode.Inspect); return true;
                 case "examine": return DoExamine();
+                case "quiver":
+                    {
+                        var stack = ChooseItem(Game.QuiverPrompt, it => it.Def.Kind == ItemKind.Ammo);
+                        if (stack != null) _g.ChooseQuiver(stack);
+                        return true;
+                    }
                 case "l": _g.PushTargeting(TargetingMode.Look); return true;
                 case "X": return DoSwapWith();
 
@@ -99,6 +105,7 @@ namespace Ossuary.Core
                 case "quit": _g.Mode = GameMode.GameOver; _g.Abandoned = true; _g.DeathCause = "abandoned the run"; _g.Say("You abandon the run."); return true;
                 case "shop-buy": return BuyShopCursor();
                 case "shop-sell": return BeginSellToShop();
+                case "shop-haggle": _g.BeginHaggle(); return true;
                 default: Handled = false; return false;
             }
         }
@@ -463,6 +470,7 @@ namespace Ossuary.Core
         void WearAmulet(Item a)
         {
             var p = _g.Player;
+            if (p.Amulet != null && _g.AmuletStuck()) return;
             if (p.Amulet != null) { p.Inventory.Add(p.Amulet); _g.Say($"You take off {p.Amulet.Name}.", MessageKind.Neutral); }
             p.Inventory.Remove(a);
             p.Amulet = a;
@@ -488,6 +496,7 @@ namespace Ossuary.Core
             }
             if (p.Amulet != null)
             {
+                if (_g.AmuletStuck()) return true;
                 _g.Say($"You take off {p.Amulet.Name}.", MessageKind.Neutral);
                 p.Inventory.Add(p.Amulet);
                 p.Amulet = null;
@@ -731,6 +740,14 @@ namespace Ossuary.Core
             if (prompt == Game.SacrificePrompt) { _g.SacrificeCorpse(chosen); return true; }
             if (prompt == Game.CraftPrompt) { _g.Craft(chosen); return true; }
             if (prompt == Game.ExaminePrompt) { _g.ExamineItem(chosen); return true; }
+            if (prompt == Game.QuiverPrompt) { _g.ChooseQuiver(chosen); return true; }
+            if (prompt == Game.HagglePrompt) { _g.ResolveHaggle(chosen); return true; }
+            if (prompt == Game.RechargePrompt)
+            {
+                _g.RechargeWand(chosen);
+                if (_g.TalkBuilding != null) _g.UiState.Active = Panel.Service;
+                return true;
+            }
             if (prompt == Game.RecipePrompt) return true;
             if (prompt == Game.StallPrompt)
             {

@@ -360,7 +360,7 @@ Any hero can live as a craftsman and never enter the dungeon: gather or buy raw 
   glass flask, parchment, ink, tallow, barley, honey, raw meat, raw fish. **Meals** (food): roast meat, grilled fish, hearty stew, bread,
   honey cake, ale, mead. **Instruments** (tools): flute, drum, tambourine, lute, horn, fiddle, harp. New tool: fishing rod.
 - **Recipes** (`Trades.Recipes`, ~100, data): trade, rank, station, product, needs (names or tokens `#remains`, `#blade`, `#light-armour`,
-  `#gem`) and bars. **Stations**: anywhere, a town workshop (`GameMode.TownMap`), or beside a forge tile (the smithy's back room).
+  `#gem`) and bars. **Stations**: anywhere, a town workshop (`GameMode.TownMap`), beside a forge tile (smithies), a loom (general stores) or a still (taverns and alchemists).
   A recipe with bars makes the piece **in the bar's metal**, and the metal asks for rank too (`Trades.MetalRank`: steel and silver 1,
   cold iron 2, mithril and adamantine 3). Smelting (miner): copper/iron/silver/mithril/adamantine ore into bars; bronze from copper, steel and
   cold iron from iron.
@@ -397,7 +397,72 @@ Any hero can live as a craftsman and never enter the dungeon: gather or buy raw 
 - **Shops** stock raw goods without drawing RNG (`Town.Staples`); goods and food sell by the stack (`ShopPrice`).
 - The **molotov** (`Crafted.Molotov`, alchemist rank 0, anywhere) uses `TargetingMode.Throw` → `ThrowAt`: fire on the target and the four
   walkable neighbours, `SetAlight` + fire damage on the monster.
-- Saves move to version 15; ammunition and named masterworks to 18.
+- Saves move to version 15; ammunition and named masterworks to 18; stations, identify by use and the rest of Version 19 to 19.
+
+## Identify by use (`Items/Appearances.cs`, `Game.Identify.cs`)
+
+- Potions, scrolls and wands start as a look: "murky amber potion", "twisted oak wand", "scroll labelled ZELGO MER". Looks are assigned per
+  run from a hash of the seed and the item name, probing past taken looks, so no two kinds share one (`Appearances.For`, seed in
+  `Appearances.Seed`, set by `Game`). `Item.Name` shows the look while `!Identified`.
+- `KnownKinds` holds the names learned this run. `Learn` runs on drinking, reading, zapping (`Quaff`, `UseScroll`, `UseWand`,
+  `CastFromItem`), appraisal, scroll or spell of identify; `Recognise` (from `Pack`) knows a picked or bought thing of a learned kind,
+  and an identified thing entering the pack teaches its kind. Logic reads `Def.Name`, never the shown name. F6 counts kinds known.
+
+## Item services (`Game.Services.cs`)
+
+- **Recharge** (emporium, library): a wand with spent charges, `40 + 15 × spent + 40 × times recharged`, haggled by the Guild. The first
+  recharge is safe; each after risks 30% more (`RechargeRisk`) of the wand splitting for 2–8 damage, and each after the first costs a
+  charge of capacity.
+- **Lift a curse** (temple): `80 + 10 × level`; frees every cursed thing worn.
+- **Cursed amulets**: strangulation, the leech (+2 damage, 10% life steal, a point of HP every 20 turns), restless sleep (+10 MP, +1 spell
+  power, may close your eyes when no foe is in view), the hungry dead (+2 Str, +1 Con, double hunger). A cursed amulet will not come off
+  (`AmuletStuck`) until a priest lifts it.
+- **More relics**: The Weeping Edge (Vaults 6), Marrow Mail (Mines 8), Crown of the Pit (Dungeons 10), all corrupting.
+
+## History and relics (`World/History.cs`, `Game.Ammo.cs`)
+
+- **Chronicle** (`History.Of(seed)`, its own Rng): a present year of 300–600, 28 figures (smith, king, knight, priest, thief, scholar,
+  warlord) with birth, death, epithet and home town, towns founded, four wars, three plagues, a town razed and the year the Pit opened.
+  Every line is built in English and Portuguese together and registered with `TownText.L`.
+- **Relic biographies** (`History.Biography`): forged of its metal by a smith in a year of their life, made for a king or knight alive
+  then, carried by up to two later figures until their deaths, lost in the next war, plague or razing, or carried down into the Pit.
+  Shown when an identified unique is examined and in the morgue.
+- **Chronicles**: a library's *Read the chronicles* row reads the next entry aloud.
+- **Deeds** (`RelicsRemember`): a boss or unique killed writes a line into every relic in hand or worn (`Item.Deeds`); **owners**
+  (`Item.Owners`): a monster's gear remembers who it was taken from, a shade's gear the hero who died, a sold named work who bought it.
+  `Item.IsRelic`: a unique or a named masterwork. The morgue has a *Relics* section with each story.
+
+## Stations, crafters and archers (`Tile.cs`, `Town.cs`, `Game.Makers.cs`, `Game.Ammo.cs`)
+
+- **Loom** (`╬`, general stores) for cloth, cloaks and the cloak of elvenkind; **still** (`¤`, taverns and alchemists) for ale and mead.
+  `TownGen.Workbench` puts a station on the customer's side of the counter, clear of doors and stairs, and every smithy now has a forge
+  there too. `NearTile` checks the eight cells around the hero.
+- **Crafters elsewhere** (`LocalCraftsmen`, on stepping up to a counter): each new week the house's maker (`Shop.Maker`) sets out one new
+  signed piece (smith a weapon, armourer armour, general store a cloak, cloth, candles, boots or arrows, alchemist a potion), keeping at
+  most four on the shelf. On market days the rival party takes a stall (`RivalStall`) with arrows they made and a piece brought up from
+  the level they reached.
+- **Monster archers** (`MonsterShoots`): kobolds, gnomes and orcs may carry a sling, bow or crossbow with 6–12 pieces; at 2–7 squares in
+  line of sight they shoot (40% adjacent-ish, 75% further) instead of closing in. The piece lands at the hero's feet unless it snapped.
+- **Quiver** (`Shift+Y`, `ChooseQuiver`): `Player.QuiverUid` makes a stack the first one loosed.
+
+## Works in the world (`Game.Works.cs`)
+
+- A sold named masterwork is recorded (`SoldWork`); after `WorkShelfDays` (3) on the shelf a townsperson buys it on the hero's next
+  arrival (`WorksFindBuyers`), carries it (looking at them shows it) and remembers who sold it. Every third answer at a tavern may be
+  about the hero's works: who carries one, where one is for sale, or the piece the hero forged.
+
+## Caravans, haggling and memory (`Game.Caravans.cs`, `Game.Haggle.cs`)
+
+- **The road's caravan** is the week's caravan of the nearest town (`CaravanTown`). *Ride with them as a guard*: six hours, 40 + 5 × level
+  gold, Guild +3, a 40% bandit fight, and that town's news this week becomes *arrived*. *Rob the caravan*: 60–140 gold and rations, Guild
+  −6, Watch −5, a 150 bounty, and the town's news becomes *raided*. Stored in `CaravanFate` by town and week; `CaravanThisWeek` reads it
+  first.
+- **Haggle** (`o` at a counter): offers of 90, 75 or 60% at 70, 45 or 20% odds, plus 3 × Cha bonus, 2 × mood and Guild/10, clamped 5–95.
+  Taken: bought at the offer, a *haggled* deed. Refused: a *soured* deed and no more haggling with that trader today.
+- **Traders' memory** (ledger deeds by shop name): *flooded* (a sale leaves the class glut at 6 or more, once a day), *cheated* (a cursed
+  or ruined thing sold), *haggled*, *soured*. `MemoryMood` moves the trader's mood (soured −8 today, cheated −4 each for 30 days, flooded
+  −2 each for a week, haggled +1 per two deals) and `TraderGreeting` says what they remember when the hero steps up.
+
 
 ## Companions (`Game.Companions.cs`)
 

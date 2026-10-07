@@ -20,9 +20,9 @@ How a system works lives in [`design/systems.md`](design/systems.md); what shipp
 |---|---|---|
 | [Combat and bodies](#combat-and-bodies) | wounds, called shots, severed parts, bandages, martial techniques | limbs as trophies, burns |
 | [Magic](#magic) | 322 spells, 55 books, animations | monsters that cast, ice × lightning |
-| [Items and materials](#items-and-materials) | materials, wear, repair, relics, sets, examine, ammunition | identify by use, relic biographies |
-| [Crafting and trades](#crafting-and-trades) | 16 trades, ~105 recipes, gathering, fletching, named masterworks | loom and still, monster archers |
-| [Economy and market](#economy-and-market) | glut, caravans, market square, orders, your counter, tolls, price history, town smiths' work | caravans you can meet on the road |
+| [Items and materials](#items-and-materials) | materials, wear, relics with biographies and deeds, identify by use, services, examine, ammunition | done; new ideas go in the topic |
+| [Crafting and trades](#crafting-and-trades) | 16 trades, ~105 recipes, forge, loom and still, fletching, named masterworks, crafters, archers | done; new ideas go in the topic |
+| [Economy and market](#economy-and-market) | glut, caravans you meet on the road, haggling, traders' memory, counter, tolls, town smiths' work | done; new ideas go in the topic |
 | [Towns and people](#towns-and-people) | personas, dialogue, quests, crime, rumours | Guild jobs on the quest engine, theft |
 | [World and history](#world-and-history) | overworld, six branches, the Annex | generated history, blood and traces |
 | [Creatures](#creatures) | factions, bosses, branch natives | named survivors, ecology |
@@ -52,25 +52,15 @@ generated history that relics, engravings and legends read from.
 
 ## Items and materials
 
-- [ ] **Identify by use**: wands, potions and scrolls start unknown and are learned by trying them.
-- [ ] **Shop services**: recharge wands; new cursed amulets; more corrupting relics.
-- [ ] **Relic biographies**: who forged it, of what, for whom, who carried it, how it was lost (reads *World and history*).
-- [ ] **Deeds written into relics**: a boss killed with a relic adds a line; the morgue prints its whole story.
-- [~] **Item descriptions**: has Shift+I with numbers, material, maker, quality, engraving, wear and worth; left previous owners and the look (`l`) at items on the floor.
+Nothing open: every item is in *Done*.
 
 ## Crafting and trades
 
-- [ ] **Loom and still as tiles**: tailoring and brewing at their own stations, like the forge.
-- [~] **Crafters elsewhere**: has the town smith's signed piece in every smithy and armoury; left rival parties and other townsfolk making and selling over time.
-- [ ] **Monster archers with real ammunition**: kobold and goblin archers loose arrows that lie on the floor afterwards, and drop their quivers.
-- [ ] **A quiver slot**: choose which stack to loose (silver for the dead, plain for the rest) instead of the best one by default.
-- [ ] **Named works in the world**: the hero's named masterworks show up in rumours and in the hands of whoever bought them.
+Nothing open: every item is in *Done*.
 
 ## Economy and market
 
-- [ ] **Caravans on the road**: the week's caravan as travellers you can meet, escort or rob, so the hero decides a raided road.
-- [ ] **A haggle verb**: offer a price at the counter, the trader's mood answers, a failed haggle sours them for the day.
-- [ ] **Merchants' memory**: a trader you cheated or flooded remembers it in their dialogue (reads the ledger).
+Nothing open: every item is in *Done*.
 
 ## Towns and people
 
@@ -91,9 +81,9 @@ Plan and rationale in [`game/living-world.md`](game/living-world.md).
 
 ## World and history
 
-- [ ] **History pass** (`World/History.cs`): 100–300 years from the seed, houses rising and falling, wars, plagues, kings, towns founded and razed.
-- [ ] **Historical figures**: named people with births, deeds and deaths; some still alive, some buried below.
-- [ ] **History feeds the game**: rumours, the Scholar, books on shelves, relic lore, place names, tavern songs.
+- [~] **History pass** (`World/History.cs`): has three centuries from the seed with towns founded and razed, wars, plagues and the year the Pit opened; left houses rising and falling, kings and successions.
+- [~] **Historical figures**: has smiths, kings, knights, priests, thieves, scholars and warlords with births and deaths; left some still alive, some buried below.
+- [~] **History feeds the game**: has relic biographies and the chronicles in libraries; left rumours, the Scholar, books on shelves, place names, tavern songs.
 - [ ] **Legends panel**: browse the events, figures and places the hero has learned about.
 - [ ] **Blood and fluids**: blood by species, ichor, slime, mud, soot and footprints on the cell's background (`Surfaces.cs`), fading with time.
 - [ ] **Traces and tracking**: drag marks and blood trails; monsters follow a bleeding hero, the hero follows wounded prey.
@@ -168,10 +158,18 @@ One line per feature, newest first inside each topic. Details: the [changelog](.
 - 2026-10-02 · **Mourne, rival gods, sacrifice and trials** (`Game.Gods.cs`).
 
 **Economy and market**
+- 2026-10-07 · **Caravans on the road**: the week's caravan met on the road; escort it and the town's goods arrive and it pays, rob it and the town goes short and the Watch wants you (`Game.Caravans.cs`).
+- 2026-10-07 · **A haggle verb**: `o` at a counter offers 90, 75 or 60 percent; Cha, mood, Guild and memory answer; a refusal sours the trader for the day (`Game.Haggle.cs`).
+- 2026-10-07 · **Merchants' memory**: traders read the ledger for being flooded, cheated with cursed or ruined goods, or haggled well; it shows in their greeting and mood (`Game.Haggle.cs`).
 - 2026-10-07 · **Town smiths' work**: every smithy and armoury sells a piece its smith made and signed, smithies sell ammunition by the bundle, ammunition trades by the stack (`Town.cs`, `Game.Market.cs`).
 - 2026-10-06 · **Town markets**: supply and demand by goods class with a glut that recovers over days, town tastes, weekly caravans and raided roads, market-day traders on the stalls, a weekly order board, a rented counter that sells while you are away, haggling by Cha, mood, Guild and a master's name, gate tolls, rent and Guild dues, price history in the journal (`Game.Market.cs`, `Loc.Market.cs`).
 
 **Items and materials**
+- 2026-10-07 · **Identify by use**: potions, scrolls and wands look like something (by seed) until drunk, read, zapped, bought, appraised or identified; the discoveries panel counts what is known (`Items/Appearances.cs`, `Game.Identify.cs`).
+- 2026-10-07 · **Shop services**: sages recharge wands (each recharge after the first may blow it apart), priests lift curses, three cursed amulets that will not come off, three more corrupting relics (`Game.Services.cs`, `Artifacts.More.cs`).
+- 2026-10-07 · **Relic biographies**: every unique has a story from the chronicle: forged by whom, of what, for whom, who carried it, how it was lost; libraries read the chronicles aloud (`World/History.cs`).
+- 2026-10-07 · **Deeds written into relics**: a boss or unique killed with relics in hand or on writes a line into each; the morgue prints every relic's story (`Game.Ammo.cs`, `Morgue.cs`).
+- 2026-10-07 · **Item descriptions**: Shift+I and `l` on a single floor item show numbers, material, maker, quality, wear, worth, previous owners and deeds (`Game.Ammo.cs`).
 - 2026-10-07 · **Ammunition**: arrows, bolts and sling stones loosed by the matching launcher, spent one a shot and picked up again, metal heads that bane, stacks that merge (`Items/Ammo.cs`, `Game.Ammo.cs`).
 - 2026-10-05 · **Materials**: eleven materials by depth and branch, banes, wear and shattering, repair and recasting from ore (`Items/Materials.cs`, `Game.Materials.cs`).
 - 2026-10-03 · **Items with a spell inside**: gear imbued by kind, +48 bases, +22 affixes (`Magic/SpellFit.cs`).
@@ -180,6 +178,11 @@ One line per feature, newest first inside each topic. Details: the [changelog](.
 - 2026-10-02 · **Vaults and caches**: locked vaults with a brass key, trapped hidden caches (`Gen/Vaults.cs`).
 
 **Crafting and trades**
+- 2026-10-07 · **Loom and still as tiles**: weaving and cloaks at a loom (general stores), ale and mead at a still (taverns, alchemists); every smithy also has a forge on the customer's side (`Tile.cs`, `Town.cs`).
+- 2026-10-07 · **Crafters elsewhere**: each week the smith, armourer, tailor and alchemist set out new signed work, and on market days the rival party sells arrows and what it brought up (`Game.Makers.cs`).
+- 2026-10-07 · **Monster archers**: kobolds, gnomes and orcs with slings, bows and crossbows shoot from range with real ammunition that lands at your feet and drops with them (`Game.Ammo.cs`).
+- 2026-10-07 · **A quiver slot**: Shift+Y picks which stack to loose first (`Game.Ammo.cs`).
+- 2026-10-07 · **Named works in the world**: a sold named work is bought by a townsperson after a few days, they carry it, and the taverns talk about it and its maker (`Game.Works.cs`).
 - 2026-10-07 · **Arrows as ammunition**: fletching anywhere, metal-headed arrows and bolts at the forge, sling stones from rocks; rangers and rogues start with a launcher (`Items/Trades.cs`, `Game.Ammo.cs`).
 - 2026-10-07 · **Named masterworks**: a master's masterwork sometimes gets a name and the hero as its maker, becomes a relic worth far more, and enters the morgue (`Game.Crafting.cs`, `Items/Masterworks.cs`).
 - 2026-10-05 · **Crafting for everyone**: 16 trades, ~100 recipes, forge and workshops, quality by rank, recipe book, gathering, music, masters, commissions (`Items/Trades.cs`, `Game.Crafting.cs`, `Game.Gathering.cs`, `Game.Workshops.cs`).

@@ -20,6 +20,11 @@ namespace Ossuary.Core
         public string HearRumour()
         {
             int n = _talkCount++ + (Talking?.Voice ?? 0);
+            if (n % 3 == 1)
+            {
+                string work = WorkRumour(n / 3);
+                if (work != null) return work;
+            }
             if (n % 3 == 2)
             {
                 var r = Rumours.Tell(this, Talking, n);

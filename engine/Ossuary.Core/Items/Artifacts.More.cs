@@ -112,6 +112,14 @@ namespace Ossuary.Core.Items
                 new ItemMods { SpellFocus = 15, Mp = 6 }, new[] { "mark-for-death", "curse-of-weakness" }),
             U("dusk-daggers", "Dusk Daggers", "stiletto", Ann, 2, 45, 3, "A pair that were never found together, and have been waiting to be.",
                 new ItemMods { Dex = 1, ExtraType = DamageType.Necrotic, ExtraSides = 4, Stealth = 1 }, new[] { "throwing-knives", "knife-flurry" }, "midnight-cabal"),
+
+            // ---------------------------------------------------------- more relics: strong, and they take something back
+            U("weeping-edge", "The Weeping Edge", "long sword", Vau, 6, 40, 4, "It is always wet, and it is never water. Whoever held it last is still crying somewhere.",
+                new ItemMods { Dmg = 3, Str = 1, LifeSteal = 8 }, null, null, true),
+            U("marrow-mail", "Marrow Mail", "chain mail", Min, 8, 40, 3, "Every ring is a knuckle-bone. It fits like it was measured for you, which is the worrying part.",
+                new ItemMods { Hp = 18, Ac = 1, ResNecrotic = 30 }, null, null, true),
+            U("ossuary-crown", "Crown of the Pit", "great helm", Dun, 10, 35, 3, "Pressed from the skulls of three kings. It whispers which of them it liked best.",
+                new ItemMods { Wis = 2, Int = 2, Mp = 12 }, new[] { "fear" }, null, true),
         };
     }
 }

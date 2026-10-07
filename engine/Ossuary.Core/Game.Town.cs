@@ -267,6 +267,7 @@ namespace Ossuary.Core
             if ((s & Service.Rumor) != 0 && (s & Service.Quest) == 0) Add("rumor", "Ask for news", (s & Service.Ale) != 0 ? 4 : 0);
             AddWorkshopRows(Add);
             AddMarketRows(Add);
+            AddItemServiceRows(Add);
             if (Talking != null && CanTalk(Talking)) Add("talk", "Talk", 0);
             Add("leave", "Take my leave", 0);
             return rows;
@@ -298,6 +299,7 @@ namespace Ossuary.Core
             if (SmithyAction(id)) return false;
             if (WorkshopAction(id)) return false;
             if (MarketAction(id)) return false;
+            if (ItemServiceAction(id)) return false;
             switch (id)
             {
                 case "leave": return true;
@@ -427,7 +429,7 @@ namespace Ossuary.Core
         {
             if (item == null || item.Identified) return false;
             if (!Pay(AppraisePrice)) return false;
-            item.Identified = true;
+            Learn(item, false);
             Tell($"You learn that it is {item.Name}.", MessageKind.Good);
             return true;
         }

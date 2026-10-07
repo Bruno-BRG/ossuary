@@ -371,7 +371,7 @@ namespace Ossuary.Core
                         break;
                     }
                 case "identify":
-                    foreach (var it in p.Inventory) it.Identified = true;
+                    foreach (var it in p.Inventory.ToArray()) Learn(it, false);
                     if (p.Wielded != null) p.Wielded.Identified = true;
                     foreach (var piece in p.WornPieces()) piece.Identified = true;
                     for (int i = 0; i < 2; i++) if (p.Rings[i] != null) { p.Rings[i].Identified = true; p.RingKnown[i] = true; }

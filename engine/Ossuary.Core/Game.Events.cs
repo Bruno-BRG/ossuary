@@ -58,6 +58,11 @@ namespace Ossuary.Core
                     Row("buy-rations", "Buy rations (two)", Haggle(20, Houses.Guild));
                     Row("buy-potion", "Buy a healing potion", Haggle(60, Houses.Guild));
                     if (RepOf(Houses.Cult) >= 25) Row("buy-grave", "Ask about the vial in the black cart", Haggle(220, Houses.Cult));
+                    if (CaravanTown() != null)
+                    {
+                        Row("escort", $"Ride with them to {CaravanTown()} as a guard ({EscortPay} gold)");
+                        Row("rob", "Rob the caravan");
+                    }
                     break;
                 case "ruin":
                     Row("delve", "Climb down into the ruin");
@@ -126,6 +131,8 @@ namespace Ossuary.Core
                 case "caravan:buy-rations": if (!Pay(Haggle(20, Houses.Guild))) return false; GiveItem("food ration", 2); Tell("Two rations, wrapped in waxed cloth.", MessageKind.Good); break;
                 case "caravan:buy-potion": if (!Pay(Haggle(60, Houses.Guild))) return false; GiveItem("potion of healing", 1); Tell("A little blue bottle. The driver does not meet your eye.", MessageKind.Good); break;
                 case "caravan:buy-grave": if (!Pay(Haggle(220, Houses.Cult))) return false; GiveItem("potion of mutation", 1); Tell("\"Not a word,\" says the driver, and takes your coin with two fingers.", MessageKind.Warn); break;
+                case "caravan:escort": CaravanEscort(); break;
+                case "caravan:rob": CaravanRob(); break;
                 case "ruin:delve":
                     {
                         int roll = Rng.Range(0, 10);

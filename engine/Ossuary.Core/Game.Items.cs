@@ -28,13 +28,13 @@ namespace Ossuary.Core
             if (scroll.RemainingCharges > 0 && ItemSpells.TryGet(scroll.Def.Name, out var scrollSpell)) { UseSpellItem(scroll, scrollSpell); return; }
             if (scroll.RemainingCharges <= 0) { Say("The scroll is blank."); return; }
             scroll.ChargesUsed++;
-            scroll.Identified = true;
+            Learn(scroll);
             if (scroll.RemainingCharges <= 0) Player.Inventory.Remove(scroll);
             var p = Player;
 
-            if (scroll.Name.Contains("enchant"))
+            if (scroll.Def.Name.Contains("enchant"))
             {
-                bool weapon = scroll.Name.Contains("weapon");
+                bool weapon = scroll.Def.Name.Contains("weapon");
                 Item target = weapon ? p.Wielded : null;
                 if (!weapon)
                     foreach (var piece in p.WornPieces()) if (target == null || piece.Enchant < target.Enchant) target = piece;
@@ -51,16 +51,16 @@ namespace Ossuary.Core
                 return;
             }
 
-            if (scroll.Name.Contains("identify"))
+            if (scroll.Def.Name.Contains("identify"))
             {
                 Say("You feel a surge of insight.", MessageKind.Good);
-                foreach (var it in p.Inventory) it.Identified = true;
+                foreach (var it in p.Inventory.ToArray()) Learn(it, false);
                 if (p.Wielded != null) p.Wielded.Identified = true;
                 foreach (var piece in p.WornPieces()) piece.Identified = true;
                 for (int i = 0; i < 2; i++) if (p.Rings[i] != null) { p.Rings[i].Identified = true; p.RingKnown[i] = true; }
                 p.GainSkill(Skill.Magic, 4);
             }
-            else if (scroll.Name.Contains("mapping"))
+            else if (scroll.Def.Name.Contains("mapping"))
             {
                 Say("The shape of this level floods your mind.", MessageKind.Good);
                 for (int y = 0; y < Map.H; y++)
@@ -68,7 +68,7 @@ namespace Ossuary.Core
                         Map.Remember(x, y);
                 p.GainSkill(Skill.Magic, 3);
             }
-            else if (scroll.Name.Contains("destroy armor"))
+            else if (scroll.Def.Name.Contains("destroy armor"))
             {
                 if (p.WornArmor != null)
                 {
@@ -79,7 +79,7 @@ namespace Ossuary.Core
                 }
                 else Say("You are not wearing armour. Nothing happens.");
             }
-            else if (scroll.Name.Contains("confuse"))
+            else if (scroll.Def.Name.Contains("confuse"))
             {
                 var m = FacingMonster();
                 if (m != null)
@@ -90,24 +90,24 @@ namespace Ossuary.Core
                 }
                 else Say("You find nothing to confuse.");
             }
-            else if (scroll.Name.Contains("fire"))
+            else if (scroll.Def.Name.Contains("fire"))
             {
                 var m = FacingMonster();
                 if (m != null) Say($"A column of fire engulfs the {m.TheName}!", MessageKind.Combat);
                 else Say("Fire erupts around you, and passes harmlessly overhead.");
                 Map.Version++;
             }
-            else if (scroll.Name.Contains("earth"))
+            else if (scroll.Def.Name.Contains("earth"))
             {
                 Say("The ground trembles and dust falls from the ceiling.", MessageKind.Narrative);
                 Map.Version++;
             }
-            else if (scroll.Name.Contains("punishment"))
+            else if (scroll.Def.Name.Contains("punishment"))
             {
                 Say("You feel the weight of a thousand eyes turn toward you.", MessageKind.Warn);
                 Down(Rng.Range(3, 9));
             }
-            else if (scroll.Name.Contains("charging"))
+            else if (scroll.Def.Name.Contains("charging"))
             {
                 var target = FindUncharged();
                 if (target != null)
@@ -117,12 +117,12 @@ namespace Ossuary.Core
                 }
                 else Say("You feel strangely refreshed.");
             }
-            else if (scroll.Name.Contains("teleportation"))
+            else if (scroll.Def.Name.Contains("teleportation"))
             {
                 Say("The world folds around you.", MessageKind.Narrative);
                 TeleportPlayerAway();
             }
-            else if (scroll.Name.Contains("genocide"))
+            else if (scroll.Def.Name.Contains("genocide"))
             {
                 Say("Something vast shifts its attention elsewhere.", MessageKind.Good);
                 p.GainSkill(Skill.Magic, 8);
@@ -149,10 +149,10 @@ namespace Ossuary.Core
             if (wand.RemainingCharges <= 0) { Say("The wand is spent."); return; }
             if (ItemSpells.TryGet(wand.Def.Name, out var wandSpell)) { UseSpellItem(wand, wandSpell); return; }
             wand.ChargesUsed++;
-            wand.Identified = true;
+            Learn(wand);
             var p = Player;
 
-            if (wand.Name.Contains("light"))
+            if (wand.Def.Name.Contains("light"))
             {
                 Say("The wand flares with light!", MessageKind.Good);
                 for (int dy = -6; dy <= 6; dy++)
@@ -160,7 +160,7 @@ namespace Ossuary.Core
                         if (Map.InBounds(p.X + dx, p.Y + dy)) Map.Remember(p.X + dx, p.Y + dy);
                 UpdateFov();
             }
-            else if (wand.Name.Contains("create monster"))
+            else if (wand.Def.Name.Contains("create monster"))
             {
                 var def = Bestiary.RandomForDepth(Depth, Rng, out _);
                 if (def.HasValue)
@@ -176,7 +176,7 @@ namespace Ossuary.Core
                     }
                 }
             }
-            else if (wand.Name.Contains("digging"))
+            else if (wand.Def.Name.Contains("digging"))
             {
                 int fx = p.X + FacingX, fy = p.Y + FacingY;
                 if (Map.InBounds(fx, fy) && Map.BlocksMove(fx, fy))
@@ -187,14 +187,14 @@ namespace Ossuary.Core
                 }
                 else Say("There is nothing to dig there.");
             }
-            else if (wand.Name.Contains("striking") || wand.Name.Contains("cold") ||
-                     wand.Name.Contains("fire") || wand.Name.Contains("lightning"))
+            else if (wand.Def.Name.Contains("striking") || wand.Def.Name.Contains("cold") ||
+                     wand.Def.Name.Contains("fire") || wand.Def.Name.Contains("lightning"))
             {
                 var m = FacingMonster();
                 string what;
-                if (wand.Name.Contains("cold")) what = "A frost ray";
-                else if (wand.Name.Contains("lightning")) what = "A bolt of lightning";
-                else if (wand.Name.Contains("fire")) what = "A gout of flame";
+                if (wand.Def.Name.Contains("cold")) what = "A frost ray";
+                else if (wand.Def.Name.Contains("lightning")) what = "A bolt of lightning";
+                else if (wand.Def.Name.Contains("fire")) what = "A gout of flame";
                 else what = "A silver bolt";
                 if (m != null)
                 {
@@ -205,20 +205,20 @@ namespace Ossuary.Core
                 }
                 else Say($"{what} flashes past and fades.");
             }
-            else if (wand.Name.Contains("teleportation"))
+            else if (wand.Def.Name.Contains("teleportation"))
             {
                 Say("You are yanked across the level!", MessageKind.Narrative);
                 TeleportPlayerAway();
             }
-            else if (wand.Name.Contains("opening") || wand.Name.Contains("locking"))
+            else if (wand.Def.Name.Contains("opening") || wand.Def.Name.Contains("locking"))
             {
                 int fx = p.X + FacingX, fy = p.Y + FacingY;
-                bool open = wand.Name.Contains("opening");
+                bool open = wand.Def.Name.Contains("opening");
                 Map.Set(fx, fy, open ? TileKind.OpenDoor : TileKind.ClosedDoor);
                 Say(open ? "The door swings open." : "The door slams shut.", MessageKind.Neutral);
                 Map.Version++;
             }
-            else if (wand.Name.Contains("nothing"))
+            else if (wand.Def.Name.Contains("nothing"))
             {
                 Say("Nothing happens.", MessageKind.Info);
             }

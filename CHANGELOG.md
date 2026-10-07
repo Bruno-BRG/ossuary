@@ -5,6 +5,32 @@
 Ossuary versions are a **single number** (Version 11, Version 12…), as in *Project Zomboid*. In the manifests (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) and in the installer name the version appears as `0.N.0`. The **save format** (`SaveData.Version`) uses the same number: change a rule, bump it, old saves stop loading.
 
+## Version 19 — Every trade
+
+### Items and materials
+- **Identify by use.** Potions, scrolls and wands start as what they look like ("murky amber potion", "twisted oak wand"), different every run. Drink, read or zap one, buy it, have it appraised or read identify, and you know that kind for good. F6 counts what you know.
+- **Shop services.** Sages in emporiums and libraries recharge wands (the second time is a risk). Priests lift curses.
+- **Cursed amulets.** The leech, restless sleep and the hungry dead: strong, with a price, and they will not come off until a priest lifts the curse.
+- **More relics.** The Weeping Edge, Marrow Mail and the Crown of the Pit, all of them corrupting.
+- **Relics with a history.** The world now has a past generated from the seed: three centuries of smiths, kings, knights and warlords, wars, plagues, towns founded and burned, and the year the Pit opened. Every unique has a biography read from it (who forged it, of what, for whom, who carried it, how it was lost), and libraries read the chronicles aloud.
+- **Deeds written into relics.** Kill a boss with relics in hand or on and each one remembers it. The morgue prints every relic's story.
+- **Previous owners.** Gear taken from a monster remembers it, and so does a dead hero's. Examine (Shift+I) or look (`l`) at a single thing on the floor to read it all.
+
+### Crafting and trades
+- **Loom and still.** Cloth and cloaks are woven at a loom in the general store; ale and mead are brewed at a still in the tavern or the alchemist's. Every smithy now has a forge you can reach.
+- **Crafters elsewhere.** Each week the smith, the armourer, the tailor and the alchemist set out new signed work, and on market days the rival party sells arrows and what it brought up from below.
+- **Monster archers.** Kobolds, gnomes and orcs with slings, bows and crossbows shoot from range with real ammunition, which lands at your feet.
+- **Choose your ammunition** (Shift+Y): silver for the dead, plain for the rest.
+- **Your named works in the world.** Sell one and a townsperson buys it a few days later and carries it; the taverns talk about it and about you.
+
+### Economy and market
+- **Caravans on the road.** The caravan you meet is the nearest town's. Guard it and its goods arrive and you get paid; rob it and the town goes short and the Watch wants you.
+- **Haggling** (`o` at a counter): offer 90, 75 or 60 percent. Cha, the trader's mood and the Guild decide; a refusal sours the trader for the day.
+- **Traders remember.** Flood one with goods, sell them something cursed or ruined, or haggle well, and they greet you accordingly and price accordingly.
+
+### Saves
+- The save format moves to **19**: Version 18 saves do not load.
+
 ## Version 18 — Forge to market
 
 ### Crafting, items and the market
