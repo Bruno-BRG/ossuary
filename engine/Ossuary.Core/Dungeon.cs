@@ -91,6 +91,13 @@ namespace Ossuary.Core
                 new[] { 1, 0, 1 },
                 "A door that should not have opened, and has, and has closed behind you.")
             { Parent = "The Dungeons", ParentDepth = 4, AscendPossible = false });
+
+            // A second side branch, behind a portal deep in the Mines: the court the dwarves walled up and the dead kept.
+            Branches.Add(new Branch("The Hollow Court", "court", 3,
+                new[] { LevelStyle.Fort, LevelStyle.Catacombs, LevelStyle.Fort },
+                new[] { 1, 1, 1 },
+                "Velvet gone to rot, a long hall of empty thrones, and someone humming a dance.")
+            { Parent = "The Mines of Dwarfdeep", ParentDepth = 5, AscendPossible = false });
         }
 
         /// <summary>The side branch whose portal stands on this level, or null.</summary>

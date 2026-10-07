@@ -136,6 +136,18 @@ namespace Ossuary.Core
                 if (p.Scars.Count > 0) Line(Loc.T("Scars") + ": " + string.Join(", ", Game.ScarLines(p)));
             }
 
+            {
+                var legend = g.LegendOf();
+                Head("Legend");
+                if (legend.Count == 0) Line(Loc.T("Nothing the world will sing about."));
+                foreach (string s in legend) Line("  " + Loc.T(s));
+                var enemies = new List<string>();
+                foreach (var d in g.Ledger) if (d.Kind == Deed.Killed) enemies.Add(Loc.U(d.Subject));
+                if (enemies.Count > 0) Line(Loc.T("Enemies brought down") + ": " + string.Join(", ", enemies));
+                if (r.Outcome == "died") Line(Loc.T("Brought down by") + " " + Loc.T(r.Cause) + ".");
+                Line(Loc.T("Legends learned") + ": " + g.LegendsKnown);
+                foreach (string raid in g.RaidChronicle) Line("  " + Loc.T(raid));
+            }
             if (p.Rep.Count > 0 || g.ContractsDone > 0)
             {
                 Head("Standing");

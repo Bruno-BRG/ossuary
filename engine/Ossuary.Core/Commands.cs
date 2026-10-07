@@ -96,6 +96,9 @@ namespace Ossuary.Core
                 case "c": _g.PushCharacter(); return true;
                 case "D2": _g.PushDiscoveries(); return true;
                 case "journal": _g.PushJournal(); return true;
+                case "legends": _g.PushLegends(); return true;
+                case "track": _g.FollowTrail(); return true;
+                case "engrave": _g.BeginCarve(); return true;
                 case "H": _g.PushHistory(); return true;
                 case "?": _g.PushHelp(); return true;
                 case "save": _g.Say("The seed is the save: " + _g.Rng.Seed, MessageKind.Info); return true;
@@ -230,6 +233,7 @@ namespace Ossuary.Core
             if (!map.InBounds(nx, ny)) return true;
 
             var npc = _g.MonsterAt(nx, ny);
+            if (npc != null && npc.Raider) { _g.Attack(npc); return true; }
             if (npc != null) { _g.TalkTo(npc); return true; }
 
             var tile = map.Get(nx, ny);
@@ -238,6 +242,7 @@ namespace Ossuary.Core
                 _g.UseCounter(nx, ny);
                 return true;
             }
+            if (tile == TileKind.Shelf && _g.TryReadShelf(nx, ny)) return true;
 
             if (!map.CanStep(p.X, p.Y, nx, ny, true))
             {
@@ -742,6 +747,7 @@ namespace Ossuary.Core
             if (prompt == Game.ExaminePrompt) { _g.ExamineItem(chosen); return true; }
             if (prompt == Game.QuiverPrompt) { _g.ChooseQuiver(chosen); return true; }
             if (prompt == Game.HagglePrompt) { _g.ResolveHaggle(chosen); return true; }
+            if (prompt == Game.EngravePrompt) { _g.Carve(chosen); return true; }
             if (prompt == Game.RechargePrompt)
             {
                 _g.RechargeWand(chosen);

@@ -84,6 +84,7 @@ namespace Ossuary.Core
             int hit = hitBonus + launcher.Enchant + ammo.Enchant + (head?.ToHit ?? 0) + launcher.Def.ToHit;
             int bonus = Ammo.Pull(launcher.Def) + launcher.Enchant + ammo.Enchant + (head?.Dmg ?? 0);
             var res = Battles.PlayerRanged(Player, m, dist, Rng, out crit, mult, hit, ammo.Def.Damage, ammo.Def.Sides, bonus, head);
+            if (res.Hit) Splatter(m, res.Damage);
             Spend(ammo, m.X, m.Y, res.Hit);
             return res;
         }
@@ -145,6 +146,7 @@ namespace Ossuary.Core
                 int dmg = Math.Max(1, Rng.Roll(ammo.Def.Damage, ammo.Def.Sides, Ammo.Pull(launcher.Def) - 1 + ammo.Enchant));
                 Player.HP -= dmg;
                 HurtBy(Article(m));
+                Splatter(Player, dmg);
                 Say($"The {m.Name} shoots: the {what} hits you for {dmg} damage.", MessageKind.Combat);
                 CheckDeath();
             }
@@ -213,8 +215,12 @@ namespace Ossuary.Core
             if (it == null) return lines;
             var art = Artifacts.Find(it.ArtifactId);
             if (art != null && it.Identified)
-                foreach (var (en, pt) in Ossuary.Core.World.History.Biography(Rng.Seed, art.Id, art.Name, it.Mat?.Name))
+            {
+                var keys = new List<string>();
+                foreach (var (en, pt) in Ossuary.Core.World.History.Biography(Rng.Seed, art.Id, art.Name, it.Mat?.Name, keys))
                     lines.Add(TownText.L(en, pt));
+                foreach (string k in keys) LearnLegend(k);
+            }
             if (it.Owners != null) foreach (string o in it.Owners) lines.Add($"Once carried by {o}.");
             if (it.Deeds != null) foreach (string d in it.Deeds) lines.Add(d);
             return lines;

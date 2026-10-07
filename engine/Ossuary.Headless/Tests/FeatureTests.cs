@@ -67,6 +67,7 @@ namespace Ossuary.Tests
             Test("crafting for everyone: trades, recipes, forge, gathering, music and workshops", CraftingForEveryone);
             Test("forge to market: ammunition, fletching, named masterworks, examining, the town smith's work", ForgeToMarket);
             Test("items, trades and markets: identify by use, services, relics and history, stations, crafters, archers, quiver, works, caravans, haggling, memory", ItemsTradesMarkets);
+            Test("world and history: chronicle, legends, stains and trails, engravings, rooms, tombs, raids, the morgue, the Hollow Court", WorldAndHistory);
             Console.WriteLine($"==== features: {_pass} passed, {_fail} failed ====");
             if (_fail > 0) throw new Exception($"{_fail} feature asserts failed");
         }
@@ -486,6 +487,217 @@ namespace Ossuary.Tests
 
 
         /// <summary>Forge to market: ammunition spent and picked up, fletching, named masterworks, examining, and the town smith's signed work.</summary>
+        /// <summary>World and history: the chronicle of houses and kings, legends in play, blood and trails, engravings and rooms,
+        /// the tombs below, raids on towns, the hero's legend at the end, and the Hollow Court.</summary>
+        static void WorldAndHistory()
+        {
+            var old = Loc.Current;
+            try
+            {
+                Loc.Current = Lang.En;
+                var g = new Game(8811);
+
+                // The history pass: houses rise and some fall, kings succeed one another, and some figures are still alive.
+                var c = Ossuary.Core.World.History.Of(g.Rng.Seed);
+                Assert(c.Houses.Count >= 4, "houses rise: " + c.Houses.Count);
+                Assert(c.Houses.Exists(h => !h.Standing), "and some fall");
+                Assert(c.Kings.Count >= 4, "a line of kings: " + c.Kings.Count);
+                Assert(c.Kings[c.Kings.Count - 1].Alive, "the last king reigns now");
+                foreach (var k in c.Kings) Assert(k.Born < (k.Alive ? c.Now : k.Died), "kings live in order");
+                Assert(c.Figures.Exists(f => f.Alive), "someone is still living");
+                Assert(c.Figures.Exists(f => f.TombBranch != null), "someone is buried below");
+                Assert(c.Events.Exists(e => e.Kind == "crowned") && c.Events.Exists(e => e.Kind == "house") && c.Events.Exists(e => e.Kind == "buried"), "successions, houses and burials are chronicled");
+                var first = Ossuary.Core.World.History.Describe(c, c.Kings[0]);
+                Assert(first.En.Contains("king") && first.Pt.Contains("rei"), "kings read in both languages");
+
+                // History feeds the game: the Scholar, the bard, a book on a shelf, and the Legends panel.
+                int legends = g.LegendsKnown;
+                string scholar = g.ScholarLine();
+                Assert(scholar.Length > 10 && g.LegendsKnown > legends, "the Scholar teaches the past");
+                string song = g.SongLine();
+                Assert(song.Contains("bard sings"), "the bard sings of the old days");
+                g.DescendTo("The Dungeons", 1);
+                string book = g.ReadShelf(3, 3);
+                Assert(book.StartsWith("You take down a worn book and read: ") && g.LegendsKnown > legends, "a book on a shelf holds the past");
+                var lines = g.LegendLines();
+                Assert(lines.Count > 1 && lines.Exists(l => l.Header), "the legends panel has headers and entries");
+                Assert(g.LegendLines().Exists(l => !l.Header && l.Text.Contains("year")), "and quotes the chronicle");
+
+                // The dead of earlier runs enter this world's history, and the bard remembers them.
+                g.Graveyard = new List<Bones> { new Bones { Name = "Mirela", Role = "Ranger", Race = "human", Cause = "a pit trap", Branch = "The Dungeons", Depth = 3, Level = 4 } };
+                Assert(g.PastHeroes.Count == 1 && g.PastHeroes[0].Name == "Mirela", "a hero before you");
+                bool remembered = false;
+                for (int i = 0; i < 4 && !remembered; i++) remembered = g.SongLine().Contains("Mirela");
+                Assert(remembered, "the bard sings of the heroes who died below");
+                Assert(g.LegendLines().Exists(l => l.Header && l.Text == "Heroes before you"), "the panel lists them");
+
+                // The ruins and keeps of the overworld carry the chronicle's names.
+                bool named = false;
+                for (int i = 0; i < g.World.Tiles.Length && !named; i++)
+                    if (g.World.Tiles[i].Feature == Ossuary.Core.World.OverworldFeature.Ruin) named = g.World.Tiles[i].Name.StartsWith("the ruins of old");
+                Assert(named, "the ruins are named after the towns that burned");
+
+                // Blood by species, and a wound that leaves a stain.
+                Assert(Game.BloodOf(new Monster(Bestiary.Find("human zombie"), g.Rng)) == StainKind.None, "the dead do not bleed");
+                Assert(Game.BloodOf(new Monster(Bestiary.Find("skeleton"), g.Rng)) == StainKind.None, "skeletons do not bleed");
+                Assert(Game.BloodOf(new Monster(Bestiary.Find("brown mold"), g.Rng)) == StainKind.Slime, "molds leave slime");
+                Assert(Game.BloodOf(new Monster(Bestiary.Find("kobold"), g.Rng)) == StainKind.Blood, "the living bleed");
+                Assert(Game.BloodOf(g.Player) == StainKind.Blood, "the hero bleeds");
+                g.Monsters.Clear();
+                g.Player.MaxHP = 500; g.Player.HP = 500;
+                var rat = new Monster(Bestiary.Find("giant rat"), g.Rng) { X = g.Player.X + 1, Y = g.Player.Y, HP = 900 };
+                g.Map.Set(g.Player.X + 1, g.Player.Y, TileKind.Floor);
+                g.Monsters.Add(rat);
+                for (int i = 0; i < 12 && g.Map.StainAt(rat.X, rat.Y).Kind == StainKind.None; i++) g.Attack(rat);
+                Assert(g.Map.StainAt(rat.X, rat.Y).Kind == StainKind.Blood, "a wound leaves blood on the floor");
+
+                // A bleeding hero is smelled; the trail is read when looked at.
+                g.Player.Wounds.Clear();
+                g.Player.Wounds.Add(new Wound { Part = "left arm", Bleed = 6 });
+                g.Monsters.Clear();
+                var hound = new Monster(Bestiary.Find("jackal"), g.Rng) { X = g.Player.X, Y = g.Player.Y + 4, Alert = 0, Dormant = true };
+                for (int y = g.Player.Y; y <= g.Player.Y + 4; y++) g.Map.Set(g.Player.X, y, TileKind.Floor);
+                g.Monsters.Add(hound); g.UpdateFov();
+                g.EndPlayerTurn();
+                Assert(hound.Alert == 1 && g.Log.Exists(m => m.Text.Contains("caught the scent of your blood")), "a bleeding hero is smelled");
+
+                // The hero follows a wounded creature's trail.
+                g.Player.Wounds.Clear();
+                g.Monsters.Clear();
+                g.DescendTo("The Dungeons", 1);
+                for (int x = g.Player.X; x <= g.Player.X + 2; x++) g.Map.Set(x, g.Player.Y, TileKind.Floor);
+                g.Stain(g.Player.X + 1, g.Player.Y, StainKind.Blood, "kobold");
+                g.UpdateFov();
+                int wasX = g.Player.X;
+                Assert(g.FollowTrail() && g.Player.X == wasX + 1, "the trail leads a step on");
+                Assert(g.Log.Exists(m => m.Text.StartsWith("You follow the trail of blood")), "and says where");
+
+                // Engravings: something old is cut into the floor, and reading it teaches the past.
+                g.Monsters.Clear();
+                for (int depth = 2; depth <= 8 && g.Map.Engravings.Count == 0; depth++) g.DescendTo("The Dungeons", depth);
+                Assert(g.Map.Engravings.Count > 0, "the walls remember something");
+                int carvedCell = 0; foreach (var key in g.Map.Engravings.Keys) { carvedCell = key; break; }
+                Assert(g.Map.Walkable(carvedCell % g.Map.W, carvedCell / g.Map.W), "engravings lie on walkable floor");
+                g.Monsters.Clear();
+                g.Player.X = carvedCell % g.Map.W; g.Player.Y = carvedCell / g.Map.W;
+                g.Legends.Clear();
+                g.EndPlayerTurn();
+                Assert(g.Log.Exists(m => m.Text.StartsWith("Something is engraved here") || m.Text.StartsWith("A name is cut into the gravestone")), "reading underfoot");
+                if (g.Map.EngravingLegends.TryGetValue(carvedCell, out string taught)) Assert(g.Legends.Contains(taught), "the engraving teaches its legend");
+
+                // The hero can carve one of their own.
+                int plain = -1;
+                for (int y = 2; y < g.Map.H - 2 && plain < 0; y++)
+                    for (int x = 2; x < g.Map.W - 2 && plain < 0; x++)
+                        if ((g.Map.Get(x, y) == TileKind.Floor || g.Map.Get(x, y) == TileKind.FloorAlt) && g.Map.EngravingAt(x, y) == null && g.MonsterAt(x, y) == null) plain = y * g.Map.W + x;
+                Assert(plain >= 0, "bare floor to carve");
+                g.Player.X = plain % g.Map.W; g.Player.Y = plain / g.Map.W;
+                Assert(g.BeginCarve() && g.CarveChoices().Count >= 3, "lines to carve");
+                var line0 = g.CarveChoices()[0];
+                g.PendingChoice.Clear();
+                g.Carve(line0);
+                Assert(g.Map.EngravingAt(g.Player.X, g.Player.Y) != null && g.Log.Exists(m => m.Text.StartsWith("You carve into the floor")), "carved");
+                Assert(g.Ledger.Exists(d => d.Kind == "carved"), "and the ledger notes it");
+
+                // Room flavour: what a place was, told once, and readable on the cell.
+                bool flavoured = false;
+                for (int depth = 1; depth <= 6 && !flavoured; depth++)
+                {
+                    g.DescendTo("The Dungeons", depth);
+                    if (g.Map.Rooms == null) continue;
+                    foreach (var room in g.Map.Rooms)
+                    {
+                        if (!room.IsSpecial) continue;
+                        int cx = room.CenterX, cy = room.CenterY;
+                        if (!g.Map.Walkable(cx, cy)) continue;
+                        g.Monsters.Clear();
+                        g.Player.X = cx; g.Player.Y = cy;
+                        int before = g.Log.Count;
+                        g.EndPlayerTurn();
+                        for (int i = before; i < g.Log.Count && !flavoured; i++)
+                            foreach (string word in new[] { "barracks", "crypt", "temple", "garden", "forge", "larder", "dormitory", "well-room", "feasting hall", "strongpoint", "treasury", "sacrifice", "shrine", "mine working" })
+                                if (g.Log[i].Text.Contains(word)) flavoured = true;
+                        if (flavoured) { Assert(g.RoomAt(cx, cy) != null, "the room reads on the cell"); break; }
+                    }
+                }
+                Assert(flavoured, "a room remembers what it was");
+
+                // Tombs: the chronicle's dead lie below, with their names cut into the stone and their gear beside them.
+                Ossuary.Core.World.Figure buried = null; string buryBranch = null; int buryDepth = 0;
+                foreach (var br in g.Dungeon.Branches)
+                    for (int depth = 2; depth <= br.MaxDepth && buried == null; depth++)
+                    {
+                        var found = Ossuary.Core.World.History.TombsOn(g.Rng.Seed, br.Name, depth);
+                        if (found.Count > 0) { buried = found[0]; buryBranch = br.Name; buryDepth = depth; }
+                    }
+                Assert(buried != null, "the chronicle buried someone below");
+                g.DescendTo(buryBranch, buryDepth);
+                bool tomb = false;
+                for (int y = 0; y < g.Map.H && !tomb; y++)
+                    for (int x = 0; x < g.Map.W && !tomb; x++)
+                    {
+                        if (g.Map.Get(x, y) != TileKind.Grave) continue;
+                        string text = g.Map.EngravingAt(x, y);
+                        if (text == null || !text.Contains("Here lies")) continue;
+                        tomb = true;
+                        var goods = GroundItems.At(g.Map.Number, x, y);
+                        Assert(goods != null && goods.Exists(i => i.Owners != null), "buried with their gear");
+                    }
+                Assert(tomb, "a named tomb on " + buryBranch + " " + buryDepth);
+
+                // Raids: a band comes for a town on one day of the week, and the hero can beat it off in the streets.
+                var h = new Game(5311); h.LeaveToOverworld();
+                string town = h.CaravanTown();
+                Assert(town != null, "a town to raid");
+                Game.Raid? raid = null;
+                for (int w = 1; w <= 120 && raid == null; w++) raid = h.RaidIn(town, w);
+                Assert(raid.HasValue, "in a hundred weeks a town is raided");
+                h.World.Day = raid.Value.Day;
+                h.EnterTown(town);
+                var raiders = h.Raiders;
+                Assert(raiders.Count > 0, "raiders over the wall: " + raiders.Count);
+                foreach (var m in raiders) h.KillMonster(m);
+                Assert(h.Log.Exists(x => x.Text.StartsWith("The last raider falls")), "the town is saved");
+                Assert(h.RaidChronicle.Exists(x => x.Contains("beat off")), "and the legend notes it");
+
+                // A raid that comes while the hero is away: the Watch holds, or a shop burns.
+                var h2 = new Game(5311); h2.LeaveToOverworld();
+                Game.Raid? raid2 = null;
+                for (int w = 1; w <= 120 && raid2 == null; w++) raid2 = h2.RaidIn(town, w);
+                h2.World.Day = raid2.Value.Day + 7;
+                h2.EnterTown(town);
+                Assert(h2.RaidChronicle.Count > 0, "the town remembers its raid");
+
+                // The hero's own legend: the morgue tells it, and the bones carry it into the next world.
+                g.Player.CharName = "Fletch";
+                g.BossesSlain.Add("rat-king");
+                Assert(g.LegendOf().Exists(l => l.StartsWith("slew the Rat King")), "the legend names the bosses");
+                Assert(Morgue.Text(g, Morgue.Summarize(g)).Contains("Legend"), "the morgue has a legend section");
+                g.DescendTo("The Warrens", 4);
+                var bones = g.LeaveBones();
+                Assert(bones != null && bones.Legend.Count > 0 && bones.Legend.Exists(l => l.Contains("Rat King")), "the bones carry the legend");
+
+                // The second portal branch: the Hollow Court, behind a portal deep in the Mines.
+                var court = g.Dungeon.Branches.Find(b => b.Name == "The Hollow Court");
+                Assert(court != null && court.Parent == "The Mines of Dwarfdeep" && court.ParentDepth == 5, "the Court hangs off the Mines");
+                Assert(Bosses.Find("hollow-queen") != null && Artifacts.Find("queens-thorn") != null && Artifacts.Find("court-gown") != null, "the Queen and her relics");
+                var mines5 = g.Dungeon.Ensure("The Mines of Dwarfdeep", 5, out _, out _, out _);
+                bool portal = false;
+                for (int i = 0; i < mines5.W * mines5.H; i++) if (mines5.GetRaw(i) == TileKind.Portal) portal = true;
+                Assert(portal && g.Dungeon.SideBranchAt("The Mines of Dwarfdeep", 5)?.Name == "The Hollow Court", "a portal on Mines 5, and where it leads");
+
+                // Every line the player reads from the past has its Portuguese.
+                Loc.Current = Lang.Pt;
+                foreach (string en in new[] {
+                    scholar, song, book, "Raiders at the gate! 5 orcs come over the wall.", "Somewhere, something has caught the scent of your blood.",
+                    "You follow the trail of blood north: a kobold, wounded.", "There is no trail to follow here.", "You find no trail to follow.",
+                    "You need bare floor to carve into.", "Something is already carved here.", "A name is cut into the gravestone: \"Here lies Odo the Grey, king of Ashford, 210 to 255.\"",
+                    "On day 12 orcs raided Ashford: The Old Goat burned, and 2 died.", "On day 12 a band of orcs raided Ashford, and the Watch beat them off.",
+                    "The present year is 412. The Pit opened in 340.", "You know nothing of the past yet. Libraries, scholars, bards and old walls do." })
+                    Assert(Loc.T(en) != en, "no Portuguese for: " + en);
+            }
+            finally { Loc.Current = old; }
+        }
         static void ForgeToMarket()
         {
             var old = Loc.Current;

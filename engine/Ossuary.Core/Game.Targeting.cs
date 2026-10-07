@@ -139,6 +139,12 @@ namespace Ossuary.Core
             if (items != null) foreach (var it in items) notes.Add(it.Name);
             if (TrapTable.TryGet(Map.Number, x, y, out var kind, out var lvl)) notes.Add($"{TrapName(kind)} trap (level {lvl})");
             if (Map.SurfaceAt(x, y) != SurfaceKind.None) notes.Add(SurfaceInfo.Name(Map.SurfaceAt(x, y)));
+            var stain = Map.StainAt(x, y);
+            if (stain.Kind != StainKind.None && Map.IsVisible(x, y)) notes.Add(StainLine(stain));
+            string carved = Map.EngravingAt(x, y);
+            if (carved != null) notes.Add($"an engraving: \"{carved}\"");
+            string room = Mode == GameMode.Dungeon ? RoomAt(x, y) : null;
+            if (room != null) notes.Add($"in what was {room}");
 
             if (notes.Count > 0)
             {

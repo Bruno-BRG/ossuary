@@ -75,6 +75,7 @@ namespace Ossuary.Core
             Dungeon = new Dungeon(Rng);
             Player = new Player(Rng, roleId, raceId) { Name = "you", CharName = Heroes.CleanName(charName) };
             World = OverworldGen.Generate(96, 60, seed ^ 0xA5A5A5A5UL);
+            NamePlaces();
 
             int startX = 0, startY = 0;
             for (int y = 0; y < World.H; y++)
@@ -150,6 +151,7 @@ namespace Ossuary.Core
             Dungeon.Remember(branchName, depth, sx, sy);
             if (spawns != null) RaiseBones(spawns, sx, sy);
             if (spawns != null) RaiseBosses(spawns, sx, sy);
+            if (spawns != null) DressLevel();
             EnsureQuestAmulet(); // fallback: levels generated before the quest still get their amulet
             PlaceMainDocs();
 
@@ -176,7 +178,7 @@ namespace Ossuary.Core
             if (side == null) { Say("The portal is dead. Whatever it led to is gone."); return false; }
             _portalX = Player.X; _portalY = Player.Y;
             Say("The portal takes you, and the world folds.", MessageKind.Narrative);
-            AnnexVisited = true;
+            if (side.Name == "The Annex") AnnexVisited = true; else CourtVisited = true;
             DescendTo(side.Name, 1);
             return true;
         }
@@ -184,6 +186,8 @@ namespace Ossuary.Core
         int _portalX, _portalY;
         /// <summary>The hero has been through the portal at least once.</summary>
         public bool AnnexVisited;
+        /// <summary>The hero has stepped through the portal in the Mines into the Hollow Court.</summary>
+        public bool CourtVisited;
 
         public bool Descend()
         {
@@ -450,7 +454,7 @@ namespace Ossuary.Core
             bool crit;
             bool unaware = target.Asleep || target.Alert == 0 || target.FearTurns > 0 || target.Confused;
             var res = Battles.PlayerMelee(Player, target, Rng, out crit, 1, -Bodies.AimPenalty(Player.Aim));
-            if (res.Hit) target.Asleep = false;
+            if (res.Hit) { target.Asleep = false; Splatter(target, res.Damage); }
             if (res.Killed) { _killSneak = unaware; _killType = DamageType.Physical; }
             Say(res.Message, res.Killed ? MessageKind.Kill : MessageKind.Combat);
             WoundFrom(target, res, Bodies.EdgedWeapon(Player), crit, Player.Aim);
@@ -477,6 +481,8 @@ namespace Ossuary.Core
             ContractKill(m);
             QuestKill(m);
             if (m.BossId != null || m.Unique) RecordDeed(Deed.Killed, m.Name, m.BossId != null ? 3 : 2);
+            Stain(m.X, m.Y, BloodOf(m), m.Name);
+            RaiderKilled(m);
             RelicsRemember(m);
             if (m.BossId != null) BossFalls(m);
             if (m.BonesKey != null) { LaidToRest.Add(m.BonesKey); Say("The restless shade is laid to rest at last.", MessageKind.Good); }
@@ -541,6 +547,8 @@ namespace Ossuary.Core
             TickSurfaces();
             Regenerate();
             TickWounds();
+            TickStains();
+            ReadUnderfoot();
             if (!(Player.BuffTurns("haste") > 0 && (Turn & 1) == 0)) RunMonsters();
             {
                 // A limping hero gives the monsters an extra move every fourth turn; a crawling one, every other turn.
@@ -712,6 +720,7 @@ namespace Ossuary.Core
                 }
                 HurtBy(Article(m));
                 var res = Battles.MeleeAttack(m, Player, Rng);
+                if (res.Hit) Splatter(Player, res.Damage);
                 Say(res.Message, res.Killed ? MessageKind.Death : MessageKind.Combat);
                 if (Bodies.Wounding(res.Kind)) WoundFrom(Player, res, Bodies.EdgedAttack(res.Kind), false);
                 ArmourTakesBlow(res);
@@ -726,6 +735,7 @@ namespace Ossuary.Core
             LearnFromHiding(m, dist);
             bool canSee = dist <= NoticeRadius(m) && !Player.Invisible && !m.Dormant;
             if (canSee) { m.Alert = 1; m.Dormant = false; }
+            else SmellsBlood(m, dist);
             if (m.Alert == 1 && canSee && MonsterShoots(m, dist)) return;
 
             switch (m.Def.Ai)

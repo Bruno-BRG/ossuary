@@ -139,6 +139,7 @@ namespace Ossuary.Core.Gen
         static void DecorateRooms(GameMap map, List<Room> rooms, Rng rng)
         {
             if (rooms.Count == 0) return;
+            map.Rooms = rooms;
             // Reserve the two largest rooms for specials.
             rooms.Sort((a, b) => b.Area.CompareTo(a.Area));
             int specials = Math.Min(3, rooms.Count);

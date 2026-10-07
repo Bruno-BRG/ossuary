@@ -5,6 +5,40 @@
 As versões do Ossuary são numeradas só com **um número** (Versão 11, Versão 12…), como no *Project Zomboid*. Nos manifestos (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) e no nome do instalador a versão aparece como `0.N.0`. O **salvamento** (`SaveData.Version`) usa o mesmo número: mudou regra, sobe o número, saves antigos deixam de carregar.
 
+## Versão 20 — O mundo lembra
+
+### Mundo e história
+- **Um passado de verdade, vindo da semente.** Três séculos: casas nobres se erguem em suas sedes e cerca de metade cai; uma linhagem de reis se sucede pelo sangue, pela espada ou pela escolha dos senhores; ferreiros, cavaleiros, sacerdotes, ladrões, eruditos e senhores da guerra nascem, vivem e morrem — alguns ainda estão vivos no ano em que você chega. Cidades são fundadas, guerras e pestes passam, cidades queimam, e o Poço se abre.
+- **Os mortos jazem lá embaixo.** Cavaleiros, senhores da guerra, reis e sacerdotes que morreram depois da abertura do Poço estão enterrados em níveis de verdade: uma sepultura, o nome talhado na pedra e o que foi enterrado com eles — equipamento que se lembra deles.
+- **Painel de Lendas (F8).** Tudo o que você aprende do passado num lugar só: acontecimentos, pessoas, lugares e os heróis que vieram antes de você.
+- **A história alimenta o jogo.** Canções de taverna, boatos, o *Perguntar sobre os velhos tempos* do erudito, livros tirados das estantes de bibliotecas e empórios, biografias de relíquias, gravuras e túmulos leem a crônica e ensinam suas lendas. Ruínas ganham o nome das cidades que queimaram; fortalezas, o das casas que caíram.
+- **Os heróis antes de você.** Os ossos de partidas anteriores entram na história deste mundo: o bardo canta sobre eles, e o painel os lista.
+
+### Sangue e rastros
+- **Sangue por espécie.** Os vivos sangram, insetos e demônios deixam icor, mofos e gosmas deixam gosma; os mortos e os feitos não deixam nada. Golpes espirram, um golpe pesado espalha mais longe, e tudo escurece o chão onde cai.
+- **Desbota.** O sangue seca e escurece ao longo de centenas de turnos; pegadas, lama trazida da água, fuligem onde o fogo apagou e as marcas de arrasto de uma criatura rastejante desbotam no seu tempo.
+- **O rastro nas duas direções.** Um herói sangrando é farejado: coisas caçadoras vêm atrás de você mesmo fora de vista. E você pode seguir o rastro de uma criatura ferida com Shift+M, que aponta o caminho e o segue.
+
+### Gravuras, salas e túmulos
+- **Paredes antigas falam.** A crônica está talhada no chão lá embaixo, junto com avisos acima de um covil e uma pista apontando para uma porta escondida. Passar por cima lê e ensina a lenda.
+- **As salas lembram.** Na primeira vez que você entra num quartel, templo, despensa ou tesouro, uma linha diz o que aquilo foi; olhar uma célula dentro diz o mesmo.
+- **Entalhe o seu (Shift+O).** Em chão nu você pode gravar seu nome, um aviso, ou a última coisa que matou.
+
+### Ataques a cidades
+- **Algumas semanas um bando vem.** Kobolds perto das estradas da costa, orcs mais para dentro, os mortos no pior país, num dia da semana.
+- **Se você estiver lá**, os saqueadores pulam o muro pelo portão e você pode lutar nas ruas. Mate todos e a cidade lembra: ouro, e a gratidão da Guarda.
+- **Se você não estiver**, a Guarda aguenta ou a cidade paga: uma loja queima (estoque perdido, dono morto, chão negro para sempre) e de um a três moradores morrem. Sair da cidade com saqueadores nas ruas conta como derrota.
+
+### A Corte Oca
+- Um segundo ramo de portal, atrás de um portal no fundo das Minas (nível 5): três andares de uma corte que os anões emparedaram, com a Rainha Oca no último, seu Espinho e seu Vestido, e duas conquistas.
+
+### O fim
+- **O necrotério conta a sua lenda**: os chefes que você matou, as relíquias que carregou, as obras que fez, os ataques que rechaçou e as lendas que aprendeu.
+- **O próximo mundo lembra**: seus ossos levam essa lenda para a história da partida seguinte.
+
+### Salvamentos
+- O formato de salvamento passa para **20**: saves da Versão 19 não carregam.
+
 ## Versão 19 — Todos os ofícios
 
 ### Itens e materiais

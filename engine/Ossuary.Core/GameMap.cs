@@ -23,6 +23,17 @@ namespace Ossuary.Core
         public int Number;               // global unique level id
         /// <summary>Sparse floor surfaces (water, ice, fire, oil, brush), keyed by cell index.</summary>
         public readonly Dictionary<int, Surface> Surfaces = new Dictionary<int, Surface>();
+        /// <summary>Blood, ichor, slime, mud, soot, footprints and drag marks, by cell (see <see cref="Stain"/>).</summary>
+        public readonly Dictionary<int, Stain> Stains = new Dictionary<int, Stain>();
+        /// <summary>Engraved text on a floor cell, by cell.</summary>
+        public readonly Dictionary<int, string> Engravings = new Dictionary<int, string>();
+        /// <summary>The legend an engraving or a tomb teaches when read ("e:3", "f:12"), by cell.</summary>
+        public readonly Dictionary<int, string> EngravingLegends = new Dictionary<int, string>();
+        /// <summary>The rooms the generator laid out, with what each was for (null for towns and caves).</summary>
+        public List<Gen.Room> Rooms;
+
+        public Stain StainAt(int x, int y) => InBounds(x, y) && Stains.TryGetValue(y * W + x, out var s) ? s : default;
+        public string EngravingAt(int x, int y) => InBounds(x, y) && Engravings.TryGetValue(y * W + x, out var s) ? s : null;
         public int Version;              // bumped on any change, drives render dirty checks
         public bool Generated;
 

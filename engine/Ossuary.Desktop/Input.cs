@@ -57,8 +57,8 @@ namespace Ossuary.Desktop
                 case "KeyZ": return shift ? "Z" : "z";
                 case "KeyX": return shift ? "X" : "x";
                 case "KeyV": return shift ? "V" : "l";
-                case "KeyO": return "O";
-                case "KeyM": return "m";
+                case "KeyO": return shift ? "engrave" : "O";
+                case "KeyM": return shift ? "track" : "m";
                 case "KeyC": return shift ? "C" : "c";
                 case "F2": return "settings";
                 case "F3": return "crt";
@@ -66,6 +66,7 @@ namespace Ossuary.Desktop
                 case "F5": return "save";
                 case "F6": return "D2";
                 case "F7": return "journal";
+                case "F8": return "legends";
                 default: return null;
             }
         }

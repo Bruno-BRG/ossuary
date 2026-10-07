@@ -727,7 +727,7 @@ namespace Ossuary.Tests
         {
             Assert(Artifacts.All.Length >= 50, "uniques: " + Artifacts.All.Length);
             var ids = new HashSet<string>(); var perSet = new Dictionary<string, int>();
-            var depth = new Dictionary<string, int> { { "The Dungeons", 10 }, { "The Mines of Dwarfdeep", 8 }, { "The Warrens", 9 }, { "The Sunken Vaults", 12 }, { "The Ashen Spire", 15 }, { "The Annex", 3 } };
+            var depth = new Dictionary<string, int>(); foreach (var br in new Dungeon(new Rng(1)).Branches) depth[br.Name] = br.MaxDepth;
             int granting = 0;
             foreach (var a in Artifacts.All)
             {

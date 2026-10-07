@@ -341,6 +341,12 @@ namespace Ossuary.Desktop
             }
             if (ui.IsOpen)
             {
+                // The legends are long: up and down scroll them, anything else closes.
+                if (ui.Active == Panel.Legends && Input.Step(code, out int ldx, out int ldy) && ldy != 0)
+                {
+                    ui.ScrollOffset = Math.Max(0, ui.ScrollOffset + ldy * 3);
+                    return;
+                }
                 if (code == "Escape" || Accept(code) || command != null) ui.Active = Panel.None;
                 return;
             }

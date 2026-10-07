@@ -473,7 +473,8 @@ namespace Ossuary.Tools
             Console.WriteLine(hud.Draw().ToAscii());
 
             game.StartQuest("main.seal"); game.StartQuest("watch.bandits");
-            foreach (Panel p in new[] { Panel.Inventory, Panel.Character, Panel.Help, Panel.History, Panel.Discoveries, Panel.Journal })
+            for (int i = 0; i < 4; i++) game.ScholarLine();
+            foreach (Panel p in new[] { Panel.Inventory, Panel.Character, Panel.Help, Panel.History, Panel.Discoveries, Panel.Journal, Panel.Legends })
             {
                 game.UiState.Active = p;
                 Console.WriteLine();

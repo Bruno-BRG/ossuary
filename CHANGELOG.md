@@ -5,6 +5,40 @@
 Ossuary versions are a **single number** (Version 11, Version 12…), as in *Project Zomboid*. In the manifests (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) and in the installer name the version appears as `0.N.0`. The **save format** (`SaveData.Version`) uses the same number: change a rule, bump it, old saves stop loading.
 
+## Version 20 — The world remembers
+
+### World and history
+- **A real past, from the seed.** Three centuries: noble houses rise at their seats and about half of them fall; a line of kings succeeds itself by blood, by the sword or by the lords' choice; smiths, knights, priests, thieves, scholars and warlords are born, live and die — some of them are still alive in the year you arrive. Towns are founded, wars and plagues pass, towns burn, and the Pit opens.
+- **The dead lie below.** Knights, warlords, kings and priests who died after the Pit opened are buried on real levels: a grave, their name cut into the stone, and what they were buried with — gear that remembers them.
+- **Legends panel (F8).** Everything you learn about the past, in one place: events, people, places, and the heroes who came before you.
+- **History feeds the game.** Tavern songs, rumours, the Scholar's *Ask about the old days*, books taken down from library and emporium shelves, relic biographies, engravings and tombs all read the chronicle and teach you its legends. Ruins are named after the towns that burned; keeps after the houses that fell.
+- **The heroes before you.** The bones of earlier runs enter this world's history: the bard sings of them, and the panel lists them.
+
+### Blood and traces
+- **Blood by species.** The living bleed, insects and demons leave ichor, molds and oozes slime; the dead and the made leave nothing. Hits splatter, a heavy blow throws it further, and it darkens the floor where it falls.
+- **It fades.** Blood dries and darkens over hundreds of turns; footprints, mud carried in from water, soot where fire burned out and the drag marks of a crawling creature all fade in their own time.
+- **The trail both ways.** A bleeding hero is smelled: hunting things come for you even out of sight. And you can follow a wounded creature's trail with Shift+M, which points the way and follows it.
+
+### Engravings, rooms and tombs
+- **Old walls talk.** The chronicle is cut into the floor down there, along with warnings above a lair and a clue pointing at a hidden door. Walking over one reads it and teaches its legend.
+- **Rooms remember.** The first time you step into a barracks, a temple, a larder or a treasury, one line says what it was; looking at a cell inside says the same.
+- **Carve your own (Shift+O).** On bare floor you can cut your name, a warning, or the last thing you killed into the stone.
+
+### Raids on towns
+- **Some weeks a band comes.** Kobolds near the coast roads, orcs further in, the dead in the worst country, on one day of the week.
+- **If you are there**, the raiders come over the wall by the gate and you can fight them in the streets. Kill them all and the town remembers: gold, and the Watch's gratitude.
+- **If you are not**, the Watch holds or the town pays: a shop burns (its stock gone, its keeper dead, its floor black for good) and one to three of its people die. Leave town while raiders are in the streets and it counts as a loss.
+
+### The Hollow Court
+- A second portal branch, behind a portal deep in the Mines (level 5): three floors of a court the dwarves walled up, with the Hollow Queen on the last, her Thorn and her Gown, and two achievements.
+
+### The end
+- **The morgue tells your legend**: the bosses you slew, the relics you carried, the works you made, the raids you beat off, and the legends you learned.
+- **The next world remembers**: your bones carry that legend into the history of the run after yours.
+
+### Saves
+- The save format moves to **20**: Version 19 saves do not load.
+
 ## Version 19 — Every trade
 
 ### Items and materials

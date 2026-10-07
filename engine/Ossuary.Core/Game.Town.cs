@@ -58,6 +58,7 @@ namespace Ossuary.Core
 
         public void LeaveTown()
         {
+            RaidAbandoned();
             Mode = GameMode.Overworld;
             Town = null;
             TownMap = null;
@@ -180,6 +181,7 @@ namespace Ossuary.Core
         {
             var b = Town?.BuildingAt(x, y, TownZ);
             if (b == null) return;
+            if (b.Burned) { Say("Only ash and a blackened counter are left. Raiders burned it.", MessageKind.Info); return; }
             if (b.Keeper == null || b.Keeper.Floor != TownZ || b.Keeper.IsDead) { Say("There is no one here."); return; }
             if (b.Keeper.DownUntilDay > Today) { Say("They are out cold; no one is serving."); return; }
             if (b.Keeper.HostileUntil > Turn) { Say("They will not serve you now.", MessageKind.Warn); return; }
