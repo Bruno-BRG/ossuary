@@ -5,7 +5,7 @@
 **Um roguelike ASCII de fantasia sombria.** O mundo jogou seus mortos, seus reis e seus deuses num só poço.
 Você desce para roubar o que sobrou.
 
-![Versão 19](https://img.shields.io/badge/vers%C3%A3o-19-c8a050?style=flat-square)
+![Versão 20](https://img.shields.io/badge/vers%C3%A3o-20-c8a050?style=flat-square)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-5fa85f?style=flat-square)
 ![Plataforma](https://img.shields.io/badge/plataforma-Windows%20x64-4a6ea8?style=flat-square)
 ![Motor](https://img.shields.io/badge/motor-C%23%20.NET%2010-7c4dff?style=flat-square)
@@ -25,11 +25,12 @@ Desça pelo Ossuary, pegue o **Amuleto de Yendor** e traga de volta à luz do di
 num terminal estilo CRT; o jogo é uma exploração de masmorras por turnos com um mundo vivo na superfície.
 A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 
-### O que há na **versão 19**
+### O que há na **versão 20**
 
 | | |
 |---|---|
-| 📜 **Todos os ofícios** *(novo)* | Poções, pergaminhos e varinhas se aprendem usando. Relíquias têm uma história gerada da semente (quem forjou, para quem, como se perderam) e lembram dos chefes que mataram. Teares e alambiques, artesãos que seguem trabalhando, kobolds arqueiros com flechas de verdade, caravanas que você escolta ou rouba na estrada, pechincha no balcão e comerciantes que lembram do que você fez. |
+| 🏛️ **O mundo lembra** *(novo)* | Um passado gerado da semente: casas que sobem e caem, reis que se sucedem pelo sangue, pela espada ou pela escolha dos senhores, guerras, pestes, cidades que queimaram, e os mortos enterrados em níveis de verdade com o nome talhado na pedra. O painel de lendas (F8) junta o que você aprende com bardos, eruditos, estantes, boatos, gravuras e túmulos. Sangue por espécie e rastros que desbotam: um herói sangrando é farejado, e Shift+M segue presas feridas. Ataques vêm às cidades num dia da semana: lute nas ruas ou encontre uma loja queimada. |
+| 📜 **Todos os ofícios** | Poções, pergaminhos e varinhas se aprendem usando. Relíquias têm uma história gerada da semente (quem forjou, para quem, como se perderam) e lembram dos chefes que mataram. Teares e alambiques, artesãos que seguem trabalhando, kobolds arqueiros com flechas de verdade, caravanas que você escolta ou rouba na estrada, pechincha no balcão e comerciantes que lembram do que você fez. |
 | 🏹 **Da forja ao mercado** | Arcos, bestas e fundas disparam flechas, virotes e pedras de verdade: cada tiro gasta uma, e você recolhe onde caiu. Faça as suas, com ponta de prata para os mortos. A melhor obra de um mestre às vezes ganha nome e vira relíquia de quem a fez. `Shift+I` examina qualquer coisa: metal, autor, qualidade, desgaste, valor. Os ferreiros da cidade vendem o próprio trabalho assinado. |
 | 🪙 **Moeda e caravana** | Cada cidade tem um mercado que se lembra de você: encha um ferreiro de espadas e ele paga menos por dias, uma caravana barateia um tipo de mercadoria, uma estrada saqueada encarece. Dias de feira trazem mercadores de fora, um quadro semanal mostra o que o povo quer e oferece, e você pode alugar um balcão que vende enquanto está fora. Carisma, o humor do comerciante, a Guilda e o nome de um mestre mexem nos preços; pedágios, aluguel e taxas mantêm o ouro valendo. O diário lembra onde as coisas venderam. |
 | 🪓 **Sangue e osso** | Mire seus golpes (`Shift+F`): nas pernas, no braço da arma, nos olhos, nas asas. Lâminas decepam membros de monstros, um braço destroçado larga a arma, uma asa quebrada derruba quem voa, feras aleijadas fogem e as cegadas golpeiam a esmo. Ataduras, fogo que cauteriza, cicatrizes que as pessoas notam, serpentes e um manual de golpes do Guerreiro pago com Vigor. |
@@ -67,10 +68,10 @@ A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 
 ## Instalar (jogadores)
 
-Baixe o instalador `Ossuary_0.19.0_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
+Baixe o instalador `Ossuary_0.20.0_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
 ou na saída do build, e execute. Não precisa de SDK. É preciso o WebView2 (já vem no Windows 11).
 
-> O nome público de uma versão é só **Versão N** (esta é a **Versão 19**), como em *Project Zomboid*. Instaladores e manifestos usam o
+> O nome público de uma versão é só **Versão N** (esta é a **Versão 20**), como em *Project Zomboid*. Instaladores e manifestos usam o
 > `0.N.0` correspondente, porque instalador do Windows, npm e Cargo pedem três números.
 
 ## Compilar do código

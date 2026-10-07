@@ -43,6 +43,8 @@ namespace Ossuary.Core
         public Shop Shop;
         public Monster Keeper;
         public int CounterX = -1, CounterY = -1;
+        /// <summary>Burned in a raid: closed for good, its floor black.</summary>
+        public bool Burned;
 
         public bool Contains(int x, int y) => x >= X && y >= Y && x < X + W && y < Y + H;
         public bool HasFloor(int z) => z >= -Down && z <= Up;

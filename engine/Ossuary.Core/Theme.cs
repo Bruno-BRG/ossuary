@@ -201,6 +201,30 @@ namespace Ossuary.Core
         /// <summary>Glyph and raw colours of a floor surface. Fire flickers with hash(x, y, turn), never with the simulation's RNG.</summary>
         public void SurfaceStyle(SurfaceKind k, int x, int y, int turn, out char glyph, out Rgb fg, out Rgb bg)
         {
+            SurfaceStyleInner(k, x, y, turn, out glyph, out fg, out bg);
+        }
+
+        /// <summary>The tint a stain lays over a floor cell: blood darkens it red, ichor yellow-green, slime green, mud brown, soot black.</summary>
+        public void StainTint(StainKind k, out Rgb fg, out Rgb bg)
+        {
+            switch (k)
+            {
+                case StainKind.Blood: fg = H(0xB02020); bg = H(0x4A0808); break;
+                case StainKind.Ichor: fg = H(0xB0C030); bg = H(0x2E3608); break;
+                case StainKind.Slime: fg = H(0x50C060); bg = H(0x0E3218); break;
+                case StainKind.Mud: fg = H(0x8A6A40); bg = H(0x2E2010); break;
+                case StainKind.Soot: fg = H(0x505050); bg = H(0x0C0C0C); break;
+                case StainKind.Footprints: fg = H(0x902828); bg = H(0x24100E); break;
+                case StainKind.Drag: fg = H(0xA02828); bg = H(0x3A0C0C); break;
+                default: fg = H(0xFFFFFF); bg = H(0x000000); break;
+            }
+        }
+
+        /// <summary>An engraved floor cell: the cut letters catch the light.</summary>
+        public Rgb Engraving => H(0xD8C890);
+
+        void SurfaceStyleInner(SurfaceKind k, int x, int y, int turn, out char glyph, out Rgb fg, out Rgb bg)
+        {
             switch (k)
             {
                 case SurfaceKind.Water: glyph = '≈'; fg = H(0x4F8FE0); bg = H(0x0E1E3A); break;

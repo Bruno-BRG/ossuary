@@ -37,6 +37,8 @@ namespace Ossuary.Core
             new AchievementDef("well-liked", "Well Liked", "Be revered by any house.", g => { foreach (var h in Houses.All) if (g.RepOf(h) >= 60) return true; return false; }),
             new AchievementDef("annex-delver", "Past the Portal", "Step through the portal on Dungeons 4.", g => g.AnnexVisited),
             new AchievementDef("annex-cleared", "Debts Paid", "Kill the Annex Warden.", g => g.BossesSlain.Contains("annex-warden")),
+            new AchievementDef("court-delver", "The Last Dance", "Step through the portal in the Mines into the Hollow Court.", g => g.CourtVisited),
+            new AchievementDef("court-cleared", "The Throne Is Empty", "Kill the Hollow Queen.", g => g.BossesSlain.Contains("hollow-queen")),
             new AchievementDef("boss-slayer", "Boss Slayer", "Kill a branch boss.", g => g.BossesSlain.Count >= 1),
             new AchievementDef("kingslayer", "Kingslayer", "Kill three branch bosses in one run.", g => g.BossesSlain.Count >= 3),
             new AchievementDef("mutant", "Mutant", "Carry three mutations at once.", g => g.Player.Mutated.Count >= 3),

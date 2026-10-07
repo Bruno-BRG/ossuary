@@ -301,15 +301,18 @@ Full catalog, recipes, animations and items in [`spells-and-items.md`](spells-an
 
 - `Game.HurtBy(cause)` marks who last hurt the player (monsters, traps, poison, fire, hunger…);
   `CheckDeath` records `DeathCause`. `quit` marks `Abandoned`.
-- `Morgue.Summarize/Text` are pure functions of the finished game. `Session.RecordRun` (once per run, never on
-  replay) writes `morgue/*.txt` and appends to `history.json` in the data directory (`OSSUARY_DATA` in tests).
+- `Morgue.Summarize/Text` are pure functions of the finished game. The text carries a *Legend* section (`Game.LegendOf`: bosses slain,
+  kills, named works, relics carried, raids beaten off, legends learned, and the world's raids) and a *Relics* section with each relic's
+  story and deeds. `Session.RecordRun` (once per run, never on replay) writes `morgue/*.txt` and appends to `history.json` in the
+  data directory (`OSSUARY_DATA` in tests).
 
 ## Graveyard (`Bones.cs`)
 
-- Dying in a dungeon, level ≥ 2 (`Game.LeaveBones`), writes `Bones` via `SaveStore.WriteBones`. `Game.Graveyard` is fixed
-  at the start of the run (and goes in the save), so the replay finds the same shades. `RaiseBones` runs only on the level's
-  first generation, with a private Rng (`seed ^ hash(branch, depth)`): 60% chance, far from the entrance. The shade is a
-  rescaled `wandering wraith` (`BonesKey` marks which one); destroying it enters `Game.LaidToRest` and the host removes the file.
+- Dying in a dungeon, level ≥ 2 (`Game.LeaveBones`), writes `Bones` via `SaveStore.WriteBones`; it carries the hero's `Legend`
+  (what they did, in a few lines) as well as their gear. `Game.Graveyard` is fixed at the start of the run (and goes in the save), so
+  the replay finds the same shades — and the same heroes in the next world's history. `RaiseBones` runs only on the level's first
+  generation, with a private Rng (`seed ^ hash(branch, depth)`): 60% chance, far from the entrance. The shade is a rescaled
+  `wandering wraith` (`BonesKey` marks which one); destroying it enters `Game.LaidToRest` and the host removes the file.
 
 ## Modes (`Difficulty.cs`)
 
@@ -329,10 +332,13 @@ Full catalog, recipes, animations and items in [`spells-and-items.md`](spells-an
 - `FactionOf(m)` by name/flags; `AreRivals`: Greenskin↔Deepfolk, Dead↔Wild. In `MonsterTurn`, with the hero more than 1 cell away, `FightRival` attacks the
   adjacent rival or approaches one within ≤6 cells if it is closer than the hero. Kills between monsters grant no XP.
 
-## Optional branch: The Annex
+## Optional branches: The Annex and the Hollow Court
 
-- `Branch.Parent`/`ParentDepth` mark a side branch; `LevelBuilder.Populate` puts the portal on *Dungeons 4*. `Game.UsePortal` enters/leaves (stores `_portalX/_portalY`).
-  Annex level 1 is generated with the exit portal under the arrival point. Monsters/loot use `depth+6`.
+- `Branch.Parent`/`ParentDepth` mark a side branch; `LevelBuilder.Populate` puts the portal on *Dungeons 4* (the Annex) and on *Mines 5*
+  (the Hollow Court). `Game.UsePortal` enters/leaves (stores `_portalX/_portalY`), and sets `AnnexVisited`/`CourtVisited`. Level 1 of a
+  side branch is generated with the exit portal under the arrival point. Monsters/loot use `depth+6` (Annex) or `depth+5` (Court).
+- The Hollow Court: three floors of fort and catacomb, the **Hollow Queen** (`hollow-queen`, a crowned wraith that blows cold kisses
+  and calls her courtiers) on level 3, the Queen's Thorn and the Gown of the Last Dance, and two achievements.
 
 ## Bosses (`Game.Bosses.cs`)
 
@@ -419,18 +425,69 @@ Any hero can live as a craftsman and never enter the dungeon: gather or buy raw 
   (`AmuletStuck`) until a priest lifts it.
 - **More relics**: The Weeping Edge (Vaults 6), Marrow Mail (Mines 8), Crown of the Pit (Dungeons 10), all corrupting.
 
-## History and relics (`World/History.cs`, `Game.Ammo.cs`)
+## The chronicle (`World/History.cs`)
 
-- **Chronicle** (`History.Of(seed)`, its own Rng): a present year of 300–600, 28 figures (smith, king, knight, priest, thief, scholar,
-  warlord) with birth, death, epithet and home town, towns founded, four wars, three plagues, a town razed and the year the Pit opened.
-  Every line is built in English and Portuguese together and registered with `TownText.L`.
-- **Relic biographies** (`History.Biography`): forged of its metal by a smith in a year of their life, made for a king or knight alive
-  then, carried by up to two later figures until their deaths, lost in the next war, plague or razing, or carried down into the Pit.
-  Shown when an identified unique is examined and in the morgue.
-- **Chronicles**: a library's *Read the chronicles* row reads the next entry aloud.
+- **`History.Of(seed)`** (its own Rng, never the game's) builds three centuries: a present year of 300–600, **houses** rising at a seat
+  (about half of them fallen since), a **line of kings** from the first house to now, each succeeding **by blood, by the sword or by the
+  lords' choice**, 30 figures (smith, knight, priest, thief, scholar, warlord, kings) with birth, death, epithet, house and home town,
+  towns founded, four wars, three plagues, two towns razed and the year the **Pit opened**.
+- **Still living**: any figure whose span reaches the present is `Alive` (no death year). **Buried below**: dead knights, warlords,
+  kings and priests whose death follows the Pit are given a branch and a depth (`TombBranch/TombDepth`).
+- Every line is built in English and Portuguese together and registered with `TownText.L`. `Describe` renders a figure or an event;
+  `Entry` walks the chronicle in order; `TombsOn` lists the dead of a level.
+- **Relic biographies** (`History.Biography`, keys out): forged of its metal by a smith in a year of their life, made for a king or
+  knight alive then, carried by up to two later figures until their deaths, lost in the next war, plague or razing, or carried down
+  into the Pit. Shown when an identified unique is examined and in the morgue.
 - **Deeds** (`RelicsRemember`): a boss or unique killed writes a line into every relic in hand or worn (`Item.Deeds`); **owners**
   (`Item.Owners`): a monster's gear remembers who it was taken from, a shade's gear the hero who died, a sold named work who bought it.
   `Item.IsRelic`: a unique or a named masterwork. The morgue has a *Relics* section with each story.
+
+## History in play and the Legends panel (`Game.Legends.cs`, `Ui.cs`)
+
+- **`Game.Legends`**: keys learned ("e:i" events, "f:i" figures, "h:name" heroes). Taught by the library's *Read the chronicles* row,
+  the Scholar's *Ask about the old days* (`ScholarLine`), a book taken down from a library or emporium shelf (bump it: `TryReadShelf`),
+  tavern songs (`SongLine`), rumours (`HistoryRumour`, every third answer at a tavern), relic biographies, engravings and tombs.
+- **Heroes before you**: the run's `Graveyard` (bones of earlier runs) becomes delvers of this world's history (`PastHeroes`), sung
+  about and listed in the panel.
+- **Place names** (`NamePlaces`, at world generation): ruins are named after the towns the chronicle burned, keeps after the houses.
+- **Legends panel** (**F8**, `Panel.Legends`): events, people, places (with how much is known of each) and heroes before you, wrapped to
+  the panel and scrolled with up/down.
+- **The hero's legend** (`LegendOf`): bosses slain, notable kills, named works, relics carried, raids beaten off. The morgue prints it
+  under *Legend*, and `LeaveBones` carries it into the next world's history (`Bones.Legend`).
+
+## Blood, fluids and tracks (`Surfaces.cs`, `Game.Stains.cs`, `Ui.cs`)
+
+- A second sparse layer under the surfaces: `GameMap.Stains` holds blood, ichor, slime, mud, soot, footprints and drag marks with the
+  turn and the source. `BloodOf` gives the fluid by species: the dead and the made leave nothing, insects and demons ichor, molds and
+  oozes slime, the rest blood. `Splatter` on every hit (and a second spatter beside it on a heavy one, placed by hash, never the Rng).
+- `TickStains` each turn: the bleeding leave a trail, a limping creature drags, the hero's boots carry blood and mud on as footprints,
+  and fire that burns out leaves soot. Stains fade with age and are removed after their life (blood 500 turns, mud 250, footprints 120).
+  Drawn as a tint under the floor, darker the fresher; `StainLine` reads one ("fresh blood, left by a kobold").
+- **The trail both ways**: `SmellsBlood` — a bleeding hero is noticed within 10 squares even out of sight ("something has caught the
+  scent of your blood"). `FollowTrail` (**Shift+M**) steps toward the freshest trail something else left and says where it leads.
+
+## Engravings, rooms and tombs (`Game.Places.cs`, `Gen/DungeonGen.cs`)
+
+- **`DressLevel`**, once per level (its own Rng): old engravings that tell the chronicle (teaching their legend), a warning above a
+  boss's lair ("the X waits below"), a clue pointing at a hidden door, and the **tombs** of the chronicle's dead of that level: a grave
+  tile, a name cut into it (`Here lies ...`), and what they were buried with (a knight's sword, a warlord's axe, a king's helm, a
+  priest's amulet), each remembering its owner (`Item.Owners`).
+- **Reading underfoot** (`ReadUnderfoot`): stepping onto an engraving or a tomb says what is written and teaches its legend.
+- **Room flavour**: `DungeonGen` keeps its rooms on the map (`GameMap.Rooms`); the first time the hero walks into a special room, one
+  line says what it was (a barracks, a temple, a larder, a treasury…), and looking at a cell inside it says the same (`RoomAt`).
+- **Carving** (**Shift+O**, `BeginCarve`/`Carve`): on bare floor the hero picks a line (their name was here, turn back, beware, or the
+  last kill in the ledger) and cuts it in; it is read like any other engraving, and the ledger records the deed.
+
+## Raids on towns (`Game.Raids.cs`)
+
+- **When**: a pure function of seed, town and week (`RaidIn`) — one week in six or so, more in dangerous country; the band is kobolds
+  near the coast roads, orcs further in, the dead in the worst country. The raid has one day of its week.
+- **If the hero is there that day** (`RaidsOnArrival`, on entering): raiders come over the wall by the gate (`RaidNow`), hostile in the
+  streets (bump them to fight). Killing the last one saves the town (`RaiderKilled`: gold, Watch +10, Guild +3, a line in
+  `RaidChronicle`). Walking out on them costs Watch standing and counts as a loss.
+- **If the hero is away** (`RaidWhileAway`): the Watch holds, or the town pays — `RaidLosses` burns one shop (its stock gone, its
+  keeper dead, its floor black and broken for good: `Building.Burned`) and kills one to three of its people, never the essential ones.
+  What came of it is remembered in `RaidChronicle` and shows in the morgue's legend.
 
 ## Stations, crafters and archers (`Tile.cs`, `Town.cs`, `Game.Makers.cs`, `Game.Ammo.cs`)
 

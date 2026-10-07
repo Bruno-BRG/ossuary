@@ -31,6 +31,8 @@ namespace Ossuary.Core
         public string Branch { get; set; } = "";
         public int Depth { get; set; }
         public List<BonesItem> Gear { get; set; } = new List<BonesItem>();
+        /// <summary>What the hero is remembered for, a few short lines: the next world's history tells these. Absent in older bones.</summary>
+        public List<string> Legend { get; set; } = new List<string>();
 
         public string Key => Branch + "@" + Depth;
     }
@@ -61,6 +63,7 @@ namespace Ossuary.Core
             void Add(Item it) { if (it != null && b.Gear.Count < 8) b.Gear.Add(new BonesItem { Def = it.Def.Name, Enchant = it.Enchant, Prefix = it.Prefix, Suffix = it.Suffix, Rarity = (int)it.Rarity, Material = it.Material }); }
             Add(Player.Wielded);
             foreach (var piece in Player.WornPieces()) Add(piece);
+            b.Legend = LegendOf();
             return b;
         }
 

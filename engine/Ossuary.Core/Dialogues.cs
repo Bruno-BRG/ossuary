@@ -77,7 +77,10 @@ namespace Ossuary.Core
                 Read(Game.DocTally, "Show the dwarf council's tally", "Mostrar a contagem do conselho dos anões"),
                 Read(Game.DocEntry, "Show the archivist's last entry", "Mostrar a última anotação do arquivista"),
                 Read(Game.DocOrder, "Show the Spire's order roll", "Mostrar o rol de ordens da Torre"),
+                Go("Ask about the old days", "Perguntar sobre os velhos tempos", "olddays"),
                 Go("What do you study?", "O que você estuda?", "study"))
+            // The chronicle, one entry at a time: the old days as the Scholar tells them.
+            .Node("olddays", (g, m) => g.ScholarLine(), Go("Tell me more.", "Conte mais.", "olddays"), Go("Enough.", "Chega.", Dialogue.Start))
             .Node("study", L("What is left of the old archive. Everything down there was written down by someone who hoped to be read.", "O que sobrou do velho arquivo. Tudo lá embaixo foi escrito por alguém que esperava ser lido."),
                 Go("I see.", "Entendo.", Dialogue.Start))
             .Node("read.truth.seal", L("A seal, not a jewel: whoever holds the Amulet opens every door of the old archive. The warden wrote this as the water rose. Now you know what you are fetching.", "Um selo, não uma joia: quem tem o Amuleto abre toda porta do velho arquivo. O carcereiro escreveu isto enquanto a água subia. Agora você sabe o que está buscando."),
@@ -233,7 +236,7 @@ namespace Ossuary.Core
                 Go("Sing of those who went before.", "Cante os que vieram antes.", "song"),
                 Go("Tip the bard", "Dar uma gorjeta ao bardo", "tip",
                     (g, m) => { m.Memory.Set(NpcMemory.Helped); m.Memory.Shift(20); }, (g, m) => !m.Memory.Has(NpcMemory.Helped), 5))
-            .Node("song", L("Nine hundred and ninety-nine went down. The last one took the stairs two at a time. I forget the rest.", "Novecentos e noventa e nove desceram. O último subiu... desceu a escada de dois em dois. O resto eu esqueci."),
+            .Node("song", (g, m) => g.SongLine(),
                 Go("Another?", "Outra?", Dialogue.Start))
             .Node("tip", L("Your name... yes. I will keep it. For a while.", "Seu nome... sim. Vou guardá-lo. Por um tempo."),
                 Go("Good.", "Ótimo.", Dialogue.Start));

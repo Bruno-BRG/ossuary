@@ -88,6 +88,7 @@ namespace Ossuary.Core
                 case "The Sunken Vaults": return "sunken";
                 case "The Ashen Spire": return "spire";
                 case "The Annex": return "annex";
+                case "The Hollow Court": return "annex";
                 default: return "dungeon";
             }
         }

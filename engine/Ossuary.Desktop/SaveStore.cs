@@ -9,8 +9,8 @@ namespace Ossuary.Desktop
     /// <summary>The persisted run: its seed and every canonical key applied since the start.</summary>
     public sealed class SaveData
     {
-        /// <summary>Bumped whenever simulation rules change, since a save is a replay (v2: regeneration, Mp, race traits; v3: spell catalogue and books; v4: perks, abilities, Vigor; v5: item rarity, affixes, new slots, artifacts; v6: gods and piety; v7: surfaces and elemental status; v8: balance pass, potions; v9: stealth and noise; v10: corruption, companions, bosses, factions, reputation and road events; v11: 260 spells, spell-backed wands, scrolls and potions, new items and uniques, animations; v17: town markets, glut, caravans, stalls, tolls; v18: ammunition, named masterworks, town smiths' work; v19: identify by use, relic history, stations, archers, caravans, haggling).</summary>
-        public int Version { get; set; } = 19;
+        /// <summary>Bumped whenever simulation rules change, since a save is a replay (v2: regeneration, Mp, race traits; v3: spell catalogue and books; v4: perks, abilities, Vigor; v5: item rarity, affixes, new slots, artifacts; v6: gods and piety; v7: surfaces and elemental status; v8: balance pass, potions; v9: stealth and noise; v10: corruption, companions, bosses, factions, reputation and road events; v11: 260 spells, spell-backed wands, scrolls and potions, new items and uniques, animations; v17: town markets, glut, caravans, stalls, tolls; v18: ammunition, named masterworks, town smiths' work; v19: identify by use, relic history, stations, archers, caravans, haggling; v20: chronicle of houses and kings, legends, blood and traces, engravings, rooms, tombs, raids, the Hollow Court).</summary>
+        public int Version { get; set; } = 20;
         public string Seed { get; set; }
         public List<string> Keys { get; set; } = new List<string>();
         public string Info { get; set; } = "";
@@ -64,7 +64,7 @@ namespace Ossuary.Desktop
             {
                 if (!File.Exists(SavePath)) return null;
                 var data = JsonSerializer.Deserialize<SaveData>(File.ReadAllText(SavePath), Json);
-                return data != null && data.Version == 19 && ulong.TryParse(data.Seed, out _) ? data : null;
+                return data != null && data.Version == 20 && ulong.TryParse(data.Seed, out _) ? data : null;
             }
             catch (Exception ex) { Console.Error.WriteLine("Unreadable save: " + ex.Message); return null; }
         }

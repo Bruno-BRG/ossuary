@@ -42,13 +42,13 @@ namespace Ossuary.Core
             map.LevelName = NameFor(branchName, depth);
 
             // The Annex is only three floors deep and meant to be hard: its monsters and loot are those of six floors lower.
-            int eff = branchName == "The Annex" ? depth + 6 : depth;
+            int eff = branchName == "The Annex" ? depth + 6 : branchName == "The Hollow Court" ? depth + 5 : depth;
             SpawnMonsters(map, rng, eff, startX, startY, points, branchName);
             PlaceLoot(map, rng, eff, depth);
             PlaceTraps(map, rng, depth);
             PlaceSurfaces(map, rng, depth, branchName);
             PlaceVaults(map, rng, eff, points);
-            if (branchName == "The Dungeons" && depth == 4 && TryFindOpenFloor(map, rng, out int px, out int py) && map.Get(px, py) != TileKind.StairsUp)
+            if (((branchName == "The Dungeons" && depth == 4) || (branchName == "The Mines of Dwarfdeep" && depth == 5)) && TryFindOpenFloor(map, rng, out int px, out int py) && map.Get(px, py) != TileKind.StairsUp)
                 map.Set(px, py, TileKind.Portal);
             return points;
         }

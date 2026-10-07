@@ -30,6 +30,7 @@ namespace Ossuary.Core
         Runs,
         Achievements,
         Journal,
+        Legends,
     }
 
     /// <summary>
@@ -149,6 +150,7 @@ namespace Ossuary.Core
         public bool Advance;
         public bool Altar;
         public bool Journal;
+        public bool Legends;
 
         public void Clear()
         {

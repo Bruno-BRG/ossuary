@@ -114,6 +114,10 @@ namespace Ossuary.Core.Items
                 new ItemMods { Dex = 1, ExtraType = DamageType.Necrotic, ExtraSides = 4, Stealth = 1 }, new[] { "throwing-knives", "knife-flurry" }, "midnight-cabal"),
 
             // ---------------------------------------------------------- more relics: strong, and they take something back
+            U("queens-thorn", "Queen's Thorn", "stiletto", "The Hollow Court", 2, 60, 3, "A hatpin long enough to be a blade. The Queen wore it, and used it, and the court learned not to lean close.",
+                new ItemMods { Dex = 2, ExtraType = DamageType.Cold, ExtraSides = 6, Stealth = 1 }, new[] { "frost-ray" }),
+            U("court-gown", "Gown of the Last Dance", "cloak", "The Hollow Court", 3, 60, 3, "Moth-eaten velvet that still moves as if a waltz were playing.",
+                new ItemMods { Evasion = 3, ResCold = 30, Mp = 8 }),
             U("weeping-edge", "The Weeping Edge", "long sword", Vau, 6, 40, 4, "It is always wet, and it is never water. Whoever held it last is still crying somewhere.",
                 new ItemMods { Dmg = 3, Str = 1, LifeSteal = 8 }, null, null, true),
             U("marrow-mail", "Marrow Mail", "chain mail", Min, 8, 40, 3, "Every ring is a knuckle-bone. It fits like it was measured for you, which is the worrying part.",

@@ -24,7 +24,7 @@ How a system works lives in [`design/systems.md`](design/systems.md); what shipp
 | [Crafting and trades](#crafting-and-trades) | 16 trades, ~105 recipes, forge, loom and still, fletching, named masterworks, crafters, archers | done; new ideas go in the topic |
 | [Economy and market](#economy-and-market) | glut, caravans you meet on the road, haggling, traders' memory, counter, tolls, town smiths' work | done; new ideas go in the topic |
 | [Towns and people](#towns-and-people) | personas, dialogue, quests, crime, rumours | Guild jobs on the quest engine, theft |
-| [World and history](#world-and-history) | overworld, six branches, the Annex | generated history, blood and traces |
+| [World and history](#world-and-history) | overworld, seven branches, the chronicle with houses and kings, legends, blood and traces, engravings, rooms, tombs, raids | done; new ideas go in the topic |
 | [Creatures](#creatures) | factions, bosses, branch natives | named survivors, ecology |
 | [The hero](#the-hero) | corruption, modes, achievements, bones | thoughts and mood |
 | [Tutorials](#tutorials) | nothing yet | first-time hints |
@@ -32,8 +32,7 @@ How a system works lives in [`design/systems.md`](design/systems.md); what shipp
 | [Audio](#audio) | 18 tracks, 15 stingers, effects | the missing boss tracks |
 | [Technical and quality](#technical-and-quality) | headless suites, soak, balance bot | a language gate worth reading |
 
-**Next up**: tutorials, then blood and traces with richer look descriptions, then named survivors and mood, then the
-generated history that relics, engravings and legends read from.
+**Next up**: tutorials, then named survivors and mood, then creatures' ecology.
 
 ---
 
@@ -81,17 +80,7 @@ Plan and rationale in [`game/living-world.md`](game/living-world.md).
 
 ## World and history
 
-- [~] **History pass** (`World/History.cs`): has three centuries from the seed with towns founded and razed, wars, plagues and the year the Pit opened; left houses rising and falling, kings and successions.
-- [~] **Historical figures**: has smiths, kings, knights, priests, thieves, scholars and warlords with births and deaths; left some still alive, some buried below.
-- [~] **History feeds the game**: has relic biographies and the chronicles in libraries; left rumours, the Scholar, books on shelves, place names, tavern songs.
-- [ ] **Legends panel**: browse the events, figures and places the hero has learned about.
-- [ ] **Blood and fluids**: blood by species, ichor, slime, mud, soot and footprints on the cell's background (`Surfaces.cs`), fading with time.
-- [ ] **Traces and tracking**: drag marks and blood trails; monsters follow a bleeding hero, the hero follows wounded prey.
-- [ ] **Engravings**: old walls showing history, some quest clues or boss warnings; the hero can carve one.
-- [ ] **Room flavour**: what a place was (barracks, shrine, larder), read from what is in it.
-- [ ] **Raids on towns**: a strong monster faction attacks; an undefended town loses shops and people.
-- [ ] **Legends at the end**: the morgue tells the hero's deeds, relics and enemies; past heroes enter the next world's history.
-- [ ] **Second portal branch** in another dungeon.
+Nothing open: every item is in *Done*.
 
 ## Creatures
 
@@ -200,6 +189,17 @@ One line per feature, newest first inside each topic. Details: the [changelog](.
 - 2026-10-02 · **Permanent companions** from the tavern (`Game.Companions.cs`).
 
 **World and history**
+- 2026-10-07 · **Second portal branch**: the Hollow Court hangs off a portal on Mines 5, with the Hollow Queen, her two relics and two achievements (`Dungeon.cs`, `Game.Bosses.cs`).
+- 2026-10-07 · **Legends at the end**: the morgue tells the hero's legend (bosses, works, relics, raids) and the bones carry it into the next world's history (`Game.Legends.cs`, `Morgue.cs`, `Bones.cs`).
+- 2026-10-07 · **Raids on towns**: a band comes for a town on one day of a week; the hero fights it in the streets, or the town loses a shop to fire and some of its people, and the burnt shop stays burnt (`Game.Raids.cs`).
+- 2026-10-07 · **Room flavour**: what a place was, told once on entering and readable when looking at a cell (`Game.Places.cs`).
+- 2026-10-07 · **Engravings**: old walls tell the chronicle, warn of the lair below and point at hidden doors; the hero can carve one with Shift+O (`Game.Places.cs`).
+- 2026-10-07 · **Traces and tracking**: drag marks and blood trails; a bleeding hero is smelled from further off, and the hero follows wounded prey with Shift+M (`Game.Stains.cs`).
+- 2026-10-07 · **Blood and fluids**: blood by species, ichor, slime, mud, soot, footprints and drag marks on the cell's background, fading with time (`Surfaces.cs`, `Game.Stains.cs`, `Ui.cs`).
+- 2026-10-07 · **Legends panel**: F8 browses the events, people, places and heroes-before-you the hero has learned, taught by libraries, scholars, bards, shelves, rumours, relics, engravings and tombs (`Game.Legends.cs`, `Ui.cs`).
+- 2026-10-07 · **History feeds the game**: rumours, the Scholar, books on shelves, tavern songs, place names, relic biographies, engravings and tombs all read the chronicle (`Game.Legends.cs`, `World/History.cs`).
+- 2026-10-07 · **Historical figures**: smiths, kings, knights, priests, thieves, scholars and warlords with births and deaths, some still alive, some buried below with their gear and their names cut in the stone (`World/History.cs`).
+- 2026-10-07 · **History pass**: three centuries from the seed with houses rising and falling and the kings' successions by blood, by the sword or by the lords' choice, towns founded and razed, wars, plagues and the year the Pit opened (`World/History.cs`).
 - 2026-10-03 · **Dungeon level 1 always has a way out** (`Dungeon.Ensure`).
 - 2026-10-02 · **The Annex**: a portal branch with a warden and a mantle.
 - 2026-10-02 · **Every branch reachable** from its overworld region (`OverworldGen.BranchForRegion`).

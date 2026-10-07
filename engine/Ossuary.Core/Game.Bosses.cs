@@ -37,6 +37,10 @@ namespace Ossuary.Core
                 Level = 20, HP = 230, AC = 2, Speed = 12, Sides = 10, ToHit = 9,
                 Intro = "The last room of the Annex is a ledger, and the Warden is reading it aloud: your name, your debts, your sins.",
                 Phase2 = "The Annex Warden closes the ledger. The dead in the walls stand up.", Fall = "The Annex Warden crumples, and every debt you owed is struck out at once." },
+            new BossDef { Id = "hollow-queen", Name = "Hollow Queen", Branch = "The Hollow Court", Depth = 3, Base = "wandering wraith", Glyph = 'Q', Color = 0xC8A0E8,
+                Level = 19, HP = 210, AC = 3, Speed = 12, Sides = 10, ToHit = 8,
+                Intro = "At the end of the hall a crowned thing sits on the only throne that is not empty, and asks you to dance.",
+                Phase2 = "The Hollow Queen rises, and her courtiers rise with her.", Fall = "The Hollow Queen comes apart like a dress left too long in a chest." },
             new BossDef { Id = "ashen-regent", Name = "Ashen Regent", Branch = "The Ashen Spire", Depth = 15, Base = "fire giant", Glyph = 'H', Color = 0xFF7A30,
                 Level = 18, HP = 260, AC = 3, Speed = 12, Sides = 10, ToHit = 8,
                 Intro = "The air at the top of the Spire is thick enough to chew. The Ashen Regent is not hungry. It is angry.",
@@ -166,6 +170,30 @@ namespace Ossuary.Core
                         return true;
                     }
                     break;
+                case "annex-warden":
+                    return AnnexWardenTurn(m, dist, angry, clock, seen);
+                case "hollow-queen":
+                    if (clock % 4 == 0 && dist <= 6 && seen && Fov.HasLine(Map, m.X, m.Y, Player.X, Player.Y))
+                    {
+                        int dmg = Player.ResistDamage(Rng.Roll(2, 5, 0), DamageType.Cold);
+                        Player.HP -= dmg; HurtBy("the Hollow Queen");
+                        Player.Mp = Math.Max(0, Player.Mp - 3);
+                        Say($"The Hollow Queen blows you a kiss across the hall. It lands cold. (-{dmg})", MessageKind.Bad);
+                        int qx = m.X, qy = m.Y;
+                        Fx((tl, s) => FxLib.Drain(tl, s, Player.X, Player.Y, qx, qy, Elem.Cold));
+                        CheckDeath();
+                        return true;
+                    }
+                    if (angry && clock % 7 == 0 && CountNamed("skeleton") < 4) { SummonHostile(m, "skeleton", 2); return true; }
+                    break;
+            }
+            return AnnexWardenTurn(m, dist, angry, clock, seen);
+        }
+
+        bool AnnexWardenTurn(Monster m, int dist, bool angry, int clock, bool seen)
+        {
+            switch (m.BossId)
+            {
                 case "annex-warden":
                     if (clock % 5 == 0 && dist <= 7 && seen && Fov.HasLine(Map, m.X, m.Y, Player.X, Player.Y))
                     {

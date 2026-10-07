@@ -184,6 +184,7 @@ namespace Ossuary.Core
             if (Requests.History) { State.Active = Panel.History; State.ScrollOffset = 0; }
             if (Requests.Discoveries) { State.Active = Panel.Discoveries; State.ScrollOffset = 0; }
             if (Requests.Journal) { State.Active = Panel.Journal; State.ScrollOffset = 0; }
+            if (Requests.Legends) { State.Active = Panel.Legends; State.ScrollOffset = 0; }
             if (Requests.Character) { State.Active = Panel.Character; State.ScrollOffset = 0; }
             if (Requests.Travel) { State.Active = Panel.Travel; State.ScrollOffset = 0; }
             if (Requests.Altar) { State.Active = Panel.Altar; State.AltarIndex = 0; }
@@ -271,6 +272,20 @@ namespace Ossuary.Core
                             theme.SurfaceStyle(sk, mx, my, _g.Turn, out char sg, out Rgb sfg, out Rgb sbg);
                             g = sg; fg = sfg; bg = sbg; bold = sk == SurfaceKind.Fire;
                         }
+                        else if (vis)
+                        {
+                            // Stains fade with age: fresh blood is dark red, old blood barely shows.
+                            var st = map.StainAt(mx, my);
+                            if (st.Kind != StainKind.None)
+                            {
+                                theme.StainTint(st.Kind, out Rgb tfg, out Rgb tbg);
+                                float age = Math.Min(1f, (_g.Turn - st.Turn) / (float)Math.Max(1, StainInfo.Life(st.Kind)));
+                                float a = 0.25f + 0.55f * (1f - age);
+                                bg = Rgb.Lerp(bg, tbg, a); fg = Rgb.Lerp(fg, tfg, a * 0.8f);
+                                if (st.Kind == StainKind.Footprints || st.Kind == StainKind.Drag) g = st.Kind == StainKind.Drag ? '~' : ':';
+                            }
+                        }
+                        if (map.EngravingAt(mx, my) != null && (vis || map.WasSeen(mx, my))) { g = '◊'; fg = theme.Engraving; }
                     }
 
                     if ((t == TileKind.Floor || t == TileKind.FloorAlt) && TrapTable.IsRevealed(map.Number, mx, my))
@@ -981,6 +996,7 @@ namespace Ossuary.Core
                 case Panel.History: DrawHistoryPanel(); break;
                 case Panel.Discoveries: DrawDiscoveriesPanel(); break;
                 case Panel.Journal: DrawJournalPanel(); break;
+                case Panel.Legends: DrawLegendsPanel(); break;
                 case Panel.Character: DrawCharacterPanel(); break;
                 case Panel.Travel: DrawTravelPanel(); break;
                 case Panel.Shop: DrawShopPanel(); break;
@@ -1194,6 +1210,9 @@ namespace Ossuary.Core
                 { "Shift+B", "craft: make what your trades, pack and place allow" },
                 { "Shift+I", "examine an item: material, maker, wear and worth" },
                 { "Shift+Y", "choose which ammunition to loose first" },
+                { "Shift+M", "follow a wounded creature's trail" },
+                { "Shift+O", "carve something into the floor" },
+                { "F8", "legends: the past you have learned" },
                 { "Shift+J", "every recipe, by trade and rank" },
                 { "Shift+G", "gather: butcher a carcass, or forage on the road" },
                 { "Shift+N", "train a skill with XP (Trained mode)" },
@@ -1257,6 +1276,41 @@ namespace Ossuary.Core
 
         /// <summary>Every quest by track: where you stand in it, where to go, how long you have. Guild jobs sit under their track too.</summary>
         void DrawJournalPanel()
+        {
+            DrawJournalInner();
+        }
+
+        /// <summary>What the hero knows of the past: events, people, places and the heroes before them. Up and down scroll.</summary>
+        void DrawLegendsPanel()
+        {
+            var theme = Theme.Current;
+            PanelRect(out int px, out int py, out int pw, out int ph, 76, 28, "Legends", "up/down scroll, any key closes");
+            int x = px + 3, iw = pw - 6, top = py + 2, bottom = py + ph - 2;
+            // Wrap every entry to the panel width, then show the window the scroll offset points at.
+            var rows = new System.Collections.Generic.List<(string, bool)>();
+            foreach (var (text, header) in _g.LegendLines())
+            {
+                string s = Loc.T(text);
+                if (header) { if (rows.Count > 0) rows.Add(("", false)); rows.Add((s, true)); continue; }
+                while (s.Length > iw)
+                {
+                    int cut = s.LastIndexOf(' ', iw);
+                    if (cut <= 0) cut = iw;
+                    rows.Add((s.Substring(0, cut), false));
+                    s = "  " + s.Substring(cut).TrimStart();
+                }
+                rows.Add((s, false));
+            }
+            int visible = Math.Max(1, bottom - top);
+            State.ScrollOffset = Math.Max(0, Math.Min(State.ScrollOffset, Math.Max(0, rows.Count - visible)));
+            for (int i = 0; i < visible && State.ScrollOffset + i < rows.Count; i++)
+            {
+                var (s, header) = rows[State.ScrollOffset + i];
+                _t.WriteClipped(x, top + i, s, header ? theme.Label : theme.Text, iw, header, theme.Panel);
+            }
+        }
+
+        void DrawJournalInner()
         {
             var theme = Theme.Current;
             PanelRect(out int px, out int py, out int pw, out int ph, 70, 26, "Journal", "any key closes");

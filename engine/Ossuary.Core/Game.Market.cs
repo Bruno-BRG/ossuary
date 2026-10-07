@@ -472,6 +472,7 @@ namespace Ossuary.Core
         void ArriveAtMarket()
         {
             GateToll();
+            RaidsOnArrival();
             WorksFindBuyers();
             FoldCaravan();
             SettleStall();

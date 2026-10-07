@@ -86,6 +86,8 @@ namespace Ossuary.Core.Entities
 
         // Townsfolk: bestiary bodies used as people. They never start a fight; bumping one talks to it.
         public bool Townsperson;
+        /// <summary>Came over a town's wall in a raid: hostile in the streets, and fought where it stands.</summary>
+        public bool Raider;
         public TownRole Role;
         public int Floor;            // which town floor (0 = street level, +up, -cellar) it lives on
         public int Leash;            // wander radius around its post; 0 stays put

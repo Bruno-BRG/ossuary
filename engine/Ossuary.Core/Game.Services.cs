@@ -127,7 +127,8 @@ namespace Ossuary.Core
                     return true;
                 case "chronicle":
                     {
-                        var (en, pt) = Ossuary.Core.World.History.Entry(Rng.Seed, _chronicleRead++);
+                        var (en, pt, key) = Ossuary.Core.World.History.Entry(Rng.Seed, _chronicleRead++);
+                        LearnLegend(key);
                         Tell(TownText.L(en, pt), MessageKind.Narrative);
                         return true;
                     }

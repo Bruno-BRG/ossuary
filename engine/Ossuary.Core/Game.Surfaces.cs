@@ -195,7 +195,7 @@ namespace Ossuary.Core
                                 if (SurfaceInfo.Flammable(ns) && Rng.Chance(ns == SurfaceKind.Oil ? 85 : 70)) PutSurface(nx, ny, SurfaceKind.Fire, 4);
                                 else if (ns == SurfaceKind.Ice && Rng.Chance(40)) PutSurface(nx, ny, SurfaceKind.Fire, 2);
                             }
-                            if (--s.Turns <= 0) Map.SetSurface(x, y, SurfaceKind.None);
+                            if (--s.Turns <= 0) { Map.SetSurface(x, y, SurfaceKind.None); Stain(x, y, StainKind.Soot, "fire"); }
                             else Map.Surfaces[idx] = s;
                             break;
                         case SurfaceKind.Ice:
