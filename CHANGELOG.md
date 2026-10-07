@@ -5,6 +5,22 @@
 Ossuary versions are a **single number** (Version 11, Version 12…), as in *Project Zomboid*. In the manifests (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) and in the installer name the version appears as `0.N.0`. The **save format** (`SaveData.Version`) uses the same number: change a rule, bump it, old saves stop loading.
 
+## Version 17 — Coin and caravan
+
+### Economy and market
+- **Supply and demand.** Each town has its own tastes for weapons, armour, potions, books, wands, jewellery, food, raw goods and tools. Sell ten swords to one smith and what the town pays for blades drops; it recovers over a few days.
+- **Caravans and raided roads.** Every week a caravan comes in (one class of goods is cheap and the town's surplus is bought up) or the road is raided (that class is dear). Dangerous regions are raided more. The news greets you at the gate.
+- **The market square.** Stalls open a menu. On market days traders from elsewhere lay out their wares and the stalls pay more.
+- **The order board.** Each week a town posts two things it wants, paying well (often something you can craft), and one thing offered cheap.
+- **Your own counter.** Rent a stall counter for a week, set out up to eight things, ask a cheap, fair or dear price, and come back for the coin: it sells while you are away.
+- **Haggling.** Charisma, the trader's mood (shown at the counter), Guild standing and paid Guild dues move prices. Your signed work sells for a quarter more once you are a master.
+- **Money sinks.** Gate tolls in towns and cities (friends of the Watch walk in free), stall rent and Guild dues.
+- **Price history.** The journal (F7) lists the latest prices you saw, town by town.
+- Selling raw goods and food is priced by the stack, and a shop now pays you out of its own purse.
+
+### Saves
+- The save format moves to **17**: Version 16 saves do not load.
+
 ## Version 16 — Blood and bone
 
 ### Combat and bodies

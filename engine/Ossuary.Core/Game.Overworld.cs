@@ -144,6 +144,8 @@ namespace Ossuary.Core
             CurrentShop = shop;
             InShop = true;
             ShopName = shop.Name;
+            RefreshStall(shop);
+            NoteShopPrices(shop);
             Say($"You step up to {shop.Name}.", MessageKind.Neutral);
         }
 
@@ -156,12 +158,10 @@ namespace Ossuary.Core
 
         public int ShopPrice(Shop shop, Item item)
         {
-            int basePrice = item.TradeValue;
-            if (basePrice <= 0) basePrice = 5;
-            // Goods and food come in stacks: the stack is priced, so ten logs are not sold for the price of one.
-            if (item.Def.Kind == ItemKind.Material || item.Def.Kind == ItemKind.Food || item.Def.Kind == ItemKind.Rock) basePrice *= Math.Max(1, item.Quantity);
-            int markup = 100 + shop.Gold / 60;
-            int price = Haggle(basePrice * markup / 100, Houses.Guild);
+            int basePrice = item.TradeValue <= 0 ? 5 : StackValue(item);
+            // A rich shop marks up a little; the town, the week's road, the glut, Cha and the trader's mood do the rest.
+            int markup = 100 + Math.Min(30, shop.Gold / 60);
+            int price = Haggle(basePrice * markup / 100 * BuyPct(shop, GoodsClass(item.Def)) / 100, Houses.Guild);
             if (item.Def.Kind == ItemKind.Gold) price = 1;
             return Math.Max(1, price);
         }
@@ -195,12 +195,15 @@ namespace Ossuary.Core
                 Say($"You hand over {item.Quantity} gold pieces.");
                 return true;
             }
-            int value = Math.Max(1, item.TradeValue / 2);
+            string cls = GoodsClass(item.Def);
+            int value = SellPrice(shop, item);
             if (shop.Gold < value) { Say("The shopkeeper cannot afford that."); return false; }
+            if (Player.IsWorn(item) || Player.Wielded == item) { Say("Take it off first."); return false; }
             Player.Inventory.Remove(item);
-            shop.Gold += value;
+            shop.Gold -= value;
             Player.Gold += value;
             shop.Stock.Add(item);
+            if (Town != null) { AddGlut(Town.Name, cls, item); NotePrice(cls, SellPct(shop, cls)); }
             Say($"You sell {item.Name} for {value} gold.", MessageKind.Good);
             return true;
         }

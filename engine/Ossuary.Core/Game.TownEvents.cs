@@ -16,9 +16,7 @@ namespace Ossuary.Core
         public TownEventKind TownEventToday()
         {
             if (Town == null || World == null) return TownEventKind.None;
-            uint h = Rumours.Hash(Rng.Seed ^ 0xE7E47UL, Town.Name, World.Day / 2);
-            if (h % 100 >= 45) return TownEventKind.None;
-            return (TownEventKind)(1 + (int)((h >> 8) % 5));
+            return TownEventOn(World.Day);
         }
 
         public static string EventAnnouncement(TownEventKind k)

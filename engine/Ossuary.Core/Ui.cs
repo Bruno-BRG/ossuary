@@ -1294,6 +1294,17 @@ namespace Ossuary.Core
                 for (int i = _g.LearnedRumours.Count - 1, shown = 0; i >= 0 && shown < 4 && y < bottom; i--, shown++)
                     _t.WriteClipped(x + 2, y++, _g.LearnedRumours[i].Text, theme.Dim, iw - 2, false, theme.Panel);
             }
+            if (_g.PriceHistory.Count > 0 && y < bottom - 1)
+            {
+                any = true;
+                _t.Write(x, y++, "Markets", theme.Label, true, theme.Panel);
+                for (int i = _g.PriceHistory.Count - 1, shown = 0; i >= 0 && shown < 5 && y < bottom; i--, shown++)
+                {
+                    var n = _g.PriceHistory[i];
+                    var col = n.Pct >= 110 ? theme.Good : n.Pct <= 85 ? theme.Bad : theme.Text;
+                    _t.WriteClipped(x + 2, y++, Loc.T($"{n.Town}: {n.Class} sell at {n.Pct}% (day {n.Day})"), col, iw - 2, false, theme.Panel);
+                }
+            }
             if (!any) _t.WriteClipped(x, y, "No open quests. Speak to the people of the town.", theme.Dim, iw, false, theme.Panel);
             int done = 0, failed = 0;
             foreach (var q in _g.Quests) { if (q.Status == QStatus.Done) done++; else if (q.Status == QStatus.Failed) failed++; }
@@ -1773,6 +1784,9 @@ namespace Ossuary.Core
             _t.Write(px + 13, py + 2, _g.CarryingGold().ToString(), theme.Gold, true, theme.Panel);
             _t.Write(px + 28, py + 2, "Shop gold", theme.Label, false, theme.Panel);
             _t.Write(px + 38, py + 2, shop.Gold.ToString(), theme.Dim, false, theme.Panel);
+            int mood = _g.TraderMood(shop);
+            _t.Write(px + 48, py + 2, "Mood", theme.Label, false, theme.Panel);
+            _t.WriteClipped(px + 53, py + 2, Game.MoodWord(mood), mood >= 5 ? theme.Good : mood <= -5 ? theme.Bad : theme.Dim, Math.Max(1, pw - 56), false, theme.Panel);
             _t.HLine(px + 1, py + 3, pw - 2, theme.Rule);
 
             int y0 = py + 4;

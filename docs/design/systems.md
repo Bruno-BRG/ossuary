@@ -473,12 +473,36 @@ The header shows `▲2`/`▼1`; the map title becomes the building's name.
 - **Determinism**: the town is a function of the world seed and the place
   (`Rng(seed ^ hash(name@x,y))`), is stored in `_towns` and is the same on every
   visit; entering and leaving does not consume the simulation `Rng` (`TownIsStable`).
-- Shop: price = cost × (100 + shop_gold/60)%; selling = half. The shop's gold
-  limits both sides. Stock comes identified. (`ShopEconomy` tests it.)
+- Shop: price = stack value × (100 + min(30, shop_gold/60))% × `BuyPct` × `Haggle`; selling = half the stack value ×
+  `SellPct` (+25% for the hero's signed work once a trade is at master). The shop's gold limits both sides. Stock comes
+  identified. (`ShopEconomy` and the `Markets` feature test cover it.) See *Economy and market* below.
 - Tests: `TownVerticality` (stair pairs, reach on all floors,
   nobody on top of a wall or another person), `TownServices`, `TownIsStable`,
   `DesktopTests.TownFlow`. `headless.ps1 dump town` shows the town, each floor
   of the buildings and the services panel.
+
+## Economy and market (`Game.Market.cs`, `Loc.Market.cs`)
+
+- **Goods classes** (`GoodsClass`): weapons, armour, potions, books and scrolls, wands, jewellery, food, raw goods, tools.
+  Goods, food and rocks price by the stack (`StackValue`).
+- **Town taste** (`TownTaste`): -15..+15% per town and class, a hash of seed, town and class.
+- **Glut** (`TownMarket.Glut`): each sale into a town adds units to its class (1, or 1 + qty/5 for a stack, cap 12); what the
+  town pays falls `GlutStep` (6%) per unit and recovers `GlutRecovery` (2) units a day. Stored per town: it is what the hero did.
+- **Caravans** (`CaravanThisWeek`): per town and week, a raided road (chance 12% + 2 × region depth, cap 45%: that class
+  costs +40% and sells +25%) or an arrived caravan (that class −15% / −10%, and it buys up the town's glut of it).
+  Announced on arrival.
+- **Haggling**: `BuyPct`/`SellPct` add Cha − 10 (±10), the trader's mood (`TraderMood`, ±8 by shop and day, shown in the shop
+  panel), Guild standing (`Haggle`, and rep/5 % on selling) and paid Guild dues (+10% for a week).
+- **Market square**: stalls carry `Service.Market` and open a menu. On market days visiting traders add three wares to each
+  stall (seeded by town, stall and two-day bucket; packed up when it ends) and stalls pay +15%.
+- **Order board** (`OrdersThisWeek`): two things wanted (60% a recipe product) paying 150%, one thing offered at 60%; per town
+  and week, each taken once (`OrdersDone`). Delivering gives Guild +2.
+- **Your counter**: rent a stall counter for a week (12/20/30/45 by size), set out up to 8 things, ask cheap/fair/dear
+  (55/30/10% a day to sell at 80/100/140% of value, +15% chance on market days). Days are settled lazily (`SettleStall`) on
+  arrival and at the stall; takings wait to be collected.
+- **Money sinks**: gate toll (town 2, city 5; free for Watch ≥ 25), stall rent, Guild dues (20 + 3 × level). `TollsPaid`, `RentPaid`.
+- **Price history**: `PriceHistory` keeps the last price seen per town and class (on stepping up to a counter, on selling, on a
+  counter sale); the journal (F7) shows the latest five under *Markets*.
 
 ## Living world: personas, dialogue, quests, ledger (`Persona.cs`, `Dialogue.cs`, `Dialogues.cs`, `Quests.cs`, `QuestBook.cs`, `Game.Ledger.cs`)
 

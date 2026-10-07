@@ -25,7 +25,7 @@ namespace Ossuary.Core
     public enum Service
     {
         None = 0, Rest = 1, Meal = 2, Ale = 4, Rumor = 8, Heal = 16, Cure = 32,
-        Donate = 64, Appraise = 128, Hone = 256, Quest = 512,
+        Donate = 64, Appraise = 128, Hone = 256, Quest = 512, Market = 1024,
     }
 
     /// <summary>
@@ -250,7 +250,7 @@ namespace Ossuary.Core
             for (int i = 0; i < 3; i++)
             {
                 int bx = lx + 1 + i * 4;
-                var b = new Building { Kind = BuildingKind.Stall, Name = StallName(p.R, kinds[i]), X = bx, Y = p.North ? ly + LotH - 2 : ly, W = 3, H = 2 };
+                var b = new Building { Kind = BuildingKind.Stall, Name = StallName(p.R, kinds[i]), X = bx, Y = p.North ? ly + LotH - 2 : ly, W = 3, H = 2, Services = Service.Market };
                 p.B = b;
                 // The counter faces the street (v = 0); the vendor stands behind it.
                 p.Put(0, 0, 0, TileKind.Counter); p.Put(0, 1, 0, TileKind.Counter); p.Put(0, 2, 0, TileKind.Counter);
