@@ -5,7 +5,7 @@
 **Um roguelike ASCII de fantasia sombria.** O mundo jogou seus mortos, seus reis e seus deuses num só poço.
 Você desce para roubar o que sobrou.
 
-![Versão 20](https://img.shields.io/badge/vers%C3%A3o-20-c8a050?style=flat-square)
+![Versão 21](https://img.shields.io/badge/vers%C3%A3o-21-c8a050?style=flat-square)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-5fa85f?style=flat-square)
 ![Plataforma](https://img.shields.io/badge/plataforma-Windows%20x64-4a6ea8?style=flat-square)
 ![Motor](https://img.shields.io/badge/motor-C%23%20.NET%2010-7c4dff?style=flat-square)
@@ -25,11 +25,12 @@ Desça pelo Ossuary, pegue o **Amuleto de Yendor** e traga de volta à luz do di
 num terminal estilo CRT; o jogo é uma exploração de masmorras por turnos com um mundo vivo na superfície.
 A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 
-### O que há na **versão 20**
+### O que há na **versão 21**
 
 | | |
 |---|---|
-| 🏛️ **O mundo lembra** *(novo)* | Um passado gerado da semente: casas que sobem e caem, reis que se sucedem pelo sangue, pela espada ou pela escolha dos senhores, guerras, pestes, cidades que queimaram, e os mortos enterrados em níveis de verdade com o nome talhado na pedra. O painel de lendas (F8) junta o que você aprende com bardos, eruditos, estantes, boatos, gravuras e túmulos. Sangue por espécie e rastros que desbotam: um herói sangrando é farejado, e Shift+M segue presas feridas. Ataques vêm às cidades num dia da semana: lute nas ruas ou encontre uma loja queimada. |
+| 📋 **Mãos contratadas** *(novo)* | Os quadros de aviso oferecem serviços que viram missões de verdade no diário: caçar as feras de um ramo, alcançar uma profundidade num ramo, ou aceitar uma encomenda de oficina e levar a peça a qualquer oficina que ensine o ofício. Caçadas e explorações se entregam em qualquer quadro de avisos. Um serviço aceito não volta a ser oferecido naquela semana, e você pode carregar três ao mesmo tempo. Depois que os Afogados têm o frasco, eles oferecem duas missões próprias. |
+| 🏛️ **O mundo lembra** | Um passado gerado da semente: casas que sobem e caem, reis que se sucedem pelo sangue, pela espada ou pela escolha dos senhores, guerras, pestes, cidades que queimaram, e os mortos enterrados em níveis de verdade com o nome talhado na pedra. O painel de lendas (F8) junta o que você aprende com bardos, eruditos, estantes, boatos, gravuras e túmulos. Sangue por espécie e rastros que desbotam: um herói sangrando é farejado, e Shift+M segue presas feridas. Ataques vêm às cidades num dia da semana: lute nas ruas ou encontre uma loja queimada. |
 | 📜 **Todos os ofícios** | Poções, pergaminhos e varinhas se aprendem usando. Relíquias têm uma história gerada da semente (quem forjou, para quem, como se perderam) e lembram dos chefes que mataram. Teares e alambiques, artesãos que seguem trabalhando, kobolds arqueiros com flechas de verdade, caravanas que você escolta ou rouba na estrada, pechincha no balcão e comerciantes que lembram do que você fez. |
 | 🏹 **Da forja ao mercado** | Arcos, bestas e fundas disparam flechas, virotes e pedras de verdade: cada tiro gasta uma, e você recolhe onde caiu. Faça as suas, com ponta de prata para os mortos. A melhor obra de um mestre às vezes ganha nome e vira relíquia de quem a fez. `Shift+I` examina qualquer coisa: metal, autor, qualidade, desgaste, valor. Os ferreiros da cidade vendem o próprio trabalho assinado. |
 | 🪙 **Moeda e caravana** | Cada cidade tem um mercado que se lembra de você: encha um ferreiro de espadas e ele paga menos por dias, uma caravana barateia um tipo de mercadoria, uma estrada saqueada encarece. Dias de feira trazem mercadores de fora, um quadro semanal mostra o que o povo quer e oferece, e você pode alugar um balcão que vende enquanto está fora. Carisma, o humor do comerciante, a Guilda e o nome de um mestre mexem nos preços; pedágios, aluguel e taxas mantêm o ouro valendo. O diário lembra onde as coisas venderam. |
@@ -54,7 +55,7 @@ A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 - Sete raças, oito classes, habilidades, talentos, seis deuses (com rivais, provações e sacrifícios) e altares.
 - Chefes por ramo, monstros nativos com hábitos, facções de monstros, cofres, caches armadilhados e chaves de latão; o ramo-portal opcional **O Anexo**.
 - **Corrupção e mutações**, companheiros contratados, criação leve (molotovs, lâminas de osso), conjuntos de artefatos e relíquias que corrompem.
-- Um mundo vivo: reputação com quatro casas, contratos da Guilda, eventos de estrada, moradores com rotina que lembram de você.
+- Um mundo vivo: reputação com quatro casas, serviços da Guilda, eventos de estrada, moradores com rotina que lembram de você.
 - Explorar sozinho, viajar até escadas e altares, descansar, andar segurando a tecla, furtividade e ruído, armadilhas para achar e desarmar.
 - Modos: Normal, Clássico (sem fome), Hardcore, Mergulho, Pelado, Treinado; desafio diário com placar local; conquistas, morgue, expedições passadas e ossos de heróis mortos.
 - Efeitos sonoros de onda quadrada, água animada, tiles quadrados opcionais, abertura animada.
@@ -68,10 +69,10 @@ A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 
 ## Instalar (jogadores)
 
-Baixe o instalador `Ossuary_0.20.0_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
+Baixe o instalador `Ossuary_0.21.0_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
 ou na saída do build, e execute. Não precisa de SDK. É preciso o WebView2 (já vem no Windows 11).
 
-> O nome público de uma versão é só **Versão N** (esta é a **Versão 20**), como em *Project Zomboid*. Instaladores e manifestos usam o
+> O nome público de uma versão é só **Versão N** (esta é a **Versão 21**), como em *Project Zomboid*. Instaladores e manifestos usam o
 > `0.N.0` correspondente, porque instalador do Windows, npm e Cargo pedem três números.
 
 ## Compilar do código

@@ -5,6 +5,25 @@
 As versões do Ossuary são numeradas só com **um número** (Versão 11, Versão 12…), como no *Project Zomboid*. Nos manifestos (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) e no nome do instalador a versão aparece como `0.N.0`. O **salvamento** (`SaveData.Version`) usa o mesmo número: mudou regra, sobe o número, saves antigos deixam de carregar.
 
+## Versão 21 — Mãos contratadas
+
+### Serviços no motor de missões
+- **O quadro de avisos é um quadro de missões.** Um serviço vira missão da Guilda quando você o aceita: o diário mostra os passos, o progresso e a recompensa, e o painel de personagem mostra uma linha `Serviço:` para cada serviço ativo. Caçadas e explorações se entregam em qualquer quadro de avisos; encomendas, em qualquer oficina que ensine o ofício.
+- **Uma oferta por semana.** Um serviço aceito não volta a ser oferecido naquela semana, esteja ativo, concluído ou falho. Você carrega três ao mesmo tempo, encomendas incluídas.
+- **As mesmas recompensas.** Caçadas e explorações pagam a recompensa e dão +10 de reputação a quem contratou. Uma encomenda paga e, na entrega, dá +5 de reputação com a Guilda e 5 de experiência de ofício.
+- **A Mão Contratada continua contando.** Serviços concluídos contam para a conquista *Mão Contratada* e para a linha *Serviços feitos* do necrotério, como antes.
+
+### As missões dos Afogados
+- **Duas missões depois do frasco.** Quando os Afogados já têm o frasco e você tem reputação 10 ou mais com o Culto, o *Que trabalho?* oferece mais duas missões, cada uma uma vez:
+  - **Limpar os cofres:** destrua três zumbis humanos nos Cofres Afundados e avise aos Afogados. Paga 110 de ouro; Culto +8, Templo −4.
+  - **Uma lâmina de osso:** leve uma lâmina de osso (um ferreiro pode forjar uma a partir de uma lâmina e restos). Os Afogados ficam com ela. Paga 150 de ouro; Culto +8, Templo −4.
+
+### Diário e painéis
+- **Uma lista só.** O bloco separado de contratos saiu do diário. Os serviços da Guilda ficam sob *Guilda*, junto com as outras missões, mostrando o passo atual e a dica.
+
+### Salvamentos
+- O formato de salvamento passa para **21**: saves da Versão 20 não carregam.
+
 ## Versão 20 — O mundo lembra
 
 ### Mundo e história
