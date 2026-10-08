@@ -306,9 +306,6 @@ namespace Ossuary.Core
                 R(@"The (.+) fights the (.+): (\d+) damage\.", "{a1} luta contra {a2}: $3 de dano."),
                 R(@"The (.+) swings at the (.+) and misses\.", "{a1} golpeia {a2} e erra."),
                 R(@"Defile the altar of (.+) \(for (.+)\)", "Profanar o altar de $1 (para $2)"),
-                R(@"Job done: (.+)\. You are paid (\d+) gold\.", "Trabalho feito: $1. Você recebe $2 de ouro."),
-                R(@"The job is done: (.+)\. Report to the board\.", "O trabalho está feito: $1. Apresente-se ao quadro."),
-                R(@"You have reached depth (\d+): (.+)\. Report to the board\.", "Você chegou ao nível $1: $2. Apresente-se ao quadro."),
                 R(@"You serve (\d+) day\(s\) in the cells\. The Watch strikes your name from its book\.", "Você cumpre $1 dia(s) nas celas. A Guarda risca seu nome do livro."),
                 R(@"The (.+) falls to the (.+)\.", "$1 cai diante {d2}."),
                 // gods

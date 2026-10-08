@@ -127,7 +127,6 @@ namespace Ossuary.Core
             Player.CurrentBranch = branchName;
             Player.CurrentDepth = depth;
             if (depth > Player.MaxDepth) Player.MaxDepth = depth;
-            ContractDepth();
             QuestDepth();
 
             var map = Dungeon.Ensure(branchName, depth, out var spawns, out int sx, out int sy);
@@ -478,7 +477,6 @@ namespace Ossuary.Core
             GodsOnKill(m);
             Monsters.Remove(m);
             if (m.Def.Trait != null) TraitOnDeath(m);
-            ContractKill(m);
             QuestKill(m);
             if (m.BossId != null || m.Unique) RecordDeed(Deed.Killed, m.Name, m.BossId != null ? 3 : 2);
             Stain(m.X, m.Y, BloodOf(m), m.Name);

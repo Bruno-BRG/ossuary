@@ -164,20 +164,20 @@ namespace Ossuary.Core
                 R(@"Fight it \(Enter or K\), or flee \(R or <\)\. It is (.+)\.", "Lute (Enter ou K) ou fuja (R ou <). Parece $1."),
                 R(@"(.+), level (\d+) \((\d+) HP, AC (\d+)\)", "$1, nível $2 ($3 PV, CA $4)"),
                 R(@"\((\d+),(\d+)\) (.+)", "($1,$2) $3"),
-                // Jobs from the notice board (Game.Contracts.cs). A contract is composed ("Hunt 5 giant rats in The
+                // Jobs from the notice board (Game.Jobs.cs). A job is composed ("Hunt 5 giant rats in The
                 // Dungeons"), so the deed and the branch ride the patterns as names: the branch takes the article of
                 // the sentence and contracts with it ("em As Masmorras" -> "nas Masmorras"). A monster named in the
                 // plural keeps the game's own "(s)" convention ("fera(s)").
                 R(@"Hunt (\d+) (.+)s in (.+)", "Caçar $1 $2(s) em $3"),
                 R(@"Hunt (\d+) (.+?) in (.+)", "Caçar $1 $2 em $3"),
                 R(@"Reach depth (\d+) of (.+)", "Chegar ao nível $1 de $2"),
-                R(@"You take the job: (.+)\. It pays (\d+) gold\.", "Você aceita o serviço: $1. Paga $2 de ouro."),
                 R(@"Take a job: (.+) \(pays (\d+)g\)", "Aceitar serviço: $1 (paga $2 de ouro)"),
                 R(@"Report: (.+) \((\d+)/(\d+)\)", "Entregar: $1 ($2/$3)"),
                 R(@"\((\d+)/(\d+)\) (.+)", "($1/$2) $3"),
-                // The journal row is composed with its label already in Portuguese ("Serviço: "), so the head is either
-                // language while the deed after it is always English.
-                R(@"(?:Job|Serviço): (.+) \((\d+)/(\d+)\)( ✓)?", "Serviço: $1 ($2/$3)$4"),
+                // The Character panel's job line is composed with its label already in Portuguese ("Serviço: "), so the
+                // head is either language while the deed after it is always English.
+                R(@"(?:Job|Serviço): (.+) \((\d+)/(\d+)\)", "Serviço: $1 ($2/$3)"),
+                R(@"(?:Job|Serviço): (.+) \(ready\)", "Serviço: $1 (pronto)"),
                 // misc messages
                 R(@"You are now wielding (.+)\.", "Você empunha {a1}."),
                 R(@"You eat (.+)\. That was good \(\+(\d+) nourishment\)\.", "Você come {a1}. Estava bom (+$2 de nutrição)."),

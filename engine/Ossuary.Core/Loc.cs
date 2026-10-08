@@ -361,6 +361,8 @@ namespace Ossuary.Core
             ["leaving the toll bandits to the roads"] = "deixar os bandidos do pedágio nas estradas",
             ["laying the restless to rest"] = "dar descanso aos inquietos",
             ["carrying the Drowned's vial"] = "carregar o frasco dos Afogados",
+            ["clearing the vaults"] = "limpar os cofres",
+            ["bringing a blade of bone to the Drowned"] = "levar uma lâmina de osso aos Afogados",
             ["putting down a king of the dark"] = "derrubar um rei do escuro",
             // One reason is a whole sentence in English (Game.Ledger.cs): only the phrase after "for" belongs in the message.
             ["The Watch hears you threatened a citizen."] = "ameaçar um cidadão",

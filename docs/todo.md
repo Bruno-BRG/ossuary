@@ -23,7 +23,7 @@ How a system works lives in [`design/systems.md`](design/systems.md); what shipp
 | [Items and materials](#items-and-materials) | materials, wear, relics with biographies and deeds, identify by use, services, examine, ammunition | done; new ideas go in the topic |
 | [Crafting and trades](#crafting-and-trades) | 16 trades, ~105 recipes, forge, loom and still, fletching, named masterworks, crafters, archers | done; new ideas go in the topic |
 | [Economy and market](#economy-and-market) | glut, caravans you meet on the road, haggling, traders' memory, counter, tolls, town smiths' work | done; new ideas go in the topic |
-| [Towns and people](#towns-and-people) | personas, dialogue, quests, crime, rumours | Guild jobs on the quest engine, theft |
+| [Towns and people](#towns-and-people) | personas, dialogue, quests, guild jobs, crime, rumours | theft |
 | [World and history](#world-and-history) | overworld, seven branches, the chronicle with houses and kings, legends, blood and traces, engravings, rooms, tombs, raids | done; new ideas go in the topic |
 | [Creatures](#creatures) | factions, bosses, branch natives | named survivors, ecology |
 | [The hero](#the-hero) | corruption, modes, achievements, bones | thoughts and mood |
@@ -65,15 +65,13 @@ Nothing open: every item is in *Done*.
 
 Plan and rationale in [`game/living-world.md`](game/living-world.md).
 
-- [~] **Quest engine**: has objectives, rewards, deadlines and the F7 journal; left Guild jobs running on the engine instead of the old code.
 - [~] **Other people on the road**: has pilgrims, peddlers, refugees and delvers; left delvers and captives inside dungeon levels.
 - [~] **World ledger**: has deeds read by lines, grief, quests, bounty and journal; left prices, town state, rumours about the hero, the epilogue.
 - [~] **Essential people**: has knocked out instead of killed; left successors and removal by extreme acts.
-- [~] **Cult track**: has the vial errand; left more Cult quests and reward balance.
+- [~] **Cult track**: has the vial and two errands; left reward balance (the bot tunes them) and more Cult quests.
 - [~] **New game plus**: has carry-over of level, items, truths and ledger; left people who react to the hero's legend.
 - [ ] **Main quest polish**: house speakers at the ceremony, the Archivist's Shade and the Spire guardian as encounters, ending ids in the morgue.
 - [ ] **Theft and property crimes**: steal and burn verbs, and escaping the cells with a lock pick.
-- [ ] **Town fires and raids**: events that burn buildings, which stay burnt.
 - [ ] **Conversations**: portraits and mood tags in the box, a scrollable history of what was said.
 - [ ] **Companions**: orders (stay, follow), shared inventory, more than one, archers.
 - [ ] **Open questions**: exact fine formulas, how far a bounty reaches, new-game-plus details.
@@ -178,6 +176,8 @@ One line per feature, newest first inside each topic. Details: the [changelog](.
 - 2026-10-02 · **Light crafting**: molotov, bone blade, bone armour, extra healing (`Items/Crafted.cs`).
 
 **Towns and people**
+- 2026-10-08 · **Guild jobs on the quest engine**: notice-board jobs, workshop commissions and the Journal are quests on the Guild track; an offer is one-shot per week, and a board never offers a delve to a depth already reached (`Game.Jobs.cs`, `Game.Workshops.cs`, `Ui.cs`).
+- 2026-10-08 · **Cult errands**: after the vial, the Drowned offer clearing the Sunken Vaults of human zombies and bringing them a blade of bone, both on the quest engine (`QuestBook.cs`, `Dialogues.cs`).
 - 2026-10-03 · **Rival party and the main questline**: four documents, the Reader, six endings, a new cycle (`Game.Rival.cs`, `Game.Main.cs`).
 - 2026-10-03 · **Crime and the Watch**: witnesses, bounty by region, arrest, the cells, clearing your name (`Game.Crime.cs`).
 - 2026-10-03 · **Town events**: market day, festival, funeral, robbery, fever (`Game.TownEvents.cs`).
@@ -185,7 +185,7 @@ One line per feature, newest first inside each topic. Details: the [changelog](.
 - 2026-10-03 · **Personal, Watch and Temple errands** (`PersonalQuests.cs`).
 - 2026-10-03 · **Dialogue**: a conversation box, authored talks with choices (`Dialogue.cs`, `Dialogues.cs`).
 - 2026-10-03 · **Personas, memory and the ledger** (`Persona.cs`, `Game.Ledger.cs`).
-- 2026-10-02 · **Reputation, contracts, road events and routine** (`Game.Reputation.cs`, `Game.Contracts.cs`, `Game.Events.cs`).
+- 2026-10-02 · **Reputation, contracts, road events and routine** (`Game.Reputation.cs`, `Game.Jobs.cs`, `Game.Events.cs`).
 - 2026-10-02 · **Permanent companions** from the tavern (`Game.Companions.cs`).
 
 **World and history**

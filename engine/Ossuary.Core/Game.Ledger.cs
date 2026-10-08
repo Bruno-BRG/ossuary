@@ -7,7 +7,7 @@ namespace Ossuary.Core
     /// <summary>One thing the hero did that the world should remember (docs/game/living-world.md, pillar 9).</summary>
     public sealed class Deed
     {
-        public const string Killed = "killed", Struck = "struck", Contract = "contract", Helped = "helped", Failed = "failed", Quest = "quest", Jailed = "jailed", Bribed = "bribed";
+        public const string Killed = "killed", Struck = "struck", Helped = "helped", Failed = "failed", Quest = "quest", Jailed = "jailed", Bribed = "bribed";
         public string Kind, Subject, Where;
         public int Day, Turn, Weight;
     }

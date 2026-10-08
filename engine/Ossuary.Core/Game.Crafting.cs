@@ -234,7 +234,7 @@ namespace Ossuary.Core
                 if (made.Quantity > 1) Say($"You make {made.Quantity} x {made.Name}.", MessageKind.Good);
                 else Say($"You make {made.Name}.", MessageKind.Good);
                 if (made.Title != null) NameMasterwork(made);
-                CommissionMade(made);
+                QuestCheck();   // a commission's product is in the pack now (Game.Jobs.cs)
             }
             if (Mode == GameMode.Dungeon || Mode == GameMode.TownMap) EndPlayerTurn();
             else if (Mode == GameMode.Overworld) World?.AdvanceTime(1);

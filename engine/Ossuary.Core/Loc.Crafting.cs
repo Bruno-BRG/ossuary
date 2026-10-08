@@ -87,7 +87,7 @@ namespace Ossuary.Core
                 R(@"Learn the (.+)'s craft \((.+)\)", "Aprender o ofício de $1 ($2)"),
                 R(@"Commission: make (.+) \((\d+) gold\)", "Encomenda: fazer {u1} ($2 de ouro)"),
                 R(@"Deliver: (.+) \((\d+) gold\)", "Entregar: {u1} ($2 de ouro)"),
-                R(@"Craft for the town: (.+)", "Fazer para a cidade: {u1}"),
+                R(@"Craft for the town: (.+)", "Encomenda da cidade: fazer {u1}"),
                 R(@"You have nothing for the (.+)\. You hurl a stone\.", "Você não tem o que disparar com {a1}. Você arremessa uma pedra."),
                 R(@"The work is too fine to be nameless\. You call it (.+)\.", "A obra é boa demais para ficar sem nome. Você a chama de $1."),
                 R(@"You look closely at (.+)\.", "Você examina {a1} de perto."),

@@ -42,6 +42,11 @@ namespace Ossuary.Tests
             Test("each branch has a boss with mechanics", BossFights);
             Test("monster factions fight each other", FactionWar);
             Test("reputation, haggling and guild jobs", ReputationAndJobs);
+            Test("the notice board keeps its offers", JobsPinned);
+            Test("guild jobs run on the quest engine: offers, taking, reporting, the cap", GuildJobs);
+            Test("the guild's board rows take, report and list jobs", GuildBoardRows);
+            Test("workshop commissions run on the quest engine, one at a time, with the cap", GuildCommissions);
+            Test("finished guild jobs count for Hired Hand and the morgue", GuildFinished);
             Test("road events offer choices with prices", RoadEvents);
             Test("townsfolk keep hours and remember you", TownRoutine);
             Test("townsfolk have personas, memory and a ledger of deeds", PersonaAndLedger);
@@ -56,6 +61,7 @@ namespace Ossuary.Tests
             Test("main questline: documents, the Reader, truths, endings, new cycle", MainQuestline);
             Test("a rival party races the hero down the Dungeons", RivalRace);
             Test("the Cult's dark mirror: a vial for the Drowned", CultTrack);
+            Test("the Cult's two errands: the vaults and a blade of bone", CultErrands);
             Test("vaults are carved out of unused rock and need a key", VaultsAndKeys);
             Test("overworld entrances lead into every branch", EntrancesReachBranches);
             Test("the Annex: a portal, hard floors, a warden and a mantle", AnnexFlow);
@@ -876,11 +882,11 @@ namespace Ossuary.Tests
                 var smithy = new Building { Kind = BuildingKind.Smithy, Name = "The Rusty Anvil" };
                 var offer = g.CommissionOffer(smithy);
                 Assert(offer != null && offer.Kind == "make" && offer.Reward > 0, "the smithy has a commission");
-                g.Contracts.Clear(); g.AcceptContract(offer);
-                Assert(g.Contracts.Count == 1 && g.CommissionOffer(smithy) == null, "taken, it is no longer offered");
+                Assert(g.AcceptJob(offer) && g.CommissionOffer(smithy) == null, "taken, it is no longer offered");
                 p.Inventory.Add(new Item(Def(offer.Target), g.Rng, 6) { Identified = true });
-                int gold = p.Gold;
-                Assert(g.WorkshopAction("deliver:0") && g.Contracts.Count == 0 && p.Gold == gold + offer.Reward, "delivered and paid");
+                int gold = p.Gold, guild = g.RepOf(Houses.Guild), xp = g.TradeXp(offer.Branch);
+                Assert(g.WorkshopAction("deliver:" + offer.Id) && g.ActiveJobs().Count == 0 && p.Gold == gold + offer.Reward, "delivered and paid");
+                Assert(g.RepOf(Houses.Guild) == guild + 5 && g.TradeXp(offer.Branch) == xp + 5, "Guild +5 and trade xp 5");
 
                 // On the road: an axe fells wood in a forest, a field gives flax, a hill without a pick gives no ore.
                 var w = new Game(5151);
@@ -2052,47 +2058,193 @@ namespace Ossuary.Tests
             Assert(g.ServiceRows().Exists(r => r.Id == "grave"), "a friend of the Cult is shown the back room");
             g.ServiceAction("grave");
             Assert(g.Player.Inventory.Exists(i => i.Def.Name == "potion of mutation"), "and buys a vial");
+        }
 
-            // Jobs: the same board every time, a hunt and a delve that count themselves, and a payday.
-            var j = Game.NewHero(1701, "Hand", "human", "fighter");
-            j.Monsters.Clear(); j.LeaveToOverworld();
-            var a = j.ContractOffers(); var b = j.ContractOffers();
-            Assert(a.Count == 3 && a[0].Key == b[0].Key && a[1].Key == b[1].Key && a[2].Key == b[2].Key, "the board is the same every time you read it");
-            j.World.Day += 14;
-            var later = j.ContractOffers();
-            Assert(later[0].Key != a[0].Key || later[1].Key != a[1].Key || later[2].Key != a[2].Key, "and changes with the weeks");
-            j.World.Day -= 14;
-            j.TalkBuilding = new Building { Services = Service.Quest, Name = "Guild" };
-            Assert(j.ServiceRows().FindAll(r => r.Id.StartsWith("offer:")).Count == 3, "the guild lists its jobs");
-            Contract hunt = null, delve = null;
-            foreach (var o in j.ContractOffers()) { if (o.Kind == "hunt" && hunt == null) hunt = o; if (o.Kind == "delve" && delve == null) delve = o; }
-            // Make sure both kinds exist for the test, whatever the board shows.
-            if (hunt == null) hunt = new Contract { Kind = "hunt", Branch = "The Dungeons", Target = "jackal", Count = 3, Reward = 90, Giver = Houses.Guild };
-            if (delve == null) delve = new Contract { Kind = "delve", Branch = "The Dungeons", Target = "", Count = 3, Reward = 180, Giver = Houses.Watch };
-            Assert(j.AcceptContract(hunt) && j.AcceptContract(delve), "two jobs taken");
-            Assert(j.Contracts.Count == 2, "they are carried");
+        static void JobsPinned()
+        {
+            // Recorded from the old board, before the job engine: the same offers must come out.
+            var expect = new Dictionary<string, string[]>
+            {
+                ["road|0"] = new[] { "hunt|The Sunken Vaults|dwarf|6|282|guild", "delve|The Ashen Spire||4|220|watch", "delve|The Sunken Vaults||4|220|guild" },
+                ["road|1"] = new[] { "hunt|The Warrens|viper|6|186|guild", "hunt|The Ashen Spire|orc|4|198|watch", "hunt|The Sunken Vaults|yellow mold|5|80|guild" },
+                ["road|2"] = new[] { "delve|The Ashen Spire||4|220|guild", "delve|The Mines of Dwarfdeep||4|220|watch", "delve|The Warrens||4|220|guild" },
+                ["Racetown|0"] = new[] { "delve|The Ashen Spire||7|340|guild", "hunt|The Mines of Dwarfdeep|dwarf|6|282|watch", "delve|The Mines of Dwarfdeep||7|340|guild" },
+                ["Racetown|1"] = new[] { "delve|The Warrens||4|220|guild", "hunt|The Warrens|jackal|6|138|watch", "delve|The Dungeons||6|300|guild" },
+                ["Racetown|2"] = new[] { "delve|The Ashen Spire||7|340|guild", "hunt|The Sunken Vaults|grid bug|6|90|watch", "hunt|The Sunken Vaults|jackal|5|120|guild" },
+            };
+            var g = Game.NewHero(1700, "Pin", "human", "fighter"); g.Monsters.Clear();
+            foreach (string town in new[] { "road", "Racetown" })
+            {
+                if (town == "road") g.LeaveToOverworld(); else g.EnterTown(town);
+                for (int week = 0; week < 3; week++)
+                {
+                    g.World.Day = 7 * week;
+                    var offers = g.GenerateJobs(town, week);
+                    for (int i = 0; i < 3; i++)
+                        Assert(Line(offers[i]) == expect[town + "|" + week][i], $"{town} week {week} offer {i}");
+                }
+            }
+        }
+        static string Line(JobOffer c) => $"{c.Kind}|{c.Branch}|{c.Target}|{c.Count}|{c.Reward}|{c.Giver}";
 
-            j.DescendTo(hunt.Branch, 1);
+        static void GuildJobs()
+        {
+            var g = Game.NewHero(1701, "Hand", "human", "fighter");
+            g.Monsters.Clear(); g.LeaveToOverworld();
+
+            // The board is the same every time you read it, and reading it draws nothing from the simulation.
+            long calls = g.Rng.Calls;
+            var board = g.JobOffers();
+            Assert(board.Count == 3 && board[0].Id == g.JobOffers()[0].Id, "the board is the same every time you read it");
+            Assert(g.Rng.Calls == calls, "reading the board draws nothing from the simulation");
+
+            // Review focus 3: a kill before the job is taken does not count.
+            var hunt = board.Find(o => o.Kind == "hunt") ?? new JobOffer { Id = "guild.road.0.7", Kind = "hunt", Branch = "The Dungeons", Target = "jackal", Count = 3, Reward = 90, Giver = Houses.Guild };
+            g.DescendTo(hunt.Branch, 1);
+            var early = new Monster(Bestiary.Find(hunt.Target), g.Rng) { X = g.Player.X + 1, Y = g.Player.Y };
+            g.Monsters.Add(early); g.KillMonster(early);
+            Assert(g.AcceptJob(hunt) && g.QuestOf(hunt.Id).Progress == 0, "a kill before the job does not count");
+
+            // Kills end the objective; the job then waits for its report.
             for (int i = 0; i < hunt.Count; i++)
             {
-                var m = new Monster(Bestiary.Find(hunt.Target), j.Rng) { X = j.Player.X + 1, Y = j.Player.Y };
-                j.Monsters.Add(m); j.KillMonster(m);
+                var m = new Monster(Bestiary.Find(hunt.Target), g.Rng) { X = g.Player.X + 1, Y = g.Player.Y };
+                g.Monsters.Add(m); g.KillMonster(m);
             }
-            Assert(hunt.Complete, "killing the target counts toward the hunt");
-            var other = new Monster(Bestiary.Find(hunt.Target == "newt" ? "jackal" : "newt"), j.Rng) { X = j.Player.X + 1, Y = j.Player.Y };
-            j.Monsters.Add(other); int done = hunt.Done; j.KillMonster(other);
-            Assert(hunt.Done == done, "other kills do not");
-            Assert(!delve.Complete || delve.Branch == hunt.Branch, "a delve waits for its depth");
-            j.DescendTo(delve.Branch, Math.Min(delve.Count, j.Dungeon.Get(delve.Branch).MaxDepth));
-            if (delve.Count <= j.Dungeon.Get(delve.Branch).MaxDepth) Assert(delve.Complete, "reaching the depth completes the delve");
+            Assert(g.QuestOf(hunt.Id).Step == 1, "the kills end the objective, and the job waits for its report");
 
-            int gold = j.Player.Gold, rep = j.RepOf(hunt.Giver);
-            Assert(j.TurnInContract(hunt), "the hunt is handed in");
-            Assert(j.Player.Gold == gold + hunt.Reward && j.RepOf(hunt.Giver) == rep + 10 && j.ContractsDone == 1, "paid, and thought of better");
-            Assert(!j.TurnInContract(hunt), "but only once");
-            var full = Game.NewHero(1702, "Busy", "human", "fighter");
-            for (int i = 0; i < Game.MaxContracts; i++) full.AcceptContract(new Contract { Kind = "hunt", Branch = "The Dungeons", Target = "jackal" + i, Count = 1, Reward = 1, Giver = Houses.Guild });
-            Assert(!full.AcceptContract(new Contract { Kind = "hunt", Branch = "x", Target = "y", Count = 1 }), "only three jobs at once");
+            // The report pays, the giver thinks better of you, and one completion deed is recorded.
+            int gold = g.Player.Gold, rep = g.RepOf(hunt.Giver);
+            g.Flags.Add(Game.ReportFlag(hunt.Id)); g.QuestCheck();
+            Assert(g.QuestDone(hunt.Id) && g.Player.Gold == gold + hunt.Reward && g.RepOf(hunt.Giver) == rep + 10, "the report pays, and the giver thinks better of you");
+            Assert(g.DeedCount(Deed.Quest, hunt.Id + ".done") == 1, "one completion deed is recorded");
+
+            // Finished, it is not offered again this week. Next week the board has new ids.
+            Assert(!g.JobOffers().Exists(o => o.Id == hunt.Id), "a finished job is not offered again this week");
+            g.World.Day += 7;
+            Assert(g.JobOffers().Count == 3 && !g.JobOffers().Exists(o => o.Id == hunt.Id), "next week the board has new ids");
+
+            // Review focus 2: a job taken in week one stays open, and reports, in week two.
+            g.DescendTo("The Dungeons", 1);
+            var late = new JobOffer { Id = "guild.road.1.9", Kind = "hunt", Branch = "The Dungeons", Target = "jackal", Count = 1, Reward = 30, Giver = Houses.Guild };
+            Assert(g.AcceptJob(late), "a job is taken in week one");
+            g.World.Day += 7;
+            Assert(g.QuestActive(late.Id), "it is still open in week two");
+            var k = new Monster(Bestiary.Find("jackal"), g.Rng) { X = g.Player.X + 1, Y = g.Player.Y };
+            g.Monsters.Add(k); g.KillMonster(k);
+            g.Flags.Add(Game.ReportFlag(late.Id)); g.QuestCheck();
+            Assert(g.QuestDone(late.Id), "and it reports in week two");
+
+            // Review focus 1: a depth already reached is not offered, and a delve counts only from acceptance.
+            g.DescendTo("The Warrens", 5);
+            Assert(!g.JobOffers().Exists(o => o.Kind == "delve" && o.Branch == "The Warrens" && o.Count <= 5), "a depth already reached is not offered");
+            var delve = new JobOffer { Id = "guild.road.2.9", Kind = "delve", Branch = "The Warrens", Count = 6, Reward = 180, Giver = Houses.Watch };
+            Assert(g.AcceptJob(delve) && g.QuestOf(delve.Id).Step == 0, "a delve below the best depth waits for its depth");
+            g.DescendTo("The Warrens", 6);
+            Assert(g.QuestOf(delve.Id).Step == 1, "reaching the depth ends the objective");
+            g.Flags.Add(Game.ReportFlag(delve.Id)); g.QuestCheck();
+            Assert(g.QuestDone(delve.Id), "the delve reports");
+
+            // At most three active jobs.
+            var full = Game.NewHero(1702, "Busy", "human", "fighter"); full.Monsters.Clear(); full.LeaveToOverworld();
+            for (int i = 0; i < Game.MaxContracts; i++)
+                Assert(full.AcceptJob(new JobOffer { Id = "test.cap." + i, Kind = "hunt", Branch = "The Dungeons", Target = "jackal", Count = 1, Reward = 1, Giver = Houses.Guild }), "three jobs taken");
+            Assert(!full.AcceptJob(new JobOffer { Id = "test.cap.3", Kind = "hunt", Branch = "The Dungeons", Target = "jackal", Count = 1, Reward = 1, Giver = Houses.Guild }) && full.ActiveJobs().Count == Game.MaxContracts, "only three jobs at once");
+        }
+
+        static void GuildBoardRows()
+        {
+            var g = Game.NewHero(1703, "Row", "human", "fighter"); g.Monsters.Clear(); g.LeaveToOverworld();
+            g.TalkBuilding = new Building { Services = Service.Quest, Name = "Guild" };
+            Assert(g.ServiceRows().FindAll(r => r.Id.StartsWith("offer:")).Count == 3, "the guild lists its jobs");
+
+            var hunt = new JobOffer { Id = "guild.test.row", Kind = "hunt", Branch = "The Dungeons", Target = "jackal", Count = 1, Reward = 40, Giver = Houses.Guild };
+            Assert(g.AcceptJob(hunt), "a hunt is taken");
+            var greyed = g.ServiceRows().Find(r => r.Id == "report:" + hunt.Id);
+            Assert(greyed != null && !greyed.Enabled, "a job in progress has a greyed report row");
+
+            g.DescendTo("The Dungeons", 1);
+            var m = new Monster(Bestiary.Find("jackal"), g.Rng) { X = g.Player.X + 1, Y = g.Player.Y };
+            g.Monsters.Add(m); g.KillMonster(m);
+            var ready = g.ServiceRows().Find(r => r.Id == "report:" + hunt.Id);
+            Assert(ready != null && ready.Enabled, "the report row is enabled at the report step");
+            int gold = g.Player.Gold;
+            g.ServiceAction("report:" + hunt.Id);
+            Assert(g.QuestDone(hunt.Id) && g.Player.Gold == gold + hunt.Reward, "reporting at a board pays");
+
+            // Review focus 5: a finished job cannot be reported twice.
+            g.ServiceAction("report:" + hunt.Id);
+            Assert(g.Player.Gold == gold + hunt.Reward && g.ServiceRows().Find(r => r.Id == "report:" + hunt.Id) == null, "a finished job cannot be reported twice");
+
+            // The Journal lists an open job once, under Guild. English, so the title on screen is the one Describe() gives.
+            var lang = Loc.Current; Loc.Current = Lang.En;
+            try
+            {
+                var open = new JobOffer { Id = "guild.test.open", Kind = "hunt", Branch = "The Dungeons", Target = "jackal", Count = 3, Reward = 60, Giver = Houses.Guild };
+                Assert(g.AcceptJob(open), "the job is taken");
+                g.UiState.Active = Panel.Journal;
+                var hud = new GameHud(g); hud.Ui.Resize(110, 36);
+                // The message bar also says "New quest: ..." with the title, so count only the Journal's own rows (the ones in its double-line box).
+                var rows = hud.Draw().ToAscii().Split('\n');
+                int listed = rows.Count(r => r.Contains(open.Describe()) && r.Contains("║"));
+                int guild = Array.FindIndex(rows, r => r.Contains("Guild") && r.Contains("║"));
+                int at = Array.FindIndex(rows, r => r.Contains(open.Describe()) && r.Contains("║"));
+                Assert(listed == 1 && guild >= 0 && guild < at, "the Journal lists an open job once, under Guild");
+
+                // The Character panel: one line per job, with its progress, and "ready" once the objective is done.
+                g.UiState.Active = Panel.Character;
+                Assert(hud.Draw().ToAscii().Contains("Job: " + open.Describe() + " (0/3)"), "the Character panel shows the job's progress");
+                for (int i = 0; i < open.Count; i++)
+                {
+                    var k = new Monster(Bestiary.Find("jackal"), g.Rng) { X = g.Player.X + 1, Y = g.Player.Y };
+                    g.Monsters.Add(k); g.KillMonster(k);
+                }
+                Assert(hud.Draw().ToAscii().Contains("Job: " + open.Describe() + " (ready)"), "and reads ready at the report step");
+            }
+            finally { Loc.Current = lang; g.UiState.Active = Panel.None; }
+        }
+
+        static void GuildCommissions()
+        {
+            var g = Game.NewHero(1704, "Maker", "human", "fighter"); g.Monsters.Clear(); g.LeaveToOverworld();
+            var p = g.Player; p.Gold = 500;
+            var smithy = new Building { Kind = BuildingKind.Smithy, Name = "The Anvil" };
+            var offer = g.CommissionOffer(smithy);
+            Assert(g.AcceptJob(offer), "a commission is taken");
+
+            p.Inventory.Add(new Item(Def(offer.Target), g.Rng, 1) { Identified = true });
+            g.QuestCheck();
+            Assert(g.QuestOf(offer.Id).Step == 1, "the product in the pack meets the first step");
+
+            // Review focus 4: the product is sold before delivery.
+            g.TakeItem(offer.Target);
+            g.WorkshopAction("deliver:" + offer.Id);
+            Assert(g.QuestActive(offer.Id) && p.Gold == 500, "without the product nothing is paid, and the job stays open");
+
+            // A commission counts toward the three: with it, two more fit, and a fourth is refused.
+            Assert(g.AcceptJob(new JobOffer { Id = "test.cap.a", Kind = "hunt", Branch = "The Dungeons", Target = "jackal", Count = 1, Reward = 1, Giver = Houses.Guild })
+                && g.AcceptJob(new JobOffer { Id = "test.cap.b", Kind = "hunt", Branch = "The Dungeons", Target = "jackal", Count = 1, Reward = 1, Giver = Houses.Guild }), "two more jobs fit beside the commission");
+            Assert(g.ActiveJobs().Count == Game.MaxContracts, "the commission counts toward the three");
+            Assert(!g.AcceptJob(new JobOffer { Id = "test.cap.c", Kind = "hunt", Branch = "The Dungeons", Target = "jackal", Count = 1, Reward = 1, Giver = Houses.Guild }), "a fourth job is refused");
+        }
+
+        static void GuildFinished()
+        {
+            var g = Game.NewHero(1705, "Done", "human", "fighter"); g.Monsters.Clear(); g.LeaveToOverworld();
+            g.DescendTo("The Dungeons", 1);
+            for (int i = 0; i < 3; i++)
+            {
+                var job = new JobOffer { Id = "test.done." + i, Kind = "hunt", Branch = "The Dungeons", Target = "jackal", Count = 1, Reward = 10, Giver = Houses.Guild };
+                g.AcceptJob(job);
+                var m = new Monster(Bestiary.Find("jackal"), g.Rng) { X = g.Player.X + 1, Y = g.Player.Y };
+                g.Monsters.Add(m); g.KillMonster(m);
+                g.Flags.Add(Game.ReportFlag(job.Id)); g.QuestCheck();
+            }
+            Assert(g.ContractsDone == 3, "three finished jobs are counted");
+            Assert(Achievements.All.First(a => a.Id == "hired-hand").Test(g), "Hired Hand unlocks after three finished jobs");
+            var lang = Loc.Current; Loc.Current = Lang.En;
+            try { Assert(Morgue.Text(g, Morgue.Summarize(g)).Contains("Jobs done: 3"), "the morgue counts them"); }
+            finally { Loc.Current = lang; }
         }
 
         static void RoadEvents()
@@ -2268,6 +2420,53 @@ namespace Ossuary.Tests
             Pick(g, "I have the vial");
             Assert(g.QuestDone("cult.vial") && !g.HasItem("potion of mutation"), "handing it over finishes the job");
             Assert(g.RepOf(Houses.Cult) > cult && g.RepOf(Houses.Temple) < temple && g.Player.Corruption > corruption, "the Cult gains, the Temple and the body pay");
+        }
+
+        static void CultErrands()
+        {
+            var g = new Game(779); g.LeaveToOverworld();
+            var beggar = Teller(TownRole.Beggar, Trait.Weary);
+            void Talk() { g.Talking = beggar; g.OpenDialogue(Dialogues.For(beggar), beggar); }
+            void Close() { g.CurrentDialogue = null; g.UiState.Active = Panel.None; }
+
+            g.AddRep(Houses.Cult, 20, null);
+            Talk();
+            Assert(RowIdx(g, "Clear the Sunken Vaults") < 0, "no errands before the vial");
+            Pick(g, "What work");
+            Close();
+            g.Player.Inventory.Add(new Ossuary.Core.Items.Item(System.Linq.Enumerable.First(Ossuary.Core.Items.Catalogue.Potions, d => d.Name == "potion of mutation"), new Rng(4), 1) { Identified = true });
+            g.QuestCheck();
+            Talk(); Pick(g, "I have the vial");
+            Assert(g.QuestDone("cult.vial"), "the vial is handed over");
+
+            // Once the vial is done, the errands open under What work?, and each is taken once.
+            Talk(); Pick(g, "What work"); Pick(g, "Clear the Sunken Vaults");
+            Assert(g.QuestActive("cult.zombies"), "the zombie errand is taken");
+            Close();
+            g.DescendTo("The Sunken Vaults", 4);
+            int cult = g.RepOf(Houses.Cult), temple = g.RepOf(Houses.Temple), gold = g.Player.Gold;
+            for (int i = 0; i < 3; i++)
+            {
+                var z = new Monster(Bestiary.Find("human zombie"), g.Rng) { X = g.Player.X + 1, Y = g.Player.Y };
+                g.Monsters.Add(z); g.KillMonster(z);
+            }
+            Assert(g.QuestOf("cult.zombies").Step == 1, "three zombies in the vaults end the objective");
+            Talk(); Pick(g, "The zombies are dealt with");
+            Assert(g.QuestDone("cult.zombies") && g.Player.Gold == gold + 110 && g.RepOf(Houses.Cult) == cult + 8 && g.RepOf(Houses.Temple) == temple - 4, "the zombie errand pays 110, Cult +8, Temple -4");
+            Close();
+
+            Talk(); Pick(g, "What work"); Pick(g, "Bring a blade of bone");
+            Assert(g.QuestActive("cult.bones"), "the blade errand is taken");
+            g.Player.Inventory.Add(new Ossuary.Core.Items.Item(Def("bone blade"), new Rng(5), 1) { Identified = true });
+            g.QuestCheck();
+            Talk(); Pick(g, "Here is the bone blade");
+            Assert(g.QuestDone("cult.bones") && !g.HasItem("bone blade"), "the blade is handed over and the errand is done");
+
+            Talk();
+            Assert(RowIdx(g, "What work") < 0, "both errands are taken, so no work is offered");
+            bool zombies = false;
+            for (int d = 4; d <= 12; d++) zombies |= Bestiary.SpawnTable(d, new Rng(1), "The Sunken Vaults").Exists(x => x.Name == "human zombie");
+            Assert(zombies, "human zombies can spawn in the vaults, so the errand can always be finished");
         }
 
         static void RivalRace()

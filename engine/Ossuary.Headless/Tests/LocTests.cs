@@ -75,7 +75,8 @@ namespace Ossuary.Tests
                                               "robbing the dead", "sharing water with a pilgrim", "feeding refugees", "robbing refugees", "saving a delver",
                                               "robbing a wounded delver", "burying a stranger", "beating a rival party to the bottom", "losing the race",
                                               "catching the thief", "letting the thief go", "putting down the toll bandits", "leaving the toll bandits to the roads",
-                                              "laying the restless to rest", "carrying the Drowned's vial", "putting down a king of the dark" })
+                                              "laying the restless to rest", "carrying the Drowned's vial", "putting down a king of the dark",
+                                              "clearing the vaults", "bringing a blade of bone to the Drowned" })
                 Miss(missing, Loc.T(reason) != reason, "reputation reason " + reason);
             if (missing.Count > 0) throw new Exception(missing.Count + " without Portuguese: " + string.Join("; ", missing.ToArray()));
         }
@@ -179,12 +180,10 @@ namespace Ossuary.Tests
             foreach (string line in new[]
             {
                 "Hunt 5 giant rats in The Dungeons", "Reach depth 3 of The Mines of Dwarfdeep",
-                "You take the job: Hunt 5 giant rats in The Dungeons. It pays 120 gold.",
-                "Job done: Hunt 5 giant rats in The Dungeons. You are paid 120 gold.",
-                "The job is done: Hunt 5 giant rats in The Dungeons. Report to the board.",
                 "(2/5) Hunt 5 giant rats in The Dungeons",
                 "Take a job: Hunt 5 giant rats in The Dungeons (pays 120g)",
                 "Report: Hunt 5 giant rats in The Dungeons (2/5)",
+                "Craft for the town: iron bar", "Job: Hunt 3 jackal in The Dungeons (1/3)", "Job: Hunt 3 jackal in The Dungeons (ready)",
                 "A skeleton answers the Gaoler.", "3 kobolds answer the Gaoler.",
                 "Your staff flares: magic missile!", "Your staff stirs: magic missile!",
                 // The altar of a god, and the screens that show a hero's standing.
@@ -228,6 +227,30 @@ namespace Ossuary.Tests
                         Miss(missing, false, "half translated '" + line + "' -> '" + pt + "' (kept '" + leftover + "')");
                         break;
                     }
+            }
+
+            // The job steps and hints the engine builds, and every quest the book holds: each must translate.
+            var sample = new Game(31337);
+            var board = new JobOffer { Id = "guild.check.0.0", Kind = "hunt", Branch = "The Dungeons", Target = "jackal", Count = 3, Reward = 60, Giver = Houses.Guild };
+            var commission = new JobOffer { Id = "guild.make.check.Smithy.0", Kind = "make", Branch = "blacksmith", Target = "bone blade", Count = 1, Reward = 40, Giver = Houses.Guild };
+            var delve = new JobOffer { Id = "guild.check.0.1", Kind = "delve", Branch = "The Warrens", Count = 4, Reward = 220, Giver = Houses.Watch };
+            foreach (var def in new[] { sample.BuildJob(board), sample.BuildJob(commission), sample.BuildJob(delve) })
+            {
+                Miss(missing, Loc.T(def.Title) != def.Title, "job title " + def.Title);
+                foreach (var s in def.Steps)
+                {
+                    Miss(missing, Loc.T(s.Text) != s.Text, "job step " + s.Text);
+                    if (s.Hint != null) Miss(missing, Loc.T(s.Hint) != s.Hint, "job hint " + s.Hint);
+                }
+            }
+            foreach (var q in QuestBook.All.Values)
+            {
+                Miss(missing, Loc.T(q.Title) != q.Title, "quest title " + q.Title);
+                foreach (var s in q.Steps)
+                {
+                    Miss(missing, Loc.T(s.Text) != s.Text, "quest step " + s.Text);
+                    if (s.Hint != null) Miss(missing, Loc.T(s.Hint) != s.Hint, "quest hint " + s.Hint);
+                }
             }
 
             if (missing.Count > 0)

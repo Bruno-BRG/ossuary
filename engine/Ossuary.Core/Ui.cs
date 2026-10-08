@@ -1325,27 +1325,25 @@ namespace Ossuary.Core
             {
                 var open = new System.Collections.Generic.List<QuestState>();
                 foreach (var q in _g.Quests) if (q.Def.Track == track && q.Status == QStatus.Active) open.Add(q);
-                bool jobs = track == QuestDef.Guild && _g.Contracts.Count > 0;
-                if (open.Count == 0 && !jobs) continue;
+                if (open.Count == 0) continue;
                 any = true;
                 if (y >= bottom) break;
                 _t.Write(x, y++, track, theme.Label, true, theme.Panel);
                 foreach (var q in open)
                 {
                     if (y >= bottom) break;
-                    int left = q.DaysLeft(today);
-                    _t.WriteClipped(x + 2, y++, q.Def.Title + (left >= 0 ? $"  ({left}d)" : ""), theme.Title, iw - 2, true, theme.Panel);
                     var s = q.Current;
-                    if (s != null && y < bottom)
+                    bool same = s != null && s.Text == q.Def.Title;   // a job's objective is its title: say it once
+                    string prog = s == null ? "" : s.Kind == ObjKind.Kill && s.Count > 1 ? $" {q.Progress}/{s.Count}"
+                        : s.Kind == ObjKind.Reach ? $" {System.Math.Min(_g.BestDepthIn(s.Target), s.Count)}/{s.Count}" : "";
+                    int left = q.DaysLeft(today);
+                    _t.WriteClipped(x + 2, y++, q.Def.Title + (same ? prog : "") + (left >= 0 ? $"  ({left}d)" : ""), theme.Title, iw - 2, true, theme.Panel);
+                    if (s != null && !same && y < bottom)
                     {
-                        string prog = s.Kind == ObjKind.Kill && s.Count > 1 ? $" {q.Progress}/{s.Count}" : "";
                         _t.WriteClipped(x + 4, y++, s.Text + prog, theme.Text, iw - 4, false, theme.Panel);
                         if (s.Hint != null && y < bottom) _t.WriteClipped(x + 4, y++, s.Hint, theme.Dim, iw - 4, false, theme.Panel);
                     }
                 }
-                if (jobs)
-                    foreach (var c in _g.Contracts)
-                        if (y < bottom) _t.WriteClipped(x + 2, y++, $"{c.Describe()}  {System.Math.Min(c.Done, c.Count)}/{c.Count}", c.Complete ? theme.Good : theme.Text, iw - 2, false, theme.Panel);
                 y++;
             }
             if (_g.LearnedRumours.Count > 0 && y < bottom - 1)
@@ -1413,8 +1411,8 @@ namespace Ossuary.Core
                 var houses = new System.Collections.Generic.List<string>();
                 foreach (string house in Houses.All) { int r = _g.RepOf(house); if (r != 0) houses.Add($"{Loc.T(Houses.Name(house))} {r:+#;-#;0}"); }
                 if (houses.Count > 0) _t.WriteClipped(x, y++, Loc.T("Standing") + ": " + string.Join(", ", houses.ToArray()), theme.Info, iw, false, theme.Panel);
-                foreach (var c in _g.Contracts)
-                    _t.WriteClipped(x, y++, Loc.T($"{Loc.T("Job")}: {c.Describe()} ({System.Math.Min(c.Done, c.Count)}/{c.Count})" + (c.Complete ? " ✓" : "")), c.Complete ? theme.Good : theme.Dim, iw, false, theme.Panel);
+                foreach (var q in _g.ActiveJobs())
+                    _t.WriteClipped(x, y++, Loc.T($"{Loc.T("Job")}: {q.Def.Title} ({_g.JobProgressText(q)})"), q.Current?.Kind == ObjKind.Flag ? theme.Good : theme.Dim, iw, false, theme.Panel);
             }
             foreach (var comp in _g.Companions)
                 _t.WriteClipped(x, y++, $"Companion: {comp.Name}, level {comp.Level}, {System.Math.Max(0, comp.HP)}/{comp.MaxHP} HP", theme.Good, iw, false, theme.Panel);

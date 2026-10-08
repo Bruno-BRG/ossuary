@@ -69,6 +69,29 @@ namespace Ossuary.Core
             .Step(ObjKind.Flag, L("Bring it to the one who asked.", "Leve a quem pediu."), "cult.vial.report", 1, null,
                   L("The beggar by the square, who is not a beggar.", "O mendigo da praça, que não é mendigo.")));
 
+            // The Drowned's two errands, after the vial: each is offered once (docs/game/guild-jobs.md, D11).
+            Add(new QuestDef
+            {
+                Id = "cult.zombies", Track = QuestDef.Cult, Giver = "the Drowned", RewardGold = 110,
+                Title = L("Clear the vaults for the Drowned", "Limpe os cofres para os Afogados"),
+                OnComplete = g => { g.AddRep(Houses.Cult, 8, "clearing the vaults"); g.AddRep(Houses.Temple, -4, null); },
+            }
+            .Step(ObjKind.Kill, L("Destroy three human zombies in The Sunken Vaults.", "Destrua três zumbis humanos nos Cofres Afundados."), "human zombie", 3, "The Sunken Vaults",
+                  L("Only the vaults count. Report to the one who asked.", "Só os cofres contam. Avise a quem pediu."))
+            .Step(ObjKind.Flag, L("Tell the one who asked that it is done.", "Diga a quem pediu que está feito."), "cult.zombies.report", 1, null,
+                  L("The beggar by the square, who is not a beggar.", "O mendigo da praça, que não é mendigo.")));
+
+            Add(new QuestDef
+            {
+                Id = "cult.bones", Track = QuestDef.Cult, Giver = "the Drowned", RewardGold = 150,
+                Title = L("A blade of bone for the Drowned", "Uma lâmina de osso para os Afogados"),
+                OnComplete = g => { g.AddRep(Houses.Cult, 8, "bringing a blade of bone to the Drowned"); g.AddRep(Houses.Temple, -4, null); },
+            }
+            .Step(ObjKind.Item, L("Get hold of a bone blade.", "Consiga uma lâmina de osso."), "bone blade", 1, null,
+                  L("A smith can forge one from a blade and remains.", "Um ferreiro pode forjar uma a partir de uma lâmina e restos."))
+            .Step(ObjKind.Flag, L("Give the blade to the one who asked.", "Dê a lâmina a quem pediu."), "cult.bones.report", 1, null,
+                  L("The beggar by the square, who is not a beggar.", "O mendigo da praça, que não é mendigo.")));
+
             return d;
         }
     }

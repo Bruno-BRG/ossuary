@@ -1,6 +1,6 @@
 # Guild jobs on the quest engine
 
-Status: **approved** (2026-10-08); implementation pending. Sub-project S1 of *Towns and people* in [`todo.md`](../todo.md): the notice board, the workshop commissions and the Journal read one quest system. Plan and rationale for the whole track: [`living-world.md`](living-world.md), *Quest tracks*.
+Status: **shipped** in Version 21 (2026-10-08). Sub-project S1 of *Towns and people* in [`todo.md`](../todo.md): the notice board, the workshop commissions and the Journal read one quest system. Plan and rationale for the whole track: [`living-world.md`](living-world.md), *Quest tracks*.
 
 ## Goal
 
@@ -45,7 +45,7 @@ One quest system. A job from the notice board, or a workshop commission, becomes
 
 - `Contract` becomes `JobOffer`, a template with no progress: `Kind`, `Branch`, `Target`, `Count`, `Reward`, `Giver`. It has no `Done`, `Complete` or `Key`.
 - `Describe()` keeps today's English strings (`Hunt N X in B`, `Reach depth N of B`, `Craft for the town: X`). [`Loc.Game.cs:167`](../../engine/Ossuary.Core/Loc.Game.cs:167) translates them by pattern, so changing them would break the Portuguese.
-- Step texts: the objective of a hunt, a delve or a commission is `Describe()`. The report step reads "Report to any notice board." (hint: "Any notice board in the Ossuary's towns."); the delivery step reads "Bring it to the workshop." (hint: "The workshop in {town} that offered it."). All need Portuguese.
+- Step texts: the objective of a hunt, a delve or a commission is `Describe()`. The report step reads "Report to any notice board." (hint: "Any notice board in the Ossuary's towns."); the delivery step reads "Bring it to the workshop." (hint: "A workshop that teaches the trade."). All need Portuguese.
 - `Build(town, week, index)` returns the `QuestDef`: `Track = QuestDef.Guild`, `Title = Describe()`, `Giver` the faction, `RewardGold = Reward`, and the steps of D2. `OnComplete` applies the standing (and, for commissions, Guild +5 and trade XP 5).
 
 ### Board and workshop flow
@@ -107,3 +107,9 @@ Rewrite [`FeatureTests.cs`](../../engine/Ossuary.Headless/Tests/FeatureTests.cs)
 - Reports go to any notice board, as today.
 - The Cult rewards and standing are proposals, tuned by the bot.
 - The release number is yours; the save format is 21.
+
+## As shipped
+
+- A board does not offer a delve to a depth the hero has already reached, because the job would be ready on acceptance (`JobOffers`).
+- A commission is delivered at any workshop that teaches its trade, not only the one that offered it.
+- The code is in `Game.Jobs.cs`; `Game.Contracts.cs` is gone.

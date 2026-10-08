@@ -31,7 +31,7 @@ namespace Ossuary.Core
         public static int LearnPrice(int rank) => 60 * (rank + 1) * (rank + 1);
 
         /// <summary>This building's commission this week (a function of town, week and building, never stored), or null.</summary>
-        public Contract CommissionOffer(Building b)
+        public JobOffer CommissionOffer(Building b)
         {
             if (b == null) return null;
             var taught = TradesTaughtAt(b.Kind);
@@ -41,15 +41,15 @@ namespace Ossuary.Core
                 if (Array.IndexOf(taught, r.Trade) >= 0 && r.Rank <= TradeRank(r.Trade) + 1 && Trades.TryDef(r.Product, out var d) && d.Kind != ItemKind.Material) pool.Add(r);
             if (pool.Count == 0) return null;
             ulong h = 1469598103934665603UL;
-            foreach (char c in (Town?.Name ?? "road") + "|" + b.Kind) { h ^= c; h *= 1099511628211UL; }
+            string town = Town?.Name ?? "road";
+            foreach (char c in town + "|" + b.Kind) { h ^= c; h *= 1099511628211UL; }
             int week = World != null ? World.Day / 7 : 0;
             var rng = new Rng(h ^ (ulong)(week * 7919 + 3) ^ Rng.Seed);
             var pick = pool[rng.Range(0, pool.Count)];
             Trades.TryDef(pick.Product, out var def);
-            var offer = new Contract { Kind = "make", Target = pick.Product, Branch = pick.Trade, Count = 1, Giver = Houses.Guild,
+            var offer = new JobOffer { Id = $"guild.make.{town}.{b.Kind}.{week}", Kind = "make", Target = pick.Product, Branch = pick.Trade, Count = 1, Giver = Houses.Guild,
                 Reward = Math.Max(15, def.Cost / 2 + 15 + 20 * pick.Rank) };
-            foreach (var have in Contracts) if (have.Key == offer.Key) return null;
-            return offer;
+            return QuestOf(offer.Id) != null ? null : offer;
         }
 
         void AddWorkshopRows(Action<string, string, int, bool> add)
@@ -63,12 +63,13 @@ namespace Ossuary.Core
                 add("learn:" + id, $"Learn the {Trades.Find(id).Name}'s craft ({Trades.RankNames[rank + 1]})", LearnPrice(rank), true);
             }
             var offer = CommissionOffer(b);
-            if (offer != null) add("commission", $"Commission: make {offer.Target} ({offer.Reward} gold)", 0, Contracts.Count < MaxContracts);
-            for (int i = 0; i < Contracts.Count; i++)
+            if (offer != null) add("commission", $"Commission: make {offer.Target} ({offer.Reward} gold)", 0, ActiveJobs().Count < MaxContracts);
+            foreach (var q in ActiveJobs())
             {
-                var c = Contracts[i];
-                if (c.Kind != "make" || Array.IndexOf(TradesTaughtAt(b.Kind), c.Branch) < 0) continue;
-                add("deliver:" + i, $"Deliver: {c.Target} ({c.Reward} gold)", 0, Find(Player, it => it.Def.Name == c.Target) != null);
+                var made = q.Def.Steps[0];
+                if (made.Kind != ObjKind.Item || Array.IndexOf(TradesTaughtAt(b.Kind), made.Branch) < 0) continue;
+                if (q.Current?.Kind != ObjKind.Flag && !HasItem(made.Target)) continue;   // shown once the product is in hand or made
+                add("deliver:" + q.Def.Id, $"Deliver: {made.Target} ({q.Def.RewardGold} gold)", 0, HasItem(made.Target));
             }
         }
 
@@ -88,33 +89,23 @@ namespace Ossuary.Core
             if (id == "commission")
             {
                 var offer = CommissionOffer(TalkBuilding);
-                if (offer != null) AcceptContract(offer);
+                if (offer != null) AcceptJob(offer);
                 return true;
             }
-            if (id.StartsWith("deliver:") && int.TryParse(id.Substring(8), out int i))
+            if (id.StartsWith("deliver:"))
             {
-                if (i < 0 || i >= Contracts.Count || Contracts[i].Kind != "make") return true;
-                var c = Contracts[i];
-                var thing = Find(Player, it => it.Def.Name == c.Target);
-                if (thing == null) { Tell("You do not have it with you.", MessageKind.Warn); return true; }
-                if (--thing.Quantity <= 0) Player.Inventory.Remove(thing);
-                c.Done = c.Count;
-                Contracts.RemoveAt(i);
-                Player.Gold += c.Reward;
-                ContractsDone++;
-                AddRep(Houses.Guild, 5, null);
-                GainTrade(c.Branch, 5);
-                Tell($"Job done: {c.Describe()}. You are paid {c.Reward} gold.", MessageKind.Good);
+                string qid = id.Substring(8);
+                var q = QuestOf(qid);
+                if (q == null || q.Status != QStatus.Active) return true;
+                string product = q.Def.Steps[0].Target;
+                if (!HasItem(product)) { Tell("You do not have it with you.", MessageKind.Warn); return true; }
+                QuestCheck();              // the product in the pack meets the first step (no turn may have ended yet)
+                TakeItem(product);
+                Flags.Add(DeliverFlag(qid));
+                QuestCheck();              // pays, Guild +5 and trade xp 5 (OnComplete)
                 return true;
             }
             return false;
-        }
-
-        /// <summary>Something just came off the bench: a commission for it can be delivered now.</summary>
-        void CommissionMade(Item made)
-        {
-            foreach (var c in Contracts)
-                if (c.Kind == "make" && !c.Complete && c.Target == made.Def.Name) { c.Done = c.Count; Say("That will do for the commission. Bring it to the workshop.", MessageKind.Quest); }
         }
     }
 }

@@ -320,10 +320,10 @@ Full catalog, recipes, animations and items in [`spells-and-items.md`](spells-an
   **Classic**: `ProcessHunger` does nothing. **Hardcore**: `Session.Save(forQuit)` only writes on exit (Main menu/Quit),
   `QuickSave` and *Save game* refuse, and `Load` deletes the file after replaying the run.
 
-## Reputation, contracts, events and routine (`Game.Reputation.cs`, `Game.Contracts.cs`, `Game.Events.cs`)
+## Reputation, jobs, events and routine (`Game.Reputation.cs`, `Game.Jobs.cs`, `Game.Events.cs`)
 
 - `Houses` (watch, temple, guild, cult), `Player.Rep`, `AddRep`, `Haggle(price, house)` (applied in `ShopPrice`, `RestPrice`, `HealPrice`, `CurePrice`, purge, caravan).
-- Contracts: `ContractOffers` (deterministic per town and week), `AcceptContract`, `TurnInContract`; `offer:N`/`turnin:N` lines in the Guild service panel.
+- Jobs: `GenerateJobs` (deterministic per town and week, drawn from its own generator), `JobOffers` (the board: minus the ids already taken or reported this week, and delves to a depth already reached), `AcceptJob` (builds a `QuestDef` on the Guild track through `BuildJob`; at most three at a time). The Guild service panel lists `offer:N` to take one and `report:<quest>` to hand a finished hunt or delve in at any board. See [`guild-jobs.md`](../game/guild-jobs.md).
 - Events: `MaybeRaiseEvent` (after `CheckOverworldEncounter`) → `OpenEvent`; `CurrentEvent` makes `ServiceRows/ServiceAction` answer for the event.
 - `GoHomeAtNight` in `TownsfolkTurn`; `TownText.Reaction` for reactive lines.
 
@@ -398,8 +398,8 @@ Any hero can live as a craftsman and never enter the dungeon: gather or buy raw 
 - **Workshops** (`TradesTaughtAt`): smithy (blacksmith, miner, toolmaker), armoury (armourer, leatherworker), alchemist, general store
   (carpenter, tailor, bowyer), tavern (cook, brewer, musician, luthier), inn (cook), emporium (jeweller, scribe), library (scribe), guild
   (forager). A master teaches the next rank up to journeyman (`LearnPrice`: 60, 240). Each workshop has one **commission** a week
-  (`CommissionOffer`, a function of town, week and building; a `Contract` of kind `make`), delivered at that workshop for gold, Guild
-  standing and trade xp.
+  (`CommissionOffer`, a function of town, week and building; a `JobOffer` of kind `make`, built into a quest on the Guild track), delivered
+  at a workshop that teaches the trade for gold, Guild standing and trade xp.
 - **Shops** stock raw goods without drawing RNG (`Town.Staples`); goods and food sell by the stack (`ShopPrice`).
 - The **molotov** (`Crafted.Molotov`, alchemist rank 0, anywhere) uses `TargetingMode.Throw` → `ThrowAt`: fire on the target and the four
   walkable neighbours, `SetAlight` + fire damage on the monster.
@@ -650,10 +650,10 @@ The header shows `▲2`/`▼1`; the map title becomes the building's name.
 
 Plan in `living-world.md` and `main-quest.md`.
 - **Persona / NpcMemory**: every townsperson has traits, a want and an `Essential` flag (Elder, Scholar, Captain, Priest), generated from a private `Rng` forked off the town seed, so layout and other people never move. Memory holds a disposition and flags (`met`, `struck`, `helped`). Small talk alternates job lines and trait lines (`TownText.TraitLines`).
-- **WorldLedger** (`Game.Ledger.cs`): append-only `Deed` list (killed uniques/bosses, strikes, contracts, quests, failures, favours) written from the game's own choke points; read by lines, prices and later bounty/epilogue. Pure function of seed and keys, no save of its own.
+- **WorldLedger** (`Game.Ledger.cs`): append-only `Deed` list (killed uniques/bosses, strikes, quests, guild jobs among them, failures, favours) written from the game's own choke points; read by lines, prices and later bounty/epilogue. Pure function of seed and keys, no save of its own.
 - **Conversation box**: bumping any person (pets excepted) opens a dedicated dialogue box (name and role on top, several wrapped lines, lettered choices below, `DrawDialoguePanel`); the person stands still while it is open and no turn passes. Anyone without a written conversation gets a short chat (*what have you heard*, *how are you*), so every talk offers choices.
 - **Dialogue**: nodes with gated, priced choices and effects, written in C# (`Dialogues.cs`, EN with PT beside it). It rides on the service panel (a *Talk* row on counters; direct for the Bard), so there is no protocol change. A person you struck only gives the cold line.
-- **Quest engine**: `QuestDef` (track, steps, reward, optional `Deadline` in days) in `QuestBook`; `Game.Quests.cs` counts kills, depth, flags, items, talk and waits, advances steps, pays out and fails by the clock. `Game.Flags` holds story flags. `F7` opens the **Journal** (quests by track, hints and days left, today's town event, the bounty, learned rumours; Guild jobs listed under Guild).
+- **Quest engine**: `QuestDef` (track, steps, reward, optional `Deadline` in days) in `QuestBook`; `Game.Quests.cs` counts kills, depth, flags, items, talk and waits, advances steps, pays out and fails by the clock. `Game.Flags` holds story flags. `F7` opens the **Journal** (quests by track, hints and days left, today's town event, the bounty, learned rumours). Guild jobs are quests on the Guild track, offered by the notice board and the workshops (`Game.Jobs.cs`).
 - **Personal errands** (`PersonalQuests.cs`): a troubled person's want (revenge, debt, cure, lost kin) becomes a quest on the spot; finishing it sets `Helped`, +40 disposition, a ledger deed and Guild standing.
 - **Rumours** (`Rumours.cs`): a real fact (a branch boss or a named place), told true, vague or wrong by the teller's temperament; true places are marked on the map, bosses open a Region quest.
 - **Crime and the Watch** (`Game.Crime.cs`): `k` strikes the person in front; witnesses by line of sight; bounty by harm (assault 15+2×damage, murder 1000, guard or priest 1500) kept per region, neighbours hold half; the victim and guards turn hostile while they see the hero, then calm; a guard who sees a wanted hero arrests (pay, cells, bribe, resist); cells pass days; the Captain clears names for gold or a favour; essentials are knocked out, never killed; a murdered town grieves in its small talk.

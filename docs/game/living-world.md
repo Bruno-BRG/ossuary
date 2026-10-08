@@ -24,7 +24,7 @@ and useful, rivals and travellers on the roads, and events that happen whether o
 
 - **Core only**: all of this is simulation + UI as data. No Tauri, DOM or platform calls.
 - **Determinism**: saves are replay-based and visiting must not consume the main `Rng`. Everything generated
-  uses a private `Rng` seeded from `Rng.Seed ^ hash(...)` (like `Town` and `ContractOffers`). Any *state* (quest
+  uses a private `Rng` seeded from `Rng.Seed ^ hash(...)` (like `Town` and `GenerateJobs`). Any *state* (quest
   step, NPC memory) changes only as a consequence of player actions and turns, never of wall-clock or draw time.
 - **Text**: English first, PT beside it through `TownText.L(en, pt)`; generated sentences are assembled from
   translated fragments so PT never falls back to English.
@@ -75,7 +75,7 @@ Replace the two hard-coded contract kinds with a **quest engine**; contracts bec
 - **Step** = an objective + a text + an optional completion dialogue. Objective kinds:
   `Kill(monster, n, branch)`, `Reach(branch, depth)`, `Fetch(item)`, `Deliver(item, person)`,
   `Find(person | place)`, `Escort(person, to)`, `Talk(person)`, `Survive(turns)`, `Discover(altar | vault)`,
-  `Wait(days)`. Progress is counted from the game's own events (the same hooks `ContractKill` and `ContractDepth` use).
+  `Wait(days)`. Progress is counted from the game's own events (the hooks `QuestKill` and `QuestDepth` in `Game.Quests.cs`).
 - **QuestState** (saved): def id, current step, per-objective counters, flags. Offers stay a pure function of
   `(town, week, seed)`; only accepted quests are stored.
 - **Tracks** group quests so the journal reads as stories rather than a list:
@@ -177,7 +177,7 @@ New files, all in `engine/Ossuary.Core` (partial `Game` pattern from `AGENTS.md`
 | `Game.TownEvents.cs` | schedule, effects, outcomes |
 | `TownText.cs` | extended with fragment pools and PT for everything above |
 
-`Game.Contracts.cs` keeps working; it is migrated to a `Guild` track template once the engine exists.
+The notice board runs on the engine: each job is a quest on the `Guild` track (`Game.Jobs.cs`, [`guild-jobs.md`](guild-jobs.md)).
 Desktop protocol: **no new fields expected** (panels are `TextBuilder` data); if one is needed it must be added on
 all three sides (`Program.cs`, `protocol.ts`, `main.rs`) as in `AGENTS.md`.
 
@@ -189,13 +189,13 @@ Each phase ships on its own, with headless tests and a doc update.
    (same seed ⇒ same personas) and for not touching `Rng`.
 2. **Dialogue panel** — `Dialogue` interpreter and `Panel.Dialogue`; author the Elder, Captain, Bard, Priest, Innkeeper.
 3. **Quest engine + journal** — `QuestDef`/`QuestState`/objectives; move the Guild board onto it; `Panel.Journal`;
-   save/load of quest state; replay test.
+   save/load of quest state; replay test. — shipped: the Guild board and workshop commissions run on the engine (`Game.Jobs.cs`).
 4. **Personal and Watch/Temple tracks** — NPC `Want`s become quests with consequences; memory feeds lines and prices.
 5. **Rumours with teeth** — rumour records, reveal markers, journal list.
 6. **Town events** — schedule, 5–6 events, outcomes that persist.
 7. **Travellers and delvers** — overworld pedestrians/caravans, NPC adventurers in branches, captives.
 8. **Rival party and Main track** — the coarse-simulated rival and the Archivist's story as a long chain.
-9. **Cult track + polish** — dark mirror quests, balance of rewards, bot support (`balance`/`soak` must not get stuck on dialogue).
+9. **Cult track + polish** — dark mirror quests, balance of rewards, bot support (`balance`/`soak` must not get stuck on dialogue). — the two Cult errands shipped; reward balance open.
 
 ## Risks and decisions to watch
 
@@ -291,7 +291,7 @@ Findings that shape phase 1 (paths under `engine/Ossuary.Core`):
   functions of seed + keys: no `DateTime`, no unseeded `Rng`, no unordered iteration. Bump `SaveStore.Version` (two places) once simulation rules change.
 - Today the hero cannot hurt a townsperson: `Game.cs:429-433` refuses `Attack`, and `Commands.cs:29-33` blocks `f z Z V k` in town; there is no theft system.
   The crime system therefore needs new entry points at those spots (and in `KillMonster`, `Game.cs:463`) plus theft and property actions.
-- Hooks are direct calls, not an event bus; `KillMonster` is the single kill choke point (also calls `ContractKill`), `AddRep` (`Game.Reputation.cs`) is the
+- Hooks are direct calls, not an event bus; `KillMonster` is the single kill choke point (also calls `QuestKill`), `AddRep` (`Game.Reputation.cs`) is the
   reputation choke point. Reputation is global per House today; **bounty per region** needs a new keyed store (`Region.Name`) and a neighbour lookup
   (`Overworld.RegionAt` exists, neighbours do not).
 - Witness check can reuse `Fov.HasLine` and `Pathfinder.Chebyshev`; at action time use `Def.Vision` (the `NoticeRadius` noise shift only resolves at end of turn).
