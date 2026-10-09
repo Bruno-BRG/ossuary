@@ -5,7 +5,7 @@ import { TerminalRenderer } from './renderer';
 import { overlayMenu, titleFrame } from './title';
 import { bodyOf, introFrame, introHold, introSpeed, pageLength } from './intro';
 import { t, type Lang } from './i18n';
-import { playCues, playStinger, playUi, setMusic, trackFor, uiSoundFor, unlockAudio } from './audio';
+import { isLaunchCue, playCues, playStinger, playUi, setMusic, trackFor, uiSoundFor, unlockAudio } from './audio';
 import { shimmer } from './anim';
 import { createFxPlayer } from './fx';
 
@@ -63,21 +63,27 @@ let wonHeard = false;
 
 function paint(next: Frame) {
   const wasIntro = introActive;
+  const seen = frame;
   if (next !== frame) fxPlayer.stop();
   frame = next;
   introActive = !!frame.intro;
   if (introActive && !wasIntro) { introPage = 0; introTyped = 0; introAge = 0; introWait = 0; }
   applyLabels(frame.lang);
-  const scene = introActive ? introFrame(frame, frame.intro!, introPage, introTyped, titleTick, frame.lang, introAge) : onTitle ? titleFrame(frame, titleTick) : frame;
+  // A projectile in flight: the map keeps the frame the player saw until it lands, and the outcome sounds wait for it (see fx.ts).
+  const flying = !onTitle && !introActive && frame !== fxFrame && !!frame.fx?.length && !calmMotion() && (frame.fxHit ?? -1) >= 0;
+  const held = flying && seen && seen.cols === frame.cols && seen.rows === frame.rows ? seen : undefined;
+  const scene = introActive ? introFrame(frame, frame.intro!, introPage, introTyped, titleTick, frame.lang, introAge) : onTitle ? titleFrame(frame, titleTick) : held ?? frame;
   renderer.draw(menuOnTitle() ? overlayMenu(scene, frame) : scene, size(), devicePixelRatio);
-  if (!onTitle && !introActive) playCues(frame.sounds, frame.master, frame.effects);
+  const cues = !onTitle && !introActive ? frame.sounds ?? [] : [];
+  playCues(held ? cues.filter(isLaunchCue) : cues, frame.master, frame.effects);
+  const outcome = held ? cues.filter(c => !isLaunchCue(c)) : [];
   // Surfacing with the Amulet is heard once, however many times the frame is repainted.
   if (frame.mode === 'Won' && !onTitle && !wonHeard) { wonHeard = true; playStinger('victory', frame.master, frame.effects); }
   else if (frame.mode !== 'Won') wonHeard = false;
   setMusic(trackFor({ onTitle, intro: introActive, mode: frame.mode, scene: frame.scene }), frame.master, frame.music);
   if (!onTitle && !introActive && frame !== fxFrame) {
     fxFrame = frame;
-    if (frame.fx?.length && !calmMotion()) fxPlayer.start(frame);
+    if (frame.fx?.length && !calmMotion()) fxPlayer.start(frame, held, () => playCues(outcome, frame.master, frame.effects));
   }
   const stored = JSON.stringify({ theme: frame.theme, crt: frame.crt, scale: frame.scale, square: frame.square, lang: frame.lang });
   if (stored !== lastStored) {
@@ -222,6 +228,8 @@ window.addEventListener('keydown', async event => {
     }
     return;
   }
+  // Escape ends a running animation at once: its last frame is drawn and the sounds it held are heard. The key stops there.
+  if (event.code === 'Escape' && fxPlayer.playing) { event.preventDefault(); fxPlayer.skip(); return; }
   // Single outstanding action; holding a key never creates an unbounded turn queue. Autorepeat is sent flagged,
   // and the engine honours it only for calm walking (no hostile in view, nothing underfoot, no damage).
   if (event.code === 'Tab' || event.code.startsWith('Control') || event.code.startsWith('Shift')) return;

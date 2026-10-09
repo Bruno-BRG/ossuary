@@ -5,6 +5,30 @@
 As versões do Ossuary são numeradas só com **um número** (Versão 11, Versão 12…), como no *Project Zomboid*. Nos manifestos (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) e no nome do instalador a versão aparece como `0.N.0`. O **salvamento** (`SaveData.Version`) usa o mesmo número: mudou regra, sobe o número, saves antigos deixam de carregar.
 
+## Versão 22 — Magias que respondem
+
+### Conjuradores
+- **Monstros lançam magias de verdade.** Um xamã orc, um acólito sombrio ou um feiticeiro que enxerga você, com uma das suas magias ao alcance, pode gastar o turno conjurando em vez de andar. Ele escolhe entre as próprias magias, escritas nas mesmas receitas que as suas, e a magia é animada da célula dele até a sua. Todo lançamento acerta: sem mana, sem rolagem de falha, e suas resistências contam.
+- **Os conjuradores.** Acólitos sombrios (profundidades 4–14) lançam Estilhaço de Osso, Definhar, Dardo de Alma e Explosão Pútrida; feiticeiros (profundidades 9–20) lançam Clarão Elétrico, Orbe Abrasador, Trovoada e Campo Estático. O xamã orc agora lança Dardo de Brasa, Geladura e Estilhaço de Pedra.
+- **O Magistrado Pálido.** Um novo chefe no sétimo andar das Masmorras, com 100 PV. Lança Orbe Abrasador, Trovoada e Clarão Elétrico, e acrescenta Cometa de Gelo e Campo Estático na segunda fase.
+- **Lutas justas.** Um conjurador espera dois turnos entre uma magia e outra. Uma criatura conjura em dois de cada cinco turnos em que pode, um chefe em um de cada dois. A magia de um monstro rola metade dos dados da sua versão, arredondado para cima, mais um quarto do nível do conjurador.
+- **Efeitos.** Uma magia pode queimar, confundir, cegar, atordoar ou envenenar você, e você pode resistir a um deles. Os outros efeitos (lentidão, fraqueza, sangramento, medo, sono, raiz) só causam dano, porque você ainda não tem estados para eles.
+
+### Gelo e relâmpago
+- **Criaturas congeladas conduzem.** Um relâmpago que atinge uma criatura parada sobre gelo corre pelo gelo ligado num raio de quatro casas, e tudo que está sobre ele leva o choque, você inclusive.
+- **Criaturas molhadas fazem arco.** Um relâmpago que atinge uma criatura molhada fora da água salta para o inimigo molhado mais próximo num raio de três casas, até três vezes, cada salto com metade do dano. A água continua conduzindo como antes.
+
+### Projéteis chegam quando chegam
+- **O acerto espera o raio.** O dano, a morte do alvo, o registro e a mudança no mapa acontecem quando o raio chega ao alvo, não quando a animação começa. Até lá a tela mantém o que você via antes. Flechas, molotovs arremessadas e os raios de habilidades também acertam na chegada.
+- Efeitos sem projétil (cones, feixes, nova, correntes, armadilhas) continuam acontecendo na hora.
+
+### Som e pular
+- **Um som de conjuração por elemento.** Quatorze sons curtos substituem o único tilintar de conjuração, e os sons do que a magia faz (acertos, mortes, feridas) esperam o raio chegar.
+- **Esc pula a animação.** Enquanto uma animação toca, Esc vai até o último quadro e toca os sons que estava segurando. A tecla não chega ao jogo, então não abre o menu de pausa durante a animação.
+
+### Salvamentos
+- O formato de salvamento passa para **22**: saves da Versão 21 não carregam.
+
 ## Versão 21 — Mãos contratadas
 
 ### Serviços no motor de missões

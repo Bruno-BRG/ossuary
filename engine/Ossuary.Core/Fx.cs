@@ -35,10 +35,16 @@ namespace Ossuary.Core
         public readonly List<List<FxCell>> Steps = new List<List<FxCell>>();
         /// <summary>Which cells may show an effect (the game passes "in view"). Null shows everything.</summary>
         public Func<int, int, bool> Show;
+        /// <summary>The first step at which a projectile of this frame arrives, where its effect lands; -1 when nothing flies.</summary>
+        public int Impact = -1;
 
         public bool IsEmpty => Steps.Count == 0;
         public int Length => Steps.Count;
-        public void Clear() => Steps.Clear();
+
+        /// <summary>Notes that a projectile arrives at this step. The earliest arrival of the frame is kept.</summary>
+        public void Arrive(int step) { if (Impact < 0 || step < Impact) Impact = step; }
+
+        public void Clear() { Steps.Clear(); Impact = -1; }
 
         public void Put(int step, int x, int y, char glyph, Rgb fg, Rgb? bg = null)
         {
@@ -166,6 +172,7 @@ namespace Ossuary.Core
                     tl.Put(s + st, path[j].x, path[j].y, k == 1 ? Spark(e, path[j].x, path[j].y, st, 0) : '·', Pal(e, 0.25f * k));
                 }
             }
+            tl.Arrive(s + steps);
             return s + steps;
         }
 

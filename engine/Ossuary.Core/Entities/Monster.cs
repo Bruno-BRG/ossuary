@@ -78,6 +78,8 @@ namespace Ossuary.Core.Entities
         /// <summary>Fights for the player (summoned or charmed). SummonTurns counts down to its end.</summary>
         public bool Ally;
         public int SummonTurns, FearTurns, SlowTurns;
+        /// <summary>Turns left before a caster may cast again (see Game.Casters.cs). Not saved: a save is a replay, so it rebuilds itself.</summary>
+        public int CastCooldown;
         /// <summary>Spell states: held fast or stunned (loses its turns), damage over time, and taking extra from every hit.</summary>
         public int HeldTurns, DotTurns, DotDmg, VulnTurns;
         public DamageType DotType;

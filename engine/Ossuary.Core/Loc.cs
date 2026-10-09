@@ -60,6 +60,7 @@ namespace Ossuary.Core
             AddMsgText();
             AddGameText();
             AddBodyText();
+            AddCastingText();
             AddCraftText();
             AddMarketText();
             AddTradeText();

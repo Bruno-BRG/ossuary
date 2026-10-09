@@ -5,6 +5,30 @@
 Ossuary versions are a **single number** (Version 11, Version 12…), as in *Project Zomboid*. In the manifests (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) and in the installer name the version appears as `0.N.0`. The **save format** (`SaveData.Version`) uses the same number: change a rule, bump it, old saves stop loading.
 
+## Version 22 — Spells that answer back
+
+### Casters
+- **Monsters cast real spells.** An orc shaman, a dark acolyte or a sorcerer that sees you, with one of its spells in reach, may spend its turn casting instead of moving. It picks from its own list of spells, the same recipes your spells are written in, and the spell is animated from its cell to yours. Every cast lands: no mana, no failure roll, and your resistances count.
+- **The casters.** Dark acolytes (depths 4–14) cast bone shards, withering, soul bolts and rot bursts; sorcerers (depths 9–20) cast arc flashes, searing orbs, thunderstrikes and static fields. The orc shaman now casts ember darts, frostbite and stone shards.
+- **The Sallow Magister.** A new boss on the seventh level of the Dungeons, with 100 HP. It casts searing orbs, thunderstrikes and arc flashes, and adds ice comets and static fields in its second phase.
+- **Fair fights.** A caster waits two turns between spells. A creature casts on two in five of its eligible turns, a boss on one in two. A monster's spell rolls half the dice of your version of it, rounded up, plus a quarter of the caster's level.
+- **Riders.** A spell can burn you, confuse, blind, stun or poison you, and you can shake one off. Other riders (slow, weakness, bleeding, fear, sleep, root) only do damage, because you have no status for them yet.
+
+### Ice and lightning
+- **Frozen creatures conduct.** Lightning that strikes a creature standing on ice runs along the connected ice within four cells, and everything standing on it is shocked, you included.
+- **Wet creatures arc.** Lightning that strikes a wet creature standing outside the water jumps to the nearest other wet hostile within three cells, up to three times, each jump at half the damage. Water still conducts as before.
+
+### Projectiles land when they arrive
+- **The hit waits for the bolt.** The damage, the death of its target, the log and the map change when a bolt reaches its target, not when the animation starts. Until then the screen keeps what you saw before. Arrows, thrown molotovs and the bolts of abilities land on arrival too.
+- Effects with no projectile (cones, beams, novas, chains, traps) still resolve at once.
+
+### Sound and skipping
+- **One cast sound per element.** Fourteen short sounds replace the single cast chime, and the sounds of what a spell does (hits, kills, hurts) wait for the bolt to land.
+- **Escape skips an animation.** While an animation plays, Escape jumps to its last frame and plays the sounds it was holding. The key is not sent to the game, so it does not open the pause menu during an animation.
+
+### Saves
+- The save format moves to **22**: Version 21 saves do not load.
+
 ## Version 21 — Hired hands
 
 ### Jobs on the quest engine

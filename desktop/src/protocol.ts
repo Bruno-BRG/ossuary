@@ -18,6 +18,8 @@ export interface Frame extends Display {
   anim?: number[];
   fx?: number[][];
   fxMs?: number;
+  /** The step at which the animation's projectile lands (-1 or absent: nothing flies). Until then the previous frame stays on screen. */
+  fxHit?: number;
 }
 export interface Request {
   op: 'new' | 'load' | 'title' | 'play' | 'key' | 'resize' | 'display' | 'frame';

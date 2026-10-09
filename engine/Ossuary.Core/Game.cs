@@ -691,6 +691,7 @@ namespace Ossuary.Core
         void MonsterTurn(Monster m)
         {
             if (m.Townsperson) { TownsfolkTurn(m); return; }
+            if (m.CastCooldown > 0) m.CastCooldown--;
             int dist = Pathfinder.Chebyshev(m.X, m.Y, Player.X, Player.Y);
             if (m.IsGuard && Mode != GameMode.TownMap && dist > 24) return;
             if (m.FearTurns > 0) { if (FleeStep(m)) return; }
@@ -735,6 +736,7 @@ namespace Ossuary.Core
             if (canSee) { m.Alert = 1; m.Dormant = false; }
             else SmellsBlood(m, dist);
             if (m.Alert == 1 && canSee && MonsterShoots(m, dist)) return;
+            if (m.Alert == 1 && canSee && MonsterCasts(m, dist, MonsterSpells.ForCreature(m.Def.Name), MonsterSpells.MonsterChance)) return;
 
             switch (m.Def.Ai)
             {

@@ -18,6 +18,7 @@ The tables below were generated from the code; the source of truth is the files 
 | New unique items | **43**, 4 new sets, 38 of them lend spells |
 | New summonable creatures | 26 |
 | Animation effects | 23 pieces (`FxLib`) |
+| Casting monsters | 3 creatures and the Sallow Magister (see *Monsters that cast*) |
 
 ## Animations
 
@@ -25,10 +26,10 @@ The engine resolves the spell **immediately** and only *records* how it should l
 finished frame, without asking the engine for a turn (same idea as the animated water).
 
 ```
-Game.CastSpell ─▶ PlaySpellFx / Fx(...)   records FxTimeline (steps of map cells)
-Session.Draw   ─▶ BuildFx                 map → screen (camera, square tiles, theme), Frame.Fx
-protocol.ts    ─▶ Frame.fx / fxMs         one array per step: [cell, glyph, fg, bg] × N  (bg −1 = keep)
-main.ts        ─▶ createFxPlayer          plays ~45 ms per step; a new key cuts it; prefers-reduced-motion turns it off
+Game.CastSpell ─▶ PlaySpellFx / Fx(...)   records FxTimeline (steps of map cells); Bolt marks the arrival (Impact)
+Session.Draw   ─▶ BuildFx                 map → screen (camera, square tiles, theme), Frame.Fx, Frame.FxHit
+protocol.ts    ─▶ Frame.fx / fxMs / fxHit one array per step: [cell, glyph, fg, bg] × N  (bg −1 = keep)
+main.ts        ─▶ createFxPlayer          plays ~45 ms per step; Escape skips it; a new key cuts it; prefers-reduced-motion turns it off
 ```
 
 - **Pure data** (`Fx.cs`): no Rng and no game state; recording never changes what happens (saves are replays).
@@ -48,8 +49,45 @@ main.ts        ─▶ createFxPlayer          plays ~45 ms per step; a new key c
   monster explosions and the boss attacks (Stone Warden's slam, Drowned King's flood and lightning, Annex Warden's drain,
   Ashen Regent's blast, Gaoler's chain).
 - **See it without a window**: `headless.ps1 fx fireball` prints every step as ASCII; `fx list` lists the animations; `fx all` counts the steps of all of them.
-- **Known limits**: the spell is already resolved when the animation plays (a dead enemy disappears before the projectile arrives); the drawing
-  covers the cell's glyph (monsters and the hero are hidden for an instant). A new key cuts a running animation.
+- **The hit waits for the bolt** (Version 22): the engine still resolves the spell at once, but the frame carries `FxHit`, the step where
+  the first projectile lands (`FxTimeline.Arrive`, set by `FxLib.Bolt`). Until that step the front end plays the animation over the
+  frame the player saw before, and from it over the new one, so damage, deaths, HP, the log and the map change together on arrival.
+  Effects without a projectile (cones, beams, novas, chains, traps) still resolve at once. Several projectiles in one frame share the first arrival.
+- **Sound follows the same timing**: each spell's cast cue is its element (`Game.SpellCue`, fourteen cues in `audio.ts`). It plays with the
+  launch; the outcome cues (hits, kills, hurts) are held until `FxHit`. **Escape** skips a running animation: last frame, held sounds, the key is swallowed.
+- **Known limits**: the drawing covers the cell's glyph (monsters and the hero are hidden for an instant). A new key cuts a running animation.
+  Summons appear before their own animation. The message log of a frame also waits for its arrival, which is intended.
+
+## Monsters that cast (Version 22)
+
+Casting creatures take their spells from `Magic/MonsterSpells.cs`, as data: a pool of recipe spells per creature (or per boss id and phase).
+Only recipes with damage in their dice are pools, and only shapes a monster can aim (`Single`, `Ball`, `Cone`, `Line`, `Nova`); the
+hand-coded spells assume the hero is the caster.
+
+| Caster | Where | Casts |
+|---|---|---|
+| orc shaman | depths 5–20 | Ember Dart, Frostbite, Stone Shard |
+| dark acolyte | depths 4–14 | Bone Shard, Wither, Soul Bolt, Rotting Burst |
+| sorcerer | depths 9–20 | Arc Flash, Searing Orb, Thunderstrike, Static Field |
+| **Sallow Magister** (boss, The Dungeons depth 7, 100 HP) | 1st phase | Searing Orb, Thunderstrike, Arc Flash; 2nd phase adds Ice Comet, Static Field |
+
+- **When**: in `MonsterTurn` after the ranged shot, or inside `BossTurn`. The caster must be alert, see the hero, and have a pool spell in reach
+  (`Range`, or `Radius` for a nova). Then the roll: 40% for creatures, 50% for bosses. A cast spends the turn and sets `CastCooldown` to 2
+  (not saved: a save is a replay).
+- **What**: every spell that is in reach lands on the hero, so there is no mana and no failure roll. Damage is `Roll(ceil(dice/2), sides, flat + level/4)`
+  through `Player.ResistDamage`. Riders the hero can take: Burn, Confuse, Blind, Stun, Poison, each one shaken off 20% of the time.
+  Other riders are damage only. The animation starts at the caster (`PlaySpellFx` takes the origin).
+- **Code**: `Game.Casters.cs` (`MonsterCasts`, `CastAtHero`, `ApplyRiderToHero`).
+
+## Lightning on ice and water (Version 22)
+
+When lightning hits a creature, the first rule that fits applies (`Game.Magic.Effects.cs` → `Aftermath`):
+
+1. **Standing on ice**: `ConductIce` runs along the connected ice within four cells. Everything on it takes half the damage, the hero included.
+2. **Standing in water**: `Conduct`, as before.
+3. **Wet** (`WetTurns > 0`) and not in water: `Arc` jumps to the nearest other wet hostile within three cells, up to three times, each at half the damage.
+
+Frozen means standing on an ice cell; no status is added. Code: `Game.Surfaces.cs`.
 
 ## How a spell is defined (`Magic/Spells*.cs`)
 

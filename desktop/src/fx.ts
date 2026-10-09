@@ -20,30 +20,53 @@ export function applyFx(frame: Frame, step: readonly number[] | undefined): Fram
 }
 
 export interface FxPlayer {
-  /** Starts playing a frame's script (cancelling any running one). Returns false when there is nothing to play. */
-  start(frame: Frame): boolean;
-  /** Stops without drawing anything further. */
+  /**
+   * Starts playing a frame's script (cancelling any running one). Returns false when there is nothing to play.
+   * With `before` (the frame the player saw last) and a frame.fxHit, the script plays over `before` until its projectile lands,
+   * then over `frame`. `onHit` runs once, when that switch happens (or at once when there is no switch).
+   */
+  start(frame: Frame, before?: Frame, onHit?: () => void): boolean;
+  /** Stops without drawing anything further, and without running `onHit` or `done`. */
   stop(): void;
+  /** Ends a running script at once: `onHit` runs if it has not yet, then `done`. Returns false when nothing plays. */
+  skip(): boolean;
   readonly playing: boolean;
 }
 
-/** Plays scripts with a timer. `draw` paints a frame; `done` is called once when a script ends on its own (not when stopped). */
+/**
+ * Plays scripts with a timer. `draw` paints a frame; `done` is called once when a script ends on its own or is skipped
+ * (not when it is stopped or replaced by another).
+ */
 export function createFxPlayer(draw: (f: Frame) => void, done: () => void, schedule: (fn: () => void, ms: number) => unknown = (fn, ms) => setInterval(fn, ms), cancel: (h: unknown) => void = h => clearInterval(h as ReturnType<typeof setInterval>)): FxPlayer {
   let handle: unknown = null;
   let playing = false;
-  const stop = () => { if (handle !== null) cancel(handle); handle = null; playing = false; };
+  let hitPending: (() => void) | null = null;
+  const stop = () => { if (handle !== null) cancel(handle); handle = null; playing = false; hitPending = null; };
   return {
     get playing() { return playing; },
     stop,
-    start(frame: Frame) {
+    skip() {
+      if (!playing) return false;
+      const hit = hitPending;
+      stop();
+      hit?.();
+      done();
+      return true;
+    },
+    start(frame: Frame, before?: Frame, onHit?: () => void) {
       stop();
       const script = frame.fx;
       if (!script || script.length === 0) return false;
+      const hitAt = frame.fxHit ?? -1;
+      const swap = before !== undefined && hitAt >= 0;
       let i = 0;
       playing = true;
+      hitPending = onHit ?? null;
+      if (!swap && hitPending) { const h = hitPending; hitPending = null; h(); }
       const tick = () => {
-        if (i >= script.length) { stop(); done(); return; }
-        draw(applyFx(frame, script[i++]));
+        if (hitPending && swap && i >= hitAt) { const h = hitPending; hitPending = null; h(); }
+        if (i >= script.length) { const h = hitPending; stop(); h?.(); done(); return; }
+        draw(applyFx(swap && i < hitAt ? before! : frame, script[i++]));
       };
       tick();
       handle = schedule(tick, Math.max(16, frame.fxMs ?? 45));

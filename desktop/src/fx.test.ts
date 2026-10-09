@@ -56,3 +56,52 @@ describe('animation player', () => {
     expect(done).toBe(0);
   });
 });
+
+describe('projectile arrival', () => {
+  // The projectile flies over cell 3; cell 1 tells which frame is on screen. The script lands at step 1.
+  const script = [[3, 42, 0, -1], [3, 43, 0, -1], [3, 44, 0, -1]];
+  const before = base();
+  const after = { ...base(script), glyphs: [75, 76, 77, 78], fxHit: 1 } as unknown as Frame;
+
+  it('keeps the previous frame on screen until the projectile lands, then shows the new one', () => {
+    const drawn: number[] = [];
+    let ticks: (() => void) | null = null;
+    const hits: number[] = [];
+    const p = createFxPlayer(f => drawn.push(f.glyphs[1]!), () => {}, fn => { ticks = fn; return 1; }, () => {});
+    expect(p.start(after, before, () => hits.push(drawn.length))).toBe(true);
+    expect(drawn).toEqual([66]);
+    expect(hits).toEqual([]);
+    ticks!();
+    expect(hits).toEqual([1]);
+    expect(drawn).toEqual([66, 76]);
+    ticks!();
+    expect(drawn).toEqual([66, 76, 76]);
+    ticks!();
+    expect(hits).toEqual([1]);
+  });
+  it('runs the outcome at once when there is no previous frame to hold', () => {
+    const hits: number[] = [];
+    const p = createFxPlayer(() => {}, () => {}, () => 1, () => {});
+    p.start(after, undefined, () => hits.push(1));
+    expect(hits).toEqual([1]);
+  });
+  it('skip() ends the script at once: the held outcome runs, done is called once', () => {
+    let done = 0; const hits: number[] = [];
+    const p = createFxPlayer(() => {}, () => done++, () => 1, () => {});
+    p.start(after, before, () => hits.push(1));
+    expect(hits).toEqual([]);
+    expect(p.skip()).toBe(true);
+    expect(hits).toEqual([1]);
+    expect(done).toBe(1);
+    expect(p.playing).toBe(false);
+    expect(p.skip()).toBe(false);
+    expect(done).toBe(1);
+  });
+  it('a replaced script drops its held outcome without running it', () => {
+    const hits: number[] = [];
+    const p = createFxPlayer(() => {}, () => {}, () => 1, () => {});
+    p.start(after, before, () => hits.push(1));
+    p.stop();
+    expect(hits).toEqual([]);
+  });
+});

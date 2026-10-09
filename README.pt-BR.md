@@ -5,7 +5,7 @@
 **Um roguelike ASCII de fantasia sombria.** O mundo jogou seus mortos, seus reis e seus deuses num só poço.
 Você desce para roubar o que sobrou.
 
-![Versão 21](https://img.shields.io/badge/vers%C3%A3o-21-c8a050?style=flat-square)
+![Versão 22](https://img.shields.io/badge/vers%C3%A3o-22-c8a050?style=flat-square)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-5fa85f?style=flat-square)
 ![Plataforma](https://img.shields.io/badge/plataforma-Windows%20x64-4a6ea8?style=flat-square)
 ![Motor](https://img.shields.io/badge/motor-C%23%20.NET%2010-7c4dff?style=flat-square)
@@ -25,11 +25,12 @@ Desça pelo Ossuary, pegue o **Amuleto de Yendor** e traga de volta à luz do di
 num terminal estilo CRT; o jogo é uma exploração de masmorras por turnos com um mundo vivo na superfície.
 A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 
-### O que há na **versão 21**
+### O que há na **versão 22**
 
 | | |
 |---|---|
-| 📋 **Mãos contratadas** *(novo)* | Os quadros de aviso oferecem serviços que viram missões de verdade no diário: caçar as feras de um ramo, alcançar uma profundidade num ramo, ou aceitar uma encomenda de oficina e levar a peça a qualquer oficina que ensine o ofício. Caçadas e explorações se entregam em qualquer quadro de avisos. Um serviço aceito não volta a ser oferecido naquela semana, e você pode carregar três ao mesmo tempo. Depois que os Afogados têm o frasco, eles oferecem duas missões próprias. |
+| 🔥 **Magias que respondem** *(novo)* | Conjuradores lançam em você: xamãs orcs, acólitos sombrios e feiticeiros escolhem uma magia de verdade da própria lista e a lançam da sua célula, animada, e todo lançamento acerta. O Magistrado Pálido, no sétimo andar das Masmorras, conjura nas duas fases. Raios correm pelo gelo e fazem arco de criatura molhada para criatura molhada. O dano de um raio cai quando ele chega, não quando a animação começa, e cada elemento tem seu próprio som de conjuração. Esc pula a animação. |
+| 📋 **Mãos contratadas** | Os quadros de aviso oferecem serviços que viram missões de verdade no diário: caçar as feras de um ramo, alcançar uma profundidade num ramo, ou aceitar uma encomenda de oficina e levar a peça a qualquer oficina que ensine o ofício. Caçadas e explorações se entregam em qualquer quadro de avisos. Um serviço aceito não volta a ser oferecido naquela semana, e você pode carregar três ao mesmo tempo. Depois que os Afogados têm o frasco, eles oferecem duas missões próprias. |
 | 🏛️ **O mundo lembra** | Um passado gerado da semente: casas que sobem e caem, reis que se sucedem pelo sangue, pela espada ou pela escolha dos senhores, guerras, pestes, cidades que queimaram, e os mortos enterrados em níveis de verdade com o nome talhado na pedra. O painel de lendas (F8) junta o que você aprende com bardos, eruditos, estantes, boatos, gravuras e túmulos. Sangue por espécie e rastros que desbotam: um herói sangrando é farejado, e Shift+M segue presas feridas. Ataques vêm às cidades num dia da semana: lute nas ruas ou encontre uma loja queimada. |
 | 📜 **Todos os ofícios** | Poções, pergaminhos e varinhas se aprendem usando. Relíquias têm uma história gerada da semente (quem forjou, para quem, como se perderam) e lembram dos chefes que mataram. Teares e alambiques, artesãos que seguem trabalhando, kobolds arqueiros com flechas de verdade, caravanas que você escolta ou rouba na estrada, pechincha no balcão e comerciantes que lembram do que você fez. |
 | 🏹 **Da forja ao mercado** | Arcos, bestas e fundas disparam flechas, virotes e pedras de verdade: cada tiro gasta uma, e você recolhe onde caiu. Faça as suas, com ponta de prata para os mortos. A melhor obra de um mestre às vezes ganha nome e vira relíquia de quem a fez. `Shift+I` examina qualquer coisa: metal, autor, qualidade, desgaste, valor. Os ferreiros da cidade vendem o próprio trabalho assinado. |
@@ -69,10 +70,10 @@ A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 
 ## Instalar (jogadores)
 
-Baixe o instalador `Ossuary_0.21.0_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
+Baixe o instalador `Ossuary_0.22.0_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
 ou na saída do build, e execute. Não precisa de SDK. É preciso o WebView2 (já vem no Windows 11).
 
-> O nome público de uma versão é só **Versão N** (esta é a **Versão 21**), como em *Project Zomboid*. Instaladores e manifestos usam o
+> O nome público de uma versão é só **Versão N** (esta é a **Versão 22**), como em *Project Zomboid*. Instaladores e manifestos usam o
 > `0.N.0` correspondente, porque instalador do Windows, npm e Cargo pedem três números.
 
 ## Compilar do código

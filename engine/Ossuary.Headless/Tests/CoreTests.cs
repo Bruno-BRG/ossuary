@@ -103,6 +103,7 @@ namespace Ossuary.Tests
             Test("every class stays within the balance band", BalanceBand);
             Test("quest victory", WinTests.Run);
             Test("tracked features (docs/todo.md)", FeatureTests.Run);
+            Test("magic, round two (docs/roadmap/magic.md)", MagicTests.Run);
             Test("spells, items and animations (docs/design/spells-and-items.md)", ArsenalTests.Run);
             Test("language: nothing half-translated (docs/tech/languages.md)", LocTests.Run);
 

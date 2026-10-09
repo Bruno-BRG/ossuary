@@ -1222,6 +1222,7 @@ namespace Ossuary.Core
                 { "m", "toggle the minimap" },
                 { "c  F6", "character sheet / discoveries" },
                 { "H", "message history" },
+                { "Esc", "skip a running animation" },
                 { "F2 F3 F4", "options / CRT strength / colour theme" },
                 { "?", "this help (on ABNT2: AltGr + W)" },
             };

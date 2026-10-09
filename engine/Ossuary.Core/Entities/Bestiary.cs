@@ -63,6 +63,11 @@ namespace Ossuary.Core.Entities
             M("orc chieftain", 'o', 0xFF8030, 12, 60, 8, 10, 1350, 10, 30, AiKind.Predator, Alignment.ChaoticEvil,
               new[] { AttackKind.Hit, AttackKind.ClawOrBite }, new[] { 1, 1 }, new[] { 6, 4 }, new[] { 5, 4 }, 9, 9, 9,
               carries: new[] { ItemDefs.BattleAxe, ItemDefs.ArmorPlate }, carryW: new[] { 50, 25 });
+            // Casters: their spells come from Magic/MonsterSpells.cs, and they keep their distance to cast (Game.Casters.cs).
+            M("dark acolyte", 'p', 0x9070C0, 6, 22, 7, 12, 700, 4, 14, AiKind.Hunt, Alignment.ChaoticEvil,
+              new[] { AttackKind.Hit }, new[] { 1 }, new[] { 4 }, new[] { 2 }, 8, 5, 6);
+            M("sorcerer", 'p', 0xD070E0, 11, 26, 6, 12, 600, 9, 20, AiKind.Hunt, Alignment.ChaoticEvil,
+              new[] { AttackKind.Hit }, new[] { 1 }, new[] { 6 }, new[] { 2 }, 9, 7, 6);
             M("brown mold", 'F', 0x40C040, 0, 4, 8, 4, 50, 1, 8, AiKind.Walk, Alignment.Neutral,
               new[] { AttackKind.Explode }, new[] { 1 }, new[] { 4 }, new[] { 0 }, 0, 2, 1, mindless: true, flys: true);
             M("yellow mold", 'F', 0xE0D040, 0, 4, 8, 4, 50, 1, 10, AiKind.Walk, Alignment.Neutral,
