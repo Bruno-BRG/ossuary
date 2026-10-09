@@ -10,8 +10,8 @@ namespace Ossuary.Core
     public static class Dialogues
     {
         static string L(string en, string pt) => TownText.L(en, pt);
-        static DChoice Go(string en, string pt, string to, Action<Game, Monster> doIt = null, Func<Game, Monster, bool> cond = null, int price = 0) =>
-            Dialogue.Go(L(en, pt), to, doIt, cond, price);
+        static DChoice Go(string en, string pt, string to, Action<Game, Monster> doIt = null, Func<Game, Monster, bool> cond = null, int price = 0, Func<Game, Monster, bool> show = null) =>
+            new DChoice { Label = L(en, pt), Goto = to, Do = doIt, If = cond, Price = price, Show = show };
 
         public static Dialogue For(Monster m)
         {
@@ -51,12 +51,28 @@ namespace Ossuary.Core
                     ? L("The Drowned remember those who remember them. There is work, if you are the sort who asks.", "Os Afogados lembram de quem lembra deles. Há trabalho, se você for do tipo que pergunta.")
                     : L("A coin for the one who stayed up top?", "Uma moeda para quem ficou aqui em cima?"),
                 Go("What work?", "Que trabalho?", "work", (g, m) => g.StartQuest("cult.vial"),
-                    (g, m) => g.RepOf(Houses.Cult) >= 10 && g.QuestOf("cult.vial") == null),
+                    (g, m) => g.RepOf(Houses.Cult) >= 10, 0, (g, m) => g.QuestOf("cult.vial") == null),
+                Go("What work?", "Que trabalho?", "errands", null,
+                    (g, m) => g.RepOf(Houses.Cult) >= 10, 0, (g, m) => g.QuestDone("cult.vial") && (g.QuestOf("cult.zombies") == null || g.QuestOf("cult.bones") == null)),
                 Go("I have the vial.", "Estou com o frasco.", "vial", (g, m) => { g.TakeItem("potion of mutation"); g.Flags.Add("cult.vial.report"); },
-                    (g, m) => g.QuestActive("cult.vial") && g.QuestOf("cult.vial").Step == 1 && g.HasItem("potion of mutation")))
+                    (g, m) => g.QuestActive("cult.vial") && g.QuestOf("cult.vial").Step == 1 && g.HasItem("potion of mutation")),
+                Go("The zombies are dealt with.", "Os zumbis foram resolvidos.", "zombiesdone", (g, m) => g.Flags.Add("cult.zombies.report"), null, 0,
+                    (g, m) => g.QuestActive("cult.zombies") && g.QuestOf("cult.zombies").Step == 1),
+                Go("Here is the bone blade.", "Aqui está a lâmina de osso.", "bonesdone", (g, m) => { g.TakeItem("bone blade"); g.Flags.Add("cult.bones.report"); },
+                    (g, m) => g.HasItem("bone blade"), 0, (g, m) => g.QuestActive("cult.bones") && g.QuestOf("cult.bones").Step == 1))
             .Node("work", L("A vial of what the black cart sells to the trusted. Bring it to me, and say nothing to the priests.", "Um frasco do que a carroça negra vende aos de confiança. Traga-me, e não diga nada aos sacerdotes."),
                 Go("Understood.", "Entendido.", Dialogue.Start))
             .Node("vial", L("It is warm. Good. The Drowned will not forget this, and neither will the Temple, if it learns of it.", "Está morno. Bom. Os Afogados não vão esquecer, e o Templo também não, se descobrir."),
+                Go("Good.", "Ótimo.", Dialogue.Start))
+            .Node("errands", L("Two more jobs, for those who can keep quiet. Clear the vaults of the dead that walk, or bring a blade of bone.", "Mais dois serviços, para quem sabe ficar quieto. Limpe os cofres dos mortos que andam, ou traga uma lâmina de osso."),
+                Go("Clear the Sunken Vaults of the dead that walk", "Limpar os Cofres Afundados dos mortos que andam", Dialogue.Start, (g, m) => g.StartQuest("cult.zombies"), null, 0,
+                    (g, m) => g.QuestOf("cult.zombies") == null),
+                Go("Bring a blade of bone for the Drowned", "Trazer uma lâmina de osso para os Afogados", Dialogue.Start, (g, m) => g.StartQuest("cult.bones"), null, 0,
+                    (g, m) => g.QuestOf("cult.bones") == null),
+                Go("Understood.", "Entendido.", Dialogue.Start))
+            .Node("zombiesdone", L("Good. The vaults are quieter, and the Temple will not hear of it for a while.", "Ótimo. Os cofres estão mais calmos, e o Templo não vai saber disso por um tempo."),
+                Go("Good.", "Ótimo.", Dialogue.Start))
+            .Node("bonesdone", L("The blade goes into the water. The Drowned will be pleased, and the Temple will be sorry.", "A lâmina vai para a água. Os Afogados ficarão satisfeitos, e o Templo, arrependido."),
                 Go("Good.", "Ótimo.", Dialogue.Start));
 
         // ------------------------------------------------------------------ the Reader (who explains the documents)

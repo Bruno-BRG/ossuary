@@ -5,6 +5,25 @@
 Ossuary versions are a **single number** (Version 11, Version 12…), as in *Project Zomboid*. In the manifests (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) and in the installer name the version appears as `0.N.0`. The **save format** (`SaveData.Version`) uses the same number: change a rule, bump it, old saves stop loading.
 
+## Version 21 — Hired hands
+
+### Jobs on the quest engine
+- **The notice board is a quest board.** A job becomes a quest on the Guild track when you take it. The Journal shows its steps, progress and reward, and the Character panel shows one `Job:` line for each active job. Hunts and delves are reported at any notice board; a commission is delivered at any workshop that teaches the trade.
+- **One offer per week.** A job you take is not offered again that week, whether it is active, done or failed. You can carry three jobs at once, commissions included.
+- **The same rewards.** Hunts and delves pay their reward and give the giver +10 standing. A commission pays, and on delivery it gives the Guild +5 standing and 5 trade XP.
+- **Hired Hand still counts.** Finished jobs count toward the *Hired Hand* achievement and the morgue's *Jobs done* line, as before.
+
+### The Drowned's errands
+- **Two errands after the vial.** Once the Drowned have their vial and you have Cult standing 10 or more, *What work?* offers two more errands, each one once:
+  - **Clear the vaults:** destroy three human zombies in The Sunken Vaults, then report to the Drowned. Pays 110 gold; Cult +8, Temple −4.
+  - **A blade of bone:** bring a bone blade (a smith can forge one from a blade and remains). The Drowned keep it. Pays 150 gold; Cult +8, Temple −4.
+
+### Journal and panels
+- **One list.** The Journal's separate block of contracts is gone. Guild jobs sit under *Guild* with the other quests, showing the step they are on and its hint.
+
+### Saves
+- The save format moves to **21**: Version 20 saves do not load.
+
 ## Version 20 — The world remembers
 
 ### World and history

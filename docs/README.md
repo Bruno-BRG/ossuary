@@ -18,6 +18,7 @@ lives in the code. Real captures are in [`shots/`](shots/).
 - [`lore.md`](game/lore.md) — worldbuilding bible (tone, the Ossuary, factions, Yendor)
 - [`main-quest.md`](game/main-quest.md) — the main questline "The Seal": short and long path, truths, endings, essential NPCs
 - [`living-world.md`](game/living-world.md) — personas, dialogue, quest tracks, rumours, travellers and town events
+- [`guild-jobs.md`](game/guild-jobs.md) — spec: notice-board jobs and workshop commissions on the quest engine, and the two Cult errands
 
 ## Systems design (`design/`)
 

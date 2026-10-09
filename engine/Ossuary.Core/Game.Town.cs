@@ -259,12 +259,15 @@ namespace Ossuary.Core
             if ((s & Service.Quest) != 0) Add("board", "Read the notice board", 0);
             if ((s & Service.Quest) != 0)
             {
-                var offers = ContractOffers();
-                for (int i = 0; i < offers.Count; i++)
-                    Add("offer:" + i, $"Take a job: {offers[i].Describe()} (pays {offers[i].Reward}g)", 0, Contracts.Count < MaxContracts);
-                for (int i = 0; i < Contracts.Count; i++)
-                    if (Contracts[i].Kind != "make")
-                        Add("turnin:" + i, $"Report: {Contracts[i].Describe()} ({Math.Min(Contracts[i].Done, Contracts[i].Count)}/{Contracts[i].Count})", 0, Contracts[i].Complete);
+                foreach (var o in JobOffers())
+                    Add("offer:" + o.Index, $"Take a job: {o.Describe()} (pays {o.Reward}g)", 0, ActiveJobs().Count < MaxContracts);
+                foreach (var q in ActiveJobs())
+                    if (q.Def.Steps[0].Kind != ObjKind.Item)   // hunts and delves; commissions have their own rows
+                    {
+                        var (done, need) = JobCount(q);
+                        Add("report:" + q.Def.Id, $"Report: {q.Def.Title} ({done}/{need})", 0,
+                            q.Current?.Kind == ObjKind.Flag && q.Current.Target == ReportFlag(q.Def.Id));
+                    }
             }
             if ((s & Service.Rumor) != 0 && (s & Service.Quest) == 0) Add("rumor", "Ask for news", (s & Service.Ale) != 0 ? 4 : 0);
             AddWorkshopRows(Add);
@@ -297,7 +300,7 @@ namespace Ossuary.Core
             if (CurrentEvent != null) return EventAction(id);
             if (CurrentDialogue != null) return DialogueAction(id);
             if (id == "talk") { StartDialogue(Talking); return false; }
-            if (id.StartsWith("offer:") || id.StartsWith("turnin:")) return ContractAction(id);
+            if (id.StartsWith("offer:") || id.StartsWith("report:")) return JobAction(id);
             if (SmithyAction(id)) return false;
             if (WorkshopAction(id)) return false;
             if (MarketAction(id)) return false;
@@ -401,18 +404,21 @@ namespace Ossuary.Core
             return false;
         }
 
-        bool ContractAction(string id)
+        /// <summary>A board row: take an offer, or hand in a finished job at the flag step it waits on.</summary>
+        bool JobAction(string id)
         {
-            int i = int.Parse(id.Substring(id.IndexOf(':') + 1));
             if (id.StartsWith("offer:"))
             {
-                var offers = ContractOffers();
-                if (i < 0 || i >= offers.Count) return false;
-                AcceptContract(offers[i]);
+                var o = JobOffers().Find(x => x.Index == int.Parse(id.Substring(6)));
+                if (o != null) AcceptJob(o);
                 return false;
             }
-            if (i < 0 || i >= Contracts.Count) return false;
-            TurnInContract(Contracts[i]);
+            var q = QuestOf(id.Substring(7));
+            if (q != null && q.Status == QStatus.Active && q.Current?.Kind == ObjKind.Flag && q.Current.Target == ReportFlag(q.Def.Id))
+            {
+                Flags.Add(q.Current.Target);
+                QuestCheck();
+            }
             return false;
         }
 
