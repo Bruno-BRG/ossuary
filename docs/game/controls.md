@@ -35,12 +35,17 @@ known stairs (down, otherwise up) — `~` (Shift+`` ` ``) walks to a remembered 
 hostile, taking damage, a new message or stepping on an item/stairs; with an enemy in view they refuse without spending a turn.
 Keys are remappable in Controls.
 
+**Travel marks.** `'` marks the cell you stand on (it costs no turn) and warms that cell on the map; pressing `'` on a mark
+rubs it out. `Shift+'` (`"`) walks to the nearest other mark on the level and stops there; press it again to walk on to the
+mark after. Marks belong to their level, so the marks are still there when you come back up or down. They work on dungeon
+levels only, as the other walks do.
+
 ## Dungeon
 
 `>` (`Shift` + `.`) descend — `<` (`Shift` + `,`) ascend (also building stairs in towns) — `g` or `,`
 pick up — `d` drop — `s` search (traps/secret doors) —
 `Shift+N` train a skill with XP (Trained mode) — `Shift+B` craft (what your trades, pack and place allow; `a` on a molotov throws it) — `Shift+J` every recipe — `Shift+I` examine an item (material, maker, quality, wear, worth) — `Shift+G` gather (butcher a carcass, or forage on the road) — `Shift+E` drink from a fountain (may corrupt) — `Shift+A` disarm a found trap (below or beside, preferably ahead) —
-`k` (shift-K) kick / attack ahead (in town it strikes the person in front of you, and the Watch may notice) — `D` (shift) open door — `u` (shift-U)
+`k` (shift-K) kick / attack ahead (in town it strikes the person in front of you, and the Watch may notice) — `D` (shift) open door, or break the chains of a captive you face — `u` (shift-U)
 use key — `a` apply tool (an instrument plays) — `f`/`Q` fire (a bow, crossbow or sling in hand or pack looses arrows, bolts or stones, which you pick up again; without one you hurl a stone) — `Shift+Y` choose which ammunition to loose first — `Shift+M` follow a wounded creature's trail — `Shift+O` carve something into the floor
 
 ## Equip and use
@@ -67,6 +72,10 @@ quit and erased on resume; no `F5`), the **Dive** (starts on level 5) and **Nake
 A monster blocking the road: `Enter`, `Space`, `K` or `F` attack; `R` or `<` (`Shift` + `,`)
 flee. In town, bumping into people talks to them and bumping into a counter, notice
 board or altar opens the shop or service menu (letters choose, Esc leaves). At a counter, `b` buys, `s` sells and `o` haggles over the thing under the cursor: offer 90, 75 or 60 percent, and a refusal sours the trader for the day.
+In a conversation, `PgUp` and `PgDn` read back what was said, four lines at a time; the box keeps only this talk.
+Striking a person the story leans on while they lie out cold is an extreme act: the third blow removes them, and their apprentice
+takes the post (see `main-quest.md`, *Essential NPCs*).
+`F9` steals the first good from the counter you stand beside, unpaid: unseen, it is only in the ledger; in view of anyone, it is a bounty by its value. `F10` throws a molotov at the counter you stand beside: the building burns for good, and a fire in view is a bounty of 500 gold and more. A temple does not burn. `F12` gives your companions an order: hold where they stand, or follow you again (a second press). An order costs no turn. When the Watch takes you in, a lock pick from your kit opens the cell (*Pick the lock of the cell*): you are out, with the bounty doubled and the Watch's memory of the lock.
 
 ## Look and travel
 

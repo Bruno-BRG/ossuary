@@ -70,6 +70,9 @@ namespace Ossuary.Core
                 case "D": return DoOpenDoor();
                 case "s": return DoSearch();
                 case "disarm": return DoDisarm();
+                case "steal": return _g.StealFromCounter();
+                case "burn": return _g.BurnCounter();
+                case "order": return _g.OrderCompanions();
                 case "craft": return DoCraft();
                 case "gather": _g.Gather(); return true;
                 case "recipes": _g.PushChoice(Game.RecipePrompt, _g.RecipeBook()); return true;
@@ -90,6 +93,8 @@ namespace Ossuary.Core
                 case "stairs": return DoAutoWalk(AutoWalk.Stairs);
                 case "rest": return DoAutoWalk(AutoWalk.Rest);
                 case "feature": return DoAutoWalk(AutoWalk.Feature);
+                case "mark": return DoMark();
+                case "marks": return DoAutoWalk(AutoWalk.Mark);
 
                 case "O": _g.PushTravelMode(); return true;
                 case "m": _g.ToggleMinimap(); return true;
@@ -115,25 +120,30 @@ namespace Ossuary.Core
 
         // ------------------------------------------------------------ auto-walk
 
-        enum AutoWalk { Explore, Stairs, Rest, Feature }
+        enum AutoWalk { Explore, Stairs, Rest, Feature, Mark }
         const int AutoWalkLimit = 600, RestLimit = 3000;
 
         /// <summary>
-        /// Explore, travel to stairs and rest: each is a loop of ordinary turns that stops the moment anything
-        /// happens (an enemy in sight, damage, any message, stairs or items underfoot). Refusals cost no turn.
+        /// Explore, travel to stairs, altars, fountains and marks, and rest: each is a loop of ordinary turns that stops
+        /// the moment anything happens (an enemy in sight, damage, any message, stairs or items underfoot). Refusals cost no turn.
         /// </summary>
         bool DoAutoWalk(AutoWalk kind)
         {
             var p = _g.Player;
             if (_g.Mode != GameMode.Dungeon || _g.Map == null)
             {
-                _g.Say(kind == AutoWalk.Rest ? "You cannot rest here." : "There is nothing to explore here.", MessageKind.Info);
+                _g.Say(kind == AutoWalk.Rest ? "You cannot rest here." : kind == AutoWalk.Mark ? "You have no marks here." : "There is nothing to explore here.", MessageKind.Info);
                 return true;
             }
             if (p.Asleep || p.Stunned) { _g.Say(p.Asleep ? "You are asleep." : "You are stunned."); return true; }
             if (_g.HostileInView()) { _g.Say("Not with enemies in sight.", MessageKind.Warn); return true; }
             if (kind == AutoWalk.Rest && !_g.NeedsRest()) { _g.Say("You are already rested.", MessageKind.Info); return true; }
             if (kind == AutoWalk.Feature && _g.IsFeatureSpot(p.X, p.Y)) { _g.Say("You are already there.", MessageKind.Info); return true; }
+            if (kind == AutoWalk.Mark && !_g.HasOtherMarkHere())
+            {
+                _g.Say(_g.HasMarkHere() ? "No other mark on this level." : "You have not marked a spot on this level yet.", MessageKind.Info);
+                return true;
+            }
             if (kind == AutoWalk.Stairs)
             {
                 var here = _g.Map.Get(p.X, p.Y);
@@ -141,7 +151,7 @@ namespace Ossuary.Core
                 { _g.Say("You are already on the stairs.", MessageKind.Info); return true; }
             }
 
-            int map = _g.Map.Number, hp = p.HP, stuck = 0;
+            int map = _g.Map.Number, hp = p.HP, stuck = 0, markX = -1, markY = -1;
             for (int n = 0; n < (kind == AutoWalk.Rest ? RestLimit : AutoWalkLimit); n++)
             {
                 long said = _g.Said;
@@ -166,6 +176,12 @@ namespace Ossuary.Core
                     {
                         if (!_g.FeatureStep(out dx, out dy)) { _g.Say("You have not found a fountain or an altar yet.", MessageKind.Info); break; }
                     }
+                    else if (kind == AutoWalk.Mark)
+                    {
+                        // The first step picks the target, the mark nearest the hero; every later step keeps walking to that one.
+                        bool ok = markX < 0 ? _g.MarkStep(out dx, out dy, out markX, out markY) : _g.MarkStepTo(markX, markY, out dx, out dy);
+                        if (!ok) { _g.Say("No other mark on this level.", MessageKind.Info); break; }
+                    }
                     else if (!_g.StairsStep(out dx, out dy, out _))
                     { _g.Say("You have not found any stairs yet.", MessageKind.Info); break; }
                     DoMove(dx, dy);
@@ -174,10 +190,19 @@ namespace Ossuary.Core
                 }
                 if (_g.Mode != GameMode.Dungeon || _g.Map == null || _g.Map.Number != map) break;
                 if (p.HP < hp || p.HP <= 0) break;
-                if (_g.Said != said || (kind == AutoWalk.Stairs && ArrivedAtStairs()) || (kind == AutoWalk.Feature && _g.IsFeatureSpot(p.X, p.Y))) break;
+                if (_g.Said != said || (kind == AutoWalk.Stairs && ArrivedAtStairs()) || (kind == AutoWalk.Feature && _g.IsFeatureSpot(p.X, p.Y))
+                    || (kind == AutoWalk.Mark && p.X == markX && p.Y == markY)) break;
                 if (_g.HostileInView()) break;
                 if (kind == AutoWalk.Rest) hp = p.HP;
             }
+            return true;
+        }
+
+        /// <summary>Marks the cell underfoot as a travel point, or rubs the mark out. A note, not an action: it costs no turn.</summary>
+        bool DoMark()
+        {
+            if (_g.Mode != GameMode.Dungeon || _g.Map == null) { _g.Say("You can only mark a spot on a dungeon level.", MessageKind.Info); return true; }
+            _g.Say(_g.ToggleMarkHere() ? "You mark this spot." : "You rub out the mark.", MessageKind.Info);
             return true;
         }
 
@@ -560,6 +585,8 @@ namespace Ossuary.Core
             if (_g.Map == null) return true;
             int fx = p.X + _g.FacingX, fy = p.Y + _g.FacingY;
             TileKind t = _g.Map.Get(fx, fy);
+            var captive = _g.MonsterAt(fx, fy);
+            if (captive != null && captive.Folk == FolkKind.Captive) { _g.FreeCaptive(captive); return true; }
 
             if (t == TileKind.ClosedDoor || t == TileKind.LockedDoor)
             {

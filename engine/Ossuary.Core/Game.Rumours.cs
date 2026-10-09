@@ -31,6 +31,8 @@ namespace Ossuary.Core
                 var r = Rumours.Tell(this, Talking, n);
                 if (r != null) return r.Text;
             }
+            // A killing in a town nearby has come round by now: that is the gossip of the day (living-world.md, rumours).
+            if (n % 3 == 0 && NewsHere() is Deed news) return NewsLine(news);
             return TownText.Rumor(n);
         }
     }

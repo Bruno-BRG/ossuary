@@ -16,6 +16,8 @@ namespace Ossuary.Core
         public static readonly List<(Regex, string)> Rx = new List<(Regex, string)>();
 
         internal static string L(string en, string pt) { Pt[en] = pt; return en; }
+        /// <summary>The Portuguese of a word that was already registered with L: a title, to set inside a larger sentence.</summary>
+        public static string PtOf(string en) => Pt.TryGetValue(en, out var pt) ? pt : en;
         static void R(string pattern, string replacement) => Rx.Add((new Regex("^" + pattern + "$", RegexOptions.CultureInvariant), replacement));
 
         // ---------------------------------------------------------------- names

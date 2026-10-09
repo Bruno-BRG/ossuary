@@ -94,11 +94,16 @@ namespace Ossuary.Core
         {
             EndingId = id;
             RecordDeed("ending", id, 5);
+            var speaker = SpeakerRole(id);
+            if (speaker != null) Say(CeremonyLine(id, HouseSpeaker(speaker.Value)), MessageKind.Quest);
             if (id == "stamp") { StartNewCycle(); return; }
             Mode = GameMode.Won;
             UiState.Active = Panel.Win;
             Say(Loc.T("You emerge into the open air, the Amulet of Yendor blazing against your chest."), MessageKind.Quest);
             Say(Loc.T(EndingEpilogue(id)), MessageKind.Quest);
+            var kept = MatteringDeeds();
+            if (kept.Count > 0) Say(TownText.L("The Ossuary remembers:", "O Ossuário se lembra:"), MessageKind.Narrative);
+            foreach (var line in kept) Say(line, MessageKind.Narrative);
             CheckAchievements();
             Say($"Escaped after {Turn} turns, {Player.Kills} kills, depth {Player.MaxDepth}. The Ossuary remembers.", MessageKind.Good);
         }
@@ -119,6 +124,47 @@ namespace Ossuary.Core
             }
         }
 
+        /// <summary>The post whose holder speaks the words of each ending: the house that offers it (main-quest.md, the ceremony).</summary>
+        static TownRole? SpeakerRole(string id)
+        {
+            switch (id)
+            {
+                case "shut": return TownRole.Priest;
+                case "open": return TownRole.Beggar;
+                case "warden": return TownRole.Captain;
+                case "auction": case "pay": return TownRole.Elder;
+                case "stamp": return TownRole.Scholar;
+                default: return null;
+            }
+        }
+
+        /// <summary>The living holder of a post in a town the hero has walked into this run; null when the post is empty or no one of it was met.</summary>
+        Monster HouseSpeaker(TownRole role)
+        {
+            foreach (var t in _towns.Values)
+                foreach (var n in t.Npcs)
+                    if (n.Role == role && n.Persona != null && n.Persona.Essential && !n.IsDead) return n;
+            return null;
+        }
+
+        /// <summary>The words the house's speaker says at the ceremony. With no one of that house left, the rite is done at the altar.</summary>
+        string CeremonyLine(string id, Monster who)
+        {
+            if (who == null)
+                return TownText.L("No one of that house is left to speak. The rite is done at the altar, by whoever remembers the words.",
+                    "Ninguém dessa casa sobrou para falar. O rito é feito no altar, por quem lembra as palavras.");
+            string name = who.Name, title = TownText.RoleTitle(who.Role), pt = Loc.PtOf(title);
+            switch (id)
+            {
+                case "shut": return TownText.L($"{name}, the {title}, lays the Amulet in the earth: the rite Yendor meant.", $"{name}, {pt}, deita o Amuleto na terra: o rito que Yendor queria.");
+                case "open": return TownText.L($"{name} of the Drowned turns the seal in the black water, and the archive opens.", $"{name}, dos Afogados, gira o selo na água negra, e o arquivo se abre.");
+                case "warden": return TownText.L($"{name}, the {title}, hangs the keys at the gate. The Warden keeps the seal.", $"{name}, {pt}, pendura as chaves no portão. O Carcereiro guarda o selo.");
+                case "auction": return TownText.L($"{name}, the {title}, opens the bidding.", $"{name}, {pt}, abre o leilão.");
+                case "pay": return TownText.L($"{name}, for the League, counts out the gold.", $"{name}, pela Liga, conta o ouro.");
+                default: return TownText.L($"{name}, the {title}, reads Yendor's words back to you, and the stone takes the seal.", $"{name}, {pt}, lê de volta as palavras de Yendor, e a pedra recebe o selo.");
+            }
+        }
+
         /// <summary>The Stamp: the hero carries the seal back down and takes Yendor's place. The run goes on as a new cycle, remembered.</summary>
         void StartNewCycle()
         {
@@ -128,8 +174,9 @@ namespace Ossuary.Core
             Bounties.Clear();
             Player.HP = Player.MaxHP;
             Flags.Add("legend");
-            // The truths and the ledger stay; the hunt starts over: the seal is stamped, the Amulet is gone, the pit is waiting.
-            Quests.RemoveAll(q => q.Def.Id == "main.seal");
+            // The truths and the ledger stay. The seal is stamped and the Amulet is gone for good: no second one is placed, so the hunt
+            // does not start over. An open seal errand leaves the journal; a finished one stays on record.
+            Quests.RemoveAll(q => q.Def.Id == "main.seal" && q.Status == QStatus.Active);
             Say(Loc.T("You stamp the seal where Yendor stamped it, and the stone takes it. You are the Archivist now. The Ossuary will not forget you."), MessageKind.Quest);
             Say(Loc.T("A new cycle begins. What you did is remembered."), MessageKind.Good);
             LeaveToOverworld();

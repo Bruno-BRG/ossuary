@@ -547,6 +547,25 @@ namespace Ossuary.Desktop
         }
 
         /// <summary>Town through the real key path: bump to talk, stairs, services, and Esc back out of a shop.</summary>
+        /// <summary>PgUp and PgDn read the conversation back through the real key path; they leave the turn and the choices alone.</summary>
+        static void ConversationKeys()
+        {
+            var s = new Session(); s.New(2121); s.Resize(110, 36); s.Draw();
+            var g = s.Game;
+            var elder = new Monster(Bestiary.Find("hobbit"), new Rng(1))
+            { Townsperson = true, Role = TownRole.Elder, Persona = new Persona { Trait = Trait.Kind, Second = Trait.Kind }, Memory = new NpcMemory() };
+            g.Talking = elder; g.OpenDialogue(Dialogues.For(elder), elder);
+            for (int i = 0; i < 20; i++) g.DialogueLog.Add(new DialogueLine { Text = "line " + i.ToString("00") });
+            s.Draw();
+            long turn = g.Turn; int row = g.UiState.ServiceIndex;
+            s.Key("PageUp"); s.Key("PageUp");
+            Check(g.DialogueScroll == 8, "PgUp reads back four lines at a time");
+            Check(s.Hud.Draw().ToAscii().Contains("line 06"), "the box shows the older lines");
+            s.Key("PageDown"); s.Key("PageDown"); s.Key("PageDown");
+            Check(g.DialogueScroll == 0, "PgDn comes back to the newest line, and no further");
+            Check(g.Turn == turn && g.UiState.ServiceIndex == row && g.CurrentDialogue != null, "the keys leave the turn and the choices alone");
+        }
+
         static void TownFlow()
         {
             var s = new Session(); s.New(1717); s.Resize(120, 40); s.Draw();
@@ -670,7 +689,7 @@ namespace Ossuary.Desktop
             s.Game.Mode = GameMode.GameOver; s.Draw(); s.Key("Enter"); s.Draw();
             Check(s.Game.Mode == GameMode.Dungeon && s.Game.Turn == 0 && s.Hud.Ui.Width == 110, "death restarts and keeps viewport");
             DisplaySettings.Current.Apply(ThemePreset.Ossuary, CrtLevel.Subtle);
-            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); HeldKeyWalking(); RunRecorded(); BonesFlow(); DifficultyFlow(); DailyFlow(); AchievementsFlow(); WaterAnimates(); TownFlow();
+            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); HeldKeyWalking(); RunRecorded(); BonesFlow(); DifficultyFlow(); DailyFlow(); AchievementsFlow(); WaterAnimates(); TownFlow(); ConversationKeys();
             try { System.IO.Directory.Delete(data, true); } catch { /* temp dir only */ }
             Environment.SetEnvironmentVariable("OSSUARY_DATA", null);
             Console.WriteLine("==== desktop: input, choices, targeting, travel, shop, settings, restart and frame protocol PASS ====");

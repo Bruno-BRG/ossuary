@@ -34,10 +34,12 @@ One quest system. A job from the notice board, or a workshop commission, becomes
 - **D8 Deeds come from the engine.** Completion records `Deed.Quest` (weight 2). Nothing reads `Deed.Contract`, so that constant goes.
 - **D9 One listing.** The Journal drops its separate block and shows Guild quests through the engine's track list. The Character panel shows one line per active Guild job. The Journal footer (`Done n Failed m`) will now count finished jobs, which it does not today.
 - **D10 Save format 21.** `SaveStore.Version` moves from 20 to 21 in both places ([`SaveStore.cs:13`](../../engine/Ossuary.Desktop/SaveStore.cs:13) and [`:67`](../../engine/Ossuary.Desktop/SaveStore.cs:67)). Saves from version 20 stop loading, as with every rule change.
-- **D11 Two Cult errands.** Both come from the Drowned, on the same engine. The Drowned offers them under *What work?* once `cult.vial` is done, at Cult standing 10 or more; each one is offered once.
+- **D11 Four Cult errands.** All come from the Drowned, on the same engine. The Drowned offers them under *What work?* once `cult.vial` is done, at Cult standing 10 or more; each one is offered once. Two were first; `cult.names` and `cult.shrine` came with the Cult track (2026-10-08).
+  - `cult.names`: `Kill(dark acolyte, 3, The Dungeons)`, then `Flag cult.names.report`, set when the hero reports to the Drowned. Pays 100 gold; Cult +8, Temple −4.
+  - `cult.shrine`: `Reach(The Sunken Vaults, 6)`, then `Flag cult.shrine.report`, set by the Drowned. Pays 130 gold; Cult +8, Temple −4, and the shrine's cold light costs 3 corruption.
   - `cult.zombies`: `Kill(human zombie, 3, The Sunken Vaults)`, then `Flag cult.zombies.report`, set when the hero reports to the Drowned. Pays 110 gold; Cult +8, Temple −4.
   - `cult.bones`: `Item(bone blade)`, then `Flag cult.bones.report`, set by the Drowned, who takes the blade, as `cult.vial` does. The hero can forge the blade ([`Trades.cs:207`](../../engine/Ossuary.Core/Items/Trades.cs:207)). Pays 150 gold; Cult +8, Temple −4.
-  - The rewards and standing are proposals; the balance bot tunes them.
+  - The rewards are set by hand, in line with the Guild's hunts (60–120 gold) and the vial (120). The balance bot does not run quests, so it cannot tune them; the quest tests check the numbers instead.
 
 ## Design
 
@@ -93,7 +95,7 @@ Rewrite [`FeatureTests.cs`](../../engine/Ossuary.Headless/Tests/FeatureTests.cs)
 
 - Job givers as people. They are factions today; the living-world plan wants faces, later.
 - Ranks by Guild standing (in the living-world plan, not in the todo).
-- Escort and find-person objectives (S7).
+- Find-person objectives (S7). The Escort objective exists since the dungeon's captives (`ObjKind.Escort`, `Game.Folk.cs`), so an escort can be a quest of the Personal track; a Guild job that asks for one is still S7.
 - New quality rules for commissions.
 
 ## Risks

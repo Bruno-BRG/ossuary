@@ -63,9 +63,10 @@ namespace Ossuary.Core
             QuestCheck();
         }
 
-        /// <summary>Talking to a person of a role: Talk steps for that role advance.</summary>
+        /// <summary>Talking to a person of a role: Talk steps for that role advance. An heir who still owes a favour is not yet the post's voice.</summary>
         void QuestTalk(Monster m)
         {
+            if (m.Memory != null && m.Memory.Has(NpcMemory.Owes)) return;
             foreach (var q in Quests)
             {
                 var s = q.Current;
@@ -100,6 +101,7 @@ namespace Ossuary.Core
                 case ObjKind.Flag: return s.Target == "truth.all" ? AllTruths : Flags.Contains(s.Target);
                 case ObjKind.Item: return HasItemNamed(s.Target);
                 case ObjKind.Wait: return Today - q.StepDay >= s.Count;
+                case ObjKind.Escort: return Mode == GameMode.TownMap && Town != null && Town.Name == s.Target && Escorts.Exists(e => q.Def.Id == "escort." + e.Uid);
             }
             return false;
         }

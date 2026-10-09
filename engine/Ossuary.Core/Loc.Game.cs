@@ -126,10 +126,10 @@ namespace Ossuary.Core
                 ("Read scroll", "Ler pergaminho"), ("Remove ring", "Tirar anel"), ("Take off armour", "Tirar armadura"),
                 ("Train a skill (Trained mode)", "Treinar perícia (Treinado)"), ("Wear armour", "Vestir armadura"), ("Wield weapon", "Empunhar arma"),
                 ("Zap wand", "Usar varinha"), ("Auto-explore", "Explorar sozinho"), ("Climb stairs", "Subir escada"), ("Descend stairs", "Descer escada"),
-                ("Disarm a trap", "Desarmar armadilha"), ("Move east", "Mover a leste"), ("Move north", "Mover ao norte"), ("Move north-east", "Mover a nordeste"),
+                ("Disarm a trap", "Desarmar armadilha"), ("Companions: hold or follow", "Companheiros: ficar ou seguir"), ("Steal from a counter", "Roubar de um balcão"), ("Burn a counter with a molotov", "Queimar um balcão com um molotov"),("Move east", "Mover a leste"), ("Move north", "Mover ao norte"), ("Move north-east", "Mover a nordeste"),
                 ("Move north-west", "Mover a noroeste"), ("Move south", "Mover ao sul"), ("Move south-east", "Mover a sudeste"), ("Move south-west", "Mover a sudoeste"),
                 ("Move west", "Mover a oeste"), ("Rest until healed", "Descansar até curar"), ("Travel (overworld)", "Viajar (mundo)"),
-                ("Travel to altar / fountain", "Ir até altar / fonte"), ("Travel to stairs", "Ir até a escada"), ("Wait a turn", "Esperar um turno"),
+                ("Travel to altar / fountain", "Ir até altar / fonte"), ("Travel to stairs", "Ir até a escada"), ("Wait a turn", "Esperar um turno"), ("Mark this spot", "Marcar este ponto"), ("Travel to a mark", "Ir até uma marca"),
                 ("Abandon run", "Abandonar expedição"), ("Character sheet", "Ficha do personagem"), ("Cycle CRT", "Alternar CRT"),
                 ("Cycle colour theme", "Alternar tema de cor"), ("Help", "Ajuda"), ("Menu / options", "Menu / opções"), ("Message history", "Histórico de mensagens"),
                 ("Quest journal", "Diário de missões"), ("Quick save", "Salvar rápido"), ("Spend advancements", "Gastar evoluções"), ("Toggle minimap", "Alternar minimapa") })

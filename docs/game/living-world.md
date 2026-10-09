@@ -121,6 +121,7 @@ Make the world contain actors that are not the hero, not hostile by default, and
   Their progress is simulated coarsely, by days passing, not by moving them every turn. You meet them in towns
   (taverns, the board) and on floors; outcomes feed the *Rival* track.
 - **Prisoners and captives** in dungeons who can be freed and walk back to a town (a free `Personal` quest).
+  *As built (2026-10-08):* `Game.Folk.cs`. A captive is freed with `D` facing them; the walk home is the `Escort` objective, and the gate ends it (see `systems.md`, *Dungeon folk*). The delvers of this list are built too: the wounded one wants a potion, the looter runs, the remains are a note and a pack.
 - **Companions with a voice**: your sellsword comments on places and quests (builds on `Game.Companions.cs`).
 - **Ghosts of previous runs**: `Bones.cs` already stores a graveyard; ghosts and notes of earlier heroes give
   those people a place in the world's story.
@@ -160,6 +161,7 @@ visibly: what people say, what is on the map, what things cost, who is still ali
 - **Memorable on purpose**: each deed type has at least one visible consequence in town and one in conversation; a test per deed type
   checks that the consequence shows up (see *Phases*, 1).
 - **Scope**: only deeds the game already detects at one choke point (kill, quest step, service, event row, crime) are recorded; no new global event bus is required.
+- **As built (2026-10-08)**: prices, the healer, town state, rumours and the epilogue read the ledger (`Game.Ledger.cs`). The fixed numbers: +5% on counters per killing here (cap 25%), −2% per good deed here (cap 10%); a healer refuses at two killings here; news of a killing reaches the three nearest towns three days later and stays news for forty; the epilogue names the six heaviest deeds (weight 3 or more) in the order they were done. A shopkeeper who dies is replaced by a heir who says so, and the heir's words depend on whether the ledger holds the hero's hand in it. The Guild's cellar holds three dead that are not townsfolk (`Town.Lurkers`) and stay down once the last is cleared, which writes a `cleared` deed. Each consumer has a test in `FeatureTests.cs`.
 
 ## Data and code layout
 
@@ -243,8 +245,8 @@ Modelled on the Skyrim bounty loop, adapted to this game's turns and Houses.
 - **Theft**: by the value taken (item value in gold, with a floor), so pocketing a loaf is not the same as emptying a till.
 - **Property**: by the cost of what was damaged or burnt (a broken door, a burnt building).
 - **Other**: lockpicking or trespass in view, escaping jail: small fixed penalties that stack with the above.
-- The fine is the bounty; the jail sentence is `bounty / k` days (`k` tuned later). Final numbers come from the balance bot, but the rule is
-  *penalty follows damage and loss*.
+- The fine is the bounty; the jail sentence is `bounty / k` days, built as one day per hundred gold (`k` = 100, at least one day, at most
+  thirty). The balance bot may tune `k`; the rule is *penalty follows damage and loss*.
 
 Only **witnessed** crimes count; a crime nobody saw
 adds nothing (stealth and `Game.Stealth.cs` matter here). A civilian who sees it runs to the nearest guard; a guard who sees it
@@ -274,10 +276,25 @@ Guild/Temple favour get you out. Escaping adds to the bounty.
 - Allies and companions can be dragged into a fight; sellswords flee or fight by temperament.
 - A town fully hostile does not soft-lock the Main track (the Messenger notice and the successor rules in `main-quest.md`).
 
-## Open questions
+## As built (2026-10-08)
 
-- Exact fine formulas and `k` (rule is decided: penalty follows damage and loss); tune with the balance bot.
-- How far "neighbouring" reaches (adjacent regions only is decided; whether the bounty is a fraction of the original there is to tune).
+The figures the open questions asked for, as the code keeps them (`Game.Crime.cs`, `Game.Theft.cs`, `Dialogues.cs` *Arrest*):
+- **Reach.** A bounty belongs to the region where the crime was seen. The regions that touch it (within a tile, corners included) know half
+  of it, rounded up, and nothing farther: the echo does not pass a second ring. The Watch in a region asks the larger of its own bounty and
+  its neighbours' echoes (`BountyHere`).
+- **Settling.** Paying the fine, bribing, serving the cells and calling in a favour clear the bounty here and the neighbours' bounties
+  (`ClearBountyHere`). A neighbour's echo is half its bounty, so settling in a neighbour is the cheapest way out: half the price forgives the
+  whole. Left to tune with the balance bot.
+- **Fine.** Gold equal to the figure held here, only when the purse covers it.
+- **Cells.** `SentenceDays`: one day per hundred gold of the figure, at least one, at most thirty. Serving passes the days, nutrition falls
+  by 40 a day but stops at 400, and the bounty clears.
+- **Bribe.** Three halves of the figure (rounded down), only under 500, at −3 standing with the Watch.
+- **Escape.** The lock pick opens the cells. The figure held here doubles (an echo counts, and the doubled figure is the region's own), at
+  −10 standing with the Watch.
+- **Cap.** A bounty stops at 5,000 gold.
+
+Not built, from the plan above: confiscation of stolen goods at *Pay* and the Watch's evidence room; the Watch's own favour quest (the Guild
+and Temple favour is built); the persona and standing gates on the bribe (only the gold and the 500 limit gate it today).
 
 ## Technical notes from the code (2026-10-03)
 

@@ -23,12 +23,12 @@ How a system works lives in [`design/systems.md`](design/systems.md); what shipp
 | [Items and materials](#items-and-materials) | materials, wear, relics with biographies and deeds, identify by use, services, examine, ammunition | done; new ideas go in the topic |
 | [Crafting and trades](#crafting-and-trades) | 16 trades, ~105 recipes, forge, loom and still, fletching, named masterworks, crafters, archers | done; new ideas go in the topic |
 | [Economy and market](#economy-and-market) | glut, caravans you meet on the road, haggling, traders' memory, counter, tolls, town smiths' work | done; new ideas go in the topic |
-| [Towns and people](#towns-and-people) | personas, dialogue, quests, guild jobs, crime, rumours | theft |
+| [Towns and people](#towns-and-people) | personas, dialogue, quests, guild jobs, crime, rumours, essential people and their apprentices | done; new ideas go in the topic |
 | [World and history](#world-and-history) | overworld, seven branches, the chronicle with houses and kings, legends, blood and traces, engravings, rooms, tombs, raids | done; new ideas go in the topic |
 | [Creatures](#creatures) | factions, bosses, branch natives | named survivors, ecology |
 | [The hero](#the-hero) | corruption, modes, achievements, bones | thoughts and mood |
 | [Tutorials](#tutorials) | nothing yet | first-time hints |
-| [Interface and controls](#interface-and-controls) | auto-explore, travel, rebinding | marked travel points |
+| [Interface and controls](#interface-and-controls) | auto-explore, travel, rebinding, travel marks | done; new ideas go in the topic |
 | [Audio](#audio) | 18 tracks, 15 stingers, effects | the missing boss tracks |
 | [Technical and quality](#technical-and-quality) | headless suites, soak, balance bot | a language gate worth reading |
 
@@ -64,16 +64,7 @@ Nothing open: every item is in *Done*.
 
 Plan and rationale in [`game/living-world.md`](game/living-world.md).
 
-- [~] **Other people on the road**: has pilgrims, peddlers, refugees and delvers; left delvers and captives inside dungeon levels.
-- [~] **World ledger**: has deeds read by lines, grief, quests, bounty and journal; left prices, town state, rumours about the hero, the epilogue.
-- [~] **Essential people**: has knocked out instead of killed; left successors and removal by extreme acts.
-- [~] **Cult track**: has the vial and two errands; left reward balance (the bot tunes them) and more Cult quests.
-- [~] **New game plus**: has carry-over of level, items, truths and ledger; left people who react to the hero's legend.
-- [ ] **Main quest polish**: house speakers at the ceremony, the Archivist's Shade and the Spire guardian as encounters, ending ids in the morgue.
-- [ ] **Theft and property crimes**: steal and burn verbs, and escaping the cells with a lock pick.
-- [ ] **Conversations**: portraits and mood tags in the box, a scrollable history of what was said.
-- [ ] **Companions**: orders (stay, follow), shared inventory, more than one, archers.
-- [ ] **Open questions**: exact fine formulas, how far a bounty reaches, new-game-plus details.
+Nothing open: every item is in *Done*.
 
 ## World and history
 
@@ -105,7 +96,7 @@ The game is big: each system should explain itself once, the first time, and nev
 
 ## Interface and controls
 
-- [ ] **Marked travel points**: the hero sets their own destinations (today `~` goes to altars and fountains, `` ` `` to the stairs).
+Nothing open: every item is in *Done*.
 
 ## Audio
 
@@ -179,6 +170,16 @@ One line per feature, newest first inside each topic. Details: the [changelog](.
 - 2026-10-02 · **Light crafting**: molotov, bone blade, bone armour, extra healing (`Items/Crafted.cs`).
 
 **Towns and people**
+- 2026-10-08 · **Crime figures and new game plus**: the fine is the figure the Watch holds here (the region's own bounty, or half of a touching region's, rounded up), and settling it forgives the neighbours' bounties too; the cells are one day per hundred gold (one to thirty), a bribe is three halves of it under 500, the escape doubles it, and a bounty stops at 5000; the Stamp keeps gold, gear, House standing, truths, ledger and companions, and clears the bounties, the Amulet and an open seal errand, which the Elder does not offer again (`Game.Crime.cs`, `Game.Theft.cs`, `Game.Main.cs`, `Dialogues.cs`, `living-world.md`, `main-quest.md`).
+- 2026-10-08 · **Companions**: two companions may walk with the hero; `F12` orders them to hold or follow; an archer (the fourth role) loses arrows from its own bow at foes two to six cells off; a companion who falls drops their pack where they died (`Game.Companions.cs`, `Game.Ammo.cs`, `Game.Magic.Effects.cs`).
+- 2026-10-08 · **Theft and burning**: `F9` steals from a counter you stand beside and `F10` burns it with a molotov; witnessed, each is a bounty by its value and the Watch's memory, and a burnt shop stays burnt; a lock pick from the starting kit opens the cell when the Watch takes the hero in (`Game.Theft.cs`, `Dialogues.cs` *Arrest*, `KeyBindings.cs`, `Commands.cs`).
+- 2026-10-08 · **Main quest polish**: the ceremony is spoken by the house's holder, by name (Priest, the Drowned's voice, Captain, Elder, Scholar), or at the altar when that post is empty; the Archivist's Shade (The Sunken Vaults, level 10) and the Guardian of the Deep (The Ashen Spire, level 12) are bosses that stay until they fall; the morgue names the ending (`Game.Main.cs`, `Morgue.cs`, `Game.Bosses.cs`).
+- 2026-10-08 · **New game plus legend**: in a new cycle the townspeople speak of the stamp and the descent in talk and at the counters; a killing in the town before the stamp is not forgiven (`Game.Town.cs`, `LegendLine`).
+- 2026-10-08 · **Cult errands**: the Drowned offers four errands after the vial: clear the vaults of the dead, silence three acolytes in The Dungeons, light the shrine at the sixth level of the vaults, or bring a blade of bone; each is offered once and pays 100 to 150 gold with Cult +8 and Temple −4 (`QuestBook.cs`, `Dialogues.cs`, `guild-jobs.md` D11).
+- 2026-10-08 · **World ledger**: the ledger is read where the hero can see it: a town's counters ask more after killings and less after good deeds (`TownMemoryPct`), a healer refuses a hand that has killed twice there (`HealingRefused`), a dead shopkeeper is replaced by an heir who says so (`InstallShopHeirs`, `HeirWords`), the Guild's cellar holds three dead that stay down once cleared (`CellarDead`, `CellarCleared`, a `cleared` deed), news of a killing reaches the three nearest towns three days later (`NewsHere`, `NearbyTowns`), and the epilogue names the six heaviest deeds in order (`MatteringDeeds`) (`Game.Ledger.cs`, `Game.Succession.cs`, `Game.Town.cs`, `Game.Rumours.cs`, `Town.cs`, `Game.Main.cs`).
+- 2026-10-08 · **Dungeon folk**: a wounded delver who pays for a potion of healing, a looter who runs and drops a sack, the remains of a party with a note, and captives who are freed with `D` and walk home as an escort quest that the town's gate ends (`Game.Folk.cs`, `Game.Quests.cs`, `Game.Companions.cs`, `Commands.cs`, `Game.Repeat.cs`).
+- 2026-10-08 · **Essential people**: every essential person (Elder, Reader, Captain, High Priest, the Cult's beggar) has an apprentice lodged with them; three blows at one who lies out cold remove them, and the apprentice takes the post, worse disposed and owing one favour on the quest engine; with no apprentice left the Guild posts a Messenger notice; raids spare essential keepers (`Game.Succession.cs`, `Game.Crime.cs`, `Town.cs`, `Dialogues.cs`, `QuestBook.cs`, `Persona.cs`, `Game.Raids.cs`).
+- 2026-10-08 · **Conversations**: a face in the box (hat from the trade, eyes from the temperament, mouth from the mood), mood and temper tags, and PgUp/PgDn read the talk back (`Portrait.cs`, `Game.Dialogue.cs`, `Ui.cs`, `Session.cs`).
 - 2026-10-08 · **Guild jobs on the quest engine**: notice-board jobs, workshop commissions and the Journal are quests on the Guild track; an offer is one-shot per week, and a board never offers a delve to a depth already reached (`Game.Jobs.cs`, `Game.Workshops.cs`, `Ui.cs`).
 - 2026-10-08 · **Cult errands**: after the vial, the Drowned offer clearing the Sunken Vaults of human zombies and bringing them a blade of bone, both on the quest engine (`QuestBook.cs`, `Dialogues.cs`).
 - 2026-10-03 · **Rival party and the main questline**: four documents, the Reader, six endings, a new cycle (`Game.Rival.cs`, `Game.Main.cs`).
@@ -220,6 +221,7 @@ One line per feature, newest first inside each topic. Details: the [changelog](.
 - 2026-10-02 · **Achievements, bones, run history and the morgue** (`Achievements.cs`, `Bones.cs`, `Morgue.cs`).
 
 **Interface and controls**
+- 2026-10-08 · **Marked travel points**: `'` marks the cell underfoot for free, `Shift+'` walks to the nearest other mark and on to the next; a mark warms its cell on the map and is kept per level (`Game.Marks.cs`, `Commands.cs`, `Ui.cs`).
 - 2026-10-04 · **Stairs keys say Shift** on every keyboard, ABNT2 included.
 - 2026-10-02 · **Auto-explore, travel and rest**: `t`, `` ` ``, `~`, `Shift+S`, and held keys that keep walking (`Game.Explore.cs`, `Game.Repeat.cs`).
 - 2026-10-02 · **Animated water and square tiles** (`anim.ts`).

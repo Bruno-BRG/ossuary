@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Ossuary.Core.Items;
 using Ossuary.Core.Entities;
 
 namespace Ossuary.Core
@@ -10,12 +11,13 @@ namespace Ossuary.Core
     /// </summary>
     public sealed partial class Game
     {
-        public const int MaxCompanions = 1;
+        /// <summary>Two at most, so a sellsword and an archer can walk with the hero.</summary>
+        public const int MaxCompanions = 2;
         public readonly List<Monster> Companions = new List<Monster>();
         int _hired;
 
         static readonly string[] CompanionNames = { "Hald", "Wren", "Brask", "Ilse", "Torvin", "Maud", "Corvane", "Sedge" };
-        static readonly string[] CompanionRoles = { "sellsword", "shield-bearer", "cutthroat" };
+        static readonly string[] CompanionRoles = { "sellsword", "shield-bearer", "cutthroat", "archer" };
 
         public int HirePrice => 100 + 40 * Player.Level;
 
@@ -26,12 +28,18 @@ namespace Ossuary.Core
             string name = CompanionNames[(_hired * 5 + Rng.Range(0, CompanionNames.Length)) % CompanionNames.Length];
             _hired++;
             var def = Bestiary.Find("dwarf");
-            def.Name = role; def.Glyph = '@'; def.Color = role == "shield-bearer" ? 0x9FB8E0 : role == "cutthroat" ? 0xC49A6A : 0xD8C890;
+            def.Name = role; def.Glyph = '@'; def.Color = role == "shield-bearer" ? 0x9FB8E0 : role == "cutthroat" ? 0xC49A6A : role == "archer" ? 0xA0D080 : 0xD8C890;
             def.Ai = AiKind.Hunt; def.Undead = false; def.Explodes = false; def.Difficulty = 1;
             var m = new Monster(def, Rng) { Companion = true, CompanionRole = role, Ally = true, SummonTurns = 0, Alert = 0, Dormant = false };
             m.Name = role + " " + name;
             m.Unique = true;
             RescaleCompanion(m, 1f);
+            // An archer carries its own bow and a bundle of arrows: the shared pack starts with what the hero needs anyway.
+            if (role == "archer" && Trades.TryDef("short bow", out var bow))
+            {
+                m.Inventory.Add(new Item(bow, Rng, NextUid()) { Identified = true });
+                m.Inventory.Add(new Item(Ammo.Arrow, Rng, NextUid()) { Identified = true, Quantity = 20 });
+            }
             Companions.Add(m);
             return m;
         }
@@ -64,7 +72,9 @@ namespace Ossuary.Core
         /// <summary>Called right after a dungeon level is entered: companions arrive beside the hero.</summary>
         void PlaceCompanions()
         {
-            foreach (var c in Companions)
+            var followers = new List<Monster>(Companions);
+            followers.AddRange(Escorts);   // a freed captive walks behind the hero the same way (Game.Folk.cs)
+            foreach (var c in followers)
             {
                 if (c.HP <= 0) continue;
                 for (int ring = 1; ring <= 3; ring++)
@@ -85,7 +95,22 @@ namespace Ossuary.Core
             }
         }
 
-        /// <summary>Companions that were destroyed in the dungeon are gone for good.</summary>
+        /// <summary>F12: the companions hold where they stand, or follow the hero again. A holding companion fights only what comes next to it.</summary>
+        public bool OrderCompanions()
+        {
+            if (Companions.Count == 0)
+            {
+                Say(TownText.L("You have no companions to give orders to.", "Você não tem companheiros para dar ordens."), MessageKind.Info);
+                return false;
+            }
+            bool hold = !Companions[0].Holds;
+            foreach (var c in Companions) c.Holds = hold;
+            Say(hold ? TownText.L("Your companions hold where they stand.", "Seus companheiros ficam onde estão.")
+                     : TownText.L("Your companions follow you again.", "Seus companheiros voltam a seguir você."), MessageKind.Info);
+            return true;
+        }
+
+        /// <summary>Companions that were destroyed in the dungeon are gone for good; their pack falls where they died, shared with the hero.</summary>
         void ReapCompanions()
         {
             if (Mode != GameMode.Dungeon) return;
@@ -93,6 +118,11 @@ namespace Ossuary.Core
             {
                 var c = Companions[i];
                 if (c.HP > 0 && Monsters.Contains(c)) continue;
+                if (c.IsDead && Map != null)
+                {
+                    foreach (var it in c.Inventory) GroundItems.Add(Map.Number, c.X, c.Y, it);
+                    c.Inventory.Clear();
+                }
                 Companions.RemoveAt(i);
                 Say($"The {c.Name} has fallen.", MessageKind.Bad);
             }

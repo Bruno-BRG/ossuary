@@ -333,6 +333,8 @@ namespace Ossuary.Core
                     }
                     else if (vis) light = 0.75f;
                     theme.Shade(fg, bg, light, !vis, out Rgb ofg, out Rgb obg);
+                    // A travel mark warms its cell after shading, so it shows on remembered cells too (their background is a fixed wall tone).
+                    if (_g.IsMarked(mx, my)) obg = Rgb.Lerp(obg, theme.Remap(theme.Mark, true), 0.30f);
                     PutTile(sq, ox + x * sq, oy + y, g, ofg, bold, obg, entity);
                     if (water && g != '@' && _g.MonsterAt(mx, my) == null) { _t.Shimmer(ox + x * sq, oy + y); if (sq == 2) _t.Shimmer(ox + x * sq + 1, oy + y); }
                 }
@@ -1217,6 +1219,7 @@ namespace Ossuary.Core
                 { "Shift+G", "gather: butcher a carcass, or forage on the road" },
                 { "Shift+N", "train a skill with XP (Trained mode)" },
                 { "t  `  ~", "auto-explore / travel to the stairs / to an altar or fountain" },
+                { "'  \"", "mark a spot / walk to a mark" },
                 { "l  x  X", "look / inspect / swap with" },
                 { "O", "travel on the overworld" },
                 { "m", "toggle the minimap" },
@@ -1659,23 +1662,41 @@ namespace Ossuary.Core
         }
 
         /// <summary>The menu of whoever you bumped at a counter: browse, rest, heal, appraise, hear the news.</summary>
-        /// <summary>A conversation: who is speaking, what they say (several lines, wrapped), and the choices numbered below.</summary>
+        /// <summary>
+        /// A conversation: the person's face with their role and tags, what has been said so far (PgUp/PgDn read back),
+        /// and the choices numbered below.
+        /// </summary>
         void DrawDialoguePanel()
         {
             var theme = Theme.Current;
             var who = _g.Talking;
             var rows = _g.ServiceRows();
-            var note = new System.Collections.Generic.List<string>(Wrap(Loc.U(_g.ServiceNote ?? ""), 70));
-            if (note.Count > 10) note.RemoveRange(10, note.Count - 10);
-            int want = 9 + rows.Count + note.Count;
-            PanelRect(out int px, out int py, out int pw, out int ph, 78, want, who != null ? who.Name : "", "Up/Down  Enter chooses  Esc leaves");
+            const int shown = 7;
+            var lines = TranscriptLines(_g.DialogueLog, 70);
+            int maxScroll = Math.Max(0, lines.Count - shown);
+            _g.DialogueScroll = Math.Min(_g.DialogueScroll, maxScroll);
+            int start = Math.Max(0, lines.Count - shown - _g.DialogueScroll);
+            int want = 2 + Portrait.Height + 1 + shown + 1 + rows.Count + 2;
+            PanelRect(out int px, out int py, out int pw, out int ph, 78, want, who != null ? who.Name : "",
+                "Up/Down  Enter chooses  PgUp/PgDn reads back  Esc leaves");
             int x = px + 3, iw = pw - 6, y = py + 2;
-            if (who != null) _t.WriteClipped(x, y, Loc.U(TownText.RoleTitle(who.Role)), theme.Label, iw, false, theme.Panel);
-            y++;
+            if (who != null)
+            {
+                string[] face = Portrait.Rows(who);
+                for (int r = 0; r < face.Length; r++)
+                    _t.WriteClipped(x, y + r, face[r], r == 0 ? theme.Accent : r == face.Length - 1 ? theme.Rule : theme.Text, Portrait.Width, false, theme.Panel);
+                int tx = x + Portrait.Width + 2, tw = iw - Portrait.Width - 2;
+                _t.WriteClipped(tx, y, Loc.U(TownText.RoleTitle(who.Role)), theme.Label, tw, false, theme.Panel);
+                _t.WriteClipped(tx, y + 1, Loc.U(Portrait.MoodTag(who)), theme.Text, tw, false, theme.Panel);
+                _t.WriteClipped(tx, y + 2, Loc.U(Portrait.TemperTag(who.Persona != null ? who.Persona.Trait : Trait.Kind)), theme.Dim, tw, false, theme.Panel);
+            }
+            y += Portrait.Height;
             _t.HLine(px + 1, y, pw - 2, theme.Rule);
-            y += 2;
-            foreach (string line in note) _t.WriteClipped(x, y++, line, theme.Narrative, iw, false, theme.Panel);
+            if (start > 0) _t.Write(px + pw - 6, y, "...", theme.Dim, false, theme.Panel);
             y++;
+            for (int i = 0; i < shown && start + i < lines.Count; i++)
+                _t.WriteClipped(x, y + i, lines[start + i].Text, lines[start + i].Hero ? theme.Accent : theme.Narrative, iw, false, theme.Panel);
+            y += shown + 1;
 
             int sel = Math.Max(0, Math.Min(State.ServiceIndex, rows.Count - 1));
             for (int i = 0; i < rows.Count && y < py + ph - 1; i++, y++)
@@ -1691,6 +1712,19 @@ namespace Ossuary.Core
                 _t.WriteClipped(x + 3, y, rows[i].Label, fg, Math.Max(1, priceX - (x + 3) - 1), on, bg);
                 if (price.Length > 0) _t.Write(priceX, y, price, _g.CarryingGold() >= rows[i].Price ? theme.Gold : theme.Dim, on, bg);
             }
+        }
+
+        /// <summary>The conversation as wrapped lines, oldest first: the person's lines plain, the hero's answers marked with '>'.</summary>
+        System.Collections.Generic.List<(string Text, bool Hero)> TranscriptLines(System.Collections.Generic.IEnumerable<DialogueLine> log, int width)
+        {
+            var lines = new System.Collections.Generic.List<(string Text, bool Hero)>();
+            foreach (var line in log)
+            {
+                string text = Loc.U(line.Text ?? "");
+                if (line.Hero) text = "> " + text;
+                foreach (string part in Wrap(text, width)) lines.Add((part, line.Hero));
+            }
+            return lines;
         }
 
         void DrawServicePanel()

@@ -152,7 +152,8 @@ namespace Ossuary.Core
             b.Burned = true;
             b.Services = Service.None;
             if (b.Shop != null) { b.Shop.Stock.Clear(); b.Shop.Gold = 0; }
-            if (b.Keeper != null) { b.Keeper.HP = 0; Town.Npcs.Remove(b.Keeper); }
+            // The keeper dies in the fire, unless they are an essential person: those get out (main-quest.md, Essential NPCs).
+            if (b.Keeper != null && (b.Keeper.Persona == null || !b.Keeper.Persona.Essential)) { b.Keeper.HP = 0; Town.Npcs.Remove(b.Keeper); }
             if (!Town.Floors.TryGetValue(0, out var map)) return;
             for (int y = b.Y + 1; y < b.Y + b.H - 1; y++)
                 for (int x = b.X + 1; x < b.X + b.W - 1; x++)

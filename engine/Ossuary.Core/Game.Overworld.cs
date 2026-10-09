@@ -162,8 +162,8 @@ namespace Ossuary.Core
         public int ShopPrice(Shop shop, Item item)
         {
             int basePrice = item.TradeValue <= 0 ? 5 : StackValue(item);
-            // A rich shop marks up a little; the town, the week's road, the glut, Cha and the trader's mood do the rest.
-            int markup = 100 + Math.Min(30, shop.Gold / 60);
+            // A rich shop marks up a little; the town's memory of the hero (the ledger), the week's road, the glut, Cha and the trader's mood do the rest.
+            int markup = 100 + Math.Min(30, shop.Gold / 60) + TownMemoryPct();
             int price = Haggle(basePrice * markup / 100 * BuyPct(shop, GoodsClass(item.Def)) / 100, Houses.Guild);
             if (item.Def.Kind == ItemKind.Gold) price = 1;
             return Math.Max(1, price);

@@ -457,6 +457,11 @@ namespace Ossuary.Desktop
         void ServiceKey(string code)
         {
             var ui = Game.UiState;
+            if (Game.CurrentDialogue != null && (code == "PageUp" || code == "PageDown"))
+            {
+                Game.ScrollDialogue(code == "PageUp" ? 4 : -4);
+                return;
+            }
             var rows = Game.ServiceRows();
             int r = ListKey(code, ref ui.ServiceIndex, rows.Count, false);
             if (r == -2) { ui.Active = Panel.None; return; }

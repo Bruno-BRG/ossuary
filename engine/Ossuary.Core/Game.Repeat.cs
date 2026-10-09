@@ -32,13 +32,13 @@ namespace Ossuary.Core
         /// <summary>Where the player stands on the map that is being walked (the world map on the overworld).</summary>
         public (int X, int Y) WalkPosition() => Mode == GameMode.Overworld ? (World.PlayerX, World.PlayerY) : (Player.X, Player.Y);
 
-        /// <summary>An awake enemy the player can see right now (allies and townsfolk never count).</summary>
+        /// <summary>An awake enemy the player can see right now (allies, townsfolk and the other people of the dungeon never count).</summary>
         public bool HostileInView()
         {
             for (int i = 0; i < Monsters.Count; i++)
             {
                 var m = Monsters[i];
-                if (m.Ally || m.Townsperson || m.Dormant || m.HP <= 0) continue;
+                if (m.Ally || m.Townsperson || m.Dormant || m.HP <= 0 || m.Folk != FolkKind.None) continue;
                 if (Map.IsCurrentlyVisible(m.X, m.Y)) return true;
             }
             return false;

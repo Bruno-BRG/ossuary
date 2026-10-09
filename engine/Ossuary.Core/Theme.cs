@@ -223,6 +223,9 @@ namespace Ossuary.Core
         /// <summary>An engraved floor cell: the cut letters catch the light.</summary>
         public Rgb Engraving => H(0xD8C890);
 
+        /// <summary>A travel mark the hero set: a warm glow under the cell, whatever stands on it.</summary>
+        public Rgb Mark => H(0xE0B040);
+
         void SurfaceStyleInner(SurfaceKind k, int x, int y, int turn, out char glyph, out Rgb fg, out Rgb bg)
         {
             switch (k)

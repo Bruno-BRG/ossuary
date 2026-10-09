@@ -78,7 +78,16 @@ matching altar. The epilogue lines are assembled from truths and the ending id.
 ## Essential NPCs ★
 
 Rules from `living-world.md`: knocked out, never killed by normal means; punished by the Watch; recover after days.
-Extra rules so the story can **never softlock**:
+Extra rules so the story can **never softlock**.
+
+**As built (2026-10-08).** The essential set is the Elder, the Reader, the Captain, the High Priest and the Cult's voice (the beggar).
+Every one has an apprentice in the same town (*Successor* in the table below). A blow at one who lies out cold is an extreme act:
+the first two leave them down, each with a bounty and a loss of standing with the Watch and the Temple; the third removes them. The
+apprentice takes the post where the fallen stood, keeps the building's counter, starts 30 disposition lower and **owes one favour**:
+the quest `heir.<role>` (put down three of a kind, then report to the new holder). The post's talk (`Talk(role)`) counts only after
+the report. An heir removed while owing takes the favour with them. With no apprentice left, the post stands vacant and the Guild
+posts a Messenger notice naming the empty posts wherever its counter or board is read; the League's councils in other towns sign
+for the hero, because `Talk(role)` matches any holder of the role.
 
 1. **Every essential has a successor** generated in the same town (`Persona.Successor`): co-councillor, apprentice,
    lieutenant, acolyte, second in the Cult. If an essential is removed by a story event or an extreme act, the successor
@@ -100,7 +109,9 @@ Extra rules so the story can **never softlock**:
 | Cult speaker | The Archive Opens | the second voice | the Drowned altars in the Vaults |
 
 The Archivist's Shade and the guardian of the deep are not NPCs in this sense: they are encounters that can be failed
-and retried (the Shade returns after a few days, the guardian is a boss with a retry through bones).
+and retried. As built (2026-10-08) both are bosses that stay until they fall: the Shade does not return after a few days (no timer), and the guardian's retry is the existing bones system.
+
+**As built (2026-10-08).** Both are `BossDef`s (`Game.Bosses.cs`): the Shade on The Sunken Vaults at level 10, the Guardian of the Deep on The Ashen Spire at level 12. A boss stays on its level until it falls, so a hero who flees or dies finds it where it stood; the bones a death leaves are the cross-run retry that already exists. There is no timer that brings the Shade back after a few days: the spec's timer is not built. The ceremony's speaker is the living holder of the house's post in a town the hero has walked into this run (`Game.Main.cs`, `HouseSpeaker`); with the post empty, the rite is done at the altar. The morgue records the ending (`Morgue.cs`, `EndingName`).
 
 ## Quest-engine mapping (`living-world.md`)
 
@@ -126,15 +137,14 @@ Deadlines: **none** on the Main track. The only time-based failures are Rival ra
   save/load mid-chain.
 - Morgue and the daily leaderboard record the ending id; achievements per ending and for all six.
 
-## Open questions
-
-- Shape of the new game plus (see *Decisions*): what carries over and what resets.
-
 ## Decisions (2026-10-03)
 
 - **New game plus is in.** The Stamp (and, where it fits, other endings) can continue play as a new cycle instead of ending the run.
-  Candidate carry-over: the ledger of deeds as legend, the truths as knowledge, the hero's name and a few earned marks;
-  candidate reset: gold, most items, local reputation, bounties. Details to settle with the `WorldLedger`.
+  Settled 2026-10-08 (as built in `StartNewCycle`, `Game.Main.cs`): the hero keeps gold, pack, gear (all but the Amulet), level, skills,
+  companions and House standing; the truths, the ledger (the legend), the towns' memory and the bosses that fell stay. What resets: every
+  bounty, the Amulet (no second one is placed, so the hunt does not start over), health (full), and the seal errand (an open one leaves the
+  journal; the Elder does not offer it again). The hero comes up on the overworld. The candidate reset of gold, most items and local
+  reputation was not taken: the Houses remember what the hero did, and the new cycle is the reward for the ending.
 - **The truths change the world.** Each truth becomes public history with visible effects (e.g. after *The Vote*, Iron Holds guards and shopkeepers
   are cold or hostile to the hero; after *The Order*, the League council's lines and prices change). This follows the world-memory principle in `living-world.md` (pillar 9):
   important actions must be felt and remembered by the people around the hero.

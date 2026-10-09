@@ -22,6 +22,13 @@ namespace Ossuary.Core
         public readonly List<DChoice> Choices = new List<DChoice>();
     }
 
+    /// <summary>One line of a conversation as it was said: what the person said, or the answer the hero gave.</summary>
+    public sealed class DialogueLine
+    {
+        public bool Hero;
+        public string Text;
+    }
+
     /// <summary>A short branching conversation, written as data. The PT of every string goes beside its EN through TownText.L.</summary>
     public sealed class Dialogue
     {

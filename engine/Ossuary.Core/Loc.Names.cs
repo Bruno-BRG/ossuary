@@ -64,7 +64,7 @@ namespace Ossuary.Core
             N("sellsword", "mercenário"); N("shield-bearer", "porta-escudo"); N("cutthroat", "degolador");
             // The kings of the branches: a rumour names them, so they are names like any other.
             N("Gaoler", "Carcereiro"); N("Stone Warden", "Guardião de Pedra"); N("Rat King", "Rei dos Ratos");
-            N("Drowned King", "Rei Afogado"); N("Ashen Regent", "Regente de Cinzas"); N("Annex Warden", "Guardião do Anexo");
+            N("Drowned King", "Rei Afogado"); N("Ashen Regent", "Regente de Cinzas"); N("Archivist's Shade", "Sombra do Arquivista"); N("Guardian of the Deep", "Guardião das Profundezas"); N("Annex Warden", "Guardião do Anexo");
         }
 
         // ------------------------------------------------------------------ items

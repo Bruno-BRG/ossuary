@@ -52,6 +52,7 @@ namespace Ossuary.Desktop
                 case "KeyW": return shift ? "W" : "w";
                 case "KeyT": return shift ? "T" : "explore";
                 case "Backquote": return shift ? "feature" : "stairs";
+                case "Quote": return shift ? "marks" : "mark";
                 case "KeyP": return shift ? "P" : "g";
                 case "KeyR": return shift ? "R" : "r";
                 case "KeyZ": return shift ? "Z" : "z";
