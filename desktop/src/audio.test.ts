@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { cueAllowed, cueCooldown, cueStinger, cuesToPlay, level, musicLevel, patterns, stingerLevel, trackFor, tracks, uiPatterns, uiSoundFor, type TrackName } from './audio';
+import { cueAllowed, cueCooldown, cueStinger, cuesToPlay, isLaunchCue, launchCues, level, musicLevel, patterns, stingerLevel, trackFor, tracks, uiPatterns, uiSoundFor, type TrackName } from './audio';
 import { stingerInfo } from './stingers';
+
+// One cast sound per element, in the order of the engine's Elem enum (Game.SpellCue).
+const elementCues = ['arcane', 'fire', 'frost', 'shock', 'rot', 'holy', 'venom', 'nature', 'shadow', 'earth', 'blood', 'water', 'mind', 'wind'];
 
 describe('sound cues', () => {
   it('knows every cue the engine can name', () => {
-    for (const cue of ['death', 'levelup', 'kill', 'hurt', 'hit', 'quest', 'magic', 'warn', 'good', 'stairs', 'door', 'pickup']) {
+    for (const cue of ['death', 'levelup', 'kill', 'hurt', 'hit', 'quest', ...elementCues, 'warn', 'good', 'stairs', 'door', 'pickup']) {
       expect(patterns[cue], cue).toBeDefined();
       for (const [freq, seconds] of patterns[cue]!) {
         expect(freq).toBeGreaterThanOrEqual(0);
@@ -12,6 +15,13 @@ describe('sound cues', () => {
         expect(seconds).toBeLessThan(0.5);
       }
     }
+  });
+  it('gives each element its own cast sound, heard at the launch of an animation', () => {
+    expect(new Set(elementCues).size).toBe(14);
+    for (const cue of elementCues) expect(isLaunchCue(cue), cue).toBe(true);
+    expect(launchCues.size).toBe(14);
+    expect(isLaunchCue('hit')).toBe(false);
+    expect(isLaunchCue('kill')).toBe(false);
   });
   it('ignores cues it has never heard of, and missing ones', () => {
     expect(cuesToPlay(['hit', 'nope', 'kill'])).toHaveLength(2);

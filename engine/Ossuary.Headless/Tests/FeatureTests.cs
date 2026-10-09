@@ -2062,14 +2062,16 @@ namespace Ossuary.Tests
 
         static void JobsPinned()
         {
-            // Recorded from the old board, before the job engine: the same offers must come out.
+            // Recorded from the old board, before the job engine: the same offers must come out. Version 22 re-recorded
+            // road week 1 and Racetown weeks 0 and 1: the dark acolyte joined the depth 4 and 5 spawn tables, which shifts
+            // the picks a hunt draws from them. The offers' rules did not change; the monsters did.
             var expect = new Dictionary<string, string[]>
             {
                 ["road|0"] = new[] { "hunt|The Sunken Vaults|dwarf|6|282|guild", "delve|The Ashen Spire||4|220|watch", "delve|The Sunken Vaults||4|220|guild" },
-                ["road|1"] = new[] { "hunt|The Warrens|viper|6|186|guild", "hunt|The Ashen Spire|orc|4|198|watch", "hunt|The Sunken Vaults|yellow mold|5|80|guild" },
+                ["road|1"] = new[] { "hunt|The Warrens|viper|6|186|guild", "hunt|The Ashen Spire|centipede|4|166|watch", "hunt|The Sunken Vaults|gnome|5|200|guild" },
                 ["road|2"] = new[] { "delve|The Ashen Spire||4|220|guild", "delve|The Mines of Dwarfdeep||4|220|watch", "delve|The Warrens||4|220|guild" },
-                ["Racetown|0"] = new[] { "delve|The Ashen Spire||7|340|guild", "hunt|The Mines of Dwarfdeep|dwarf|6|282|watch", "delve|The Mines of Dwarfdeep||7|340|guild" },
-                ["Racetown|1"] = new[] { "delve|The Warrens||4|220|guild", "hunt|The Warrens|jackal|6|138|watch", "delve|The Dungeons||6|300|guild" },
+                ["Racetown|0"] = new[] { "delve|The Ashen Spire||7|340|guild", "hunt|The Mines of Dwarfdeep|brown mold|6|90|watch", "delve|The Mines of Dwarfdeep||7|340|guild" },
+                ["Racetown|1"] = new[] { "delve|The Warrens||4|220|guild", "hunt|The Warrens|hobbit|6|138|watch", "delve|The Dungeons||6|300|guild" },
                 ["Racetown|2"] = new[] { "delve|The Ashen Spire||7|340|guild", "hunt|The Sunken Vaults|grid bug|6|90|watch", "hunt|The Sunken Vaults|jackal|5|120|guild" },
             };
             var g = Game.NewHero(1700, "Pin", "human", "fighter"); g.Monsters.Clear();
@@ -3295,7 +3297,7 @@ namespace Ossuary.Tests
             var ogre = new Monster(Bestiary.Find("ogre"), mage.Rng) { X = x, Y = y }; ogre.HP = ogre.MaxHP = 4000; mage.Monsters.Add(ogre);
             mage.DrainCues();
             Assert(Cast(mage, "magic-missile", x, y), "cast");
-            Assert(Array.IndexOf(mage.DrainCues(9), "magic") >= 0, "casting is heard");
+            Assert(Array.IndexOf(mage.DrainCues(9), "arcane") >= 0, "casting is heard, with the cue of its element");
 
             // Stairs and loose items are heard too.
             var walker = Game.NewHero(2402, "Steps", "human", "fighter");

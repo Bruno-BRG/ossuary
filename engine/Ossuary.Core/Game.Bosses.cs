@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Ossuary.Core.Entities;
 using Ossuary.Core.Items;
+using Ossuary.Core.Magic;
 
 namespace Ossuary.Core
 {
@@ -45,6 +46,10 @@ namespace Ossuary.Core
                 Level = 18, HP = 260, AC = 3, Speed = 12, Sides = 10, ToHit = 8,
                 Intro = "The air at the top of the Spire is thick enough to chew. The Ashen Regent is not hungry. It is angry.",
                 Phase2 = "The Ashen Regent splits its crown, and the cinders stand up.", Fall = "The Ashen Regent comes apart like a log in a fire." },
+            new BossDef { Id = "sallow-magister", Name = "Sallow Magister", Branch = "The Dungeons", Depth = 7, Base = "dwarf lord", Glyph = 'M', Color = 0xB090F0,
+                Level = 10, HP = 100, AC = 2, Speed = 11, Sides = 6, ToHit = 6,
+                Intro = "Pale candles burn in cells where no one lights them. The Sallow Magister is writing in a book that bleeds.",
+                Phase2 = "The Sallow Magister tears out a page, and the page burns in the air.", Fall = "The Sallow Magister folds like a bad letter, and the candles go out." },
         };
 
         public static BossDef ForLevel(string branch, int depth)
@@ -169,6 +174,9 @@ namespace Ossuary.Core
                         CheckDeath();
                         return true;
                     }
+                    break;
+                case "sallow-magister":
+                    if (MonsterCasts(m, dist, MonsterSpells.ForBoss(m.BossId, angry), MonsterSpells.BossChance)) return true;
                     break;
                 case "annex-warden":
                     return AnnexWardenTurn(m, dist, angry, clock, seen);

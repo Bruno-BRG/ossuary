@@ -168,6 +168,77 @@ namespace Ossuary.Core
             }
         }
 
+        /// <summary>
+        /// A shock on ice runs along the connected ice within reach, the way <see cref="Conduct"/> runs through water: whoever stands on
+        /// the ice pays, the hero included. The bolt is drawn from cell to cell.
+        /// </summary>
+        void ConductIce(int cx, int cy, int dmg, Monster skip)
+        {
+            if (SurfaceAt(cx, cy) != SurfaceKind.Ice) return;
+            var seen = new HashSet<int> { cy * Map.W + cx };
+            var queue = new Queue<int>(); queue.Enqueue(cy * Map.W + cx);
+            var hit = new List<Monster>();
+            var points = new List<(int x, int y)> { (cx, cy) };
+            bool hitPlayer = false;
+            while (queue.Count > 0 && seen.Count < 60)
+            {
+                int idx = queue.Dequeue(); int x = idx % Map.W, y = idx / Map.W;
+                var m = MonsterAt(x, y);
+                if (m != null && m != skip && !m.IsDead && !m.Ally) { hit.Add(m); points.Add((x, y)); }
+                if (Player.X == x && Player.Y == y) hitPlayer = true;
+                for (int k = 0; k < 8; k++)
+                {
+                    int nx = x + Pathfinder.Dx8[k], ny = y + Pathfinder.Dy8[k];
+                    if (!Map.InBounds(nx, ny) || Math.Max(Math.Abs(nx - cx), Math.Abs(ny - cy)) > 4) continue;
+                    int ni = ny * Map.W + nx;
+                    if (seen.Contains(ni) || Map.SurfaceAt(nx, ny) != SurfaceKind.Ice) continue;
+                    seen.Add(ni); queue.Enqueue(ni);
+                }
+            }
+            if (hit.Count == 0 && !hitPlayer) return;
+            Say("The shock runs along the ice!", MessageKind.Combat);
+            var pts = points;
+            Fx((tl, s) => FxLib.Chain(tl, s, pts, Elem.Lightning));
+            foreach (var m in hit) ElementalDamage(m, dmg, DamageType.Lightning);
+            if (hitPlayer)
+            {
+                int d = Player.ResistDamage(dmg, DamageType.Lightning);
+                Player.HP -= d; HurtBy("an electric shock");
+                Say($"The ice carries the shock into you for {d}!", MessageKind.Bad);
+            }
+        }
+
+        /// <summary>
+        /// A wet creature struck by lightning arcs to the nearest other wet hostile within 3 cells of the last one, up to three times,
+        /// each jump at half the damage of the one before. Creatures standing in water are handled by <see cref="Conduct"/> instead.
+        /// </summary>
+        void Arc(Monster first, int dmg)
+        {
+            var struck = new HashSet<Monster> { first };
+            var points = new List<(int x, int y)> { (first.X, first.Y) };
+            var cur = first;
+            for (int jump = 0; jump < 3; jump++)
+            {
+                Monster next = null; int best = int.MaxValue;
+                foreach (var m in Monsters)
+                {
+                    if (m.IsDead || m.Ally || struck.Contains(m) || m.WetTurns <= 0 || !Map.IsVisible(m.X, m.Y)) continue;
+                    int d = Pathfinder.Chebyshev(cur.X, cur.Y, m.X, m.Y);
+                    if (d <= 3 && d < best) { next = m; best = d; }
+                }
+                if (next == null) break;
+                struck.Add(next);
+                points.Add((next.X, next.Y));
+                Say($"The lightning arcs to the {next.TheName}.", MessageKind.Combat);
+                ElementalDamage(next, dmg, DamageType.Lightning);
+                dmg = Math.Max(1, dmg / 2);
+                cur = next;
+            }
+            if (points.Count == 1) return;
+            var pts = points;
+            Fx((tl, s) => FxLib.Chain(tl, s, pts, Elem.Lightning));
+        }
+
         // ------------------------------------------------------------ the tick
 
         /// <summary>Once per turn on the current level: fire spreads and dies, ice melts, puddles dry, creatures are exposed.</summary>

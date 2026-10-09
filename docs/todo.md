@@ -19,7 +19,7 @@ How a system works lives in [`design/systems.md`](design/systems.md); what shipp
 | Topic | Where it stands | Next |
 |---|---|---|
 | [Combat and bodies](#combat-and-bodies) | wounds, called shots, severed parts, bandages, martial techniques | limbs as trophies, burns |
-| [Magic](#magic) | 322 spells, 55 books, animations | monsters that cast, ice × lightning |
+| [Magic](#magic) | 322 spells, 55 books, animations, casting monsters and a boss that casts, ice × lightning, hits on arrival, element sounds | the Magister's balance, from real play |
 | [Items and materials](#items-and-materials) | materials, wear, relics with biographies and deeds, identify by use, services, examine, ammunition | done; new ideas go in the topic |
 | [Crafting and trades](#crafting-and-trades) | 16 trades, ~105 recipes, forge, loom and still, fletching, named masterworks, crafters, archers | done; new ideas go in the topic |
 | [Economy and market](#economy-and-market) | glut, caravans you meet on the road, haggling, traders' memory, counter, tolls, town smiths' work | done; new ideas go in the topic |
@@ -44,10 +44,9 @@ How a system works lives in [`design/systems.md`](design/systems.md); what shipp
 
 ## Magic
 
-- [ ] **Monsters that cast**: sorcerers and new bosses using real spells, with their animations.
-- [ ] **Ice × lightning**: frozen targets conduct, wet ones arc.
-- [ ] **Damage with the projectile**: the hit lands when the bolt arrives, not before the animation.
-- [ ] **Per-element sound** and a key to skip a whole animation.
+Plan and rationale in [`roadmap/magic.md`](roadmap/magic.md).
+
+- [ ] **Sallow Magister balance**: the dive bot meets it on its path and dies to it about a quarter of the time (`headless balance 12 1500 dive`); tune it from real play, not from the bot alone.
 
 ## Items and materials
 
@@ -140,6 +139,10 @@ One line per feature, newest first inside each topic. Details: the [changelog](.
 - 2026-10-02 · **Found traps and disarming**: search and passive perception reveal traps, `Shift+A` disarms (`Game.Traps.cs`).
 
 **Magic**
+- 2026-10-08 · **Casting monsters**: orc shamans, dark acolytes and sorcerers cast real recipe spells at the hero in sight, animated from their own cell; the Sallow Magister (The Dungeons, depth 7) casts in both phases (`Game.Casters.cs`, `Magic/MonsterSpells.cs`, `Game.Bosses.cs`).
+- 2026-10-08 · **Ice and arcing lightning**: lightning runs along connected ice and arcs from one wet creature to the next (`Game.Surfaces.cs`).
+- 2026-10-08 · **Hits on arrival**: a bolt's damage, death, log and map change when it lands; the previous frame holds until then (`Fx.cs`, `Session.cs`, `fx.ts`, `main.ts`).
+- 2026-10-08 · **Element sounds and skip**: one cast cue per element, outcome sounds held for the hit; Escape skips a running animation (`Game.Sound.cs`, `audio.ts`, `main.ts`).
 - 2026-10-03 · **322 spells, 55 books, animations**: eight schools, recipes as data, every spell animated (`Game.Magic.Recipes.cs`, `Fx.cs`).
 - 2026-10-02 · **Corruption and surface spells**: Steam Burst, Create Oil, Ossify, Reshape Flesh, Marrow Bolt, Purify, Ice Lance.
 - 2026-10-02 · **Mourne, rival gods, sacrifice and trials** (`Game.Gods.cs`).

@@ -11,7 +11,18 @@ namespace Ossuary.Core
     public sealed partial class Game
     {
         /// <summary>Loudest first: when several cues pile up in one frame only the strongest few are played.</summary>
-        static readonly string[] CuePriority = { "death", "danger", "levelup", "kill", "hurt", "hit", "quest", "magic", "warn", "good", "stairs", "door", "pickup", "rest" };
+        static readonly string[] CuePriority =
+        {
+            "death", "danger", "levelup", "kill", "hurt", "hit", "quest",
+            "arcane", "fire", "frost", "shock", "rot", "holy", "venom", "nature", "shadow", "earth", "blood", "water", "mind", "wind",
+            "warn", "good", "stairs", "door", "pickup", "rest",
+        };
+
+        /// <summary>The cast cue of each element, in <see cref="Elem"/> order. The front end has one short sound per name.</summary>
+        static readonly string[] ElementCues = { "arcane", "fire", "frost", "shock", "rot", "holy", "venom", "nature", "shadow", "earth", "blood", "water", "mind", "wind" };
+
+        /// <summary>The sound a spell makes as it is cast: its element's cue.</summary>
+        public static string SpellCue(Elem e) => ElementCues[(int)e];
 
         readonly List<string> _cues = new List<string>();
 

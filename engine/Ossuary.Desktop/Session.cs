@@ -30,6 +30,8 @@ namespace Ossuary.Desktop
         ulong _seed;
         int _generation;
         bool _replaying, _quitRan;
+        /// <summary>The impact step of the animation sent with the last frame (Frame.FxHit), set by BuildFx.</summary>
+        int _fxHit = -1;
         List<string> _log = new List<string>();
 
         public Session() { RefreshSave(); }
@@ -702,7 +704,7 @@ namespace Ossuary.Desktop
                 PanelLabel = Loc.T(Game.UiState.Active.ToString()), ModeLabel = Loc.T(Game.Mode.ToString()),
                 Sounds = _replaying || AtTitle || Intro ? new string[0] : Game.DrainCues(),
                 Scene = AtTitle || Intro ? "" : Game.MusicScene(),
-                Fx = BuildFx(screen.Width), FxMs = FxTimeline.StepMs,
+                Fx = BuildFx(screen.Width), FxMs = FxTimeline.StepMs, FxHit = _fxHit,
                 Anim = AtTitle || Intro || Game.UiState.Active != Panel.None || Game.PendingChoice.Active || Game.Mode == GameMode.GameOver || Game.Mode == GameMode.Won ? new int[0] : screen.ShimmerCells(),
             };
         }
@@ -714,9 +716,12 @@ namespace Ossuary.Desktop
         /// </summary>
         int[][] BuildFx(int cols)
         {
+            int hit = Game.FxImpact;
             var steps = Game.DrainFx();
             var ui = Hud.Ui;
+            _fxHit = -1;
             if (steps.Count == 0 || _replaying || AtTitle || Intro || Game.UiState.Active != Panel.None || Game.PendingChoice.Active || ui.MapViewW <= 0) return new int[0][];
+            _fxHit = hit;
             var theme = Theme.Current;
             int sq = ui.MapSq;
             var result = new int[steps.Count][];
@@ -785,5 +790,7 @@ namespace Ossuary.Desktop
         /// <summary>A spell or ability animation to play over this frame: steps of [cell, glyph, fg, bg] quadruples, FxMs apart.</summary>
         public int[][] Fx { get; set; }
         public int FxMs { get; set; }
+        /// <summary>The step at which the animation's projectile lands. Until then the front end shows the previous frame; -1 when nothing flies.</summary>
+        public int FxHit { get; set; } = -1;
     }
 }

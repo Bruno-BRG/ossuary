@@ -209,7 +209,7 @@ namespace Ossuary.Core
             }
 
             if (!free) { p.Mp -= spell.Cost; p.MpTimer = 0; }
-            Cue("magic");
+            Cue(SpellCue(spell.Elem));
             PlaySpellFx(spell, tx, ty);
             ApplySpell(spell, target, tx, ty);
             if (!free) GodsOnCast(spell);

@@ -79,6 +79,8 @@ board or altar opens the shop or service menu (letters choose, Esc leaves). At a
 `?` or `/` help — `m` minimap — `F5` saves the run — `F2` or `Esc` menu — `F3` CRT — `F4` theme —
 `Ctrl-Q` twice quits (abandons the run) — `Esc`/`Enter` closes a panel
 
+While a spell animation plays, `Esc` ends it at once (the last frame is drawn and the sounds it held are heard). The key is not passed on, so it does not open the menu then.
+
 ## Death
 
 Any key restarts the run (new seed). `Esc` on death leaves play.

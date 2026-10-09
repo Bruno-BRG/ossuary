@@ -5,7 +5,7 @@
 **A dark-fantasy ASCII roguelike.** The world threw its dead, its kings and its gods into one pit.
 You climb down to steal what is left.
 
-![Version 21](https://img.shields.io/badge/version-21-c8a050?style=flat-square)
+![Version 22](https://img.shields.io/badge/version-22-c8a050?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-5fa85f?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-Windows%20x64-4a6ea8?style=flat-square)
 ![Engine](https://img.shields.io/badge/engine-C%23%20.NET%2010-7c4dff?style=flat-square)
@@ -26,11 +26,12 @@ Descend through the Ossuary, take the **Amulet of Yendor**, and bring it back to
 fixed 8×16 bitmap font on a CRT-style terminal; the world is a turn-based dungeon crawl with a living overworld above it.
 The seed *is* the save: same seed, same keys, same run.
 
-### What is in **version 21**
+### What is in **version 22**
 
 | | |
 |---|---|
-| 📋 **Hired hands** *(new)* | The notice board's jobs are real quests in your journal: hunt a branch's beasts, reach a depth in a branch, or take a workshop's commission and deliver the piece at any workshop that teaches its trade. Report hunts and delves to any notice board. A job you take is not offered again that week, and you can carry three at once. Once the Drowned have their vial, they offer two errands of their own. |
+| 🔥 **Spells that answer back** *(new)* | Casters cast at you: orc shamans, dark acolytes and sorcerers pick a real spell from their own list and fire it from their cell, animated, and every cast lands. The Sallow Magister, on the seventh level of the Dungeons, casts in both its phases. Lightning runs along ice and arcs from one wet creature to the next. A bolt's damage lands when it arrives, not when the animation starts, and each element has its own cast sound. Escape skips an animation. |
+| 📋 **Hired hands** | The notice board's jobs are real quests in your journal: hunt a branch's beasts, reach a depth in a branch, or take a workshop's commission and deliver the piece at any workshop that teaches its trade. Report hunts and delves to any notice board. A job you take is not offered again that week, and you can carry three at once. Once the Drowned have their vial, they offer two errands of their own. |
 | 🏛️ **The world remembers** | A past generated from the seed: houses rising and falling, kings succeeding by blood, by the sword or by the lords' choice, wars, plagues, towns that burned, and the dead buried on real levels with their names cut in the stone. The F8 legends panel collects what you learn from bards, scholars, shelves, rumours, engravings and tombs. Blood by species and fading trails: a bleeding hero is smelled, and Shift+M follows wounded prey. Raids come for towns on one day of a week: fight them in the streets or find a shop burned. |
 | 📜 **Every trade** | Potions, scrolls and wands are learned by using them. Relics have a history generated from the seed (who forged them, for whom, how they were lost) and remember the bosses they killed. Looms and stills, crafters who keep working, kobold archers with real arrows, caravans you guard or rob on the road, haggling at the counter, and traders who remember what you did. |
 | 🏹 **Forge to market** | Bows, crossbows and slings loose real arrows, bolts and stones: each shot spends one, and you pick them up where they fell. Fletch your own, with silver heads for the dead. A master's best work sometimes earns a name and becomes a relic of its maker. `Shift+I` examines anything: metal, maker, quality, wear, worth. Town smiths sell their own signed work. |
@@ -70,10 +71,10 @@ The seed *is* the save: same seed, same keys, same run.
 
 ## Install (players)
 
-Download the installer `Ossuary_0.21.0_x64-setup.exe` (Windows x64) from a [release](https://github.com/Bruno-BRG/ossuary/releases)
+Download the installer `Ossuary_0.22.0_x64-setup.exe` (Windows x64) from a [release](https://github.com/Bruno-BRG/ossuary/releases)
 or the build output, and run it. No SDK is needed. WebView2 is required (preinstalled on Windows 11).
 
-> The public name of a release is just **Version N** (this one is **Version 21**). Installers and manifests use the matching
+> The public name of a release is just **Version N** (this one is **Version 22**). Installers and manifests use the matching
 > `0.N.0`, because Windows installers and npm/Cargo want three numbers.
 
 ## Build from source

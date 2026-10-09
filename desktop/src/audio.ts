@@ -14,13 +14,31 @@ export const patterns: Readonly<Record<string, Pattern>> = {
   death: [[220, 0.12], [165, 0.14], [110, 0.18], [73, 0.3]],
   levelup: [[262, 0.07], [330, 0.07], [392, 0.07], [523, 0.16]],
   quest: [[392, 0.08], [0, 0.03], [392, 0.08], [523, 0.14]],
-  magic: [[600, 0.03], [900, 0.03], [1200, 0.05]],
   warn: [[300, 0.05], [0, 0.03], [300, 0.05]],
   good: [[440, 0.04], [587, 0.07]],
   stairs: [[220, 0.06], [196, 0.06], [175, 0.06], [147, 0.14]],
   door: [[90, 0.05], [140, 0.04]],
   pickup: [[784, 0.03], [1047, 0.07]],
+  // A spell's cast sound, one per element (Game.SpellCue): the launch of the animation, heard at once.
+  arcane: [[700, 0.03], [1050, 0.05]],
+  fire: [[160, 0.04], [240, 0.04], [330, 0.06]],
+  frost: [[1600, 0.03], [2100, 0.03], [2600, 0.05]],
+  shock: [[1200, 0.02], [110, 0.03], [1000, 0.02], [90, 0.04]],
+  rot: [[220, 0.06], [196, 0.08]],
+  holy: [[523, 0.06], [659, 0.06], [784, 0.1]],
+  venom: [[330, 0.04], [277, 0.04], [247, 0.06]],
+  nature: [[392, 0.05], [440, 0.05], [523, 0.07]],
+  shadow: [[196, 0.1], [147, 0.12]],
+  earth: [[98, 0.1], [82, 0.12]],
+  blood: [[262, 0.05], [196, 0.08]],
+  water: [[600, 0.03], [480, 0.03], [720, 0.04]],
+  mind: [[880, 0.03], [740, 0.03], [880, 0.03]],
+  wind: [[300, 0.06], [500, 0.06], [700, 0.08]],
 };
+
+/** The cast cues (one per element). They play when an animation starts; the cues that describe its outcome wait for the hit. */
+export const launchCues: ReadonlySet<string> = new Set(['arcane', 'fire', 'frost', 'shock', 'rot', 'holy', 'venom', 'nature', 'shadow', 'earth', 'blood', 'water', 'mind', 'wind']);
+export function isLaunchCue(cue: string): boolean { return launchCues.has(cue); }
 
 /** Menu blips, played by the front end itself (the engine does not know about them). */
 export const uiPatterns: Readonly<Record<string, Pattern>> = {
@@ -31,8 +49,11 @@ export const uiPatterns: Readonly<Record<string, Pattern>> = {
 };
 
 /** Cues that are not square waves: a softer shape for friendly sounds, noise mixed under the blunt ones. */
-const waves: Readonly<Record<string, OscillatorType>> = { good: 'triangle', pickup: 'triangle', stairs: 'triangle', levelup: 'triangle', quest: 'triangle' };
-const noiseSeconds: Readonly<Record<string, number>> = { hit: 0.05, hurt: 0.08, kill: 0.06, door: 0.08, death: 0.2 };
+const waves: Readonly<Record<string, OscillatorType>> = {
+  good: 'triangle', pickup: 'triangle', stairs: 'triangle', levelup: 'triangle', quest: 'triangle',
+  arcane: 'triangle', frost: 'triangle', holy: 'triangle', nature: 'triangle', shadow: 'triangle', water: 'triangle', mind: 'triangle', wind: 'triangle',
+};
+const noiseSeconds: Readonly<Record<string, number>> = { hit: 0.05, hurt: 0.08, kill: 0.06, door: 0.08, death: 0.2, fire: 0.05, shock: 0.03, earth: 0.06, wind: 0.04 };
 
 /** Output level, 0..~0.15: master and effects volumes are 0..10, and the bleeps are kept polite. */
 export function level(master: number, effects: number): number {

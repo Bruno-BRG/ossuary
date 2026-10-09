@@ -258,8 +258,14 @@ namespace Ossuary.Core
                     }
                     break;
                 case DamageType.Lightning:
-                    Conduct(m.X, m.Y, Math.Max(1, dmg / 2), m);
-                    break;
+                    {
+                        int half = Math.Max(1, dmg / 2);
+                        var here = SurfaceAt(m.X, m.Y);
+                        if (here == SurfaceKind.Ice) ConductIce(m.X, m.Y, half, m);
+                        else if (here == SurfaceKind.Water) Conduct(m.X, m.Y, half, m);
+                        else if (!m.IsDead && m.WetTurns > 0) Arc(m, half);
+                        break;
+                    }
             }
         }
 
