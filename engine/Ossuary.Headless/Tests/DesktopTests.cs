@@ -632,10 +632,70 @@ namespace Ossuary.Desktop
             Check(p.God == null && g.UiState.Active == Panel.None, "the second press renounces");
         }
 
+        /// <summary>
+        /// The first-run question, the Esc that closes a card, the F2 rows and the file the host keeps.
+        /// Runs last: it sets the install's tutorial state itself.
+        /// </summary>
+        static void TutorialFlow()
+        {
+            string file = System.IO.Path.Combine(SaveStore.Dir, "tutorials.json");
+
+            // First launch: no file, so the question comes up before the first hero, and the answer is kept.
+            System.IO.File.Delete(file);
+            var s = new Session(); s.New(4242); s.Resize(110, 36); s.Draw();
+            Check(s.Game.UiState.Active == Panel.FirstRun, "the first new game asks about the hints first");
+            s.Key("Enter"); s.Draw();   // the cursor starts on "already know the game"
+            Check(s.Game.UiState.Active == Panel.None && !s.Game.TutorialsOn, "\"already know the game\" turns the hints off");
+            Check(SaveStore.ReadTutorials()?.Enabled == false, "the answer is written to tutorials.json");
+            var again = new Session(); again.New(4343); again.Resize(110, 36); again.Draw();
+            Check(again.Game.UiState.Active != Panel.FirstRun && !again.Game.TutorialsOn, "the question is not asked again on this install");
+
+            // A created hero: the question comes first, then the creation screen.
+            System.IO.File.Delete(file);
+            var c = new Session(); c.New(4444, create: true); c.Resize(110, 36); c.Draw();
+            Check(c.Game.UiState.Active == Panel.FirstRun, "a new hero asks the question before the creation screen");
+            c.Key("ArrowDown"); c.Key("Enter"); c.Draw();
+            Check(c.Game.UiState.Active == Panel.Create && c.Game.TutorialsOn, "\"show me the hints\" keeps the hints on and opens the creation screen");
+
+            // A card closes on Esc alone: the menu stays shut and the turn does not move.
+            SaveStore.WriteTutorials(new TutorialRecord { Enabled = true });
+            var e = new Session(); e.New(5555); e.Resize(110, 36); e.Draw();
+            e.Key("Period", "."); var shown = e.Draw();
+            Check(e.Game.UiState.Hint == "dungeon", "the first turn underground opens the dungeon card");
+            string text = new string(Array.ConvertAll(shown.Glyphs, g => (char)g));
+            Check(text.Contains("Underground."), "the card is drawn on the map");
+            int turn = e.Game.Turn;
+            e.Key("Escape"); e.Draw();
+            Check(e.Game.UiState.Hint == null && e.Game.UiState.Active == Panel.None && e.Game.Turn == turn, "Esc closes the card and leaves the menu and the turn alone");
+
+            // The F2 rows switch the hints and forget what was shown.
+            e.Key("F2"); e.Draw();
+            Seek(e, MenuRow.Tutorials);
+            e.Key("Enter"); e.Draw();
+            Check(!e.Game.TutorialsOn && SaveStore.ReadTutorials()?.Enabled == false, "the Tutorials row switches the hints off and writes it");
+            e.Key("Enter"); e.Draw();
+            Seek(e, MenuRow.ResetTutorials);
+            e.Key("Enter"); e.Draw();
+            Check(e.Game.TutorialsOn && e.Game.SeenHints.Count == 0 && SaveStore.ReadTutorials()?.Seen.Count == 0, "Reset tutorials forgets what was shown and keeps the switch");
+            Check(e.Game.UiState.MenuNote == "Tutorials will show again.", "the reset says so");
+            e.Key("Escape"); e.Draw();
+
+            // What is shown is written as it appears, and the next run on this install does not show it again.
+            e.Key("Period", "."); e.Draw();
+            Check(SaveStore.ReadTutorials()?.Seen.Contains("dungeon") == true, "a shown hint is written to disk as it appears");
+            var next = new Session(); next.New(6666); next.Resize(110, 36); next.Draw();
+            next.Key("Period", "."); next.Draw();
+            Check(next.Game.UiState.Hint == null, "the next run on this install does not show a hint already shown");
+
+            SaveStore.WriteTutorials(new TutorialRecord { Enabled = false });
+        }
+
         public static void Run()
         {
             string data = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ossuary-test-" + Guid.NewGuid().ToString("N"));
             Environment.SetEnvironmentVariable("OSSUARY_DATA", data);
+            // An install that has answered the first-run question, with the hints off, so the flows below keep their keys.
+            SaveStore.WriteTutorials(new TutorialRecord { Enabled = false });
             Check(Input.Translate("KeyK", "k", false, false) == "move-n", "vi north");
             Check(Input.Translate("KeyK", "K", true, false) == "k", "shift kick");
             Check(Input.Translate("Period", ">", true, false) == ">", "descending");
@@ -689,7 +749,7 @@ namespace Ossuary.Desktop
             s.Game.Mode = GameMode.GameOver; s.Draw(); s.Key("Enter"); s.Draw();
             Check(s.Game.Mode == GameMode.Dungeon && s.Game.Turn == 0 && s.Hud.Ui.Width == 110, "death restarts and keeps viewport");
             DisplaySettings.Current.Apply(ThemePreset.Ossuary, CrtLevel.Subtle);
-            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); HeldKeyWalking(); RunRecorded(); BonesFlow(); DifficultyFlow(); DailyFlow(); AchievementsFlow(); WaterAnimates(); TownFlow(); ConversationKeys();
+            Menus(); LanguageAndOpening(); Bindings(); SaveAndLoad(); Creation(); CastingFlow(); AdvanceFlow(); AltarFlow(); RoadEncounter(); HeldKeyWalking(); RunRecorded(); BonesFlow(); DifficultyFlow(); DailyFlow(); AchievementsFlow(); WaterAnimates(); TownFlow(); ConversationKeys(); TutorialFlow();
             try { System.IO.Directory.Delete(data, true); } catch { /* temp dir only */ }
             Environment.SetEnvironmentVariable("OSSUARY_DATA", null);
             Console.WriteLine("==== desktop: input, choices, targeting, travel, shop, settings, restart and frame protocol PASS ====");

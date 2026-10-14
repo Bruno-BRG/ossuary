@@ -187,6 +187,7 @@ namespace Ossuary.Core
             Pack(item);
             Say($"You buy {item.Name} for {price} gold.", MessageKind.Good);
             shop.Stock.Remove(item);
+            ShowHint("shop");
             return true;
         }
 

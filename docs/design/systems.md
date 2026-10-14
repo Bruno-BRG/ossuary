@@ -681,3 +681,22 @@ Plan in `living-world.md` and `main-quest.md`.
 - Panels: Inventory, Character, Help, History, Discoveries, Choice, Travel,
   Shop, Death, Win. Aim (`x`/`l`/`v`, `f` fire, `X` swap): the cursor eats
   the movement keys (`NudgeTarget`, Enter confirms, Esc cancels).
+
+## Tutorials (`Game.Tutorial.cs`, `Ui.cs`, `Session.cs`, `SaveStore.cs`)
+
+- **Four first-time hints** (`Tutorials.All`): `dungeon` (the first turn underground; closed by auto-explore), `wounded` (closed by
+  binding a wound), `levelup` (a perk waiting after level 1; closed by taking one), `shop` (after a purchase; closed by examining an
+  item). Esc closes any card.
+- `Game.ShowHint(id)` opens a card when tutorials are on, the hint is not yet in `SeenHints` and no card is open; it records the id
+  in `SeenHints` and `NewlySeen`. `Game.HintDone(event)` closes the card when its own action happens.
+- Hints are raised on the hero's turns (`EndPlayerTurn`) and by the actions themselves, never while a level is generated, so the
+  opening on the overworld shows nothing. A level-up needs `Level > 1`: a human starts with a perk pending at level 1.
+- The card (`Ui.DrawHintCard`) is a small frame over the bottom of the map, moved to the top when it would cover the hero. It is not
+  a panel and takes no keys except Esc, which is not logged. A card never spends a turn.
+- **Per install**: `tutorials.json` in the data directory (`{ "enabled", "seen" }`), read at start and written when a hint first
+  shows, when the switch changes and on reset. Like achievements, the Core only records; the host writes.
+- **First launch**: with no file, `Panel.FirstRun` asks "Have you played before?" before the first hero starts (before the creation
+  screen if there is one). "Already know the game" turns the hints off; Esc keeps them on.
+- **F2**, Game section: *Tutorials* (on/off) and *Reset tutorials* (every hint can show again).
+- Tests: `TutorialTests.cs` (core: once, off, seen, closing actions, opening, level-up, shop, replay neutrality, Portuguese) and
+  `DesktopTests.TutorialFlow` (the first-run answer, Esc on a card, the F2 rows, the file).

@@ -5,7 +5,7 @@
 **Um roguelike ASCII de fantasia sombria.** O mundo jogou seus mortos, seus reis e seus deuses num só poço.
 Você desce para roubar o que sobrou.
 
-![Versão 22](https://img.shields.io/badge/vers%C3%A3o-22-c8a050?style=flat-square)
+![Versão 23](https://img.shields.io/badge/vers%C3%A3o-23-c8a050?style=flat-square)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-5fa85f?style=flat-square)
 ![Plataforma](https://img.shields.io/badge/plataforma-Windows%20x64-4a6ea8?style=flat-square)
 ![Motor](https://img.shields.io/badge/motor-C%23%20.NET%2010-7c4dff?style=flat-square)
@@ -25,11 +25,13 @@ Desça pelo Ossuary, pegue o **Amuleto de Yendor** e traga de volta à luz do di
 num terminal estilo CRT; o jogo é uma exploração de masmorras por turnos com um mundo vivo na superfície.
 A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 
-### O que há na **versão 22**
+### O que há na **versão 23**
 
 | | |
 |---|---|
-| 🔥 **Magias que respondem** *(novo)* | Conjuradores lançam em você: xamãs orcs, acólitos sombrios e feiticeiros escolhem uma magia de verdade da própria lista e a lançam da sua célula, animada, e todo lançamento acerta. O Magistrado Pálido, no sétimo andar das Masmorras, conjura nas duas fases. Raios correm pelo gelo e fazem arco de criatura molhada para criatura molhada. O dano de um raio cai quando ele chega, não quando a animação começa, e cada elemento tem seu próprio som de conjuração. Esc pula a animação. |
+| 🏘️ **Vilas e pessoas** *(novo)* | As vilas se lembram: os balcões pedem mais depois de mortes, um curandeiro recusa a mão de quem já matou ali duas vezes, o herdeiro de um comerciante morto avisa, e a notícia chega às três vilas mais próximas. Dois companheiros podem andar com você, e as pessoas essenciais têm aprendizes que assumem o posto. Roube com `F9`, queime com `F10`, e a Guarda faz as contas. Os cativos voltam para casa como escoltas, e as conversas mostram um rosto e um humor. |
+| 🧭 **Marcas e dicas iniciais** *(novo)* | `'` marca a casa onde você está e `Shift+'` volta à marca mais próxima do nível. Na primeira vez que você desce, é ferido, sobe de nível ou compra algo, um cartão curto diz a tecla que você precisa. Ele aparece uma vez por instalação, e `F2` pode desligá-lo. |
+| 🔥 **Magias que respondem** | Conjuradores lançam em você: xamãs orcs, acólitos sombrios e feiticeiros escolhem uma magia de verdade da própria lista e a lançam da sua célula, animada, e todo lançamento acerta. O Magistrado Pálido, no sétimo andar das Masmorras, conjura nas duas fases. Raios correm pelo gelo e fazem arco de criatura molhada para criatura molhada. O dano de um raio cai quando ele chega, não quando a animação começa, e cada elemento tem seu próprio som de conjuração. Esc pula a animação. |
 | 📋 **Mãos contratadas** | Os quadros de aviso oferecem serviços que viram missões de verdade no diário: caçar as feras de um ramo, alcançar uma profundidade num ramo, ou aceitar uma encomenda de oficina e levar a peça a qualquer oficina que ensine o ofício. Caçadas e explorações se entregam em qualquer quadro de avisos. Um serviço aceito não volta a ser oferecido naquela semana, e você pode carregar três ao mesmo tempo. Depois que os Afogados têm o frasco, eles oferecem duas missões próprias. |
 | 🏛️ **O mundo lembra** | Um passado gerado da semente: casas que sobem e caem, reis que se sucedem pelo sangue, pela espada ou pela escolha dos senhores, guerras, pestes, cidades que queimaram, e os mortos enterrados em níveis de verdade com o nome talhado na pedra. O painel de lendas (F8) junta o que você aprende com bardos, eruditos, estantes, boatos, gravuras e túmulos. Sangue por espécie e rastros que desbotam: um herói sangrando é farejado, e Shift+M segue presas feridas. Ataques vêm às cidades num dia da semana: lute nas ruas ou encontre uma loja queimada. |
 | 📜 **Todos os ofícios** | Poções, pergaminhos e varinhas se aprendem usando. Relíquias têm uma história gerada da semente (quem forjou, para quem, como se perderam) e lembram dos chefes que mataram. Teares e alambiques, artesãos que seguem trabalhando, kobolds arqueiros com flechas de verdade, caravanas que você escolta ou rouba na estrada, pechincha no balcão e comerciantes que lembram do que você fez. |
@@ -70,10 +72,10 @@ A semente **é** o save: mesma semente, mesmas teclas, mesma expedição.
 
 ## Instalar (jogadores)
 
-Baixe o instalador `Ossuary_0.22.0_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
+Baixe o instalador `Ossuary_0.23.0_x64-setup.exe` (Windows x64) numa [release](https://github.com/Bruno-BRG/ossuary/releases)
 ou na saída do build, e execute. Não precisa de SDK. É preciso o WebView2 (já vem no Windows 11).
 
-> O nome público de uma versão é só **Versão N** (esta é a **Versão 22**), como em *Project Zomboid*. Instaladores e manifestos usam o
+> O nome público de uma versão é só **Versão N** (esta é a **Versão 23**), como em *Project Zomboid*. Instaladores e manifestos usam o
 > `0.N.0` correspondente, porque instalador do Windows, npm e Cargo pedem três números.
 
 ## Compilar do código
@@ -92,7 +94,8 @@ O guia completo está em [INSTALL.pt-BR.md](INSTALL.pt-BR.md). Começo rápido (
 Setas, teclado numérico ou `hjkl` movem; `yubn` são as diagonais. `i` inventário, `c` personagem, `g` pegar, `>` / `<` escadas,
 `Shift+Z` magias, `Shift+V` habilidades, `Shift+F` mirar numa parte do corpo, `r` ler, `z` usar varinha, `q` beber, `P` vestir anel ou amuleto, `?` ajuda, `F2` opções, `F3` CRT, `F4` paleta, `F11` tela cheia.
 
-- Nas cidades, esbarre numa pessoa para conversar, e num balcão, quadro de avisos ou altar para negociar.
+- Nas cidades, esbarre numa pessoa para conversar, e num balcão, quadro de avisos ou altar para negociar. `F9` rouba do balcão ao lado e `F10` o queima; `F12` manda seus companheiros ficarem ou seguirem.
+- `'` marca a casa onde você está, e `Shift+'` volta à marca mais próxima do nível.
 - Na lista de magias, `←`/`→` trocam a escola, uma letra ou `Enter` conjura, `◆` marca magias emprestadas pelo equipamento.
 
 A lista completa está em [docs/game/controls.md](docs/game/controls.md).

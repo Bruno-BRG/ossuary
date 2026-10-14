@@ -82,6 +82,7 @@ namespace Ossuary.Core
             if (OnOverworld) DrawOverworld(MapX, MapY, MapW, MapH);
             else DrawMap(MapX, MapY, MapW, MapH);
             if (sidebarW > 0) DrawSidebar(frameW, boxTop, sidebarW, boxH);
+            DrawHintCard();
 
             DrawMessageWindow(0, logTop, w, LogRows);
             DrawStatusLine(0, statusY, w, theme);
@@ -1012,6 +1013,7 @@ namespace Ossuary.Core
                 case Panel.Altar: DrawAltarPanel(); break;
                 case Panel.Service: DrawServicePanel(); break;
                 case Panel.Advance: DrawAdvancePanel(); break;
+                case Panel.FirstRun: DrawFirstRunPanel(); break;
             }
             if (PendingChoice.Active) DrawChoicePanel();
             if (_g.Mode == GameMode.GameOver) DrawDeathPanel();
@@ -1920,6 +1922,60 @@ namespace Ossuary.Core
             _t.WriteClipped(px + 3, py + ph - 2, "Enter/b buy   o haggle   s sell   hjkl move   Esc leave", theme.Dim, pw - 6, false, theme.Panel);
         }
 
+        // ------------------------------------------------------------ first hints
+
+        /// <summary>
+        /// The first-time hint card: a small frame over the bottom of the map, moved to the top when it
+        /// would cover the hero. Only on the map with no panel open; never on the death or win screens.
+        /// </summary>
+        void DrawHintCard()
+        {
+            if (State.Hint == null || State.Active != Panel.None || State.IsTargeting) return;
+            if (_g.Mode == GameMode.GameOver || _g.Mode == GameMode.Won) return;
+            var hint = Tutorials.Find(State.Hint);
+            if (hint == null || MapW < 30 || MapH < 6) return;
+            var theme = Theme.Current;
+
+            int w = Math.Min(MapW - 2, 56);
+            var lines = new System.Collections.Generic.List<string>(Wrap(Loc.T(hint.Text), w - 4));
+            int h = lines.Count + 4;   // frame top and bottom, a blank row, the footer
+            int x = MapX + 1;
+            int y = MapY + MapH - h - 1;
+            if (!OnOverworld && HeroIsUnder(x, y, w, h)) y = MapY + 1;
+
+            _t.FillRect(x, y, w, h, ' ', theme.Text, theme.Panel);
+            _t.RoundBox(x, y, w, h, theme.Rule, false, theme.Panel);
+            for (int i = 0; i < lines.Count; i++) _t.Write(x + 2, y + 1 + i, lines[i], theme.Text, false, theme.Panel);
+            _t.WriteClipped(x + 2, y + h - 2, Loc.T("[Esc] close"), theme.Dim, w - 4, false, theme.Panel);
+        }
+
+        /// <summary>Whether the hero's cell, as drawn, falls inside a screen rectangle.</summary>
+        bool HeroIsUnder(int x, int y, int w, int h)
+        {
+            int sx = MapOx + (_g.Player.X - CameraX) * MapSq, sy = MapOy + (_g.Player.Y - CameraY);
+            return sx >= x && sx < x + w && sy >= y && sy < y + h;
+        }
+
+        /// <summary>The first-run question, asked once per install before the first hero begins.</summary>
+        void DrawFirstRunPanel()
+        {
+            var theme = Theme.Current;
+            PanelRect(out int px, out int py, out int pw, out int ph, 60, 11, Loc.T("First steps"), Loc.T("↑↓ select   Enter choose"));
+            int x = px + 3, iw = pw - 6, sel = State.FirstRunIndex;
+            _t.WriteClipped(x, py + 2, Loc.T("Have you played before?"), theme.Label, iw, true, theme.Panel);
+            string[] options = { Loc.T("Yes, I already know the game"), Loc.T("No, show me the hints") };
+            for (int i = 0; i < options.Length; i++)
+            {
+                int y = py + 4 + i;
+                bool on = i == sel;
+                Rgb bg = on ? theme.PanelHi : theme.Panel;
+                if (on) RowBar(px + 1, y, pw - 2, theme);
+                _t.Put(px + 2, y, on ? '▶' : ' ', theme.Accent, true, bg);
+                _t.WriteClipped(x + 1, y, options[i], on ? theme.Accent : theme.Text, iw - 1, on, bg);
+            }
+            _t.WriteClipped(x, py + ph - 3, Loc.T("You can change this later in F2."), theme.Dim, iw, false, theme.Panel);
+        }
+
         // ------------------------------------------------------------------ menu
 
         static string MenuNote(MenuRow row)
@@ -1938,6 +1994,8 @@ namespace Ossuary.Core
                 case MenuRow.Controls: return Loc.T("Rebind any key.");
                 case MenuRow.Achievements: return Loc.T("What you have done across all your runs.");
                 case MenuRow.PastRuns: return Loc.T("Your finished expeditions, newest first.");
+                case MenuRow.Tutorials: return Loc.T("Shows a short card the first time each system comes up.");
+                case MenuRow.ResetTutorials: return Loc.T("Every hint can show again.");
                 case MenuRow.MainMenu: return Loc.T("Saves the run and returns to the title.");
                 default: return Loc.T("Saves the run and closes the game.");
             }
@@ -1947,7 +2005,7 @@ namespace Ossuary.Core
         {
             var theme = Theme.Current;
             var set = DisplaySettings.Current;
-            PanelRect(out int px, out int py, out int pw, out int ph, 60, 27, Loc.T("Menu"), Loc.T("Esc resumes"));
+            PanelRect(out int px, out int py, out int pw, out int ph, 60, 29, Loc.T("Menu"), Loc.T("Esc resumes"));
             int x = px + 3, iw = pw - 6;
             int sel = State.SettingsIndex;
             int y = py + 2;
@@ -2003,6 +2061,8 @@ namespace Ossuary.Core
             Row(MenuRow.Controls, "Controls", "rebind keys", false);
             Row(MenuRow.Achievements, "Achievements", "local", false);
             Row(MenuRow.PastRuns, "Past runs", "history", false);
+            Row(MenuRow.Tutorials, "Tutorials", _g.TutorialsOn ? "On" : "Off", true);
+            Row(MenuRow.ResetTutorials, "Reset tutorials", null, false);
             Row(MenuRow.MainMenu, "Main menu", null, false, -1, off);
             Row(MenuRow.Quit, "Quit game", null, false, -1, theme.Bad);
 

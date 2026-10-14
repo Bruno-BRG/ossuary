@@ -55,9 +55,13 @@ use key — `a` apply tool (an instrument plays) — `f`/`Q` fire (a bow, crossb
 
 ## Menu
 
-`Esc` or `F2` opens the menu (theme, CRT, size, language, volume, **Controls**, **Achievements**, **Past runs**). *Past runs* lists
+`Esc` or `F2` opens the menu (theme, CRT, size, language, volume, **Controls**, **Achievements**, **Past runs**, **Tutorials**). *Past runs* lists
 finished expeditions (arrows, PgUp/PgDn, Home/End; Esc goes back). At the end of each run a morgue file is written
 to `morgue/` in the game's data directory.
+
+**Tutorials** shows a short card the first time each system comes up: going underground, a wound, a level-up, a purchase. A card
+closes when you do the thing it names, or with `Esc`, and it never takes a turn. The first new game on an install asks whether
+you already know the game. *Tutorials* in the menu turns the cards on or off; *Reset tutorials* shows every card again.
 
 ## Creation and modes
 
@@ -98,7 +102,7 @@ Any key restarts the run (new seed). `Esc` on death leaves play.
 
 `F2` (or `Esc` with nothing open) opens the menu: Resume, Save game, Display (theme, CRT,
 text size), Audio (master, music, effects volumes, 0-10, applied live),
-Controls, Main menu and Quit game.
+Controls, Achievements, Past runs, Tutorials, Reset tutorials, Main menu and Quit game.
 
 **Controls** lists every action by group. `Enter` captures the next key,
 `Del` clears, `R` restores the line and `Shift+R` restores everything. A key belongs to one

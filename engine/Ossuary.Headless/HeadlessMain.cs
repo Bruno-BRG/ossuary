@@ -214,7 +214,7 @@ namespace Ossuary.Tools
             }
             bool frames = Array.IndexOf(args, "frames") >= 0;
             foreach (Panel p in new[] { Panel.Inventory, Panel.Character, Panel.Help, Panel.History, Panel.Discoveries, Panel.Journal,
-                                        Panel.Settings, Panel.Controls, Panel.Spells, Panel.Abilities, Panel.Advance, Panel.Runs, Panel.Achievements, Panel.Travel, Panel.Create })
+                                        Panel.Settings, Panel.Controls, Panel.Spells, Panel.Abilities, Panel.Advance, Panel.Runs, Panel.Achievements, Panel.Travel, Panel.Create, Panel.FirstRun })
             {
                 game.UiState.Active = p;
                 var f = hud.Draw();
@@ -474,7 +474,7 @@ namespace Ossuary.Tools
 
             game.StartQuest("main.seal"); game.StartQuest("watch.bandits");
             for (int i = 0; i < 4; i++) game.ScholarLine();
-            foreach (Panel p in new[] { Panel.Inventory, Panel.Character, Panel.Help, Panel.History, Panel.Discoveries, Panel.Journal, Panel.Legends })
+            foreach (Panel p in new[] { Panel.Inventory, Panel.Character, Panel.Help, Panel.History, Panel.Discoveries, Panel.Journal, Panel.Legends, Panel.Settings, Panel.FirstRun })
             {
                 game.UiState.Active = p;
                 Console.WriteLine();
@@ -482,6 +482,13 @@ namespace Ossuary.Tools
                 Console.WriteLine(hud.Draw().ToAscii());
             }
             game.UiState.Active = Panel.None;
+
+            // The first-time hint card over the map, as the first turn underground shows it.
+            game.UiState.Hint = "dungeon";
+            Console.WriteLine();
+            Console.WriteLine("===== HINT CARD (dungeon) =====");
+            Console.WriteLine(hud.Draw().ToAscii());
+            game.UiState.Hint = null;
 
             // A conversation box (the Elder), as a person would see it.
             {

@@ -27,12 +27,12 @@ How a system works lives in [`design/systems.md`](design/systems.md); what shipp
 | [World and history](#world-and-history) | overworld, seven branches, the chronicle with houses and kings, legends, blood and traces, engravings, rooms, tombs, raids | done; new ideas go in the topic |
 | [Creatures](#creatures) | factions, bosses, branch natives | named survivors, ecology |
 | [The hero](#the-hero) | corruption, modes, achievements, bones | thoughts and mood |
-| [Tutorials](#tutorials) | nothing yet | first-time hints |
+| [Tutorials](#tutorials) | four first-time hints, the install's memory, F2 switch and reset, first-run question | the hints for crafting, magic, towns, gathering, altars and jobs |
 | [Interface and controls](#interface-and-controls) | auto-explore, travel, rebinding, travel marks | done; new ideas go in the topic |
 | [Audio](#audio) | 18 tracks, 15 stingers, effects | the missing boss tracks |
 | [Technical and quality](#technical-and-quality) | headless suites, soak, balance bot | a language gate worth reading |
 
-**Next up**: tutorials, then named survivors and mood, then creatures' ecology.
+**Next up**: the rest of the tutorials, then named survivors and mood, then creatures' ecology.
 
 ---
 
@@ -87,12 +87,10 @@ Nothing open: every item is in *Done*.
 
 The game is big: each system should explain itself once, the first time, and never again.
 
-- [ ] **First-time hints** (`Game.Tutorial.cs`): a short guided popup the first time the hero crafts, casts, enters a dungeon, reaches a town,
-  shops, gathers, levels up, is wounded, finds an altar or takes a job; it shows the keys step by step and closes when the step is done.
-- [ ] **Seen once per install**: shown hints are kept in the settings, so a new hero is not taught twice.
-- [ ] **Skip them**: *Tutorials on/off* in F2, asked at the first launch ("Have you played before?"), plus *reset tutorials*.
-- [ ] **UI as data**: the hint is a `TextBuilder` panel from the Core, English with Portuguese in `Loc`.
-- [ ] **Tests**: each hint fires once, never when off, and changes neither the turn nor the replay.
+- [~] **First-time hints** (`Game.Tutorial.cs`): a short card over the map the first time the hero crafts, casts, reaches a town, gathers,
+  finds an altar or takes a job; it names the key and closes when that action is done. *has* four hints (entering a dungeon, a wound,
+  a level-up, a purchase) on the install's memory, the F2 switch and the first-run question; *left* the hints for crafting, casting,
+  towns, gathering, altars and jobs.
 
 ## Interface and controls
 
@@ -231,6 +229,12 @@ One line per feature, newest first inside each topic. Details: the [changelog](.
 - 2026-10-04 · **Stingers and the whole soundtrack**: 15 stingers, 18 tracks that follow the moment (`stingers.ts`, `audio.ts`).
 - 2026-10-03 · **Synthesised music**, Web Audio only.
 - 2026-10-02 · **PC-speaker effects** named by the Core (`Game.Sound.cs`).
+
+**Tutorials**
+- 2026-10-14 · **Seen once per install**: the shown hints live in `tutorials.json` beside the achievements, read at start and written as they appear (`Game.Tutorial.cs`, `SaveStore.cs`, `Session.cs`).
+- 2026-10-14 · **Skip them**: *Tutorials* on/off and *Reset tutorials* in F2, and a first-run question ("Have you played before?") on the first new game (`Ui.cs`, `Session.cs`, `Panel.FirstRun`).
+- 2026-10-14 · **UI as data**: the hint is a card the Core draws over the map, English with Portuguese in `Loc` (`Ui.cs`, `Loc.Tutorial.cs`).
+- 2026-10-14 · **Tests**: each hint fires once, never when off or seen, closes on its own action, and changes neither the turn, the RNG nor the hero (`TutorialTests.cs`, `DesktopTests.cs`).
 
 **Language and docs**
 - 2026-10-05 · **One tracker**: the depth roadmap folded into this file, by topic.

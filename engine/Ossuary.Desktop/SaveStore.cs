@@ -28,6 +28,15 @@ namespace Ossuary.Desktop
         public List<Bones> Bones { get; set; } = new List<Bones>();
     }
 
+    /// <summary>Tutorial state on this install: whether hints are on, and the hint ids already shown.</summary>
+    public sealed class TutorialRecord
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("enabled")]
+        public bool Enabled { get; set; } = true;
+        [System.Text.Json.Serialization.JsonPropertyName("seen")]
+        public List<string> Seen { get; set; } = new List<string>();
+    }
+
     /// <summary>
     /// Files under the per-user data directory (override with OSSUARY_DATA, which the tests use).
     /// A save is a replay: the simulation is deterministic, so seed + keys rebuilds the run exactly.
@@ -127,6 +136,27 @@ namespace Ossuary.Desktop
         {
             try { WriteAtomic(AchievementsPath, JsonSerializer.Serialize(unlocked, Json)); }
             catch (Exception ex) { Console.Error.WriteLine("Could not write achievements: " + ex.Message); }
+        }
+
+        // ----------------------------------------------------------------- tutorials
+
+        static string TutorialsPath => Path.Combine(Dir, "tutorials.json");
+
+        /// <summary>Per-install tutorial state. Null when the file does not exist yet (the first launch) or cannot be read.</summary>
+        public static TutorialRecord ReadTutorials()
+        {
+            try
+            {
+                if (!File.Exists(TutorialsPath)) return null;
+                return JsonSerializer.Deserialize<TutorialRecord>(File.ReadAllText(TutorialsPath), Json);
+            }
+            catch (Exception ex) { Console.Error.WriteLine("Unreadable tutorials: " + ex.Message); return null; }
+        }
+
+        public static void WriteTutorials(TutorialRecord record)
+        {
+            try { WriteAtomic(TutorialsPath, JsonSerializer.Serialize(record, Json)); }
+            catch (Exception ex) { Console.Error.WriteLine("Could not write tutorials: " + ex.Message); }
         }
 
         // ----------------------------------------------------------------- bones

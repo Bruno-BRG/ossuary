@@ -89,7 +89,7 @@ namespace Ossuary.Core
                 case "l": _g.PushTargeting(TargetingMode.Look); return true;
                 case "X": return DoSwapWith();
 
-                case "explore": return DoAutoWalk(AutoWalk.Explore);
+                case "explore": _g.HintDone("explore"); return DoAutoWalk(AutoWalk.Explore);
                 case "stairs": return DoAutoWalk(AutoWalk.Stairs);
                 case "rest": return DoAutoWalk(AutoWalk.Rest);
                 case "feature": return DoAutoWalk(AutoWalk.Feature);
@@ -391,6 +391,7 @@ namespace Ossuary.Core
 
         bool DoExamine()
         {
+            _g.HintDone("examine");
             var it = ChooseItem(Game.ExaminePrompt, _ => true);
             if (it != null) _g.ExamineItem(it);
             return true;

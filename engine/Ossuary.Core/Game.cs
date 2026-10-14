@@ -563,6 +563,11 @@ namespace Ossuary.Core
             ReapEscorts();
             CheckAchievements();
             QuestCheck();
+            // Hints fire on the hero's own turns, never while the level is generated: a new game
+            // builds its first dungeon level before the overworld opening, which is not underground.
+            if (Mode == GameMode.Dungeon) ShowHint("dungeon");
+            // A perk waiting after the first level. A human starts with one pending at level 1, which is not a level-up.
+            if (Player.Level > 1 && Player.PendingAdvances > 0) ShowHint("levelup");
         }
 
         /// <summary>
