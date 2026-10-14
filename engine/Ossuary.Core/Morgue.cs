@@ -12,6 +12,8 @@ namespace Ossuary.Core
     {
         /// <summary>"died", "won" or "abandoned".</summary>
         public string Outcome { get; set; } = "died";
+        /// <summary>The ending a run was won with ("pay", "shut", "open", "warden", "auction" or "stamp"); null when there was none.</summary>
+        public string Ending { get; set; }
         public string Name { get; set; } = "";
         public string Race { get; set; } = "";
         public string Role { get; set; } = "";
@@ -36,6 +38,21 @@ namespace Ossuary.Core
     /// <summary>The end-of-run summary and the morgue file text. Pure functions of the finished game.</summary>
     public static class Morgue
     {
+        /// <summary>The ending of a won run, as the morgue names it.</summary>
+        public static string EndingName(string id)
+        {
+            switch (id)
+            {
+                case "pay": return TownText.L("Ending: paid out by the League", "Final: pago pela Liga");
+                case "shut": return TownText.L("Ending: the Pit Shut", "Final: o Poço Fechado");
+                case "open": return TownText.L("Ending: the Archive Opened", "Final: o Arquivo Aberto");
+                case "warden": return TownText.L("Ending: the Warden", "Final: o Carcereiro");
+                case "auction": return TownText.L("Ending: the Auction", "Final: o Leilão");
+                case "stamp": return TownText.L("Ending: the Stamp, and a new cycle", "Final: o Carimbo, e um novo ciclo");
+                default: return TownText.L("Ending: " + id, "Final: " + id);
+            }
+        }
+
         public static RunRecord Summarize(Game g)
         {
             var p = g.Player;
@@ -45,6 +62,7 @@ namespace Ossuary.Core
             var r = new RunRecord
             {
                 Outcome = outcome,
+                Ending = g.EndingId,
                 Name = p.CharName,
                 Race = race?.Name ?? p.RaceId,
                 Role = role?.Name ?? p.RoleId,
@@ -90,6 +108,7 @@ namespace Ossuary.Core
             Line($"{Loc.T("Deepest level")} {r.MaxDepth}   {Loc.T("Turns")} {r.Turns}   {Loc.T("Kills")} {r.Kills}   {Loc.T("Score")} {r.Score}");
             // The whole line goes through the dictionary, so "em As Masmorras" can contract to "nas Masmorras".
             Line(Loc.T($"Ended {(r.Outcome == "won" ? "in" : "on")} {r.Branch} {r.Depth}"));
+            if (r.Ending != null) Line(Loc.T(EndingName(r.Ending)));
             if (r.God.Length > 0) Line($"{Loc.T("Follower of")} {r.God} ({Loc.T("piety")} {p.Piety})");
             if (r.Mode != "Normal") Line(Loc.T("Mode") + ": " + Loc.T(r.Mode));
             if (r.Daily.Length > 0) Line(Loc.T("Daily") + ": " + r.Daily);

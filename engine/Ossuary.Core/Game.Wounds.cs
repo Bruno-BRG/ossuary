@@ -55,6 +55,7 @@ namespace Ossuary.Core
             if (edged && Bodies.Bleeds(defender)) w.Bleed = Math.Max(w.Bleed, Bodies.BleedTime(now, part.Kind));
             if (w.Severed && Bodies.Bleeds(defender)) w.Bleed = Math.Max(w.Bleed, 10);
             w.Bound = false;
+            if (defender.IsPlayer) ShowHint("wounded");
 
             var m = defender as Monster;
             bool seen = defender.IsPlayer || Mode == GameMode.Overworld || (Map != null && Map.IsVisible(defender.X, defender.Y));
@@ -188,6 +189,7 @@ namespace Ossuary.Core
             if (bandage.Quantity > 1) bandage.Quantity--; else p.Inventory.Remove(bandage);
             Say(bled ? "You bind your wounds, and the bleeding stops." : "You bind your wounds.", MessageKind.Good);
             p.GainSkill(Skill.Survival, 1);
+            HintDone("bandage");
             if (Mode == GameMode.Dungeon || Mode == GameMode.TownMap) EndPlayerTurn();
             return true;
         }

@@ -46,10 +46,10 @@ namespace Ossuary.Desktop
             ulong seed = Daily.SeedFor(label);
             Daily.HeroFor(seed, out string race, out string role);
             Start(seed, "Daily", race, role, false, true, null, Difficulty.Normal, label);
-            Intro = true;
+            if (Game.UiState.Active == Panel.FirstRun) _introAfterFirstRun = true; else Intro = true;
         }
 
-        void Start(ulong? seed, string name, string race, string role, bool create, bool overworld, List<Bones> bones = null, Difficulty difficulty = Difficulty.Normal, string daily = "")
+        void Start(ulong? seed, string name, string race, string role, bool create, bool overworld, List<Bones> bones = null, Difficulty difficulty = Difficulty.Normal, string daily = "", bool askFirstRun = true)
         {
             ulong s = seed ?? BitConverter.ToUInt64(RandomNumberGenerator.GetBytes(8), 0);
             Game = role == null ? new Game(s) : Game.NewHero(s, name, race, role);
@@ -68,11 +68,21 @@ namespace Ossuary.Desktop
             _quitAt = 0;
             ExitRequested = false; ToTitle = false; Started = false; AtTitle = false; Intro = false;
             _log = new List<string>();
+            // Tutorial state is per install: the record says whether hints are on and which have been shown.
+            var tutorials = SaveStore.ReadTutorials();
+            Game.FirstLaunch = tutorials == null;
+            Game.TutorialsOn = tutorials?.Enabled ?? true;
+            Game.SeenHints = new HashSet<string>(tutorials?.Seen ?? new List<string>());
             _generation++;
+            _createAfterFirstRun = false; _introAfterFirstRun = false;
             if (create) { Game.UiState.Create.Reset(); Game.UiState.Active = Panel.Create; }
+            // The first new game on an install asks about the hints before anything else; a created hero goes on to the creation screen after the answer.
+            if (askFirstRun && Game.FirstLaunch) { _createAfterFirstRun = create; Game.UiState.Active = Panel.FirstRun; Game.UiState.FirstRunIndex = 0; }
         }
 
         bool _overworld;
+        // The first-run question came up before the creation screen or the opening story; they follow its answer.
+        bool _createAfterFirstRun, _introAfterFirstRun;
         Difficulty _difficulty;
         string _daily = "";
         Dictionary<string, string> _unlocked = new Dictionary<string, string>();
@@ -127,7 +137,7 @@ namespace Ossuary.Desktop
         {
             var data = SaveStore.ReadSave() ?? throw new InvalidOperationException("No saved run.");
             int cols = Hud?.Ui.Width ?? 110, rows = Hud?.Ui.Height ?? 36;
-            Start(ulong.Parse(data.Seed), data.Name, data.Race, data.Role, false, data.Overworld, data.Bones ?? new List<Bones>(), Difficulties.Parse(data.Difficulty), data.Daily ?? ""); Resize(cols, rows);
+            Start(ulong.Parse(data.Seed), data.Name, data.Race, data.Role, false, data.Overworld, data.Bones ?? new List<Bones>(), Difficulties.Parse(data.Difficulty), data.Daily ?? "", askFirstRun: false); Resize(cols, rows);
             _replaying = true;
             try
             {
@@ -210,6 +220,12 @@ namespace Ossuary.Desktop
             var ui = Game.UiState;
             ToTitle = false;
             if (Intro) { if (!_replaying) Started = true; Intro = false; return; }
+            // A hint card closes on Esc before anything else. Not logged: a card is not part of the run.
+            if (ui.Hint != null && code == "Escape" && ui.Active == Panel.None && !ui.IsTargeting && !ui.TravelMode && !Game.PendingChoice.Active)
+            {
+                ui.Hint = null;
+                return;
+            }
             if (ui.Active == Panel.Create) { CreateKey(code, key); return; }
             if (ui.Active == Panel.Spells || ui.Active == Panel.Abilities || ui.Active == Panel.Advance || ui.Active == Panel.Altar || ui.Active == Panel.Service)
             {
@@ -258,7 +274,7 @@ namespace Ossuary.Desktop
         // replay can't change the player's settings or reopen a menu.
         bool ShouldLog(string code, bool ctrl, UiState ui)
         {
-            if (ui.Active == Panel.Settings) return false;
+            if (ui.Active == Panel.Settings || ui.Active == Panel.FirstRun) return false;
             if (code == "F2" || code == "F3" || code == "F4" || code == "F5") return false;
             if (ctrl && code == "KeyQ") return false;   // logged only if it actually abandons the run
             if (code == "Escape" && OpensMenu(ui)) return false;
@@ -294,6 +310,7 @@ namespace Ossuary.Desktop
                 else if (code == "Escape") { Game.PendingChoice.Clear(); ui.ChoiceIndex = 0; }
                 return;
             }
+            if (ui.Active == Panel.FirstRun) { FirstRunKey(code); return; }
             if (ui.Active == Panel.Settings) { MenuKey(code); return; }
             if (ui.Active == Panel.Spells) { SpellsKey(code); return; }
             if (ui.Active == Panel.Abilities) { AbilitiesKey(code); return; }
@@ -457,6 +474,11 @@ namespace Ossuary.Desktop
         void ServiceKey(string code)
         {
             var ui = Game.UiState;
+            if (Game.CurrentDialogue != null && (code == "PageUp" || code == "PageDown"))
+            {
+                Game.ScrollDialogue(code == "PageUp" ? 4 : -4);
+                return;
+            }
             var rows = Game.ServiceRows();
             int r = ListKey(code, ref ui.ServiceIndex, rows.Count, false);
             if (r == -2) { ui.Active = Panel.None; return; }
@@ -548,6 +570,7 @@ namespace Ossuary.Desktop
             if (Input.Step(code, out int dx, out int dy))
             {
                 if (dy != 0) ui.SettingsIndex = Wrap(ui.SettingsIndex + dy, rows.Length);
+                else if (rows[ui.SettingsIndex] == MenuRow.Tutorials) ToggleTutorials();
                 else ChangeMenu(rows[ui.SettingsIndex], dx);
             }
             else if (Accept(code)) ActivateMenu(rows[ui.SettingsIndex]);
@@ -583,11 +606,54 @@ namespace Ossuary.Desktop
                     FlushAchievements(); ui.Unlocked = new Dictionary<string, string>(SaveStore.ReadAchievements()); ui.AchIndex = 0; ui.Active = Panel.Achievements; break;
                 case MenuRow.PastRuns:
                     ui.RunsDaily = false; LoadRuns(ui); ui.Active = Panel.Runs; break;
+                case MenuRow.Tutorials: ToggleTutorials(); break;
+                case MenuRow.ResetTutorials: ResetTutorials(); break;
                 case MenuRow.MainMenu: Save(true); ui.Active = Panel.None; ToTitle = true; AtTitle = true; break;
                 case MenuRow.Quit: Save(true); ExitRequested = true; break;
                 default: ChangeMenu(row, 1); break;
             }
         }
+
+        // ------------------------------------------------------------ first hints
+
+        /// <summary>The first-run question: up and down choose, Enter answers, Esc keeps the hints on.</summary>
+        void FirstRunKey(string code)
+        {
+            var ui = Game.UiState;
+            if (Input.Step(code, out _, out int dy) && dy != 0) ui.FirstRunIndex = Wrap(ui.FirstRunIndex + dy, 2);
+            else if (Accept(code)) AnswerFirstRun(ui.FirstRunIndex == 0);
+            else if (code == "Escape") AnswerFirstRun(false);
+        }
+
+        /// <summary>Records the answer on this install. "Already know the game" turns the hints off.</summary>
+        void AnswerFirstRun(bool knowsGame)
+        {
+            var ui = Game.UiState;
+            Game.TutorialsOn = !knowsGame;
+            Game.FirstLaunch = false;
+            SaveTutorials();
+            ui.Active = Panel.None;
+            if (_createAfterFirstRun) { ui.Create.Reset(); ui.Active = Panel.Create; }
+            if (_introAfterFirstRun) { Intro = true; _introAfterFirstRun = false; }
+        }
+
+        void ToggleTutorials()
+        {
+            Game.TutorialsOn = !Game.TutorialsOn;
+            SaveTutorials();
+        }
+
+        /// <summary>Every hint can show again on this install. The switch is left as it was.</summary>
+        void ResetTutorials()
+        {
+            Game.SeenHints.Clear();
+            Game.NewlySeen.Clear();
+            Game.UiState.Hint = null;
+            SaveTutorials();
+            Game.UiState.MenuNote = Loc.T("Tutorials will show again.");
+        }
+
+        void SaveTutorials() => SaveStore.WriteTutorials(new TutorialRecord { Enabled = Game.TutorialsOn, Seen = new List<string>(Game.SeenHints) });
 
         // --------------------------------------------------------------- controls
 
@@ -674,9 +740,18 @@ namespace Ossuary.Desktop
             if (changed) SaveStore.WriteAchievements(_unlocked);
         }
 
+        /// <summary>Writes the hints first shown in this run (never during a replay), as achievements are written.</summary>
+        void FlushTutorials()
+        {
+            if (_replaying || Game == null || Game.NewlySeen.Count == 0) return;
+            Game.NewlySeen.Clear();
+            SaveTutorials();
+        }
+
         public Frame Draw()
         {
             FlushAchievements();
+            FlushTutorials();
             RecordRun();
             Hud.Ui.TitleBackdrop = AtTitle;
             TextBuilder screen = Hud.Draw();

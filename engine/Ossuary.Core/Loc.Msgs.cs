@@ -9,6 +9,10 @@ namespace Ossuary.Core
         {
             foreach (var kv in new[] {
                 // commands
+                ("You mark this spot.", "Você marca este ponto."), ("You rub out the mark.", "Você apaga a marca."),
+                ("You can only mark a spot on a dungeon level.", "Você só pode marcar um ponto em um andar da masmorra."),
+                ("You have no marks here.", "Você não tem marcas aqui."), ("You have not marked a spot on this level yet.", "Você ainda não marcou nenhum ponto neste andar."),
+                ("No other mark on this level.", "Nenhuma outra marca neste andar."),
                 ("The door is locked.", "A porta está trancada."), ("The shelves are bare.", "As prateleiras estão vazias."), ("There is no door here.", "Não há porta aqui."),
                 ("There is no one here to trade with.", "Não há ninguém aqui para negociar."), ("There is nothing to open here.", "Não há nada para abrir aqui."),
                 ("There is nothing to open.", "Não há nada para abrir."), ("You abandon the run.", "Você abandona a expedição."), ("You are asleep.", "Você está dormindo."),
@@ -56,6 +60,14 @@ namespace Ossuary.Core
                     "O ar no alto da Torre é espesso o bastante para mastigar. O Regente de Cinzas não está com fome. Está furioso."),
                 ("The Ashen Regent splits its crown, and the cinders stand up.", "O Regente de Cinzas parte a coroa, e as brasas se levantam."),
                 ("The Ashen Regent comes apart like a log in a fire.", "O Regente de Cinzas se desfaz como um tronco no fogo."),
+                ("The Archivist's Shade stands between the shelves, reading Yendor's last entry aloud to no one. It turns to you as if it has been waiting.",
+                    "A Sombra do Arquivista fica entre as estantes, lendo a última anotação de Yendor em voz alta para ninguém. Vira-se para você como quem esperava."),
+                ("The Shade stops reading and listens for something under the water.", "A Sombra para de ler e escuta algo sob a água."),
+                ("The Archivist's Shade closes its book, and the page it was reading goes out like a lamp.", "A Sombra do Arquivista fecha o livro, e a página que lia se apaga como uma lamparina."),
+                ("The guardian of the deep says the founders' names as it comes up the stairs, one by one, and does not stop until it reaches you.",
+                    "O guardião das profundezas diz os nomes dos fundadores enquanto sobe a escada, um a um, e não para até chegar a você."),
+                ("The guardian begins to burn the dead it was set to guard, and they rise to help it.", "O guardião começa a queimar os mortos que deveria guardar, e eles se levantam para ajudá-lo."),
+                ("The guardian of the deep kneels, and the names it was saying come out of it like smoke.", "O guardião das profundezas se ajoelha, e os nomes que dizia saem dele como fumaça."),
                 // crime
                 ("The animal wants no part of it.", "O animal não quer saber disso."), ("There is no point.", "Não adianta."),
                 // events

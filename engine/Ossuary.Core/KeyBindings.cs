@@ -49,6 +49,9 @@ namespace Ossuary.Core
             new KeyAction("climb", "Climb stairs", "Movement", "Shift+Comma", new[] { "Shift+Comma" }, "<"),
             new KeyAction("search", "Search", "Movement", "KeyS", new[] { "KeyS" }),
             new KeyAction("disarm", "Disarm a trap", "Movement", "Shift+KeyA", new[] { "Shift+KeyA" }),
+            new KeyAction("steal", "Steal from a counter", "Items", "F9", new[] { "F9" }),
+            new KeyAction("burn", "Burn a counter with a molotov", "Items", "F10", new[] { "F10" }),
+            new KeyAction("order", "Companions: hold or follow", "Items", "F12", new[] { "F12" }),
             new KeyAction("drink", "Drink at a fountain", "Items", "Shift+KeyE", new[] { "Shift+KeyE" }),
             new KeyAction("craft", "Craft", "Items", "Shift+KeyB", new[] { "Shift+KeyB" }),
             new KeyAction("recipes", "Every recipe", "Items", "Shift+KeyJ", new[] { "Shift+KeyJ" }),
@@ -58,6 +61,8 @@ namespace Ossuary.Core
             new KeyAction("explore", "Auto-explore", "Movement", "KeyT", new[] { "KeyT" }),
             new KeyAction("stairs", "Travel to stairs", "Movement", "Backquote", new[] { "Backquote" }),
             new KeyAction("feature", "Travel to altar / fountain", "Movement", "Shift+Backquote", new[] { "Shift+Backquote" }),
+            new KeyAction("mark", "Mark this spot", "Movement", "Quote", new[] { "Quote" }),
+            new KeyAction("marks", "Travel to a mark", "Movement", "Shift+Quote", new[] { "Shift+Quote" }),
             new KeyAction("rest", "Rest until healed", "Movement", "Shift+KeyS", new[] { "Shift+KeyS" }),
 
             new KeyAction("get", "Pick up", "Items", "KeyG", new[] { "KeyG", "Comma", "KeyP" }),

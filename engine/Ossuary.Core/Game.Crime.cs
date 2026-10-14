@@ -99,11 +99,15 @@ namespace Ossuary.Core
 
         // ------------------------------------------------------------------ hurting a person
 
-        /// <summary>The hero strikes a townsperson. Essentials are knocked out, never killed; everyone else can die.</summary>
+        /// <summary>
+        /// The hero strikes a townsperson. Essentials are knocked out, never killed by a blow; a blow at one who already lies
+        /// out cold is an extreme act (see <see cref="Outrage"/>). Everyone else can die.
+        /// </summary>
         public void Assault(Monster target)
         {
-            if (target.IsDead || target.DownUntilDay > Today) { Say("There is no point."); return; }
+            if (target.IsDead) { Say("There is no point."); return; }
             if (target.Role == TownRole.Pet) { Say("The animal wants no part of it.", MessageKind.Neutral); return; }
+            bool helpless = target.Persona != null && target.Persona.Essential && target.DownUntilDay > Today;
             MakeNoise(3);
             StruckAt(target);
             var res = Battles.PlayerMelee(Player, target, Rng, out _);
@@ -111,6 +115,7 @@ namespace Ossuary.Core
             WoundFrom(target, res, Bodies.EdgedWeapon(Player), false);
             AfterBlow(res, false);
             Map.Version++;
+            if (helpless) { Outrage(target); EndPlayerTurn(); return; }
             bool essential = target.Persona != null && target.Persona.Essential;
             bool killed = res.Killed && !essential;
             if (res.Killed && essential)
@@ -134,6 +139,31 @@ namespace Ossuary.Core
             }
             else if (target.DownUntilDay <= Today) target.HostileUntil = Turn + HostileSpan;   // a swing that missed is still a swing
             EndPlayerTurn();
+        }
+
+        /// <summary>
+        /// A blow at an essential person who already lies out cold. It is deliberate and it counts: the first two leave them
+        /// down, with a bounty and reputation lost; the third removes them, and the post passes to their apprentice (Succeed).
+        /// </summary>
+        void Outrage(Monster target)
+        {
+            string crime = TownText.L("You struck someone the town leans on while they lay helpless.", "Você feriu alguém de quem a cidade depende enquanto ele jazia indefeso.");
+            target.Memory.Outrages++;
+            AddRep(Houses.Watch, -6, crime);
+            AddRep(Houses.Temple, -4, null);
+            var seen = WitnessesOf(target, false);
+            if (target.Memory.Outrages < 3)
+            {
+                target.HP = 1; target.DownUntilDay = Today + 3; target.HostileUntil = 0;
+                Say(TownText.L($"{target.Name} is still out cold. One more blow like that, and they will not get up.",
+                    $"{target.Name} continua desacordado. Mais um golpe desses, e não se levanta."), MessageKind.Warn);
+                if (seen.Count > 0) { AddBounty(300, crime); RaiseAlarm(seen); }
+                return;
+            }
+            target.HP = 0;   // the third blow: gone for good
+            SlayPerson(target, seen);
+            AddRep(Houses.Watch, -10, TownText.L("You removed someone the town leans on.", "Você removeu alguém de quem a cidade depende."));
+            Succeed(target);
         }
 
         void SlayPerson(Monster m, List<Monster> seen)

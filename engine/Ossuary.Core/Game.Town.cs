@@ -42,6 +42,8 @@ namespace Ossuary.Core
                 _towns[key] = town;
             }
             Town = town;
+            LastTown = name;
+            InstallShopHeirs();   // counters whose keeper died open again, under an heir who says so
             TownMap = town.Map;
             Mode = GameMode.TownMap;
             Player.InsideDungeon = false;
@@ -51,9 +53,11 @@ namespace Ossuary.Core
             UpdateFov();
             Say($"You arrive in {name}. Some {Town.Population} people live here.", MessageKind.Narrative);
             Say(TownText.SizeBlurb(town.Size), MessageKind.Info);
+            if (TownMemoryPct() > 0) Say(TownText.L("The counters here have not forgotten the killings. Prices are up.", "Os balcões daqui não esqueceram as mortes. Os preços subiram."), MessageKind.Warn);
             var today = TownEventToday();
             if (today != TownEventKind.None) Say(EventAnnouncement(today), MessageKind.Quest);
             ArriveAtMarket();
+            QuestCheck();   // an escort brought in on foot is home the moment the gate is passed
         }
 
         public void LeaveTown()
@@ -76,6 +80,7 @@ namespace Ossuary.Core
             Map = Town.FloorMap(z);
             Monsters.Clear();
             foreach (var n in Town.Npcs) if (n.Floor == z && !n.IsDead) Monsters.Add(n);
+            foreach (var n in Town.Lurkers) if (n.Floor == z && !n.IsDead) Monsters.Add(n);
             Map.ClearVisibility();
         }
 
@@ -172,8 +177,25 @@ namespace Ossuary.Core
             return TownText.Reaction(m, RepOf(Houses.Watch), RepOf(Houses.Temple), RepOf(Houses.Guild), Player.Corruption, Player.Mutated.Count, Companions.Count > 0)
                           ?? (TownEventToday() != TownEventKind.None && m.Role != TownRole.Pet && (m.Voice + _talkCount) % 4 == 1 ? TownText.EventLine(TownEventToday(), m.Voice + _talkCount) : null)
                           ?? TruthLine(m)
+                          ?? (Cycle > 0 && m.Role != TownRole.Pet && (m.Voice + _talkCount) % 3 == 0 ? LegendLine(m) : null)
                           ?? (Town != null && m.Role != TownRole.Pet && MurdersIn(Town.Name) > 0 && (m.Voice + _talkCount) % 3 == 0 ? TownText.Grief : null)
                           ?? TownText.LineFor(m, _talkCount++);
+        }
+
+        /// <summary>
+        /// In a new cycle the town knows the hero's legend. What a person says comes from their own voice and the new cycle, and
+        /// a killing in this town before the stamp is not forgiven: the ledger says so.
+        /// </summary>
+        public string LegendLine(Monster m)
+        {
+            if (KillingsHere() > 0)
+                return TownText.L("You came back to this town after the killing. Some of us have not forgotten it.", "Você voltou a esta cidade depois da morte. Alguns de nós não esqueceram.");
+            switch ((m.Voice + Cycle) % 3)
+            {
+                case 0: return TownText.L("They say you carried the seal back down, and came up again. Is it true, or is the drink talking?", "Dizem que você levou o selo de volta lá embaixo, e voltou. É verdade, ou é a bebida falando?");
+                case 1: return TownText.L("You are the one who went into the Ossuary and came out the other side. My cousin swears by you.", "Você é quem entrou no Ossuário e saiu do outro lado. Meu primo jura por você.");
+                default: return TownText.L("Whatever you did down there, it is in the stories now. Mind you do not become one.", "Seja o que for que você fez lá embaixo, já virou história. Cuidado para não virar uma também.");
+            }
         }
 
         /// <summary>Bumping a counter, notice board or altar: whoever works there answers.</summary>
@@ -182,7 +204,14 @@ namespace Ossuary.Core
             var b = Town?.BuildingAt(x, y, TownZ);
             if (b == null) return;
             if (b.Burned) { Say("Only ash and a blackened counter are left. Raiders burned it.", MessageKind.Info); return; }
-            if (b.Keeper == null || b.Keeper.Floor != TownZ || b.Keeper.IsDead) { Say("There is no one here."); return; }
+            if (b.Keeper == null || b.Keeper.IsDead)
+            {
+                // The counter is still a notice board: a town whose posts stand empty posts its Messenger notice there.
+                if (Town.Vacant.Count > 0) Say(MessengerNotice(), MessageKind.Warn);
+                else Say("There is no one here.");
+                return;
+            }
+            if (b.Keeper.Floor != TownZ) { Say("There is no one here."); return; }
             if (b.Keeper.DownUntilDay > Today) { Say("They are out cold; no one is serving."); return; }
             if (b.Keeper.HostileUntil > Turn) { Say("They will not serve you now.", MessageKind.Warn); return; }
             OpenCounter(b, b.Keeper);
@@ -193,7 +222,8 @@ namespace Ossuary.Core
             CurrentEvent = null; CurrentDialogue = null;
             Talking = keeper; TalkBuilding = b;
             ServiceNote = TownText.Reaction(keeper, RepOf(Houses.Watch), RepOf(Houses.Temple), RepOf(Houses.Guild), Player.Corruption, Player.Mutated.Count, false) is string said
-                ? Loc.T(said) : TownText.Greeting(keeper);
+                ? Loc.T(said) : Cycle > 0 && keeper.Voice % 2 == 0 ? LegendLine(keeper) : TownText.Greeting(keeper);
+            if (keeper.Memory != null && keeper.Memory.Has(NpcMemory.Inherited) && b.FormerKeeper != null) ServiceNote = HeirWords(b);
             if (b.Services == Service.None && b.Shop != null)
             {
                 OpenShop(b.Shop);
@@ -241,7 +271,13 @@ namespace Ossuary.Core
             if ((s & Service.Ale) != 0) Add("ale", "A mug of ale", AlePrice);
             if ((s & Service.Ale) != 0 && Companions.Count < MaxCompanions) Add("hire", "Hire a sellsword", HirePrice);
             if ((s & Service.Ale) != 0 && Companions.Count > 0) Add("dismiss", "Send my sellsword home", 0);
-            if ((s & Service.Heal) != 0) Add("heal", "Heal my wounds", HealPrice, Player.HP < Player.MaxHP);
+            if ((s & Service.Heal) != 0)
+            {
+                // The town's memory of the hero (the ledger): a healer who has seen two killings here will not tend the hand that made them.
+                bool refused = HealingRefused();
+                Add("heal", refused ? TownText.L("Heal my wounds (they will not tend a killer)", "Curar meus ferimentos (não tratam um assassino)") : "Heal my wounds",
+                    HealPrice, Player.HP < Player.MaxHP && !refused);
+            }
             if ((s & Service.Cure) != 0) Add("cure", "Cure my ailments", CurePrice, NeedsCure());
             if ((s & Service.Cure) != 0) Add("purge", "Purge the Ossuary from me", Haggle(PurgePrice, Houses.Temple), Player.Corruption > 0);
             if ((s & Service.Cure) != 0 && RepOf(Houses.Cult) >= 25) Add("grave", "A vial from the back room (the Cult sells)", Haggle(220, Houses.Cult));
@@ -340,6 +376,7 @@ namespace Ossuary.Core
                     Tell("Your sellsword shakes your hand and goes back to the bar.", MessageKind.Info);
                     return false;
                 case "heal":
+                    if (HealingRefused()) { Tell(TownText.L("Not with that blood on your hands.", "Não com esse sangue nas mãos."), MessageKind.Warn); return false; }
                     if (!Pay(HealPrice)) return false;
                     Player.HP = Player.MaxHP;
                     AddRep(Houses.Temple, 1, null);
@@ -396,8 +433,11 @@ namespace Ossuary.Core
                     Tell(TownText.StoryLine(_talkCount++, QuestBottomDepth()), MessageKind.Narrative);
                     return false;
                 case "board":
+                    if (Town.Vacant.Count > 0) Tell(MessengerNotice(), MessageKind.Warn);
+                    Tell(HearRumour(), MessageKind.Narrative);
+                    return false;
                 case "rumor":
-                    if (id == "rumor" && !Pay((b.Services & Service.Ale) != 0 ? 4 : 0)) return false;
+                    if (!Pay((b.Services & Service.Ale) != 0 ? 4 : 0)) return false;
                     Tell(HearRumour(), MessageKind.Narrative);
                     return false;
             }

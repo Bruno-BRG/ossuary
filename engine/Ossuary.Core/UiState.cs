@@ -31,6 +31,7 @@ namespace Ossuary.Core
         Achievements,
         Journal,
         Legends,
+        FirstRun,
     }
 
     /// <summary>
@@ -62,6 +63,11 @@ namespace Ossuary.Core
         public int AltarIndex, AltarX, AltarY;
         public bool AltarConfirm;
         public int AdvanceIndex;
+
+        /// <summary>Id of the first-time hint card on screen (Game.Tutorial.cs), or null.</summary>
+        public string Hint;
+        /// <summary>Cursor on the first-run question: 0 "already know the game", 1 "show me the hints".</summary>
+        public int FirstRunIndex;
 
         public readonly ChoiceRequest Choice = new ChoiceRequest();
         public int ChoiceIndex;
@@ -163,7 +169,7 @@ namespace Ossuary.Core
 
 namespace Ossuary.Core
 {
-    public enum MenuRow { Resume, Save, Theme, Crt, Scale, Tiles, Language, Master, Music, Effects, Controls, Achievements, PastRuns, MainMenu, Quit }
+    public enum MenuRow { Resume, Save, Theme, Crt, Scale, Tiles, Language, Master, Music, Effects, Controls, Achievements, PastRuns, Tutorials, ResetTutorials, MainMenu, Quit }
 
     /// <summary>Row order of the F2 menu, shared by the panel that draws it and the host that drives it.</summary>
     public static class MenuRows

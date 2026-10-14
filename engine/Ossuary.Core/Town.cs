@@ -43,6 +43,8 @@ namespace Ossuary.Core
         public Shop Shop;
         public Monster Keeper;
         public int CounterX = -1, CounterY = -1;
+        /// <summary>The keeper who died here before the present one, when an heir took the counter (what the heir says of them).</summary>
+        public string FormerKeeper;
         /// <summary>Burned in a raid: closed for good, its floor black.</summary>
         public bool Burned;
 
@@ -76,6 +78,10 @@ namespace Ossuary.Core
         public readonly Dictionary<int, GameMap> Floors = new Dictionary<int, GameMap>();
         public readonly List<Shop> Shops = new List<Shop>();
         public readonly List<Monster> Npcs = new List<Monster>();
+        /// <summary>Monsters that are not townsfolk: the dead under the Guild's hall. They are loaded with their floor, but no one counts them as people.</summary>
+        public readonly List<Monster> Lurkers = new List<Monster>();
+        /// <summary>Essential posts that lost their person and whose apprentice is gone too: the Guild's notice names them (Game.Succession.cs).</summary>
+        public readonly List<TownRole> Vacant = new List<TownRole>();
         public readonly List<Building> Buildings = new List<Building>();
         public int Population;
         public int Wealth;
@@ -192,6 +198,7 @@ namespace Ossuary.Core
             }
 
             Populate(p, cx, cy, sy0);
+            Apprentices(p);
             return t;
         }
 
@@ -306,7 +313,7 @@ namespace Ossuary.Core
                 case BuildingKind.Tavern: bw = 11; bh = 8; down = 1; break;
                 case BuildingKind.Inn: bw = 11; bh = 8; up = 2; break;
                 case BuildingKind.Temple: bw = 11; bh = 9; up = 1; down = 1; break;
-                case BuildingKind.Guild: bw = 11; bh = 8; up = 1; break;
+                case BuildingKind.Guild: bw = 11; bh = 8; up = 1; down = 1; break;
                 case BuildingKind.Library: bw = 11; bh = 8; up = 1; break;
                 case BuildingKind.Barracks: bw = 11; bh = 8; up = 1; down = 1; break;
                 case BuildingKind.Townhouse: bw = 7; bh = 7; up = 1; break;
@@ -526,6 +533,42 @@ namespace Ossuary.Core
             for (int u = 2; u <= 8; u++) p.Put(1, u, 6, TileKind.Shelf);
             p.Put(1, 5, 3, TileKind.Table);
             Person(p, b, TownRole.Adventurer, 1, 4, 4, 2, null);
+            // The cellar under the hall: stores, and the dead that walk it (QuestBook, the Elder's favour).
+            Storeroom(p, b, -1, 0.7f);
+            CellarDead(p, b);
+        }
+
+        /// <summary>
+        /// Three human zombies walk the Guild's cellar. They come from a private stream, so the layout above is the same as before.
+        /// </summary>
+        static void CellarDead(Plan p, Building b)
+        {
+            var r = new Rng(p.R.Seed ^ 0x6C1E5A7D3B9F2UL);
+            var spots = new List<int[]>();
+            for (int u = 2; u <= b.W - 3; u++)
+                for (int v = 2; v <= b.H - 3; v++)
+                {
+                    var t = p.At(-1, u, v);
+                    if (t == TileKind.Floor || t == TileKind.FloorAlt) spots.Add(new[] { u, v });
+                }
+            for (int i = 0; i < 3 && spots.Count > 0; i++)
+            {
+                int k = r.Range(0, spots.Count);
+                var s = spots[k];
+                spots.RemoveAt(k);
+                var z = new Monster(Bestiary.Find("human zombie"), r)
+                {
+                    Floor = -1, Home = b, X = p.X(s[0]), Y = p.Y(s[1]), HomeX = p.X(s[0]), HomeY = p.Y(s[1]),
+                };
+                p.T.Lurkers.Add(z);
+            }
+        }
+
+        /// <summary>The heir of a counter whose keeper has died: the same trade, the same place, a face of its own.</summary>
+        public static Monster Heir(Town town, Building b, Monster old, Rng rng)
+        {
+            var p = new Plan { T = town, R = rng, B = b };
+            return MakePerson(p, old.Role, old.Floor, old.HomeX, old.HomeY, old.Leash, old.Shop, b, rng);
         }
 
         static void Barracks(Plan p, Building b)
@@ -621,8 +664,9 @@ namespace Ossuary.Core
             return MakePerson(p, role, z, p.X(u), p.Y(v), leash, shop, b);
         }
 
-        static Monster MakePerson(Plan p, TownRole role, int z, int x, int y, int leash, Shop shop, Building home)
+        static Monster MakePerson(Plan p, TownRole role, int z, int x, int y, int leash, Shop shop, Building home, Rng rng = null)
         {
+            var r = rng ?? p.R;   // the town's own stream unless a caller brings a private one (apprentices, below)
             bool guard = role == TownRole.Guard || role == TownRole.Captain;
             var def = Bestiary.Find(guard ? "dwarf" : "hobbit");
             def.Level = 0;
@@ -640,15 +684,15 @@ namespace Ossuary.Core
                 case TownRole.Guard: case TownRole.Captain: def.Color = 0x8FB0E8; break;
                 case TownRole.Child: def.Color = 0xE0D890; def.Glyph = 'i'; break;
                 case TownRole.Pet: def.Color = 0xC8B090; def.Glyph = 'd'; def.Name = "stray dog"; break;
-                default: def.Color = CivilColours[p.R.Range(0, CivilColours.Length)]; break;
+                default: def.Color = CivilColours[r.Range(0, CivilColours.Length)]; break;
             }
-            var m = new Monster(def, p.R)
+            var m = new Monster(def, r)
             {
-                Townsperson = true, Role = role, Floor = z, Leash = leash, Voice = p.R.Range(0, 1000),
+                Townsperson = true, Role = role, Floor = z, Leash = leash, Voice = r.Range(0, 1000),
                 Shop = shop, Home = home, Dormant = true, Alert = 0, IsGuard = guard, IsPriest = role == TownRole.Priest,
                 X = x, Y = y, HomeX = x, HomeY = y,
             };
-            m.Name = role == TownRole.Pet ? def.Name : TownText.GivenName(p.R);
+            m.Name = role == TownRole.Pet ? def.Name : TownText.GivenName(r);
             // The persona has its own stream (town seed mixed with who and where), so it never moves the layout or anyone else.
             var pr = new Rng(p.R.Seed ^ (((ulong)(x * 73856093) ^ (ulong)(y * 19349663) ^ (ulong)(z * 83492791) ^ (ulong)(m.Voice * 2654435761L) ^ (ulong)role) * 0x9E3779B97F4A7C15UL));
             m.Persona = Persona.For(pr, role);
@@ -699,11 +743,33 @@ namespace Ossuary.Core
             }
         }
 
+        /// <summary>
+        /// Every essential person gets an apprentice in the same town, lodged in the same house near its middle, where the post
+        /// is kept (main-quest.md, Essential NPCs). The apprentice draws from a stream of its own, so the layout and every other
+        /// person stay where they were.
+        /// </summary>
+        static void Apprentices(Plan p)
+        {
+            foreach (var e in new List<Monster>(p.T.Npcs))
+            {
+                if (e.Persona == null || !e.Persona.Essential || e.Persona.Successor != null) continue;
+                var role = e.Role == TownRole.Captain ? TownRole.Guard : TownRole.Citizen;   // the lieutenant is a guard promoted; the rest learn the post as citizens
+                var house = e.Home;   // the beggar has no house: their apprentice stands by them in the street
+                int cx = house != null ? house.X + house.W / 2 : e.X, cy = house != null ? house.Y + house.H / 2 : e.Y;
+                var at = Spot(p, cx, cy, 3);
+                if (at == null) continue;
+                var rng = new Rng(p.R.Seed ^ (((ulong)(e.X * 19349663) ^ (ulong)(e.Y * 83492791) ^ (ulong)e.Role) * 0xC2B2AE3D27D4EB4FUL));
+                var a = MakePerson(p, role, 0, at[0], at[1], 2, null, e.Home, rng);
+                a.Persona.Training = e.Role;
+                e.Persona.Successor = a;
+            }
+        }
+
         /// <summary>The nearest free street-level cell to (x, y): open ground, nobody on it, not the cell you arrive on.</summary>
-        static int[] Spot(Plan p, int x, int y)
+        static int[] Spot(Plan p, int x, int y, int radius = 4)
         {
             var map = p.T.Map;
-            for (int r = 0; r <= 4; r++)
+            for (int r = 0; r <= radius; r++)
                 for (int dy = -r; dy <= r; dy++)
                     for (int dx = -r; dx <= r; dx++)
                     {

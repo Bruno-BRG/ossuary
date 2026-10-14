@@ -92,7 +92,57 @@ namespace Ossuary.Core
             .Step(ObjKind.Flag, L("Give the blade to the one who asked.", "Dê a lâmina a quem pediu."), "cult.bones.report", 1, null,
                   L("The beggar by the square, who is not a beggar.", "O mendigo da praça, que não é mendigo.")));
 
+            // Two more of the Drowned's errands: the acolytes below the Dungeons, and a shrine at the bottom of the vaults.
+            Add(new QuestDef
+            {
+                Id = "cult.names", Track = QuestDef.Cult, Giver = "the Drowned", RewardGold = 100,
+                Title = L("Silence the acolytes for the Drowned", "Cale os acólitos para os Afogados"),
+                OnComplete = g => { g.AddRep(Houses.Cult, 8, "silencing the acolytes"); g.AddRep(Houses.Temple, -4, null); },
+            }
+            .Step(ObjKind.Kill, L("Destroy three dark acolytes in The Dungeons.", "Destrua três acólitos sombrios nas Masmorras."), "dark acolyte", 3, "The Dungeons",
+                  L("They chant under the shrines of the Dungeons.", "Eles cantam sob os altares das Masmorras."))
+            .Step(ObjKind.Flag, L("Tell the one who asked that it is done.", "Diga a quem pediu que está feito."), "cult.names.report", 1, null,
+                  L("The beggar by the square, who is not a beggar.", "O mendigo da praça, que não é mendigo.")));
+
+            Add(new QuestDef
+            {
+                Id = "cult.shrine", Track = QuestDef.Cult, Giver = "the Drowned", RewardGold = 130,
+                Title = L("Light the shrine for the Drowned", "Acenda o altar para os Afogados"),
+                OnComplete = g => { g.AddRep(Houses.Cult, 8, "lighting the shrine of the Drowned"); g.AddRep(Houses.Temple, -4, null); g.AddCorruption(3, "The shrine's light is cold, and it gets under the skin."); },
+            }
+            .Step(ObjKind.Reach, L("Go down the Sunken Vaults to the sixth level.", "Desça aos Cofres Afundados até o sexto nível."), "The Sunken Vaults", 6, "The Sunken Vaults",
+                  L("The shrine is at the bottom, under the water.", "O altar fica no fundo, sob a água."))
+            .Step(ObjKind.Flag, L("Tell the one who asked that the shrine is lit.", "Diga a quem pediu que o altar está aceso."), "cult.shrine.report", 1, null,
+                  L("The beggar by the square, who is not a beggar.", "O mendigo da praça, que não é mendigo.")));
+
+            // The favours of the heirs of the essential posts: one before the post's business goes on (main-quest.md, Essential NPCs).
+            Add(Favour(TownRole.Elder, "the new guildmaster", L("A favour for the new guildmaster", "Um favor para o novo mestre da guilda"),
+                L("Put down three human zombies that wander the Guild's cellar.", "Acabe com três zumbis humanos que vagam pelo porão da Guilda."), "human zombie", 3,
+                L("They walk the cellar stairs at night.", "Andam pela escada do porão à noite.")));
+            Add(Favour(TownRole.Captain, "the new captain of the watch", L("A favour for the new captain", "Um favor para o novo capitão da guarda"),
+                L("Put down three orcs on the Watch's road.", "Acabe com três orcs na estrada da Guarda."), "orc", 3,
+                L("They come in from the hills by the gate.", "Eles vêm das colinas, pelo portão.")));
+            Add(Favour(TownRole.Priest, "the new priest", L("A favour for the new priest", "Um favor para o novo sacerdote"),
+                L("Put down three skeletons out of the Temple's crypt.", "Acabe com três esqueletos da cripta do Templo."), "skeleton", 3,
+                L("The crypt door sticks, and they come up the stair.", "A porta da cripta emperra, e eles sobem pela escada.")));
+            Add(Favour(TownRole.Scholar, "the new scholar of the library", L("A favour for the new scholar", "Um favor para o novo erudito"),
+                L("Put down two dark acolytes in the library's back room.", "Acabe com dois acólitos sombrios na sala dos fundos da biblioteca."), "dark acolyte", 2,
+                L("They whisper over the old books.", "Eles sussurram sobre os livros antigos.")));
+            Add(Favour(TownRole.Beggar, "the new voice of the Drowned", L("A favour for the Drowned", "Um favor para os Afogados"),
+                L("Put down two of the dead that walk in the Sunken Vaults.", "Acabe com dois mortos que andam nos Cofres Afundados."), "human zombie", 2,
+                L("They walk where the water came in.", "Andam onde a água entrou.")));
+
             return d;
         }
+
+        /// <summary>
+        /// The favour an heir asks for before the post's business goes on: put down a few of a kind, then report back to the new
+        /// holder of the post. The post's business reopens when the report is in (<see cref="Game.SettleHeir"/>).
+        /// </summary>
+        static QuestDef Favour(TownRole role, string giver, string title, string kill, string target, int count, string killHint) =>
+            new QuestDef { Id = Game.HeirQuest(role), Track = QuestDef.Main, Giver = giver, Title = title, OnComplete = g => g.SettleHeir(role) }
+                .Step(ObjKind.Kill, kill, target, count, null, killHint)
+                .Step(ObjKind.Flag, L("Report back to the new holder of the post.", "Avise o novo ocupante do cargo."), Game.HeirReport(role), 1, null,
+                      L("Talk to them at their post.", "Fale com eles em seu posto."));
     }
 }

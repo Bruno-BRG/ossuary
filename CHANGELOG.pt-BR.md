@@ -5,6 +5,26 @@
 As versões do Ossuary são numeradas só com **um número** (Versão 11, Versão 12…), como no *Project Zomboid*. Nos manifestos (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) e no nome do instalador a versão aparece como `0.N.0`. O **salvamento** (`SaveData.Version`) usa o mesmo número: mudou regra, sobe o número, saves antigos deixam de carregar.
 
+## Versão 23 — Vilas e pessoas
+
+### Vilas e pessoas
+- **A vila se lembra.** Os balcões cobram mais depois que você mata ali e menos depois de boas ações. Um curandeiro recusa a mão de quem já matou duas vezes na vila. Um comerciante que morre é substituído por um herdeiro que avisa, e o porão da Guilda guarda três mortos que ficam mortos depois de limpos. A notícia de uma morte chega às três vilas mais próximas três dias depois.
+- **Pessoas essenciais têm aprendizes.** O Ancião, o Leitor, o Capitão, o Alto Sacerdote e o mendigo dos Afogados têm cada um um aprendiz morando com ele. Três golpes num que está caído e inconsciente o tiram de cena; o aprendiz assume o posto, com uma disposição pior para com você e devendo um favor. Sem aprendiz, a Guilda afixa um aviso pedindo um Mensageiro.
+- **Companheiros.** Dois companheiros podem andar com você. `F12` manda que fiquem parados onde estão, ou que voltem a seguir. Um arqueiro entre eles perde flechas do próprio arco contra inimigos a duas e seis casas. Um companheiro que cai larga a mochila onde morreu.
+- **Furto e incêndio.** `F9` rouba o primeiro item bom do balcão ao seu lado, sem pagar. `F10` queima esse balcão com um coquetel molotov. Visto por alguém, cada um vira recompensa e a Guarda se lembra; uma loja queimada fica queimada. Uma gazua do seu kit inicial abre a cela quando a Guarda o prende.
+- **Figuras do crime.** A multa é o valor que a Guarda guarda nesta região, e pagá-la perdoa também as recompensas dos vizinhos. As celas custam um dia para cada cem de ouro, um suborno sai mais barato abaixo de 500 de ouro, fugir dobra a recompensa, e a recompensa para em 5000 de ouro.
+- **Gente da masmorra.** Um aventureiro ferido paga por uma poção de cura. Um saqueador foge e larga um saco. Os restos de um grupo levam um bilhete. Cativos são libertados com `D`, e voltam para casa com você como uma missão de escolta, que termina no portão da cidade.
+- **Conversas.** Um rosto na caixa de diálogo, montado a partir do ofício, do temperamento e do humor, com etiquetas de humor e de gênio. `PgUp` e `PgDn` leem a conversa de volta.
+- **A trama principal, polida.** A cerimônia é falada pelo chefe da casa, pelo nome, ou no altar quando o posto está vago. A Sombra do Arquivista (As Cavernas Afundadas, nível 10) e o Guardião do Fundo (A Torre de Cinzas, nível 12) são chefes que ficam até caírem. O necrotério nomeia o final, e o epílogo nomeia, em ordem, os seis feitos mais pesados do registro do mundo.
+- **Um novo ciclo se lembra.** Depois do Selo, os moradores falam dele nas conversas e nos balcões, e uma morte na cidade antes do Selo não é perdoada. O novo ciclo mantém seu ouro, equipamento, posição com a Casa, verdades, registro e companheiros, e limpa as recompensas, o Amuleto e uma missão de selo em aberto.
+
+### Marcas e dicas iniciais
+- **Marcas de viagem.** `'` marca a casa onde você está, sem custo de turno, e apertar de novo sobre uma marca a apaga. `Shift+'` vai até a marca mais próxima do nível, e depois até a próxima. As marcas pertencem ao seu nível, então continuam lá quando você volta.
+- **Dicas da primeira vez.** Na primeira vez que você desce, é ferido, sobe de nível ou compra algo, um cartão curto diz a tecla que você precisa. Ele fecha quando você faz aquilo, ou com `Esc`, e nunca gasta um turno. Cada dica aparece uma vez por instalação. No primeiro novo jogo, o jogo pergunta se você já conhece o jogo; `F2` desliga as dicas, e *Reiniciar tutoriais* as mostra de novo.
+
+### Salvamentos
+- O salvamento passa para a versão **23**: saves da Versão 22 não carregam mais.
+
 ## Versão 22 — Magias que respondem
 
 ### Conjuradores

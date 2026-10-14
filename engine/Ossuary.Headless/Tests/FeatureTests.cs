@@ -5,6 +5,7 @@ using Ossuary.Core;
 using Ossuary.Core.Entities;
 using Ossuary.Core.Items;
 using Ossuary.Core.Magic;
+using Ossuary.Core.World;
 
 namespace Ossuary.Tests
 {
@@ -31,6 +32,24 @@ namespace Ossuary.Tests
             Test("a hired companion follows, grows and can fall", Companions);
             Test("Dive and Naked challenge runs start differently", Challenges);
             Test("travel finds altars and fountains", FeatureTravel);
+            Test("travel marks: set, walk back, cycle, rub out, per level", Marks);
+            Test("conversations: a face, tags, and the lines read back", ConversationBox);
+            Test("essential people: each has an apprentice lodged with them", Apprentices);
+            Test("three blows at a helpless essential remove them, and the apprentice takes the post", Succession);
+            Test("the heir owes a favour before the talk counts, and the report settles it", HeirFavour);
+            Test("a post with no one behind it stands vacant, and the Guild posts the notice", VacantPost);
+            Test("an heir removed while owing a favour takes the favour with them", HeirRemovedOwing);
+            Test("delvers and captives: placed from a private stream, the same seed the same people", FolkPlacement);
+            Test("a wounded delver needs a potion of healing: with one they pay and go", WoundedDelver);
+            Test("a captive is freed and walks home, and the walk is a quest the gate ends", CaptiveHome);
+            Test("an escort who falls on the road takes the walk with them", EscortDies);
+            Test("a looter who dies leaves a sack where they fell", LooterSack);
+            Test("the ledger reads into prices: killings here make counters dearer, good deeds cheaper", LedgerPrices);
+            Test("the Guild's cellar holds the dead that walk; once the last is down, it stays quiet", CellarQuiet);
+            Test("a counter whose keeper died opens again under an heir who says so", ShopHeir);
+            Test("news of a killing reaches the towns nearby a few days later, and not the far ones", NewsSpreads);
+            Test("the epilogue remembers the heaviest deeds, in the order they were done", EpilogueRemembers);
+            Test("a healer who has seen two killings in the town will not tend the hand that made them", HealerRefuses);
             Test("Trained mode: skills are bought with XP", TrainedMode);
             Test("what the game reports can also be heard", SoundCues);
             Test("square tiles double the map columns", SquareTiles);
@@ -62,6 +81,17 @@ namespace Ossuary.Tests
             Test("a rival party races the hero down the Dungeons", RivalRace);
             Test("the Cult's dark mirror: a vial for the Drowned", CultTrack);
             Test("the Cult's two errands: the vaults and a blade of bone", CultErrands);
+            Test("the Drowned's two newer errands: the acolytes below and a shrine in the vaults", CultMoreErrands);
+            Test("in a new cycle the town knows the hero's legend, and a killing here is not forgiven", LegendTalk);
+            Test("the ceremony is spoken by the house's holder by name, or at the altar when the post is empty", CeremonySpeakers);
+            Test("stealing from a counter: unseen the goods are kept and noted; seen, it is a bounty by their value", StealAtCounter);
+            Test("a molotov at a counter burns it for good, a fire in view is a bounty, and a temple does not burn", BurnCounterTest);
+            Test("a lock pick opens the cell while the Watch takes the hero in: out, the bounty doubled, no sentence", LockpickEscape);
+            Test("the Watch's figures follow one bounty: echo, fine, bribe, cells and escape, and settling forgives the neighbours too", SettlingTheBounty);
+            Test("the Stamp starts a new cycle that keeps the hero; the Elder does not restart the seal", NewCycleKeepsTheHero);
+            Test("companions: two may walk with the hero, an order holds them, an archer looses, a fallen pack falls where they died", CompanionsMore);
+            Test("the morgue names the ending a run was won with", MorgueEnding);
+            Test("the Archivist's Shade and the Guardian of the Deep wait on their levels, and a boss stays until it falls", ShadeAndGuardian);
             Test("vaults are carved out of unused rock and need a key", VaultsAndKeys);
             Test("overworld entrances lead into every branch", EntrancesReachBranches);
             Test("the Annex: a portal, hard floors, a warden and a mantle", AnnexFlow);
@@ -1446,7 +1476,9 @@ namespace Ossuary.Tests
             Assert(g.Companions.Count == 1 && g.Player.Gold == gold - g.HirePrice + 0 || g.Player.Gold < gold, "hiring costs gold");
             var c = g.Companions[0];
             Assert(c.Ally && c.Companion && c.SummonTurns == 0 && c.Level == g.Player.Level, "an ally with no timer, at the hero's level");
-            Assert(!g.ServiceRows().Exists(r => r.Id == "hire"), "only one companion at a time");
+            Assert(g.ServiceRows().Exists(r => r.Id == "hire"), "a second companion can be hired beside the first");
+            g.ServiceAction("hire");
+            Assert(g.Companions.Count == 2 && !g.ServiceRows().Exists(r => r.Id == "hire"), "two companions at most, and no third is offered");
             Assert(g.ServiceRows().Exists(r => r.Id == "dismiss"), "and they can be sent home");
 
             // Down the stairs they come too, hurt or not.
@@ -1532,6 +1564,138 @@ namespace Ossuary.Tests
             Assert(g.Map.Get(g.Player.X, g.Player.Y) == TileKind.Fountain, "the walk ends on the fountain");
             turn = g.Turn; cmd.Execute("feature");
             Assert(g.Turn == turn, "already there costs nothing");
+        }
+
+        /// <summary>
+        /// Travel marks (Interface and controls): setting one costs no turn and the same key rubs it out. The marks walk goes to the
+        /// nearest other mark and stops on it, and the next press goes on to the one after. A marked cell is tinted on the map,
+        /// and marks stay on their level.
+        /// </summary>
+        static void Marks()
+        {
+            var g = Game.NewHero(1101, "Mark", "human", "fighter");
+            g.Monsters.Clear();
+            var cmd = new Commands(g);
+            // A twin game with no marks, walked the same way: on screen, any difference from it is the mark alone.
+            var twin = Game.NewHero(1101, "Mark", "human", "fighter");
+            twin.Monsters.Clear();
+            var twinCmd = new Commands(twin);
+
+            int turn = g.Turn, ax = g.Player.X, ay = g.Player.Y;
+            cmd.Execute("mark");
+            Assert(g.Turn == turn && g.IsMarked(ax, ay), "marking the spot underfoot costs no turn");
+            turn = g.Turn; cmd.Execute("marks");
+            Assert(g.Turn == turn && g.Player.X == ax && g.Player.Y == ay, "with no other mark on the level the walk costs no turn and does not move");
+
+            // Walk away with explore (the twin walks too); the tint shows only on the marked cell.
+            for (int i = 0; i < 40; i++) { cmd.Execute("explore"); twinCmd.Execute("explore"); }
+            Assert(g.Player.X != ax || g.Player.Y != ay, "test setup: the explore walk has left the mark");
+            Assert(g.Player.X == twin.Player.X && g.Player.Y == twin.Player.Y, "test setup: the twin walked the same way");
+            var hud = new GameHud(g); hud.Ui.Resize(110, 36);
+            var twinHud = new GameHud(twin); twinHud.Ui.Resize(110, 36);
+            var shown = hud.Draw(); var plain = twinHud.Draw();
+            int sx = hud.Ui.MapOx + (ax - hud.Ui.CameraX) * hud.Ui.MapSq, sy = hud.Ui.MapOy + (ay - hud.Ui.CameraY);
+            var warmed = new List<(int X, int Y)>();
+            for (int y = hud.Ui.MapOy; y < hud.Ui.MapOy + hud.Ui.MapViewH; y++)
+                for (int x = hud.Ui.MapOx; x < hud.Ui.MapOx + hud.Ui.MapViewW; x++)
+                    if (!shown.BgAt(x, y).Equals(plain.BgAt(x, y))) warmed.Add((x, y));
+            Assert(warmed.Count > 0 && warmed.TrueForAll(c => c.Y == sy && c.X >= sx && c.X < sx + hud.Ui.MapSq), "only the marked cell is warmed on the map");
+
+            // A second mark where the explore walk left the hero. The marks key walks back to the first, and stops on it.
+            int bx = g.Player.X, by = g.Player.Y;
+            cmd.Execute("mark");
+            Assert(g.IsMarked(bx, by) && (bx != ax || by != ay), "a second mark is set on another cell");
+            for (int i = 0; i < 40 && !(g.Player.X == ax && g.Player.Y == ay); i++) cmd.Execute("marks");
+            Assert(g.Player.X == ax && g.Player.Y == ay, "the marks walk brings the hero back to the first mark");
+            // From there the next press goes on to the other one.
+            for (int i = 0; i < 40 && !(g.Player.X == bx && g.Player.Y == by); i++) cmd.Execute("marks");
+            Assert(g.Player.X == bx && g.Player.Y == by, "the next press goes on to the other mark");
+
+            // The same key rubs a mark out, and only that one.
+            cmd.Execute("mark");
+            Assert(!g.IsMarked(bx, by) && g.IsMarked(ax, ay), "marking a marked spot rubs its mark out, and only that one");
+
+            // Marks belong to their level: the level below has none, and the first level's mark is still there on the way back.
+            int depth = g.Depth, here = g.Map.Number;
+            g.DescendTo(g.Branch, depth + 1);
+            Assert(g.Map.Number != here && !g.HasMarkHere(), "the level below has no marks of its own");
+            g.DescendTo(g.Branch, depth);
+            Assert(g.Map.Number == here && g.IsMarked(ax, ay), "back on the first level, its mark is still there");
+
+            // Keys and words: the apostrophe marks, shift+apostrophe walks, and both have their Portuguese names.
+            int mark = Array.FindIndex(KeyBindings.Actions, a => a.Id == "mark"), marks = Array.FindIndex(KeyBindings.Actions, a => a.Id == "marks");
+            Assert(mark >= 0 && marks >= 0 && KeyBindings.Current.KeysOf(mark).Contains("Quote") && KeyBindings.Current.KeysOf(marks).Contains("Shift+Quote"),
+                "the apostrophe and shift+apostrophe are bound to the mark keys");
+            Assert(Ossuary.Desktop.Input.Translate("Quote", "'", false, false) == "mark" && Ossuary.Desktop.Input.Translate("Quote", "\"", true, false) == "marks",
+                "the browser keys reach the mark commands");
+            var old = Loc.Current;
+            try
+            {
+                Loc.Current = Lang.Pt;
+                Assert(Loc.T("Mark this spot") == "Marcar este ponto" && Loc.T("Travel to a mark") == "Ir até uma marca", "the mark keys have Portuguese names");
+                Assert(Loc.T("mark a spot / walk to a mark") == "marcar um ponto / ir até uma marca", "the help row has its Portuguese");
+                Assert(Loc.T("You mark this spot.") == "Você marca este ponto.", "marking says so in Portuguese");
+            }
+            finally { Loc.Current = old; }
+        }
+
+        /// <summary>
+        /// Conversations (Towns and people): what was said stays in the box and reads back, the person has a face and tags that
+        /// follow their memory and temperament, and drawing the box draws nothing from the simulation.
+        /// </summary>
+        static void ConversationBox()
+        {
+            var old = Loc.Current;
+            try
+            {
+                Loc.Current = Lang.En;
+                var g = new Game(7007);
+                var elder = Teller(TownRole.Elder, Trait.Proud);
+                string face = string.Join("|", Portrait.Rows(elder));
+                long calls = g.Rng.Calls;
+                Assert(string.Join("|", Portrait.Rows(elder)) == face && g.Rng.Calls == calls, "the face is the same every time and draws nothing");
+
+                g.Talking = elder; g.OpenDialogue(Dialogues.For(elder), elder);
+                Assert(g.DialogueLog.Count == 1 && !g.DialogueLog[0].Hero, "opening the box keeps the person's first line");
+                var answer = g.ServiceRows().Find(r => r.Enabled && r.Id != "d:end");
+                Assert(answer != null, "the elder has an answer on offer");
+                g.ServiceAction(answer.Id);
+                Assert(g.DialogueLog.Count >= 2 && g.DialogueLog[1].Hero && g.DialogueLog[1].Text == answer.Label,
+                    "the hero's answer is kept, before what the person says next");
+
+                // A long talk: the box shows the newest lines, reads back on request, and stops at the first line.
+                g.Talking = elder; g.OpenDialogue(Dialogues.For(elder), elder);
+                g.DialogueLog.Clear();
+                for (int i = 0; i < 20; i++) g.DialogueLog.Add(new DialogueLine { Text = "line " + i.ToString("00") });
+                var hud = new GameHud(g); hud.Ui.Resize(110, 36);
+                long drawn = g.Rng.Calls;
+                string newest = hud.Draw().ToAscii();
+                Assert(g.Rng.Calls == drawn, "drawing the box draws nothing");
+                Assert(newest.Contains("line 19") && newest.Contains("line 13") && !newest.Contains("line 12"), "the newest lines show at the bottom");
+                Assert(newest.Contains(Portrait.Rows(elder)[0]) && newest.Contains(Portrait.Rows(elder)[1]), "the box shows the person's face");
+                g.ScrollDialogue(5);
+                string older = hud.Draw().ToAscii();
+                Assert(older.Contains("line 08") && older.Contains("line 14") && !older.Contains("line 15"), "reading back shows older lines");
+                g.ScrollDialogue(100);
+                string oldest = hud.Draw().ToAscii();
+                Assert(oldest.Contains("line 00") && !oldest.Contains("line 13") && g.DialogueScroll == 13, "reading back stops at the first line");
+                g.ScrollDialogue(-100);
+                Assert(g.DialogueScroll == 0, "reading forward returns to the newest line, and no further");
+
+                // The tags follow the memory and the temperament.
+                elder.Memory.Disposition = 40;
+                string warm = hud.Draw().ToAscii();
+                Assert(warm.Contains("mood: warm") && warm.Contains("temper: proud"), "the mood and temperament are tags in the box");
+                elder.Memory.Disposition = -40;
+                Assert(hud.Draw().ToAscii().Contains("mood: cold"), "a cold person shows as cold");
+                elder.Memory.Disposition = 0; elder.Memory.Set(NpcMemory.Struck);
+                Assert(hud.Draw().ToAscii().Contains("mood: wary"), "someone who was struck is wary");
+
+                Loc.Current = Lang.Pt;
+                Assert(Loc.U("mood: warm") == "humor: cordial" && Loc.U("temper: proud") == "temperamento: orgulhoso", "the tags have Portuguese");
+                Assert(Loc.U("Up/Down  Enter chooses  PgUp/PgDn reads back  Esc leaves").Contains("PgUp/PgDn relê"), "and the hint says how to read back");
+            }
+            finally { Loc.Current = old; }
         }
 
         static Item Make(Game g, string name, int qty = 1)
@@ -2424,6 +2588,322 @@ namespace Ossuary.Tests
             Assert(g.RepOf(Houses.Cult) > cult && g.RepOf(Houses.Temple) < temple && g.Player.Corruption > corruption, "the Cult gains, the Temple and the body pay");
         }
 
+        /// <summary>Companions: two may walk with the hero; an order holds them in place; an archer looses from its own bow; a fallen pack falls where they died.</summary>
+        static void CompanionsMore()
+        {
+            Assert(Game.MaxCompanions == 2, "the hero may keep two companions");
+            var g = new Game(4242); g.LeaveToOverworld();
+            g.DescendTo("The Dungeons", 3);
+            for (int i = 0; i < 3; i++) g.HireCompanion();
+            g.Companions.Clear();
+            var archer = g.HireCompanion();   // the fourth role is the archer
+            Assert(archer.CompanionRole == "archer" && archer.Inventory.Exists(i => i.Def.Kind == ItemKind.Ammo), "an archer carries its own bow and arrows");
+            var second = g.HireCompanion();
+            Assert(g.Companions.Count == 2, "two companions walk with the hero");
+
+            // The archer beside the hero, and a foe in view three cells off.
+            var hero = g.Player;
+            int ax = -1, ay = -1, fx = -1, fy = -1;
+            for (int dx = -1; dx <= 1 && ax < 0; dx++)
+                for (int dy = -1; dy <= 1 && ax < 0; dy++)
+                    if ((dx != 0 || dy != 0) && g.Map.Get(hero.X + dx, hero.Y + dy) == TileKind.Floor) { ax = hero.X + dx; ay = hero.Y + dy; }
+            Assert(ax >= 0, "there is a floor cell beside the hero for the archer");
+            archer.X = ax; archer.Y = ay;
+            g.Monsters.Add(archer); g.Monsters.Add(second);
+            second.X = hero.X; second.Y = hero.Y;
+            for (int dx = -4; dx <= 4 && fx < 0; dx++)
+                for (int dy = -4; dy <= 4 && fx < 0; dy++)
+                {
+                    int x = ax + dx, y = ay + dy;
+                    if (Math.Max(Math.Abs(dx), Math.Abs(dy)) != 3 || g.Map.Get(x, y) != TileKind.Floor) continue;
+                    fx = x; fy = y;
+                }
+            Assert(fx >= 0, "there is a floor cell three cells from the archer");
+            var foe = new Monster(Bestiary.Find("orc"), g.Rng) { X = fx, Y = fy, Alert = 1, Dormant = false };
+            g.Monsters.Add(foe);
+            int arrows = archer.Inventory.Find(i => i.Def.Kind == ItemKind.Ammo).Quantity, foeHp = foe.HP;
+            for (int i = 0; i < 30 && archer.Inventory.Find(it => it.Def.Kind == ItemKind.Ammo) is Item a && a.Quantity == arrows && foe.HP == foeHp; i++) g.Wait();
+            Assert(archer.Inventory.Find(it => it.Def.Kind == ItemKind.Ammo) is Item left ? left.Quantity < arrows || foe.HP < foeHp : true,
+                "an archer looses at a foe three cells off, from its own bow");
+
+            g.OrderCompanions();
+            Assert(archer.Holds && second.Holds, "an order holds the companions where they stand");
+            int x0 = archer.X, y0 = archer.Y;
+            for (int i = 0; i < 5; i++) g.Wait();
+            Assert(archer.X == x0 && archer.Y == y0, "a holding companion does not step off its place");
+            g.OrderCompanions();
+            Assert(!archer.Holds && !second.Holds, "a second order sends them to follow again");
+
+            second.Inventory.Add(new Item(Ammo.Arrow, new Rng(11), 1) { Identified = true });
+            second.HP = 0;
+            g.Wait();
+            Assert(GroundItems.At(g.Map.Number, hero.X, hero.Y).Count > 0 && !g.Companions.Contains(second), "a fallen companion's pack falls where they died");
+        }
+
+        /// <summary>A hand at a counter: unseen, the goods are kept and the ledger notes it; seen, it is a bounty by the goods' value.</summary>
+        static void StealAtCounter()
+        {
+            var g = new Game(4242); g.LeaveToOverworld(); g.EnterTown("Probeton");
+            var shop = g.Town.Shops.Find(s => s.Keeper != null && s.Stock.FindAll(i => i.Def.Kind != ItemKind.Gold).Count >= 2);
+            Assert(shop != null, "the town has a shop with goods to steal");
+            g.Player.X = shop.X; g.Player.Y = shop.Y;
+            g.Monsters.Clear();
+            var first = shop.Stock.Find(i => i.Def.Kind != ItemKind.Gold);
+            Assert(g.StealFromCounter(), "a hand at a counter takes a good");
+            Assert(g.Player.Inventory.Contains(first) && !shop.Stock.Contains(first), "the good goes into the pack");
+            Assert(g.BountyHere() == 0 && g.DeedCount(Deed.Stole) == 1, "unseen there is no bounty, and the ledger notes the deed");
+
+            g.Monsters.Add(shop.Keeper);
+            Assert(g.StealFromCounter(), "a second good is taken with the keeper in view");
+            Assert(g.BountyHere() >= 50, "seen, the theft is a bounty of at least fifty gold, got " + g.BountyHere());
+            Assert(g.DeedCount(Deed.Stole) == 2, "the ledger notes the seen theft too");
+        }
+
+        /// <summary>A molotov at a counter burns the building for good; a fire in view is a bounty by what burned; a temple does not burn.</summary>
+        static void BurnCounterTest()
+        {
+            var g = new Game(4242); g.LeaveToOverworld(); g.EnterTown("Probeton");
+            var temple = g.Town.Buildings.Find(b => b.Kind == BuildingKind.Temple);
+            var shop = g.Town.Buildings.Find(b => b.Shop != null && !b.Burned && b.CounterX >= 0 && b.Kind != BuildingKind.Temple && b.Kind != BuildingKind.Guild);
+            Assert(temple != null && shop != null, "the town has a temple and a shop");
+            g.Player.Inventory.Add(new Ossuary.Core.Items.Item(Def("molotov"), new Rng(8), 1) { Identified = true });
+            g.Player.X = temple.CounterX; g.Player.Y = temple.CounterY;
+            Assert(!g.BurnCounter() && !temple.Burned, "the temple's stone does not burn");
+
+            g.Player.X = shop.CounterX; g.Player.Y = shop.CounterY;
+            g.Monsters.Clear();
+            Assert(g.BurnCounter() && shop.Burned, "a molotov at the counter burns the shop");
+            Assert(g.Player.FindFirst("molotov") == null, "the molotov is spent");
+            Assert(g.BountyHere() == 0 && g.DeedCount(Deed.Burnt) == 1, "unseen there is no bounty, and the ledger notes the fire");
+
+            var other = g.Town.Buildings.Find(b => b.Shop != null && !b.Burned && b.CounterX >= 0 && b.Kind != BuildingKind.Temple && b.Kind != BuildingKind.Guild);
+            Assert(other != null, "the town has a second shop");
+            g.Player.Inventory.Add(new Ossuary.Core.Items.Item(Def("molotov"), new Rng(9), 1) { Identified = true });
+            g.Player.X = other.CounterX; g.Player.Y = other.CounterY;
+            if (other.Keeper != null) g.Monsters.Add(other.Keeper);
+            Assert(g.BurnCounter() && other.Burned, "a second fire burns the second shop");
+            Assert(g.BountyHere() >= 500, "a fire in view is a bounty of at least five hundred gold, got " + g.BountyHere());
+        }
+
+        /// <summary>A lock pick opens the cell while the Watch takes the hero in: out, the bounty doubled, and no sentence served.</summary>
+        static void LockpickEscape()
+        {
+            var g = new Game(4242); g.LeaveToOverworld(); g.EnterTown("Probeton");
+            var guard = FindRole(g, TownRole.Guard) ?? FindRole(g, TownRole.Captain);
+            Assert(guard != null, "the town has a guard to take the hero in");
+            g.AddBounty(100, "test");
+            g.Player.Inventory.Add(new Ossuary.Core.Items.Item(Def("lock pick"), new Rng(10), 1) { Identified = true });
+            g.Talking = guard; g.OpenDialogue(Dialogues.Arrest, guard);
+            Pick(g, "Pick the lock");
+            Assert(g.BountyHere() == 200, "the bounty doubles when the hero breaks out, got " + g.BountyHere());
+            Assert(g.DeedCount(Deed.Escaped) == 1 && g.DeedCount(Deed.Jailed) == 0, "the escape is in the ledger, and no sentence is served");
+        }
+
+        /// <summary>The Watch's figures follow one bounty: the echo of a neighbour's, the fine, the bribe under five hundred, the cells by days, the escape, and settling forgives the neighbours too.</summary>
+        static void SettlingTheBounty()
+        {
+            var g = new Game(4242); g.LeaveToOverworld(); g.EnterTown("Probeton");
+            var guard = FindRole(g, TownRole.Guard) ?? FindRole(g, TownRole.Captain);
+            Assert(guard != null, "the town has a guard to take the hero in");
+            string here = g.World.RegionAt(g.World.PlayerX, g.World.PlayerY).Name;
+            var near = g.NeighbourRegions(here);
+            Assert(near.Count > 0, "the region has neighbours");
+            string next = near[0];
+
+            // The sentence is one day per hundred gold, at least one and at most thirty; a bounty stops at five thousand.
+            Assert(g.SentenceDays(0) == 1 && g.SentenceDays(99) == 1 && g.SentenceDays(100) == 2 && g.SentenceDays(250) == 3 && g.SentenceDays(9999) == 30,
+                "the sentence is one day per hundred gold, from one to thirty");
+            g.AddBounty(9000, "test");
+            Assert(g.BountyHere() == 5000, "a bounty stops at five thousand, got " + g.BountyHere());
+            g.ClearBountyHere();
+
+            // A neighbour's bounty echoes here at half, rounded up, and the Watch asks that figure. Under five hundred a bribe is 3/2 of it.
+            g.Bounties[next] = 601;
+            Assert(g.BountyHere() == 301, "a neighbour's 601 is 301 here, got " + g.BountyHere());
+            g.Player.Gold = 1000;
+            g.Talking = guard; g.OpenDialogue(Dialogues.Arrest, guard);
+            Assert(g.ServiceRows()[RowIdx(g, "Slip them a bribe")].Enabled, "under five hundred the Watch takes a bribe");
+            int standing = g.RepOf(Houses.Watch);
+            Pick(g, "Slip them a bribe");
+            Assert(g.Player.Gold == 1000 - 301 * 3 / 2 && g.RepOf(Houses.Watch) == standing - 3, "the bribe is three halves of the figure and costs three standing with the Watch");
+            Assert(g.BountyHere() == 0 && !g.Bounties.ContainsKey(next), "a bribe settles the neighbour's bounty too");
+            g.UiState.Active = Panel.None; g.CurrentDialogue = null;
+
+            // The fine is the figure held here: a purse short of it cannot pay.
+            g.Bounties[next] = 600;                                  // echoes as 300
+            g.Player.Gold = 299;
+            g.Talking = guard; g.OpenDialogue(Dialogues.Arrest, guard);
+            Assert(!g.ServiceRows()[RowIdx(g, "Pay the fine")].Enabled, "a purse of 299 cannot pay a fine of 300");
+            g.Player.Gold = 300;
+            Pick(g, "Pay the fine");
+            Assert(g.Player.Gold == 0 && g.BountyHere() == 0 && !g.Bounties.ContainsKey(next), "the fine is the figure, and paying it forgives the neighbour too");
+            g.UiState.Active = Panel.None; g.CurrentDialogue = null;
+
+            // From five hundred the Watch refuses a bribe, and a fine of five hundred is out of reach with four hundred gold.
+            g.Bounties[next] = 1000;                                 // echoes as 500
+            g.Player.Gold = 400;
+            g.Talking = guard; g.OpenDialogue(Dialogues.Arrest, guard);
+            var rows = g.ServiceRows();
+            Assert(!rows[RowIdx(g, "Slip them a bribe")].Enabled, "from five hundred the Watch refuses a bribe");
+            Assert(!rows[RowIdx(g, "Pay the fine")].Enabled, "a fine of five hundred is out of reach with 400 gold");
+            g.UiState.Active = Panel.None; g.CurrentDialogue = null;
+
+            // The cells hold the hero for the days of the figure held here, the echo included, and the neighbour is forgiven too.
+            g.Bounties[next] = 600;                                  // echoes as 300: four days
+            g.Player.Gold = 0;
+            int day = g.World.Day;
+            g.Talking = guard; g.OpenDialogue(Dialogues.Arrest, guard);
+            Pick(g, "Go quietly");
+            Assert(g.SentenceDays(300) == 4 && g.World.Day - day >= 4, "the cells hold the hero for four days, got " + (g.World.Day - day));
+            Assert(g.BountyHere() == 0 && !g.Bounties.ContainsKey(next), "serving the sentence settles the neighbour's bounty too");
+            g.UiState.Active = Panel.None; g.CurrentDialogue = null;
+
+            // The escape doubles what the Watch holds here, echo included: the echo of 300 becomes 600 in this region's own book.
+            g.Bounties[next] = 600;
+            g.Player.Inventory.Add(new Ossuary.Core.Items.Item(Def("lock pick"), new Rng(12), 888002) { Identified = true });
+            g.Talking = guard; g.OpenDialogue(Dialogues.Arrest, guard);
+            Pick(g, "Pick the lock");
+            Assert(g.BountyHere() == 600, "the escape doubles the figure held here, got " + g.BountyHere());
+            g.UiState.Active = Panel.None; g.CurrentDialogue = null;
+        }
+
+        /// <summary>The Stamp starts a new cycle that keeps the hero: gold, pack, the Houses' memory, the truths and the ledger. The hunt is what resets.</summary>
+        static void NewCycleKeepsTheHero()
+        {
+            var n = new Game(6010); n.LeaveToOverworld();
+            foreach (var f in new[] { "truth.seal", "truth.vote", "truth.entry", "truth.order" }) n.Flags.Add(f);
+            n.AddRep(Houses.Temple, 40, null);
+            n.Player.Gold = 900;
+            n.Player.Inventory.Add(new Ossuary.Core.Items.Item(Def("lock pick"), new Rng(12), 888003) { Identified = true });
+            GiveAmulet(n);
+            n.StartQuest("main.seal");
+            n.Bounties["The Iron Hills"] = 800;
+            n.AddBounty(300, "test");
+            n.Player.HP = 2;
+            n.FinishEnding("stamp");
+
+            Assert(n.Mode == GameMode.Overworld && n.Cycle == 1 && n.EndingId == "stamp", "the Stamp starts a new cycle on the surface");
+            Assert(n.DeedCount("ending", "stamp") == 1, "the ledger records the Stamp");
+            Assert(n.Player.Gold == 900 && n.Player.FindFirst("lock pick") != null && n.RepOf(Houses.Temple) == 40, "gold, pack and the Houses' memory carry over");
+            Assert(n.Flags.Contains("truth.vote") && n.Ledger.Count > 0 && n.Flags.Contains("legend"), "the truths and the ledger carry over, and the legend starts");
+            Assert(!n.HasAmulet() && n.Player.Amulet == null, "the Amulet is gone for good");
+            Assert(n.Bounties.Count == 0 && n.BountyHere() == 0, "every bounty is forgiven, in every region");
+            Assert(n.Player.HP == n.Player.MaxHP, "the hero wakes whole");
+            Assert(!n.QuestActive("main.seal"), "an open seal errand leaves the journal");
+
+            // The council does not offer the seal again: the Stamp closed it.
+            var elder = new Monster(Bestiary.Find("hobbit"), new Rng(7)) { Name = "The Elder", Townsperson = true, Role = TownRole.Elder };
+            Dialogues.For(elder).OnOpen(n, elder);
+            Assert(!n.QuestActive("main.seal"), "the Elder does not restart the seal in a new cycle");
+        }
+
+        /// <summary>The ceremony's words come from the house's living holder, by name; with that post empty, the rite is done at the altar.</summary>
+        static void CeremonySpeakers()
+        {
+            var g = new Game(4242); g.LeaveToOverworld(); g.EnterTown("Probeton");
+            var priest = FindRole(g, TownRole.Priest);
+            Assert(priest != null, "the town has a priest to speak for the Temple");
+            g.FinishEnding("shut");
+            Assert(g.Log.Exists(m => m.Text.Contains(priest.Name)), "the Temple's priest speaks the rite by name");
+            Assert(g.EndingId == "shut", "the ending is recorded");
+
+            var h = new Game(4243); h.LeaveToOverworld();
+            h.FinishEnding("open");
+            Assert(h.Log.Exists(m => m.Text.Contains("altar")), "with no one of the house left, the rite is done at the altar");
+        }
+
+        /// <summary>The morgue keeps the ending a run was won with, and names it.</summary>
+        static void MorgueEnding()
+        {
+            var g = new Game(4244); g.LeaveToOverworld();
+            g.FinishEnding("warden");
+            var rec = Morgue.Summarize(g);
+            Assert(rec.Outcome == "won" && rec.Ending == "warden", "the run's record names the ending it was won with");
+            Assert(Morgue.EndingName("warden").Contains("Warden"), "the morgue names the Warden's ending");
+        }
+
+        /// <summary>The Shade and the Guardian are bosses of their branches: placed on their levels, and they stay until they fall.</summary>
+        static void ShadeAndGuardian()
+        {
+            var v = new Game(4245); v.LeaveToOverworld();
+            v.DescendTo("The Sunken Vaults", 10);
+            var shade = v.Monsters.Find(m => m.BossId == "archivist-shade");
+            Assert(shade != null, "the Archivist's Shade waits on level 10 of the Vaults");
+            var s = new Game(4246); s.LeaveToOverworld();
+            s.DescendTo("The Ashen Spire", 12);
+            Assert(s.Monsters.Exists(m => m.BossId == "guardian-deep"), "the Guardian of the Deep waits on level 12 of the Spire");
+            Assert(!v.BossesSlain.Contains("archivist-shade"), "a boss that has not fallen is still on the list of those to face");
+        }
+
+        /// <summary>In a new cycle the town knows the hero's legend and speaks of it in talk; before the stamp it does not.</summary>
+        static void LegendTalk()
+        {
+            var g = new Game(4242); g.LeaveToOverworld(); g.EnterTown("Lodgeford");
+            var folk = g.Town.Npcs.FindAll(n => n.Townsperson && n.Role != TownRole.Pet);
+            Assert(folk.Count > 0, "the town has people to talk to");
+            var legends = new HashSet<string>();
+            foreach (var p in folk) legends.Add(g.LegendLine(p));
+            Assert(legends.Count >= 2, "a new cycle has more than one legend to tell, found " + legends.Count);
+
+            g.Cycle = 0;
+            foreach (var p in folk) Assert(!legends.Contains(g.SmallTalkLine(p) ?? ""), "before the stamp nobody speaks of the legend");
+            g.Cycle = 1;
+            int said = 0;
+            foreach (var p in folk) if (legends.Contains(g.SmallTalkLine(p) ?? "")) said++;
+            Assert(said > 0, "in a new cycle some of the people speak of the legend");
+
+            g.RecordDeed(Deed.Killed, "Mara", 5);
+            Assert(g.LegendLine(folk[0]).Contains("came back"), "a killing here is not forgiven in the new cycle");
+        }
+
+        /// <summary>The Drowned's two newer errands: the acolytes in the Dungeons and the shrine at the bottom of the vaults.</summary>
+        static void CultMoreErrands()
+        {
+            bool acolytes = false;
+            for (int d = 1; d <= 12 && !acolytes; d++) acolytes |= Bestiary.SpawnTable(d, new Rng(1), "The Dungeons").Exists(x => x.Name == "dark acolyte");
+            Assert(acolytes, "dark acolytes walk the Dungeons, so the acolyte errand can always be finished");
+
+            var g = new Game(779); g.LeaveToOverworld();
+            var beggar = Teller(TownRole.Beggar, Trait.Weary);
+            void Talk() { g.Talking = beggar; g.OpenDialogue(Dialogues.For(beggar), beggar); }
+            void Close() { g.CurrentDialogue = null; g.UiState.Active = Panel.None; }
+
+            g.AddRep(Houses.Cult, 20, null);
+            Talk(); Pick(g, "What work"); Close();
+            g.Player.Inventory.Add(new Ossuary.Core.Items.Item(System.Linq.Enumerable.First(Ossuary.Core.Items.Catalogue.Potions, d => d.Name == "potion of mutation"), new Rng(4), 1) { Identified = true });
+            g.QuestCheck();
+            Talk(); Pick(g, "I have the vial");
+            Assert(g.QuestDone("cult.vial"), "the vial is handed over");
+
+            Talk(); Pick(g, "What work"); Pick(g, "Silence the acolytes");
+            Assert(g.QuestActive("cult.names"), "the acolyte errand is taken");
+            Close();
+            g.DescendTo("The Dungeons", 2);
+            int cult = g.RepOf(Houses.Cult), temple = g.RepOf(Houses.Temple), gold = g.Player.Gold;
+            for (int i = 0; i < 3; i++)
+            {
+                var a = new Monster(Bestiary.Find("dark acolyte"), g.Rng) { X = g.Player.X + 1, Y = g.Player.Y };
+                g.Monsters.Add(a); g.KillMonster(a);
+            }
+            Assert(g.QuestOf("cult.names").Step == 1, "three acolytes in the Dungeons end the objective");
+            Talk(); Pick(g, "The acolytes are silenced");
+            Assert(g.QuestDone("cult.names") && g.Player.Gold == gold + 100 && g.RepOf(Houses.Cult) == cult + 8 && g.RepOf(Houses.Temple) == temple - 4,
+                "the acolyte errand pays 100, Cult +8, Temple -4");
+
+            Talk(); Pick(g, "What work");
+            Assert(RowIdx(g, "Silence the acolytes") < 0, "the acolyte errand is not offered again");
+            Pick(g, "Light the shrine");
+            Assert(g.QuestActive("cult.shrine"), "the shrine errand is taken");
+            Close();
+            g.DescendTo("The Sunken Vaults", 6);
+            g.QuestCheck();
+            Assert(g.QuestOf("cult.shrine").Step == 1, "the sixth level of the vaults ends the walk down");
+            cult = g.RepOf(Houses.Cult); temple = g.RepOf(Houses.Temple); gold = g.Player.Gold;
+            Talk(); Pick(g, "The shrine is lit");
+            Assert(g.QuestDone("cult.shrine") && g.Player.Gold == gold + 130 && g.RepOf(Houses.Cult) == cult + 8 && g.RepOf(Houses.Temple) == temple - 4,
+                "the shrine errand pays 130, Cult +8, Temple -4");
+        }
+
         static void CultErrands()
         {
             var g = new Game(779); g.LeaveToOverworld();
@@ -2465,7 +2945,7 @@ namespace Ossuary.Tests
             Assert(g.QuestDone("cult.bones") && !g.HasItem("bone blade"), "the blade is handed over and the errand is done");
 
             Talk();
-            Assert(RowIdx(g, "What work") < 0, "both errands are taken, so no work is offered");
+            Assert(RowIdx(g, "What work") >= 0, "the two newer errands are still open, so work is still offered");
             bool zombies = false;
             for (int d = 4; d <= 12; d++) zombies |= Bestiary.SpawnTable(d, new Rng(1), "The Sunken Vaults").Exists(x => x.Name == "human zombie");
             Assert(zombies, "human zombies can spawn in the vaults, so the errand can always be finished");
@@ -2945,6 +3425,433 @@ namespace Ossuary.Tests
             Assert(m.QuestOf("main.seal").Step == 0, "the Seal waits for the Elder");
             m.Flags.Add("elder.warned"); m.QuestCheck();
             Assert(m.QuestOf("main.seal").Step == 1, "asking the Elder moves the Seal on");
+        }
+
+        /// <summary>Every essential person has an apprentice in the same town: lodged in the same house, trained for the post.</summary>
+        static void Apprentices()
+        {
+            int essentials = 0;
+            for (ulong s = 1; s <= 12; s++)
+            {
+                var t = TownGen.Generate("Lodgeford", new Rng(s * 7919UL), 0);
+                foreach (var e in t.Npcs)
+                {
+                    if (e.Persona == null || !e.Persona.Essential) continue;
+                    essentials++;
+                    var a = e.Persona.Successor;
+                    Assert(a != null && t.Npcs.Contains(a), $"every essential person has an apprentice in town (seed {s}, {e.Role})");
+                    if (a == null) continue;
+                    Assert(a.Persona.Training == e.Role && a.Home == e.Home, "the apprentice is trained for the post and lodges in the same house");
+                    Assert(!a.Persona.Essential && !Persona.IsEssentialRole(a.Role), "an apprentice is not essential until they take the post");
+                    if (e.Home != null) Assert(e.Home.Contains(a.X, a.Y), "the apprentice sleeps inside the house");
+                    Assert(QuestBook.All.ContainsKey(Game.HeirQuest(e.Role)), "every essential post has a favour for its heir, missing for " + e.Role);
+                }
+            }
+            Assert(essentials >= 12, "the towns have essential people to train for, found " + essentials);
+        }
+
+        /// <summary>Three deliberate blows at a helpless essential person remove them, and their apprentice takes the post.</summary>
+        static void Succession()
+        {
+            var g = new Game(4242);
+            g.LeaveToOverworld();
+            g.EnterTown("Probeton");
+            var priest = FindRole(g, TownRole.Priest);
+            Assert(priest != null && priest.Persona.Essential, "the temple has an essential priest");
+            var heir = priest.Persona.Successor;
+            Assert(heir != null && heir.Persona.Training == TownRole.Priest, "the priest has an acolyte in training");
+            Assert(Dialogues.For(heir).Nodes[Dialogue.Start].Text(g, heir).Contains("learning to be the priest"), "the acolyte says so");
+
+            int x = priest.X, y = priest.Y, repBefore = g.RepOf(Houses.Temple);
+            PlaceBeside(g, priest);
+            priest.HP = 1;
+            for (int i = 0; i < 40 && priest.DownUntilDay <= g.World.Day; i++) g.Attack(priest);
+            Assert(!priest.IsDead && priest.DownUntilDay > g.World.Day, "the first knock-out leaves the priest alive");
+            g.Attack(priest);
+            g.Attack(priest);
+            Assert(!priest.IsDead && priest.Memory.Outrages == 2 && priest.DownUntilDay > g.World.Day, "two blows at the helpless leave them down, and count");
+            Assert(g.RepOf(Houses.Temple) < repBefore, "each blow costs the Temple's standing");
+            g.Attack(priest);
+            Assert(priest.IsDead && !g.Monsters.Contains(priest), "the third blow removes them");
+
+            Assert(heir.Role == TownRole.Priest && heir.Persona.Essential && !heir.Persona.Training.HasValue, "the acolyte takes the post");
+            Assert(heir.X == x && heir.Y == y && g.Monsters.Contains(heir), "and stands where the priest stood");
+            Assert(heir.Memory.Has(NpcMemory.Owes) && heir.Memory.Disposition == -30, "owing one favour, and starting worse with the hero");
+            Assert(Dialogues.For(heir).Nodes[Dialogue.Start].Text(g, heir).Contains("The post is mine now"), "the new priest says so");
+            var temple = g.Town.Buildings.Find(b => b.Kind == BuildingKind.Temple);
+            Assert(temple.Keeper == heir, "the heir keeps the temple's counter");
+            Assert(g.RepOf(Houses.Temple) <= repBefore - 15, "the Temple's standing falls heavily, got " + (repBefore - g.RepOf(Houses.Temple)));
+            Assert(g.DeedCount(Deed.Killed, priest.Name) == 1, "the ledger records the removal");
+        }
+
+        /// <summary>The heir owes one favour before the talk counts: the talk waits for it, and the report settles it.</summary>
+        static void HeirFavour()
+        {
+            var g = new Game(4242);
+            g.LeaveToOverworld();
+            g.EnterTown("Probeton");
+            var priest = FindRole(g, TownRole.Priest);
+            var heir = priest.Persona.Successor;
+            PlaceBeside(g, priest);
+            priest.HP = 1;
+            for (int i = 0; i < 40 && priest.DownUntilDay <= g.World.Day; i++) g.Attack(priest);
+            for (int i = 0; i < 3; i++) g.Attack(priest);
+            Assert(priest.IsDead && heir.Memory.Has(NpcMemory.Owes), "the post has passed on, owing a favour");
+
+            var talk = new QuestDef { Id = "test.talk", Track = QuestDef.Main, Title = "Talk to the priest" }.Step(ObjKind.Talk, "Talk to the priest.", "Priest", 1);
+            g.StartQuest(talk);
+            g.TalkTo(heir);
+            Assert(g.QuestOf("test.talk").Progress == 0, "talking to an heir who owes a favour does not count");
+
+            g.ServiceAction("talk");
+            Assert(g.CurrentDialogue != null, "the heir will talk");
+            g.ServiceAction("d:0");   // what do you need?
+            g.ServiceAction("d:0");   // I will do it.
+            Assert(g.QuestActive(Game.HeirQuest(TownRole.Priest)), "the favour is taken on");
+            var favour = g.QuestOf(Game.HeirQuest(TownRole.Priest));
+            favour.Progress = favour.Def.Steps[0].Count;   // the skeletons are down
+            g.QuestCheck();
+            g.ServiceAction("d:2");   // it is done
+            Assert(g.QuestDone(Game.HeirQuest(TownRole.Priest)) && !heir.Memory.Has(NpcMemory.Owes), "the report settles the favour, and the post may speak");
+
+            g.TalkTo(heir);
+            Assert(g.QuestOf("test.talk").Status == QStatus.Done, "now the talk counts");
+        }
+
+        /// <summary>With no one trained behind them, the post stands vacant, and the Guild's notice names it at the counter.</summary>
+        static void VacantPost()
+        {
+            var g = new Game(4242);
+            g.LeaveToOverworld();
+            g.EnterTown("Probeton");
+            var priest = FindRole(g, TownRole.Priest);
+            var heir = priest.Persona.Successor;
+            heir.HP = 0;
+            g.Monsters.Remove(heir);
+            PlaceBeside(g, priest);
+            priest.HP = 1;
+            for (int i = 0; i < 40 && priest.DownUntilDay <= g.World.Day; i++) g.Attack(priest);
+            for (int i = 0; i < 3; i++) g.Attack(priest);
+            Assert(priest.IsDead && g.Town.Vacant.Contains(TownRole.Priest), "with no one trained behind them, the post stands vacant");
+            string notice = g.MessengerNotice();
+            Assert(notice.StartsWith("Messenger notice") && notice.Contains("priest"), "the Guild's notice names the empty post, got: " + notice);
+            var temple = g.Town.Buildings.Find(b => b.Kind == BuildingKind.Temple);
+            g.UseCounter(temple.CounterX, temple.CounterY);
+            Assert(g.Log.Exists(m => m.Text.StartsWith("Messenger notice")), "the notice is read at the empty counter");
+        }
+
+        /// <summary>An heir removed while owing a favour takes the favour with them: the quest fails, and the post stands vacant.</summary>
+        static void HeirRemovedOwing()
+        {
+            var g = new Game(4242);
+            g.LeaveToOverworld();
+            g.EnterTown("Probeton");
+            var priest = FindRole(g, TownRole.Priest);
+            var heir = priest.Persona.Successor;
+            PlaceBeside(g, priest);
+            priest.HP = 1;
+            for (int i = 0; i < 40 && priest.DownUntilDay <= g.World.Day; i++) g.Attack(priest);
+            for (int i = 0; i < 3; i++) g.Attack(priest);
+            g.TalkTo(heir);
+            g.ServiceAction("talk");
+            g.ServiceAction("d:0");   // what do you need?
+            g.ServiceAction("d:0");   // I will do it.
+            Assert(g.QuestActive(Game.HeirQuest(TownRole.Priest)), "the favour is taken on");
+            g.UiState.Active = Panel.None; g.CurrentDialogue = null;
+
+            PlaceBeside(g, heir);
+            heir.HP = 1;
+            for (int i = 0; i < 40 && heir.DownUntilDay <= g.World.Day; i++) g.Attack(heir);
+            for (int i = 0; i < 3; i++) g.Attack(heir);
+            Assert(heir.IsDead && g.Town.Vacant.Contains(TownRole.Priest), "the second removal leaves the post vacant");
+            Assert(g.QuestOf(Game.HeirQuest(TownRole.Priest)).Status == QStatus.Failed, "the favour dies with them");
+        }
+
+        /// <summary>A free floor cell beside the hero, with nobody on it.</summary>
+        static int[] FreeNeighbour(Game g)
+        {
+            for (int d = 0; d < 8; d++)
+            {
+                int x = g.Player.X + Pathfinder.Dx8[d], y = g.Player.Y + Pathfinder.Dy8[d];
+                var t = g.Map.Get(x, y);
+                if ((t == TileKind.Floor || t == TileKind.FloorAlt) && g.MonsterAt(x, y) == null) return new[] { x, y };
+            }
+            Assert(false, "no free cell beside the hero");
+            return null;
+        }
+
+        /// <summary>Delvers and captives are placed when a level is first made, from a private stream: the same seed places the same people.</summary>
+        static void FolkPlacement()
+        {
+            (int wounded, int looters, int remains, int captives) Count()
+            {
+                var g = new Game(4242);
+                g.LeaveToOverworld();
+                g.EnterTown("Probeton");
+                g.LeaveToOverworld();
+                int w = 0, l = 0, r = 0, c = 0;
+                for (int d = 1; d <= 24; d++)
+                {
+                    g.DescendTo("The Dungeons", d);
+                    foreach (var m in g.Monsters)
+                    {
+                        if (m.Folk == FolkKind.Wounded) w++;
+                        else if (m.Folk == FolkKind.Looter) l++;
+                        else if (m.Folk == FolkKind.Captive) c++;
+                    }
+                    foreach (var e in g.Map.Engravings) if (e.Value != null && e.Value.Contains("bone-key")) r++;
+                }
+                return (w, l, r, c);
+            }
+            var a = Count();
+            var b = Count();
+            Assert(a == b, $"the same seed places the same people, got {a} then {b}");
+            Assert(a.wounded + a.looters > 0 && a.remains > 0 && a.captives > 0, $"the dungeon holds delvers, remains and captives, got {a}");
+        }
+
+        /// <summary>A wounded delver needs a potion of healing: bumped with one, they pay and go; without, they say so and stay.</summary>
+        static void WoundedDelver()
+        {
+            var g = new Game(4242);
+            g.LeaveToOverworld();
+            g.EnterTown("Probeton");
+            g.LeaveToOverworld();
+            g.DescendTo("The Dungeons", 3);
+            var spot = FreeNeighbour(g);
+            var d = g.PutFolk(FolkKind.Wounded, spot[0], spot[1], new Rng(5));
+            g.FacingX = spot[0] - g.Player.X; g.FacingY = spot[1] - g.Player.Y;
+            int gold = g.Player.Gold;
+            g.TryMovePlayer(g.FacingX, g.FacingY);
+            Assert(g.Monsters.Contains(d) && g.Player.Gold == gold, "without a potion they stay, and no gold changes hands");
+            Assert(g.Log.Exists(m => m.Text.Contains("too weak to rise")), "and the log says what they need");
+            Assert(g.Player.X == spot[0] && g.Player.Y == spot[1], "they shuffle aside, so the hero steps through the gap");
+            g.Player.Inventory.Add(Make(g, "potion of healing"));
+            g.FacingX = d.X - g.Player.X; g.FacingY = d.Y - g.Player.Y;
+            g.TryMovePlayer(g.FacingX, g.FacingY);
+            Assert(!g.Monsters.Contains(d) && g.Player.Gold == gold + 30 + 5 * 3, "with one, they pay and go up the stairs, got " + (g.Player.Gold - gold));
+            Assert(!g.Player.Inventory.Exists(i => i.Def.Name == "potion of healing"), "the potion is spent");
+        }
+
+        /// <summary>A captive is freed by facing them and pressing D: they walk behind the hero, and the town they wanted ends the walk.</summary>
+        static void CaptiveHome()
+        {
+            var g = new Game(4242);
+            g.LeaveToOverworld();
+            g.EnterTown("Probeton");
+            g.LeaveToOverworld();
+            g.DescendTo("The Dungeons", 3);
+            var spot = FreeNeighbour(g);
+            var c = g.PutFolk(FolkKind.Captive, spot[0], spot[1], new Rng(9));
+            Assert(c.HomeTown == "Probeton", "the captive wants to go home to the last town they walked into");
+            g.FacingX = spot[0] - g.Player.X; g.FacingY = spot[1] - g.Player.Y;
+            new Commands(g).Execute("D");
+            Assert(c.Folk == FolkKind.Escort && g.Escorts.Contains(c) && g.QuestActive("escort." + c.Uid), "the chains break, and the walk home is a quest");
+            g.LeaveToOverworld();
+            Assert(g.Escorts.Contains(c), "they wait on the road, out of the dungeon");
+            g.EnterTown("Probeton");
+            Assert(g.QuestDone("escort." + c.Uid) && !g.Escorts.Contains(c), "the gate brings them home, and the quest is done");
+        }
+
+        /// <summary>An escort who falls on the road takes the walk with them.</summary>
+        static void EscortDies()
+        {
+            var g = new Game(4242);
+            g.LeaveToOverworld();
+            g.EnterTown("Probeton");
+            g.LeaveToOverworld();
+            g.DescendTo("The Dungeons", 3);
+            var spot = FreeNeighbour(g);
+            var c = g.PutFolk(FolkKind.Captive, spot[0], spot[1], new Rng(9));
+            g.FreeCaptive(c);
+            c.HP = 0;
+            g.Wait();
+            Assert(!g.Escorts.Contains(c) && g.QuestOf("escort." + c.Uid).Status == QStatus.Failed, "the escort is gone, and so is the walk");
+        }
+
+        /// <summary>A looter runs from the hero; killed, they leave a sack where they fell.</summary>
+        static void LooterSack()
+        {
+            var g = new Game(4242);
+            g.LeaveToOverworld();
+            g.EnterTown("Probeton");
+            g.LeaveToOverworld();
+            g.DescendTo("The Dungeons", 3);
+            var spot = FreeNeighbour(g);
+            var l = g.PutFolk(FolkKind.Looter, spot[0], spot[1], new Rng(3));
+            g.KillMonster(l);
+            Assert(GroundItems.At(g.Map.Number, spot[0], spot[1]).Count > 0, "a looter who dies leaves a sack where they fell");
+        }
+
+        /// <summary>Killings in a town make its counters dearer and good deeds in it take some back: the price reads the ledger.</summary>
+        static void LedgerPrices()
+        {
+            var g = new Game(4242);
+            g.LeaveToOverworld();
+            g.EnterTown("Probeton");
+            var shop = g.Town.Shops.Find(s => s.Stock.Exists(i => i.TradeValue > 0));
+            Assert(shop != null, "the town has a shop with goods to price");
+            var item = shop.Stock[0];
+            foreach (var i in shop.Stock) if (i.TradeValue > item.TradeValue) item = i;
+            int before = g.ShopPrice(shop, item);
+            g.RecordDeed(Deed.Killed, "Mara", 5);
+            g.RecordDeed(Deed.Killed, "Tomas", 5);
+            Assert(g.TownMemoryPct() == 10, "two killings here add ten percent to every counter, got " + g.TownMemoryPct());
+            int feared = g.ShopPrice(shop, item);
+            Assert(feared > before, "the counters are dearer after the killings, " + before + " -> " + feared);
+            g.RecordDeed(Deed.Helped, g.Town.Name, 2);
+            g.RecordDeed(Deed.Helped, g.Town.Name, 2);
+            Assert(g.TownMemoryPct() == 6, "two good deeds here take four back, got " + g.TownMemoryPct());
+            g.LeaveToOverworld();
+            Assert(g.TownMemoryPct() == 0, "the memory belongs to the town: out on the road it does not count");
+        }
+
+        /// <summary>The Guild's cellar holds the dead the Elder asks about; once the last is down, the cellar stays quiet on every visit.</summary>
+        static void CellarQuiet()
+        {
+            int halls = 0;
+            for (ulong s = 1; s <= 12; s++)
+            {
+                var t = TownGen.Generate("Lodgeford", new Rng(s * 7919UL), 0);
+                var hall = t.Buildings.Find(b => b.Kind == BuildingKind.Guild);
+                if (hall == null) continue;
+                halls++;
+                Assert(hall.Down == 1, "seed " + s + ": the Guild has a cellar under the hall");
+                var dead = t.Lurkers.FindAll(n => n.Def.Name == "human zombie" && n.Floor == -1);
+                Assert(dead.Count == 3, "seed " + s + ": three dead walk the Guild's cellar, found " + dead.Count);
+                Assert(dead.TrueForAll(z => hall.Contains(z.X, z.Y)), "seed " + s + ": the dead walk inside the Guild");
+                Assert(t.Npcs.TrueForAll(n => n.Townsperson), "seed " + s + ": the dead are not counted among the townsfolk");
+            }
+            Assert(halls >= 6, "most towns have a Guild with a cellar, found " + halls + " of 12");
+
+            // In play: the first game whose starting town has a Guild.
+            Game g = null;
+            Town town = null;
+            for (ulong s = 1; s <= 30 && town == null; s++)
+            {
+                var trial = new Game(s);
+                trial.LeaveToOverworld();
+                trial.EnterTown("Lodgeford");
+                if (trial.Town.Buildings.Exists(b => b.Kind == BuildingKind.Guild)) { g = trial; town = trial.Town; }
+            }
+            Assert(town != null, "a town in play has a Guild to test the cellar in");
+            var zombies = town.Lurkers.FindAll(n => n.Def.Name == "human zombie" && n.Floor == -1);
+            Assert(zombies.Count == 3, "the town in play has its three dead, found " + zombies.Count);
+            foreach (var z in zombies) { z.HP = 0; g.KillMonster(z); }
+            Assert(g.DeedCount(Deed.Cleared) == 1, "the last of them down clears the cellar, written down once");
+            g.LeaveToOverworld();
+            g.EnterTown("Lodgeford");
+            Assert(ReferenceEquals(g.Town, town), "the same town is found again on the next visit");
+            Assert(town.Lurkers.TrueForAll(n => n.IsDead || n.Floor != -1), "the cellar stays quiet on every visit");
+        }
+
+        /// <summary>A shopkeeper who dies does not leave the counter empty: the next visit finds an heir who says so.</summary>
+        static void ShopHeir()
+        {
+            var g = new Game(4242);
+            g.LeaveToOverworld();
+            g.EnterTown("Lodgeford");
+            var b = g.Town.Buildings.Find(x => x.Keeper != null && x.Keeper.Persona != null && !x.Keeper.Persona.Essential && !x.Burned && x.CounterX >= 0);
+            Assert(b != null, "the town has a keeper who is not essential");
+            var old = b.Keeper;
+            string oldName = old.Name;
+            old.HP = 0;
+            g.LeaveToOverworld();
+            g.EnterTown("Lodgeford");
+            var heir = b.Keeper;
+            Assert(heir != old && !heir.IsDead && heir.Role == old.Role, "the counter opens again under a keeper of the same trade");
+            Assert(heir.Memory.Has(NpcMemory.Inherited) && b.FormerKeeper == oldName, "the heir knows whom they replaced");
+            Assert(g.Town.Npcs.Contains(heir) && heir.Floor == old.Floor, "the heir is one of the town's people, on the same floor");
+            Assert(b.Shop == null || b.Shop.Keeper == heir, "the shop's keeper is the heir too");
+            g.UseCounter(b.CounterX, b.CounterY);
+            Assert(g.ServiceNote.Contains(oldName), "the heir says the old keeper is gone, got: " + g.ServiceNote);
+            g.LeaveToOverworld();
+            g.EnterTown("Lodgeford");
+            Assert(b.Keeper == heir, "the next visit keeps the same heir");
+        }
+
+        /// <summary>News of a killing reaches the towns nearby a few days later, and never the towns far off.</summary>
+        static void NewsSpreads()
+        {
+            var g = new Game(4242);
+            g.LeaveToOverworld();
+            var towns = new List<(string Name, int X, int Y)>();
+            for (int i = 0; i < g.World.Tiles.Length; i++)
+            {
+                var t = g.World.Tiles[i];
+                if (t.Feature == OverworldFeature.Town && !string.IsNullOrEmpty(t.Name)) towns.Add((t.Name, i % g.World.W, i / g.World.W));
+            }
+            Assert(towns.Count >= 3, "the overworld has towns to travel between, found " + towns.Count);
+            var from = towns[0];
+            var near = g.NearbyTowns(from.Name);
+            Assert(near.Count == 3 && !near.Contains(from.Name), "a town has three neighbours, none of them itself");
+            var next = towns.Find(t => t.Name == near[0]);
+
+            // A killing in one town, two days ago: too young to be news next door. Three days ago it is.
+            g.Ledger.Add(new Deed { Kind = Deed.Killed, Subject = "Mara", Where = from.Name, Day = g.World.Day - 2, Turn = 1, Weight = 5 });
+            g.World.PlayerX = next.X;
+            g.World.PlayerY = next.Y;
+            g.EnterTown(next.Name);
+            Assert(g.NewsHere() == null, "two days is too soon for the news to arrive");
+            g.Ledger.Add(new Deed { Kind = Deed.Killed, Subject = "Tomas", Where = from.Name, Day = g.World.Day - 3, Turn = 2, Weight = 5 });
+            var news = g.NewsHere();
+            Assert(news != null && news.Subject == "Tomas", "three days later the killing is news in the town next door");
+            bool heard = false;
+            for (int i = 0; i < 3 && !heard; i++) heard = g.HearRumour().Contains("Tomas");
+            Assert(heard, "asking for news in the town next door tells of the killing");
+
+            var far = towns.Find(t => t.Name != from.Name && !g.NearbyTowns(t.Name).Contains(from.Name));
+            if (far.Name != null)
+            {
+                g.LeaveToOverworld();
+                g.World.PlayerX = far.X;
+                g.World.PlayerY = far.Y;
+                g.EnterTown(far.Name);
+                Assert(g.NewsHere() == null, "a town far off does not hear of it");
+            }
+        }
+
+        /// <summary>The epilogue remembers the heaviest deeds, in the order they were done, and leaves out the small ones and the ending itself.</summary>
+        static void EpilogueRemembers()
+        {
+            var g = new Game(4242);
+            g.LeaveToOverworld();
+            g.RecordDeed(Deed.Killed, "Mara", 5);
+            g.RecordDeed(Deed.Helped, "a caravan", 1);
+            g.RecordDeed(Deed.Struck, "a caravan", 3);
+            g.RecordDeed("ending", "shut", 5);
+            g.RecordDeed(Deed.Killed, "Tomas", 5);
+            var lines = g.MatteringDeeds();
+            Assert(lines.Count == 3, "three heavy deeds are remembered, found " + lines.Count);
+            Assert(lines[0].Contains("Mara") && lines[1].Contains("caravan") && lines[2].Contains("Tomas"),
+                "they are told in the order they were done: " + string.Join(" | ", lines));
+            for (int i = 0; i < 8; i++) g.RecordDeed(Deed.Killed, "Pilgrim " + i, 5);
+            Assert(g.MatteringDeeds().Count == 6, "the epilogue names at most six deeds");
+        }
+
+        /// <summary>A healer who has seen two killings in the town will not tend the hand that made them, and says so.</summary>
+        static void HealerRefuses()
+        {
+            var g = new Game(4242);
+            g.LeaveToOverworld();
+            g.EnterTown("Probeton");
+            var temple = g.Town.Buildings.Find(x => x.Kind == BuildingKind.Temple);
+            Assert(temple != null, "the town has a temple to heal in");
+            g.TalkBuilding = temple;
+            g.Player.Gold = 10000;
+            g.Player.HP = g.Player.MaxHP - 5;
+            var heal = g.ServiceRows().Find(r => r.Id == "heal");
+            Assert(heal != null && heal.Enabled, "a hero with a wound and gold is healed here");
+            g.RecordDeed(Deed.Killed, "Mara", 5);
+            Assert(!g.HealingRefused(), "one killing here is not yet refused");
+            g.RecordDeed(Deed.Killed, "Tomas", 5);
+            Assert(g.HealingRefused(), "two killings here and the healer will not tend the hand");
+            heal = g.ServiceRows().Find(r => r.Id == "heal");
+            Assert(heal != null && !heal.Enabled && heal.Label.Contains("killer"), "the row says so and is closed");
+            int hp = g.Player.HP;
+            g.ServiceAction("heal");
+            Assert(g.Player.HP == hp, "asked anyway, the healer does not heal");
+            g.LeaveToOverworld();
+            Assert(!g.HealingRefused(), "out on the road the town's memory does not follow the hero");
         }
 
         static Monster FindRole(Game g, TownRole role)

@@ -159,6 +159,47 @@ namespace Ossuary.Core
         }
 
 
+        /// <summary>
+        /// A companion archer looses a shot from its own bow at the nearest visible foe two to six cells away. The shot lands
+        /// where the foe stands, as a hero's arrow would, and is the hero's to pick up.
+        /// </summary>
+        bool AllyShoots(Monster a)
+        {
+            Item launcher = null, ammo = null;
+            foreach (var it in a.Inventory) if (Ammo.IsLauncher(it)) { launcher = it; break; }
+            if (launcher == null) return false;
+            string want = Ammo.AmmoFor(launcher.Def);
+            foreach (var it in a.Inventory) if (it.Def.Kind == ItemKind.Ammo && it.Def.Name == want && it.Quantity > 0) { ammo = it; break; }
+            if (ammo == null) return false;
+            Monster foe = null; int best = int.MaxValue;
+            foreach (var m in Monsters)
+            {
+                if (m.IsDead || m.Ally || m.Townsperson || m.Def.Level == 0) continue;
+                int d = Pathfinder.Chebyshev(a.X, a.Y, m.X, m.Y);
+                if (d < 2 || d > 6 || !Map.IsVisible(m.X, m.Y) || !Fov.HasLine(Map, a.X, a.Y, m.X, m.Y)) continue;
+                if (d < best) { foe = m; best = d; }
+            }
+            if (foe == null || !Rng.Chance(best <= 2 ? 55 : 75)) return false;
+
+            int fromX = a.X, fromY = a.Y, toX = foe.X, toY = foe.Y;
+            Fx((tl, s) => FxLib.Bolt(tl, s, fromX, fromY, toX, toY, Elem.Wind, '\0', 3));
+            if (--ammo.Quantity <= 0) a.Inventory.Remove(ammo);
+            bool hit = Rng.Chance(70 - 5 * best);
+            if (hit)
+            {
+                int dmg = Math.Max(1, Rng.Roll(ammo.Def.Damage, ammo.Def.Sides, Ammo.Pull(launcher.Def) - 1 + ammo.Enchant));
+                foe.HP -= dmg;
+                foe.Alert = 1; foe.Dormant = false;
+                Say($"The {a.Name} shoots the {foe.TheName} for {dmg} damage.", MessageKind.Combat);
+                if (foe.IsDead) { _killByAlly = true; KillMonster(foe); }
+            }
+            else Say($"The {a.Name}'s arrow misses the {foe.TheName}.", MessageKind.Combat);
+            if (Rng.Range(0, 100) >= Ammo.BreakChance(ammo.Def, hit))
+                GroundItems.Add(Map.Number, toX, toY, new Item(ammo.Def, Rng, NextUid()) { Identified = true, Material = ammo.Material, Quantity = 1 });
+            Map.Version++;
+            return true;
+        }
+
         // ---------------------------------------------------------------- named masterworks
 
         /// <summary>A crafted piece got a name: the log says so and the morgue keeps it.</summary>

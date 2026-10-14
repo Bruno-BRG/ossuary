@@ -9,8 +9,8 @@ namespace Ossuary.Desktop
     /// <summary>The persisted run: its seed and every canonical key applied since the start.</summary>
     public sealed class SaveData
     {
-        /// <summary>Bumped whenever simulation rules change, since a save is a replay (v2: regeneration, Mp, race traits; v3: spell catalogue and books; v4: perks, abilities, Vigor; v5: item rarity, affixes, new slots, artifacts; v6: gods and piety; v7: surfaces and elemental status; v8: balance pass, potions; v9: stealth and noise; v10: corruption, companions, bosses, factions, reputation and road events; v11: 260 spells, spell-backed wands, scrolls and potions, new items and uniques, animations; v17: town markets, glut, caravans, stalls, tolls; v18: ammunition, named masterworks, town smiths' work; v19: identify by use, relic history, stations, archers, caravans, haggling; v20: chronicle of houses and kings, legends, blood and traces, engravings, rooms, tombs, raids, the Hollow Court; v21: notice-board jobs and workshop commissions on the quest engine, the Cult errands; v22: monsters that cast real spells, the Sallow Magister, ice and arcing lightning, projectiles that land on arrival, element cast sounds).</summary>
-        public int Version { get; set; } = 22;
+        /// <summary>Bumped whenever simulation rules change, since a save is a replay (v2: regeneration, Mp, race traits; v3: spell catalogue and books; v4: perks, abilities, Vigor; v5: item rarity, affixes, new slots, artifacts; v6: gods and piety; v7: surfaces and elemental status; v8: balance pass, potions; v9: stealth and noise; v10: corruption, companions, bosses, factions, reputation and road events; v11: 260 spells, spell-backed wands, scrolls and potions, new items and uniques, animations; v17: town markets, glut, caravans, stalls, tolls; v18: ammunition, named masterworks, town smiths' work; v19: identify by use, relic history, stations, archers, caravans, haggling; v20: chronicle of houses and kings, legends, blood and traces, engravings, rooms, tombs, raids, the Hollow Court; v21: notice-board jobs and workshop commissions on the quest engine, the Cult errands; v22: monsters that cast real spells, the Sallow Magister, ice and arcing lightning, projectiles that land on arrival, element cast sounds; v23: travel marks on dungeon levels).</summary>
+        public int Version { get; set; } = 23;
         public string Seed { get; set; }
         public List<string> Keys { get; set; } = new List<string>();
         public string Info { get; set; } = "";
@@ -26,6 +26,15 @@ namespace Ossuary.Desktop
         public string Daily { get; set; } = "";
         /// <summary>The dead heroes this run could meet, as they were when it began. A replay must see the same ones.</summary>
         public List<Bones> Bones { get; set; } = new List<Bones>();
+    }
+
+    /// <summary>Tutorial state on this install: whether hints are on, and the hint ids already shown.</summary>
+    public sealed class TutorialRecord
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("enabled")]
+        public bool Enabled { get; set; } = true;
+        [System.Text.Json.Serialization.JsonPropertyName("seen")]
+        public List<string> Seen { get; set; } = new List<string>();
     }
 
     /// <summary>
@@ -64,7 +73,7 @@ namespace Ossuary.Desktop
             {
                 if (!File.Exists(SavePath)) return null;
                 var data = JsonSerializer.Deserialize<SaveData>(File.ReadAllText(SavePath), Json);
-                return data != null && data.Version == 22 && ulong.TryParse(data.Seed, out _) ? data : null;
+                return data != null && data.Version == 23 && ulong.TryParse(data.Seed, out _) ? data : null;
             }
             catch (Exception ex) { Console.Error.WriteLine("Unreadable save: " + ex.Message); return null; }
         }
@@ -127,6 +136,27 @@ namespace Ossuary.Desktop
         {
             try { WriteAtomic(AchievementsPath, JsonSerializer.Serialize(unlocked, Json)); }
             catch (Exception ex) { Console.Error.WriteLine("Could not write achievements: " + ex.Message); }
+        }
+
+        // ----------------------------------------------------------------- tutorials
+
+        static string TutorialsPath => Path.Combine(Dir, "tutorials.json");
+
+        /// <summary>Per-install tutorial state. Null when the file does not exist yet (the first launch) or cannot be read.</summary>
+        public static TutorialRecord ReadTutorials()
+        {
+            try
+            {
+                if (!File.Exists(TutorialsPath)) return null;
+                return JsonSerializer.Deserialize<TutorialRecord>(File.ReadAllText(TutorialsPath), Json);
+            }
+            catch (Exception ex) { Console.Error.WriteLine("Unreadable tutorials: " + ex.Message); return null; }
+        }
+
+        public static void WriteTutorials(TutorialRecord record)
+        {
+            try { WriteAtomic(TutorialsPath, JsonSerializer.Serialize(record, Json)); }
+            catch (Exception ex) { Console.Error.WriteLine("Could not write tutorials: " + ex.Message); }
         }
 
         // ----------------------------------------------------------------- bones

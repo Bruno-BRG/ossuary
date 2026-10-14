@@ -5,6 +5,26 @@
 Ossuary versions are a **single number** (Version 11, Version 12…), as in *Project Zomboid*. In the manifests (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) and in the installer name the version appears as `0.N.0`. The **save format** (`SaveData.Version`) uses the same number: change a rule, bump it, old saves stop loading.
 
+## Version 23 — Towns and people
+
+### Towns and people
+- **A town remembers.** Its counters ask more after you kill there and less after good deeds. A healer refuses a hand that has killed in the town twice. A shopkeeper who dies is replaced by an heir who says so, and the Guild's cellar holds three dead who stay down once cleared. News of a killing reaches the three nearest towns three days later.
+- **Essential people have apprentices.** The Elder, the Reader, the Captain, the High Priest and the Drowned's beggar each have one lodged with them. Three blows at one who lies out cold remove them; the apprentice takes the post, worse disposed toward you and owing one favour. With no apprentice left, the Guild posts a notice for a Messenger.
+- **Companions.** Two companions may walk with you. `F12` orders them to hold where they stand, or to follow again. An archer among them loses arrows from its own bow at foes two to six cells off. A companion who falls drops their pack where they died.
+- **Theft and burning.** `F9` steals the first good from the counter you stand beside, unpaid. `F10` burns that counter with a molotov. Seen by anyone, each is a bounty and the Watch's memory, and a burnt shop stays burnt. A lock pick from your starting kit opens the cell when the Watch takes you in.
+- **Crime figures.** The fine is the figure the Watch holds in this region, and settling it forgives the neighbours' bounties too. Cells cost one day per hundred gold, a bribe is cheaper under 500 gold, escape doubles the bounty, and a bounty stops at 5000 gold.
+- **Dungeon folk.** A wounded delver pays for a potion of healing. A looter runs and drops a sack. The remains of a party carry a note. Captives are freed with `D`, and they walk home with you as an escort quest that the town's gate ends.
+- **Conversations.** A face in the talk box, built from the trade, the temperament and the mood, with mood and temper tags. `PgUp` and `PgDn` read the talk back.
+- **The main quest, polished.** The ceremony is spoken by the holder of the house, by name, or at the altar when the post is empty. The Archivist's Shade (The Sunken Vaults, level 10) and the Guardian of the Deep (The Ashen Spire, level 12) are bosses that stay until they fall. The morgue names the ending, and the epilogue names the six heaviest deeds on the world's ledger, in order.
+- **A new cycle remembers.** After the Stamp, townspeople speak of it in talk and at the counters, and a killing in town before the Stamp is not forgiven. The new cycle keeps your gold, gear, House standing, truths, ledger and companions, and clears bounties, the Amulet and an open seal errand.
+
+### Marks and first hints
+- **Travel marks.** `'` marks the cell underfoot at no turn cost, and pressing it on a mark rubs the mark out. `Shift+'` walks to the nearest other mark on the level, and on to the next. Marks belong to their level, so they are still there when you come back.
+- **First-time hints.** The first time you go underground, are wounded, level up or buy something, a short card names the key you need. It closes when you do that thing, or with `Esc`, and it never takes a turn. Each one shows once per install. The first new game asks whether you already know the game; `F2` switches the hints off, and *Reset tutorials* shows them again.
+
+### Saves
+- The save format moves to **23**: Version 22 saves do not load.
+
 ## Version 22 — Spells that answer back
 
 ### Casters

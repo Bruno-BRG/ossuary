@@ -16,6 +16,10 @@ namespace Ossuary.Core
         public Dialogue CurrentDialogue;
         DNode _node;
         bool _dialogueFromCounter;
+        /// <summary>What has been said in this conversation, oldest first: the person's lines and the hero's answers.</summary>
+        public readonly List<DialogueLine> DialogueLog = new List<DialogueLine>();
+        /// <summary>How far the box is scrolled back from the newest line (0 = the newest line is at the bottom).</summary>
+        public int DialogueScroll;
         static readonly Building DialogueBuilding = new Building { Name = "Conversation", Services = Service.None };
 
         internal int NextTalk() => _talkCount++;
@@ -38,6 +42,7 @@ namespace Ossuary.Core
             if (!_dialogueFromCounter) TalkBuilding = DialogueBuilding;
             UiState.Active = Panel.Service;
             NoticeScar(m);
+            DialogueLog.Clear(); DialogueScroll = 0;
             d.OnOpen?.Invoke(this, m);
             Goto(Dialogue.Start);
         }
@@ -46,8 +51,13 @@ namespace Ossuary.Core
         {
             _node = CurrentDialogue.Nodes[id];
             ServiceNote = Loc.T(_node.Text(this, Talking));
+            DialogueLog.Add(new DialogueLine { Text = ServiceNote });
+            DialogueScroll = 0;
             UiState.ServiceIndex = 0;
         }
+
+        /// <summary>Scrolls the conversation box: positive reads back to older lines, negative returns toward the newest.</summary>
+        public void ScrollDialogue(int backward) => DialogueScroll = Math.Max(0, DialogueScroll + backward);
 
         List<ServiceRow> DialogueRows()
         {
@@ -73,6 +83,7 @@ namespace Ossuary.Core
                 if ((c.Show != null && !c.Show(this, Talking)) || (c.If != null && !c.If(this, Talking))) return false;
                 if (Player.Gold < c.Price) { Tell("You cannot afford that.", MessageKind.Warn); return false; }
                 Player.Gold -= c.Price;
+                DialogueLog.Add(new DialogueLine { Hero = true, Text = c.Label });
                 c.Do?.Invoke(this, Talking);
                 QuestCheck();
                 if (c.Goto != null && CurrentDialogue.Nodes.ContainsKey(c.Goto)) { Goto(c.Goto); return false; }

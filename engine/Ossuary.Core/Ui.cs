@@ -82,6 +82,7 @@ namespace Ossuary.Core
             if (OnOverworld) DrawOverworld(MapX, MapY, MapW, MapH);
             else DrawMap(MapX, MapY, MapW, MapH);
             if (sidebarW > 0) DrawSidebar(frameW, boxTop, sidebarW, boxH);
+            DrawHintCard();
 
             DrawMessageWindow(0, logTop, w, LogRows);
             DrawStatusLine(0, statusY, w, theme);
@@ -333,6 +334,8 @@ namespace Ossuary.Core
                     }
                     else if (vis) light = 0.75f;
                     theme.Shade(fg, bg, light, !vis, out Rgb ofg, out Rgb obg);
+                    // A travel mark warms its cell after shading, so it shows on remembered cells too (their background is a fixed wall tone).
+                    if (_g.IsMarked(mx, my)) obg = Rgb.Lerp(obg, theme.Remap(theme.Mark, true), 0.30f);
                     PutTile(sq, ox + x * sq, oy + y, g, ofg, bold, obg, entity);
                     if (water && g != '@' && _g.MonsterAt(mx, my) == null) { _t.Shimmer(ox + x * sq, oy + y); if (sq == 2) _t.Shimmer(ox + x * sq + 1, oy + y); }
                 }
@@ -1010,6 +1013,7 @@ namespace Ossuary.Core
                 case Panel.Altar: DrawAltarPanel(); break;
                 case Panel.Service: DrawServicePanel(); break;
                 case Panel.Advance: DrawAdvancePanel(); break;
+                case Panel.FirstRun: DrawFirstRunPanel(); break;
             }
             if (PendingChoice.Active) DrawChoicePanel();
             if (_g.Mode == GameMode.GameOver) DrawDeathPanel();
@@ -1217,6 +1221,7 @@ namespace Ossuary.Core
                 { "Shift+G", "gather: butcher a carcass, or forage on the road" },
                 { "Shift+N", "train a skill with XP (Trained mode)" },
                 { "t  `  ~", "auto-explore / travel to the stairs / to an altar or fountain" },
+                { "'  \"", "mark a spot / walk to a mark" },
                 { "l  x  X", "look / inspect / swap with" },
                 { "O", "travel on the overworld" },
                 { "m", "toggle the minimap" },
@@ -1659,23 +1664,41 @@ namespace Ossuary.Core
         }
 
         /// <summary>The menu of whoever you bumped at a counter: browse, rest, heal, appraise, hear the news.</summary>
-        /// <summary>A conversation: who is speaking, what they say (several lines, wrapped), and the choices numbered below.</summary>
+        /// <summary>
+        /// A conversation: the person's face with their role and tags, what has been said so far (PgUp/PgDn read back),
+        /// and the choices numbered below.
+        /// </summary>
         void DrawDialoguePanel()
         {
             var theme = Theme.Current;
             var who = _g.Talking;
             var rows = _g.ServiceRows();
-            var note = new System.Collections.Generic.List<string>(Wrap(Loc.U(_g.ServiceNote ?? ""), 70));
-            if (note.Count > 10) note.RemoveRange(10, note.Count - 10);
-            int want = 9 + rows.Count + note.Count;
-            PanelRect(out int px, out int py, out int pw, out int ph, 78, want, who != null ? who.Name : "", "Up/Down  Enter chooses  Esc leaves");
+            const int shown = 7;
+            var lines = TranscriptLines(_g.DialogueLog, 70);
+            int maxScroll = Math.Max(0, lines.Count - shown);
+            _g.DialogueScroll = Math.Min(_g.DialogueScroll, maxScroll);
+            int start = Math.Max(0, lines.Count - shown - _g.DialogueScroll);
+            int want = 2 + Portrait.Height + 1 + shown + 1 + rows.Count + 2;
+            PanelRect(out int px, out int py, out int pw, out int ph, 78, want, who != null ? who.Name : "",
+                "Up/Down  Enter chooses  PgUp/PgDn reads back  Esc leaves");
             int x = px + 3, iw = pw - 6, y = py + 2;
-            if (who != null) _t.WriteClipped(x, y, Loc.U(TownText.RoleTitle(who.Role)), theme.Label, iw, false, theme.Panel);
-            y++;
+            if (who != null)
+            {
+                string[] face = Portrait.Rows(who);
+                for (int r = 0; r < face.Length; r++)
+                    _t.WriteClipped(x, y + r, face[r], r == 0 ? theme.Accent : r == face.Length - 1 ? theme.Rule : theme.Text, Portrait.Width, false, theme.Panel);
+                int tx = x + Portrait.Width + 2, tw = iw - Portrait.Width - 2;
+                _t.WriteClipped(tx, y, Loc.U(TownText.RoleTitle(who.Role)), theme.Label, tw, false, theme.Panel);
+                _t.WriteClipped(tx, y + 1, Loc.U(Portrait.MoodTag(who)), theme.Text, tw, false, theme.Panel);
+                _t.WriteClipped(tx, y + 2, Loc.U(Portrait.TemperTag(who.Persona != null ? who.Persona.Trait : Trait.Kind)), theme.Dim, tw, false, theme.Panel);
+            }
+            y += Portrait.Height;
             _t.HLine(px + 1, y, pw - 2, theme.Rule);
-            y += 2;
-            foreach (string line in note) _t.WriteClipped(x, y++, line, theme.Narrative, iw, false, theme.Panel);
+            if (start > 0) _t.Write(px + pw - 6, y, "...", theme.Dim, false, theme.Panel);
             y++;
+            for (int i = 0; i < shown && start + i < lines.Count; i++)
+                _t.WriteClipped(x, y + i, lines[start + i].Text, lines[start + i].Hero ? theme.Accent : theme.Narrative, iw, false, theme.Panel);
+            y += shown + 1;
 
             int sel = Math.Max(0, Math.Min(State.ServiceIndex, rows.Count - 1));
             for (int i = 0; i < rows.Count && y < py + ph - 1; i++, y++)
@@ -1691,6 +1714,19 @@ namespace Ossuary.Core
                 _t.WriteClipped(x + 3, y, rows[i].Label, fg, Math.Max(1, priceX - (x + 3) - 1), on, bg);
                 if (price.Length > 0) _t.Write(priceX, y, price, _g.CarryingGold() >= rows[i].Price ? theme.Gold : theme.Dim, on, bg);
             }
+        }
+
+        /// <summary>The conversation as wrapped lines, oldest first: the person's lines plain, the hero's answers marked with '>'.</summary>
+        System.Collections.Generic.List<(string Text, bool Hero)> TranscriptLines(System.Collections.Generic.IEnumerable<DialogueLine> log, int width)
+        {
+            var lines = new System.Collections.Generic.List<(string Text, bool Hero)>();
+            foreach (var line in log)
+            {
+                string text = Loc.U(line.Text ?? "");
+                if (line.Hero) text = "> " + text;
+                foreach (string part in Wrap(text, width)) lines.Add((part, line.Hero));
+            }
+            return lines;
         }
 
         void DrawServicePanel()
@@ -1886,6 +1922,60 @@ namespace Ossuary.Core
             _t.WriteClipped(px + 3, py + ph - 2, "Enter/b buy   o haggle   s sell   hjkl move   Esc leave", theme.Dim, pw - 6, false, theme.Panel);
         }
 
+        // ------------------------------------------------------------ first hints
+
+        /// <summary>
+        /// The first-time hint card: a small frame over the bottom of the map, moved to the top when it
+        /// would cover the hero. Only on the map with no panel open; never on the death or win screens.
+        /// </summary>
+        void DrawHintCard()
+        {
+            if (State.Hint == null || State.Active != Panel.None || State.IsTargeting) return;
+            if (_g.Mode == GameMode.GameOver || _g.Mode == GameMode.Won) return;
+            var hint = Tutorials.Find(State.Hint);
+            if (hint == null || MapW < 30 || MapH < 6) return;
+            var theme = Theme.Current;
+
+            int w = Math.Min(MapW - 2, 56);
+            var lines = new System.Collections.Generic.List<string>(Wrap(Loc.T(hint.Text), w - 4));
+            int h = lines.Count + 4;   // frame top and bottom, a blank row, the footer
+            int x = MapX + 1;
+            int y = MapY + MapH - h - 1;
+            if (!OnOverworld && HeroIsUnder(x, y, w, h)) y = MapY + 1;
+
+            _t.FillRect(x, y, w, h, ' ', theme.Text, theme.Panel);
+            _t.RoundBox(x, y, w, h, theme.Rule, false, theme.Panel);
+            for (int i = 0; i < lines.Count; i++) _t.Write(x + 2, y + 1 + i, lines[i], theme.Text, false, theme.Panel);
+            _t.WriteClipped(x + 2, y + h - 2, Loc.T("[Esc] close"), theme.Dim, w - 4, false, theme.Panel);
+        }
+
+        /// <summary>Whether the hero's cell, as drawn, falls inside a screen rectangle.</summary>
+        bool HeroIsUnder(int x, int y, int w, int h)
+        {
+            int sx = MapOx + (_g.Player.X - CameraX) * MapSq, sy = MapOy + (_g.Player.Y - CameraY);
+            return sx >= x && sx < x + w && sy >= y && sy < y + h;
+        }
+
+        /// <summary>The first-run question, asked once per install before the first hero begins.</summary>
+        void DrawFirstRunPanel()
+        {
+            var theme = Theme.Current;
+            PanelRect(out int px, out int py, out int pw, out int ph, 60, 11, Loc.T("First steps"), Loc.T("↑↓ select   Enter choose"));
+            int x = px + 3, iw = pw - 6, sel = State.FirstRunIndex;
+            _t.WriteClipped(x, py + 2, Loc.T("Have you played before?"), theme.Label, iw, true, theme.Panel);
+            string[] options = { Loc.T("Yes, I already know the game"), Loc.T("No, show me the hints") };
+            for (int i = 0; i < options.Length; i++)
+            {
+                int y = py + 4 + i;
+                bool on = i == sel;
+                Rgb bg = on ? theme.PanelHi : theme.Panel;
+                if (on) RowBar(px + 1, y, pw - 2, theme);
+                _t.Put(px + 2, y, on ? '▶' : ' ', theme.Accent, true, bg);
+                _t.WriteClipped(x + 1, y, options[i], on ? theme.Accent : theme.Text, iw - 1, on, bg);
+            }
+            _t.WriteClipped(x, py + ph - 3, Loc.T("You can change this later in F2."), theme.Dim, iw, false, theme.Panel);
+        }
+
         // ------------------------------------------------------------------ menu
 
         static string MenuNote(MenuRow row)
@@ -1904,6 +1994,8 @@ namespace Ossuary.Core
                 case MenuRow.Controls: return Loc.T("Rebind any key.");
                 case MenuRow.Achievements: return Loc.T("What you have done across all your runs.");
                 case MenuRow.PastRuns: return Loc.T("Your finished expeditions, newest first.");
+                case MenuRow.Tutorials: return Loc.T("Shows a short card the first time each system comes up.");
+                case MenuRow.ResetTutorials: return Loc.T("Every hint can show again.");
                 case MenuRow.MainMenu: return Loc.T("Saves the run and returns to the title.");
                 default: return Loc.T("Saves the run and closes the game.");
             }
@@ -1913,7 +2005,7 @@ namespace Ossuary.Core
         {
             var theme = Theme.Current;
             var set = DisplaySettings.Current;
-            PanelRect(out int px, out int py, out int pw, out int ph, 60, 27, Loc.T("Menu"), Loc.T("Esc resumes"));
+            PanelRect(out int px, out int py, out int pw, out int ph, 60, 29, Loc.T("Menu"), Loc.T("Esc resumes"));
             int x = px + 3, iw = pw - 6;
             int sel = State.SettingsIndex;
             int y = py + 2;
@@ -1969,6 +2061,8 @@ namespace Ossuary.Core
             Row(MenuRow.Controls, "Controls", "rebind keys", false);
             Row(MenuRow.Achievements, "Achievements", "local", false);
             Row(MenuRow.PastRuns, "Past runs", "history", false);
+            Row(MenuRow.Tutorials, "Tutorials", _g.TutorialsOn ? "On" : "Off", true);
+            Row(MenuRow.ResetTutorials, "Reset tutorials", null, false);
             Row(MenuRow.MainMenu, "Main menu", null, false, -1, off);
             Row(MenuRow.Quit, "Quit game", null, false, -1, theme.Bad);
 

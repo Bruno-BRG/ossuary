@@ -26,6 +26,8 @@ namespace Ossuary.Core
         public bool Troubled;
         /// <summary>Another person of the same town who takes the role over (set only on essentials).</summary>
         public Monster Successor;
+        /// <summary>The post an apprentice is learning: set on the successor of an essential person, cleared when they take the post (Game.Succession.cs).</summary>
+        public TownRole? Training;
 
         public bool Has(Trait t) => Trait == t || Second == t;
 
@@ -45,9 +47,9 @@ namespace Ossuary.Core
         public static bool IsPersonalRole(TownRole role) =>
             role == TownRole.Citizen || role == TownRole.Adventurer || role == TownRole.Drunk || role == TownRole.Prisoner;
 
-        /// <summary>The roles the main questline leans on (see docs/game/main-quest.md).</summary>
+        /// <summary>The roles the main questline leans on (see docs/game/main-quest.md): the Elder, the Reader, the Captain, the High Priest and the Cult's voice, the beggar who is not.</summary>
         public static bool IsEssentialRole(TownRole role) =>
-            role == TownRole.Elder || role == TownRole.Scholar || role == TownRole.Captain || role == TownRole.Priest;
+            role == TownRole.Elder || role == TownRole.Scholar || role == TownRole.Captain || role == TownRole.Priest || role == TownRole.Beggar;
     }
 
     /// <summary>What one person remembers about the hero. Written by deeds, read by lines, prices and quests.</summary>
@@ -56,11 +58,20 @@ namespace Ossuary.Core
         /// <summary>-100 hates you .. +100 trusts you.</summary>
         public int Disposition;
         public readonly HashSet<string> Flags = new HashSet<string>();
+        /// <summary>Blows struck while this essential person lay out cold: the third removes them (Game.Crime.cs, Outrage).</summary>
+        public int Outrages;
 
         public bool Has(string flag) => Flags.Contains(flag);
         public void Set(string flag) => Flags.Add(flag);
+        public void Unset(string flag) => Flags.Remove(flag);
         public void Shift(int d) => Disposition = Math.Max(-100, Math.Min(100, Disposition + d));
 
-        public const string Met = "met", Struck = "struck", Helped = "helped";
+        /// <summary>How the person stands with the hero, as one word for the conversation box: wary once struck, else by disposition.</summary>
+        public string MoodKey => Has(Struck) ? "wary" : Disposition >= 25 ? "warm" : Disposition <= -25 ? "cold" : "neutral";
+
+        /// <summary>An heir who owes the hero one favour before the post's business goes on (Game.Succession.cs).</summary>
+        public const string Met = "met", Struck = "struck", Helped = "helped", Owes = "owes";
+        /// <summary>An heir who took a counter over from a keeper who died (Game.Succession.cs, InstallShopHeirs).</summary>
+        public const string Inherited = "inherited";
     }
 }

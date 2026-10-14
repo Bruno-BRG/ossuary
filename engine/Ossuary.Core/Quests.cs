@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Ossuary.Core
 {
     /// <summary>What a quest step waits for. Progress is counted from the game's own events (kills, depth, flags, items, the clock).</summary>
-    public enum ObjKind { Kill, Reach, Flag, Item, Talk, Wait }
+    public enum ObjKind { Kill, Reach, Flag, Item, Talk, Wait, Escort }
 
     public sealed class QuestStep
     {

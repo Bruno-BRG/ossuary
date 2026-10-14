@@ -59,7 +59,7 @@ namespace Ossuary.Tools
                 int turn = g.Turn;
                 try { Think(g, cmd, dive, ref stuck); }
                 catch (Exception e) { throw new Exception($"bot {race}/{role} seed {seed} turn {g.Turn}: {e.Message}\n{e.StackTrace}"); }
-                if (Trace && (g.Turn % 50 == 0 || (g.Turn > 1200 && g.Turn < 1212)) && g.Turn != turn) Console.WriteLine($"T{g.Turn} d{g.Depth} L{g.Player.Level} hp{g.Player.HP}/{g.Player.MaxHP} at {g.Player.X},{g.Player.Y} stuck{stuck} foes{VisibleFoes(g).Count} food{g.Player.Nutrient} last=\"{(g.Log.Count > 0 ? g.Log[g.Log.Count - 1].Text : "")}\"");
+                if (Trace && (g.Turn % 50 == 0 || (g.Turn > 1200 && g.Turn < 1212)) && g.Turn != turn) Console.WriteLine($"[{race}/{role}] T{g.Turn} d{g.Depth} L{g.Player.Level} hp{g.Player.HP}/{g.Player.MaxHP} at {g.Player.X},{g.Player.Y} stuck{stuck} foes{VisibleFoes(g).Count} food{g.Player.Nutrient} last=\"{(g.Log.Count > 0 ? g.Log[g.Log.Count - 1].Text : "")}\"");
                 if (g.UiState.Active != Panel.None) g.UiState.Active = Panel.None;
                 if (g.PendingChoice.Active) g.PendingChoice.Clear();
                 if (g.UiState.IsTargeting) g.UiState.Targeting = TargetingMode.None;
@@ -184,8 +184,8 @@ namespace Ossuary.Tools
         static List<Monster> VisibleFoes(Game g)
         {
             var list = new List<Monster>();
-            foreach (var m in g.Monsters)
-                if (!m.IsDead && !m.Ally && g.Map.IsVisible(m.X, m.Y) && ((m.Def.Level > 0 && m.Def.Speed > 3) || Pathfinder.Chebyshev(g.Player.X, g.Player.Y, m.X, m.Y) <= 1)) list.Add(m);
+            foreach (var m in g.Monsters)   // the other people of the dungeon are not foes: a looter who runs is not chased
+                if (!m.IsDead && !m.Ally && m.Folk == FolkKind.None && g.Map.IsVisible(m.X, m.Y) && ((m.Def.Level > 0 && m.Def.Speed > 3) || Pathfinder.Chebyshev(g.Player.X, g.Player.Y, m.X, m.Y) <= 1)) list.Add(m);
             var p = g.Player;
             list.Sort((a, b) => Pathfinder.Chebyshev(p.X, p.Y, a.X, a.Y).CompareTo(Pathfinder.Chebyshev(p.X, p.Y, b.X, b.Y)));
             return list;

@@ -149,6 +149,7 @@ namespace Ossuary.Core
             PlaceCompanions();
             Dungeon.Remember(branchName, depth, sx, sy);
             if (spawns != null) RaiseBones(spawns, sx, sy);
+            if (spawns != null) PlaceFolk(spawns, sx, sy);
             if (spawns != null) RaiseBosses(spawns, sx, sy);
             if (spawns != null) DressLevel();
             EnsureQuestAmulet(); // fallback: levels generated before the quest still get their amulet
@@ -277,7 +278,7 @@ namespace Ossuary.Core
             if (!Map.InBounds(nx, ny)) return false;
 
             var target = MonsterAt(nx, ny);
-            if (target != null) return Attack(target);
+            if (target != null) return FolkBump(target) || Attack(target);
             if (Map.Get(nx, ny) == TileKind.Altar && Mode == GameMode.Dungeon) { OpenAltar(nx, ny); return true; }
 
             if (!Map.CanStep(Player.X, Player.Y, nx, ny, true))
@@ -476,8 +477,10 @@ namespace Ossuary.Core
         {
             GodsOnKill(m);
             Monsters.Remove(m);
+            if (m.Folk == FolkKind.Looter) DropSack(m);
             if (m.Def.Trait != null) TraitOnDeath(m);
             QuestKill(m);
+            CellarCleared(m);
             if (m.BossId != null || m.Unique) RecordDeed(Deed.Killed, m.Name, m.BossId != null ? 3 : 2);
             Stain(m.X, m.Y, BloodOf(m), m.Name);
             RaiderKilled(m);
@@ -557,8 +560,14 @@ namespace Ossuary.Core
             NoteThreat();
             CheckDeath();
             ReapCompanions();
+            ReapEscorts();
             CheckAchievements();
             QuestCheck();
+            // Hints fire on the hero's own turns, never while the level is generated: a new game
+            // builds its first dungeon level before the overworld opening, which is not underground.
+            if (Mode == GameMode.Dungeon) ShowHint("dungeon");
+            // A perk waiting after the first level. A human starts with one pending at level 1, which is not a level-up.
+            if (Player.Level > 1 && Player.PendingAdvances > 0) ShowHint("levelup");
         }
 
         /// <summary>
@@ -691,6 +700,7 @@ namespace Ossuary.Core
         void MonsterTurn(Monster m)
         {
             if (m.Townsperson) { TownsfolkTurn(m); return; }
+            if (m.Folk != FolkKind.None && FolkTurn(m)) return;
             if (m.CastCooldown > 0) m.CastCooldown--;
             int dist = Pathfinder.Chebyshev(m.X, m.Y, Player.X, Player.Y);
             if (m.IsGuard && Mode != GameMode.TownMap && dist > 24) return;

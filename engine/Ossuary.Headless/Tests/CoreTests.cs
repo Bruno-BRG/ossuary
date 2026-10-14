@@ -24,6 +24,12 @@ namespace Ossuary.Tests
             _pass = 0; _fail = 0;
             Failures.Clear();
 
+            // Sessions in these suites read and write the install's files. Keep them in a scratch folder, on an
+            // install that has already answered the first-run question, so no test touches the player's data.
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("OSSUARY_DATA")))
+                Environment.SetEnvironmentVariable("OSSUARY_DATA", System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ossuary-core-tests-" + Guid.NewGuid().ToString("N")));
+            Ossuary.Desktop.SaveStore.WriteTutorials(new Ossuary.Desktop.TutorialRecord { Enabled = false });
+
             Test("rng is deterministic", RngDeterminism);
             Test("rng distribution is sane", RngDistribution);
             Test("every tile def is reachable", TileTableComplete);
@@ -103,6 +109,7 @@ namespace Ossuary.Tests
             Test("every class stays within the balance band", BalanceBand);
             Test("quest victory", WinTests.Run);
             Test("tracked features (docs/todo.md)", FeatureTests.Run);
+            Test("first-time hints (docs/superpowers/specs/2026-10-14-tutorials-design.md)", TutorialTests.Run);
             Test("magic, round two (docs/roadmap/magic.md)", MagicTests.Run);
             Test("spells, items and animations (docs/design/spells-and-items.md)", ArsenalTests.Run);
             Test("language: nothing half-translated (docs/tech/languages.md)", LocTests.Run);

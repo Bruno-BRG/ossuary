@@ -40,7 +40,7 @@ namespace Ossuary.Core
                 Item piece = null; Shop at = null;
                 foreach (var s in Town.Shops) { piece = s.Stock.Find(i => i.Uid == w.Uid); if (piece != null) { at = s; break; } }
                 if (piece == null) continue;   // the hero bought it back, or it went elsewhere
-                var people = Town.Npcs.FindAll(n => !n.IsGuard && n.Role != TownRole.Pet && n.Role != TownRole.Beggar && !n.IsDead);
+                var people = Town.Npcs.FindAll(n => n.Townsperson && !n.IsGuard && n.Role != TownRole.Pet && n.Role != TownRole.Beggar && !n.IsDead);
                 if (people.Count == 0) continue;
                 var buyer = people[(int)(Rumours.Hash(Rng.Seed, w.Title + "|buyer", w.Day) % (uint)people.Count)];
                 at.Stock.Remove(piece);

@@ -40,9 +40,12 @@ namespace Ossuary.Core
         /// Breadth-first search over cells the player has seen. Returns the first step toward the nearest
         /// cell (other than the player's own) where <paramref name="goal"/> holds.
         /// </summary>
-        public bool AutoStep(Func<int, int, bool> goal, out int dx, out int dy)
+        public bool AutoStep(Func<int, int, bool> goal, out int dx, out int dy) => AutoStep(goal, out dx, out dy, out _, out _);
+
+        /// <summary>Like <see cref="AutoStep(Func{int, int, bool}, out int, out int)"/>, and also gives the cell the search reached (gx, gy).</summary>
+        public bool AutoStep(Func<int, int, bool> goal, out int dx, out int dy, out int gx, out int gy)
         {
-            dx = dy = 0;
+            dx = dy = gx = gy = 0;
             if (Map == null) return false;
             int w = Map.W, n = w * Map.H;
             var from = new int[n];
@@ -60,6 +63,7 @@ namespace Ossuary.Core
                     int step = cur;
                     while (from[step] != start) step = from[step];
                     dx = step % w - Player.X; dy = step / w - Player.Y;
+                    gx = cx; gy = cy;
                     return true;
                 }
                 for (int k = 0; k < 8; k++)

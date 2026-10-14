@@ -16,6 +16,8 @@ namespace Ossuary.Core
         public static Dialogue For(Monster m)
         {
             if (m == null || !m.Townsperson) return null;
+            if (m.Memory != null && m.Memory.Has(NpcMemory.Owes)) return Heir;
+            if (m.Persona != null && m.Persona.Training.HasValue) return Apprentice;
             switch (m.Role)
             {
                 case TownRole.Elder: return Elder;
@@ -53,27 +55,84 @@ namespace Ossuary.Core
                 Go("What work?", "Que trabalho?", "work", (g, m) => g.StartQuest("cult.vial"),
                     (g, m) => g.RepOf(Houses.Cult) >= 10, 0, (g, m) => g.QuestOf("cult.vial") == null),
                 Go("What work?", "Que trabalho?", "errands", null,
-                    (g, m) => g.RepOf(Houses.Cult) >= 10, 0, (g, m) => g.QuestDone("cult.vial") && (g.QuestOf("cult.zombies") == null || g.QuestOf("cult.bones") == null)),
+                    (g, m) => g.RepOf(Houses.Cult) >= 10, 0, (g, m) => g.QuestDone("cult.vial") && (g.QuestOf("cult.zombies") == null || g.QuestOf("cult.bones") == null || g.QuestOf("cult.names") == null || g.QuestOf("cult.shrine") == null)),
                 Go("I have the vial.", "Estou com o frasco.", "vial", (g, m) => { g.TakeItem("potion of mutation"); g.Flags.Add("cult.vial.report"); },
                     (g, m) => g.QuestActive("cult.vial") && g.QuestOf("cult.vial").Step == 1 && g.HasItem("potion of mutation")),
                 Go("The zombies are dealt with.", "Os zumbis foram resolvidos.", "zombiesdone", (g, m) => g.Flags.Add("cult.zombies.report"), null, 0,
                     (g, m) => g.QuestActive("cult.zombies") && g.QuestOf("cult.zombies").Step == 1),
                 Go("Here is the bone blade.", "Aqui está a lâmina de osso.", "bonesdone", (g, m) => { g.TakeItem("bone blade"); g.Flags.Add("cult.bones.report"); },
-                    (g, m) => g.HasItem("bone blade"), 0, (g, m) => g.QuestActive("cult.bones") && g.QuestOf("cult.bones").Step == 1))
+                    (g, m) => g.HasItem("bone blade"), 0, (g, m) => g.QuestActive("cult.bones") && g.QuestOf("cult.bones").Step == 1),
+                Go("The acolytes are silenced.", "Os acólitos foram silenciados.", "namesdone", (g, m) => g.Flags.Add("cult.names.report"), null, 0,
+                    (g, m) => g.QuestActive("cult.names") && g.QuestOf("cult.names").Step == 1),
+                Go("The shrine is lit.", "O altar está aceso.", "shrinedone", (g, m) => g.Flags.Add("cult.shrine.report"), null, 0,
+                    (g, m) => g.QuestActive("cult.shrine") && g.QuestOf("cult.shrine").Step == 1))
             .Node("work", L("A vial of what the black cart sells to the trusted. Bring it to me, and say nothing to the priests.", "Um frasco do que a carroça negra vende aos de confiança. Traga-me, e não diga nada aos sacerdotes."),
                 Go("Understood.", "Entendido.", Dialogue.Start))
             .Node("vial", L("It is warm. Good. The Drowned will not forget this, and neither will the Temple, if it learns of it.", "Está morno. Bom. Os Afogados não vão esquecer, e o Templo também não, se descobrir."),
                 Go("Good.", "Ótimo.", Dialogue.Start))
-            .Node("errands", L("Two more jobs, for those who can keep quiet. Clear the vaults of the dead that walk, or bring a blade of bone.", "Mais dois serviços, para quem sabe ficar quieto. Limpe os cofres dos mortos que andam, ou traga uma lâmina de osso."),
+            .Node("errands", L("More jobs, for those who can keep quiet. Clear the vaults of the dead that walk, silence the acolytes below, light the shrine at the bottom of the vaults, or bring a blade of bone.", "Mais serviços, para quem sabe ficar quieto. Limpe os cofres dos mortos que andam, cale os acólitos lá embaixo, acenda o altar no fundo dos cofres, ou traga uma lâmina de osso."),
                 Go("Clear the Sunken Vaults of the dead that walk", "Limpar os Cofres Afundados dos mortos que andam", Dialogue.Start, (g, m) => g.StartQuest("cult.zombies"), null, 0,
                     (g, m) => g.QuestOf("cult.zombies") == null),
+                Go("Silence the acolytes in the Dungeons", "Calar os acólitos nas Masmorras", Dialogue.Start, (g, m) => g.StartQuest("cult.names"), null, 0,
+                    (g, m) => g.QuestOf("cult.names") == null),
+                Go("Light the shrine at the bottom of the Vaults", "Acender o altar no fundo dos Cofres", Dialogue.Start, (g, m) => g.StartQuest("cult.shrine"), null, 0,
+                    (g, m) => g.QuestOf("cult.shrine") == null),
                 Go("Bring a blade of bone for the Drowned", "Trazer uma lâmina de osso para os Afogados", Dialogue.Start, (g, m) => g.StartQuest("cult.bones"), null, 0,
                     (g, m) => g.QuestOf("cult.bones") == null),
                 Go("Understood.", "Entendido.", Dialogue.Start))
             .Node("zombiesdone", L("Good. The vaults are quieter, and the Temple will not hear of it for a while.", "Ótimo. Os cofres estão mais calmos, e o Templo não vai saber disso por um tempo."),
                 Go("Good.", "Ótimo.", Dialogue.Start))
             .Node("bonesdone", L("The blade goes into the water. The Drowned will be pleased, and the Temple will be sorry.", "A lâmina vai para a água. Os Afogados ficarão satisfeitos, e o Templo, arrependido."),
+                Go("Good.", "Ótimo.", Dialogue.Start))
+            .Node("namesdone", L("Good. The chanting stops, and the Temple's men will ask what became of their acolytes.", "Ótimo. O canto parou, e os homens do Templo vão perguntar o que foi feito dos acólitos."),
+                Go("Good.", "Ótimo.", Dialogue.Start))
+            .Node("shrinedone", L("The light comes up through the water, cold and clean. The Drowned will remember the Vaults.", "A luz sobe pela água, fria e limpa. Os Afogados vão lembrar dos Cofres."),
                 Go("Good.", "Ótimo.", Dialogue.Start));
+
+        // ------------------------------------------------------------------ the apprentice (who takes the post when it empties)
+
+        static readonly Dialogue Apprentice = new Dialogue()
+            .Node(Dialogue.Start, (g, m) => ApprenticeLine(m),
+                Go("What is the post like?", "Como é o cargo?", "post"),
+                Go("Say something else", "Dizer outra coisa", Dialogue.Start))
+            .Node("post", L("Long hours, and nobody lets you touch anything until they are sure you will not spoil it.", "Muitas horas, e ninguém deixa você tocar em nada até ter certeza de que você não vai estragar."),
+                Go("Good luck.", "Boa sorte.", Dialogue.Start));
+
+        static string ApprenticeLine(Monster m)
+        {
+            if (m.Persona.Training == TownRole.Beggar)
+                return L("I am learning the old words of the Drowned. They say I am not ready yet.", "Estou aprendendo as palavras antigas dos Afogados. Dizem que ainda não estou pronto.");
+            string title = TownText.RoleTitle(m.Persona.Training.Value);
+            return TownText.L($"I am learning to be the {title}. They say I am not ready yet.", $"Estou aprendendo a ser o {TownText.PtOf(title)}. Dizem que ainda não estou pronto.");
+        }
+
+        // ------------------------------------------------------------------ the heir of a post that changed hands (one favour first)
+
+        static readonly Dialogue Heir = new Dialogue()
+            .Node(Dialogue.Start, L("The post is mine now, and I did not ask for it this way. Before I put my name to anything, you will do one thing for me.", "O cargo é meu agora, e não pedi que fosse assim. Antes de assinar qualquer coisa, você vai fazer uma coisa por mim."),
+                Go("What do you need?", "O que você precisa?", "ask", null, null, 0, (g, m) => g.QuestOf(Game.HeirQuest(m.Role)) == null),
+                Go("How is it going?", "Como vai?", "progress", null, null, 0, (g, m) => g.QuestActive(Game.HeirQuest(m.Role)) && g.QuestOf(Game.HeirQuest(m.Role)).Step == 0),
+                Go("It is done.", "Está feito.", "done", (g, m) => g.Flags.Add(Game.HeirReport(m.Role)), null, 0, (g, m) => g.QuestActive(Game.HeirQuest(m.Role)) && g.QuestOf(Game.HeirQuest(m.Role)).Step == 1),
+                Go("Not now.", "Agora não.", Dialogue.Start))
+            .Node("ask", (g, m) => HeirAsk(m.Role),
+                Go("I will do it.", "Eu faço.", Dialogue.Start, (g, m) => g.StartQuest(Game.HeirQuest(m.Role))))
+            .Node("progress", L("Not yet. Come back when it is done.", "Ainda não. Volte quando estiver pronto."),
+                Go("Understood.", "Entendido.", Dialogue.Start))
+            .Node("done", L("Good. Then the post is yours to answer for, and I will sign what the League needs.", "Ótimo. Então o cargo é seu, e eu assino o que a Liga precisar."),
+                Go("Good.", "Ótimo.", Dialogue.Start));
+
+        /// <summary>What the heir of each post asks for: the same quest the QuestBook holds under <see cref="Game.HeirQuest"/>.</summary>
+        static string HeirAsk(TownRole role)
+        {
+            switch (role)
+            {
+                case TownRole.Elder: return L("The Guild's cellar is full of human zombies, and the League does not sign for a house that cannot keep its cellar. Put down three of them.", "O porão da Guilda está cheio de zumbis humanos, e a Liga não assina para uma casa que não guarda o próprio porão. Acabe com três deles.");
+                case TownRole.Captain: return L("Orcs are working the Watch's road. Put down three, and the Watch will hear your name said well.", "Orcs andam pela estrada da Guarda. Acabe com três, e a Guarda vai ouvir seu nome dito com respeito.");
+                case TownRole.Priest: return L("Skeletons climb out of the crypt at night. Put down three, and the Temple will sign for you.", "Esqueletos saem da cripta à noite. Acabe com três, e o Templo assina por você.");
+                case TownRole.Beggar: return L("The Drowned need the vaults cleared of the dead that walk. Put down two, and the work is yours to hear.", "Os Afogados precisam dos cofres limpos dos mortos que andam. Acabe com dois, e o trabalho é seu para ouvir.");
+                default: return L("Dark acolytes have been reading in the back room of the library. Put down two, and I will see your papers signed.", "Acólitos sombrios têm lido na sala dos fundos da biblioteca. Acabe com dois, e vejo seus papéis assinados.");
+            }
+        }
 
         // ------------------------------------------------------------------ the Reader (who explains the documents)
 
@@ -135,14 +194,18 @@ namespace Ossuary.Core
                 Go("Slip them a bribe", "Passar um suborno", "bribed",
                     (g, m) => { g.Player.Gold -= g.BountyHere() * 3 / 2; g.ClearBountyHere(); g.RecordDeed(Deed.Bribed, m.Name, 1); g.AddRep(Houses.Watch, -3, "bribing the Watch"); },
                     (g, m) => g.BountyHere() < 500 && g.Player.Gold >= g.BountyHere() * 3 / 2),
+                Go("Pick the lock of the cell", "Forçar a fechadura da cela", "escaped", (g, m) => g.LockpickOut(),
+                    (g, m) => g.Player.FindFirst("lock pick") != null),
                 Go("Resist!", "Resistir!", null, (g, m) => g.ResistArrest()))
+            .Node("escaped", L("\"The lock is old. You will not find another like it, and neither will we.\"", "\"A fechadura é velha. Você não vai achar outra igual, e nós também não.\""))
             .Node("paid", L("\"Then you are square with the Watch. Mind yourself.\"", "\"Então você está quite com a Guarda. Cuidado.\""))
             .Node("served", L("\"Your name is struck from the book. Do not make us write it again.\"", "\"Seu nome foi riscado do livro. Não nos faça escrevê-lo de novo.\""))
             .Node("bribed", L("\"I saw nothing. Nothing at all.\"", "\"Eu não vi nada. Nada mesmo.\""));
 
         // ------------------------------------------------------------------ the Elder (the League's council)
 
-        static readonly Dialogue Elder = new Dialogue { OnOpen = (g, m) => g.StartQuest("main.seal") }
+        // Once the Stamp is done the seal is closed for good (a new cycle has no Amulet to fetch), so the council does not offer it again.
+        static readonly Dialogue Elder = new Dialogue { OnOpen = (g, m) => { if (g.EndingId == null) g.StartQuest("main.seal"); } }
             .Node(Dialogue.Start, (g, m) => g.Flags.Contains("elder.warned")
                     ? L("Back from the dark, or only from the street? Either way, ask.", "Voltou do escuro, ou só da rua? De qualquer jeito, pergunte.")
                     : L("So you are the one who took the League's thirty gold. Sit a moment. There are things worth knowing before you go down.", "Então você é quem aceitou os trinta de ouro da Liga. Sente um momento. Há coisas que vale saber antes de descer."),

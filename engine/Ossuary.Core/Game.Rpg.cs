@@ -75,6 +75,7 @@ namespace Ossuary.Core
             if (!Progression.IsAvailable(Player, def)) { Say($"{def.Name} is not available to you now."); return false; }
             if (!Player.ApplyAdvance(id)) return false;
             Say($"You grow {def.Name.ToLower()}. {def.Blurb}.", MessageKind.Good);
+            HintDone("perk");
             return true;
         }
 

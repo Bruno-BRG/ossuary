@@ -73,6 +73,8 @@ namespace Ossuary.Core.Entities
         public string BossId;
         public int BossClock, BossPhase;
         public string CompanionRole;
+        /// <summary>A companion's order (F12): hold where they stand and fight only what comes next to them.</summary>
+        public bool Holds;
         /// <summary>Set on the shade of a dead hero: the bones key to lay to rest when it is destroyed.</summary>
         public string BonesKey;
         /// <summary>Fights for the player (summoned or charmed). SummonTurns counts down to its end.</summary>
@@ -88,6 +90,10 @@ namespace Ossuary.Core.Entities
 
         // Townsfolk: bestiary bodies used as people. They never start a fight; bumping one talks to it.
         public bool Townsperson;
+        /// <summary>The other people of the dungeon (Game.Folk.cs): None for an ordinary monster.</summary>
+        public FolkKind Folk;
+        /// <summary>For a captive or an escort: the town they want to be taken back to.</summary>
+        public string HomeTown;
         /// <summary>Came over a town's wall in a raid: hostile in the streets, and fought where it stands.</summary>
         public bool Raider;
         public TownRole Role;
@@ -144,7 +150,7 @@ namespace Ossuary.Core.Entities
             }
         }
 
-        public bool IsThreat => !Dormant;
+        public bool IsThreat => !Dormant && Folk == FolkKind.None;
 
         public string ThreatLabel()
         {

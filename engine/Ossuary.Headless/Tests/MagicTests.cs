@@ -31,7 +31,7 @@ namespace Ossuary.Tests
                 Test("lightning on a wet creature arcs to the next wet one", WetArcs);
                 Test("a projectile's effect lands at its arrival step", ImpactAtArrival);
                 Test("every element has its own cast sound", ElementCues);
-                Test("the save format is version 22", SaveVersion);
+                Test("the save format is version 23", SaveVersion);
             }
             finally { Loc.Current = old; }
             Console.WriteLine($"  magic: {_pass} passed, {_fail} failed");
@@ -275,7 +275,7 @@ namespace Ossuary.Tests
 
         static void SaveVersion()
         {
-            Assert(new SaveData().Version == 22, "a save made now is format 22");
+            Assert(new SaveData().Version == 23, "a save made now is format 23");
         }
     }
 }

@@ -5,7 +5,7 @@
 **A dark-fantasy ASCII roguelike.** The world threw its dead, its kings and its gods into one pit.
 You climb down to steal what is left.
 
-![Version 22](https://img.shields.io/badge/version-22-c8a050?style=flat-square)
+![Version 23](https://img.shields.io/badge/version-23-c8a050?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-5fa85f?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-Windows%20x64-4a6ea8?style=flat-square)
 ![Engine](https://img.shields.io/badge/engine-C%23%20.NET%2010-7c4dff?style=flat-square)
@@ -26,11 +26,13 @@ Descend through the Ossuary, take the **Amulet of Yendor**, and bring it back to
 fixed 8×16 bitmap font on a CRT-style terminal; the world is a turn-based dungeon crawl with a living overworld above it.
 The seed *is* the save: same seed, same keys, same run.
 
-### What is in **version 22**
+### What is in **version 23**
 
 | | |
 |---|---|
-| 🔥 **Spells that answer back** *(new)* | Casters cast at you: orc shamans, dark acolytes and sorcerers pick a real spell from their own list and fire it from their cell, animated, and every cast lands. The Sallow Magister, on the seventh level of the Dungeons, casts in both its phases. Lightning runs along ice and arcs from one wet creature to the next. A bolt's damage lands when it arrives, not when the animation starts, and each element has its own cast sound. Escape skips an animation. |
+| 🏘️ **Towns and people** *(new)* | Towns remember: counters ask more after killings, a healer refuses a hand that has killed there twice, a dead shopkeeper's heir says so, and news travels to the three nearest towns. Two companions can walk with you, and essential people have apprentices who take their posts. Steal with `F9`, burn with `F10`, and the Watch keeps count. Captives walk home as escorts, and talks show a face and a mood. |
+| 🧭 **Marks and first hints** *(new)* | `'` marks the cell you stand on and `Shift+'` walks back to the nearest mark. The first time you go underground, are wounded, level up or buy something, a short card names the key you need. It shows once per install, and `F2` can switch it off. |
+| 🔥 **Spells that answer back** | Casters cast at you: orc shamans, dark acolytes and sorcerers pick a real spell from their own list and fire it from their cell, animated, and every cast lands. The Sallow Magister, on the seventh level of the Dungeons, casts in both its phases. Lightning runs along ice and arcs from one wet creature to the next. A bolt's damage lands when it arrives, not when the animation starts, and each element has its own cast sound. Escape skips an animation. |
 | 📋 **Hired hands** | The notice board's jobs are real quests in your journal: hunt a branch's beasts, reach a depth in a branch, or take a workshop's commission and deliver the piece at any workshop that teaches its trade. Report hunts and delves to any notice board. A job you take is not offered again that week, and you can carry three at once. Once the Drowned have their vial, they offer two errands of their own. |
 | 🏛️ **The world remembers** | A past generated from the seed: houses rising and falling, kings succeeding by blood, by the sword or by the lords' choice, wars, plagues, towns that burned, and the dead buried on real levels with their names cut in the stone. The F8 legends panel collects what you learn from bards, scholars, shelves, rumours, engravings and tombs. Blood by species and fading trails: a bleeding hero is smelled, and Shift+M follows wounded prey. Raids come for towns on one day of a week: fight them in the streets or find a shop burned. |
 | 📜 **Every trade** | Potions, scrolls and wands are learned by using them. Relics have a history generated from the seed (who forged them, for whom, how they were lost) and remember the bosses they killed. Looms and stills, crafters who keep working, kobold archers with real arrows, caravans you guard or rob on the road, haggling at the counter, and traders who remember what you did. |
@@ -71,10 +73,10 @@ The seed *is* the save: same seed, same keys, same run.
 
 ## Install (players)
 
-Download the installer `Ossuary_0.22.0_x64-setup.exe` (Windows x64) from a [release](https://github.com/Bruno-BRG/ossuary/releases)
+Download the installer `Ossuary_0.23.0_x64-setup.exe` (Windows x64) from a [release](https://github.com/Bruno-BRG/ossuary/releases)
 or the build output, and run it. No SDK is needed. WebView2 is required (preinstalled on Windows 11).
 
-> The public name of a release is just **Version N** (this one is **Version 22**). Installers and manifests use the matching
+> The public name of a release is just **Version N** (this one is **Version 23**). Installers and manifests use the matching
 > `0.N.0`, because Windows installers and npm/Cargo want three numbers.
 
 ## Build from source
@@ -93,7 +95,8 @@ The full guide is in [INSTALL.md](INSTALL.md) ([pt-BR](INSTALL.pt-BR.md)). Quick
 Arrow keys, numpad or `hjkl` move; `yubn` are diagonals. `i` inventory, `c` character, `g` pick up, `>` / `<` stairs,
 `Shift+Z` spells, `Shift+V` abilities, `Shift+F` aim at a body part, `r` read, `z` zap a wand, `q` quaff, `P` put on a ring or amulet, `?` help, `F2` options, `F3` CRT, `F4` palette, `F11` fullscreen.
 
-- In towns, bump into a person to talk, and into a counter, notice board or altar to trade.
+- In towns, bump into a person to talk, and into a counter, notice board or altar to trade. `F9` steals from the counter beside you and `F10` burns it; `F12` tells your companions to hold or follow.
+- `'` marks the cell you stand on, and `Shift+'` walks back to the nearest mark on the level.
 - In the spell list, `←`/`→` switch school, a letter or `Enter` casts, `◆` marks spells lent by your gear.
 - When a monster blocks the road: `Enter`, `Space`, `K` or `F` fight; `R` or `<` flee.
 

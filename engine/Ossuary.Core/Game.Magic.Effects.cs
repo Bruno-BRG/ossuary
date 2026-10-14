@@ -393,13 +393,15 @@ namespace Ossuary.Core
         /// <summary>An ally's turn: fight the nearest hostile it can see, else keep close to you.</summary>
         void AllyTurn(Monster a)
         {
+            // An archer looses from its own bow at what stands two to six cells off; a holding companion never leaves its place.
+            if (a.CompanionRole == "archer" && AllyShoots(a)) return;
             Monster foe = null; int best = int.MaxValue;
             foreach (var m in Monsters)
             {
                 if (m.IsDead || m.Ally || m.Def.Level == 0) continue;
                 if (!Map.IsVisible(m.X, m.Y)) continue;
                 int d = Pathfinder.Chebyshev(a.X, a.Y, m.X, m.Y);
-                if (d <= 8 && d < best) { foe = m; best = d; }
+                if (d <= (a.Holds ? 2 : 8) && d < best) { foe = m; best = d; }
             }
             if (foe != null)
             {
@@ -413,10 +415,10 @@ namespace Ossuary.Core
                     else if (res.Hit) { foe.Alert = 1; foe.Dormant = false; }
                     return;
                 }
-                StepToward(a, foe.X, foe.Y);
+                if (!a.Holds) StepToward(a, foe.X, foe.Y);
                 return;
             }
-            if (Pathfinder.Chebyshev(a.X, a.Y, Player.X, Player.Y) > 2) StepToward(a, Player.X, Player.Y);
+            if (!a.Holds && Pathfinder.Chebyshev(a.X, a.Y, Player.X, Player.Y) > 2) StepToward(a, Player.X, Player.Y);
         }
 
         void StepToward(Monster m, int gx, int gy)
