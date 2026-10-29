@@ -31,6 +31,10 @@ namespace Ossuary.Core
 
         public static string GivenName(Rng rng) => Given[rng.Range(0, Given.Length)];
 
+        /// <summary>A survivor's name from its uid, so a replay names the same monster the same thing without drawing from the RNG.</summary>
+        public static string SurvivorName(long uid)
+            => Given[(int)(Rumours.Hash((ulong)uid, "survivor-name", 0) % (uint)Given.Length)];
+
         static readonly Dictionary<BuildingKind, string[]> Names = new Dictionary<BuildingKind, string[]>
         {
             [BuildingKind.Smithy] = new[] { L("The Rusty Anvil", "A Bigorna Enferrujada"), L("Cinder & Steel", "Brasa & Aço"), L("The Black Hammer", "O Martelo Negro"), L("Ironmouth Forge", "Forja Boca-de-Ferro") },

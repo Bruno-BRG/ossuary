@@ -167,6 +167,16 @@ namespace Ossuary.Core
                 Line(Loc.T("Legends learned") + ": " + g.LegendsKnown);
                 foreach (string raid in g.RaidChronicle) Line("  " + Loc.T(raid));
             }
+            if (g.Survivors.Count > 0)
+            {
+                Head("Survivors");
+                foreach (var s in g.Survivors)
+                {
+                    string titles = s.Titles.Count > 0 ? ", " + string.Join(", ", s.Titles.ConvertAll(Loc.U)) : "";
+                    string fate = s.Slain ? Loc.T("(slain)") : Loc.T("(still down there)");
+                    Line($"{s.Name}{titles} — {Loc.U(s.Species)}, {Loc.T("level")} {s.Level}, {Loc.T(s.Branch)} {s.Depth} {fate}");
+                }
+            }
             if (p.Rep.Count > 0 || g.ContractsDone > 0)
             {
                 Head("Standing");

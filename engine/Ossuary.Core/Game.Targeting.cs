@@ -73,6 +73,8 @@ namespace Ossuary.Core
 
         void ShootAt(int x, int y)
         {
+            if (Player.Asleep || Player.Stunned) { Say("You cannot do that now."); return; }
+            if (Player.FearTurns > 0) { Say("You are too afraid to raise a hand."); return; }
             if (x == Player.X && y == Player.Y) { Say("You cannot shoot yourself."); return; }
             var m = MonsterAt(x, y);
             if (m != null && m.Ally) { Say("You would hit your ally."); return; }
@@ -91,6 +93,7 @@ namespace Ossuary.Core
             bool crit;
             int fromX = Player.X, fromY = Player.Y;
             Fx((tl, s) => FxLib.Bolt(tl, s, fromX, fromY, x, y, Elem.Wind, '\0', 3));
+            m.Encountered = true;
             var res = Loose(m, dist, out crit, 1, -Bodies.AimPenalty(Player.Aim));
             if (res.Hit) m.Asleep = false;
             Say(res.Message, res.Killed ? MessageKind.Kill : MessageKind.Combat);
@@ -127,6 +130,9 @@ namespace Ossuary.Core
             {
                 Say(m.LongDescription, MessageKind.Info);
                 Say($"It is {m.ThreatLabel()}.", MessageKind.Info);
+                Say(DescribeLook(m), MessageKind.Info);
+                string gear = DescribeGear(m);
+                if (gear != null) Say(gear, MessageKind.Info);
                 string work = CarriedWork(m);
                 if (work != null) Say(work, MessageKind.Info);
                 DescribeWounds(m);

@@ -79,7 +79,7 @@ namespace Ossuary.Core.Entities
         public string BonesKey;
         /// <summary>Fights for the player (summoned or charmed). SummonTurns counts down to its end.</summary>
         public bool Ally;
-        public int SummonTurns, FearTurns, SlowTurns;
+        public int SummonTurns;
         /// <summary>Turns left before a caster may cast again (see Game.Casters.cs). Not saved: a save is a replay, so it rebuilds itself.</summary>
         public int CastCooldown;
         /// <summary>Spell states: held fast or stunned (loses its turns), damage over time, and taking extra from every hit.</summary>
@@ -87,6 +87,19 @@ namespace Ossuary.Core.Entities
         public DamageType DotType;
         /// <summary>Wounds that changed how it fights: its weapon arm is ruined, it broke and ran once, a wing gave out.</summary>
         public bool Disarmed, Fled, Grounded;
+
+        // Survivors (Version 24): a monster that met the hero and lived. The id is stable for the run, the titles are earned,
+        // and the memory is what it remembers about the hero, not about the world.
+        public string SurvivorId;
+        public readonly List<string> SurvivorTitles = new List<string>();
+        /// <summary>It has traded a blow with the hero (it wounded them or was wounded by them).</summary>
+        public bool Encountered;
+        /// <summary>It has drawn the hero's blood, not merely been hit by them.</summary>
+        public bool SurvivorHurtHero;
+        /// <summary>Encounters with the hero that it walked away from; drives titles and growth.</summary>
+        public int SurvivorMet;
+        /// <summary>How many levels it has gained by outliving the hero.</summary>
+        public int SurvivorGrowth;
 
         // Townsfolk: bestiary bodies used as people. They never start a fight; bumping one talks to it.
         public bool Townsperson;

@@ -22,6 +22,12 @@ namespace Ossuary.Core
             new Hint("wounded", "Wounded. Bind your wounds with a bandage (a) to stop the bleeding.", "bandage"),
             new Hint("levelup", "A new level: pick a perk. Arrows and Enter take one.", "perk"),
             new Hint("shop", "Bought something? Shift+I shows its numbers.", "examine"),
+            new Hint("crafting", "You made something. Shift+J lists every recipe you know.", "recipes"),
+            new Hint("casting", "You cast a spell. Shift+Z lists every spell you know.", "spells"),
+            new Hint("town", "A town. Bump into a person to talk; step into a counter to trade.", "talk"),
+            new Hint("gathering", "You take meat and hide from a carcass. Shift+B crafts with them.", "craft"),
+            new Hint("altar", "An altar. Offer something, or swear to the god who listens.", "sacrifice"),
+            new Hint("jobs", "You have taken a job. F7 opens the Journal.", "journal"),
         };
 
         public static Hint Find(string id)

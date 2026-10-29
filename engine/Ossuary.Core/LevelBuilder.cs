@@ -419,6 +419,10 @@ namespace Ossuary.Core
 
         public static long NextUid() => _uid++;
 
+        /// <summary>Starts a new game's uids at one. A save is a replay, so the same run must hand out the same uids on load:
+        /// without this, the throwaway game a host builds before loading would shift every survivor's name and follow roll.</summary>
+        public static void ResetUid() => _uid = 1;
+
         public static void Clear(int mapNumber) => _items.Remove(mapNumber);
 
         public static void Add(int mapNumber, int x, int y, Items.Item item)

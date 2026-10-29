@@ -24,6 +24,8 @@ namespace Ossuary.Core
             {
                 string work = WorkRumour(n / 3);
                 if (work != null) return work;
+                string survivor = SurvivorRumour(n / 3);
+                if (survivor != null) return survivor;
                 return HistoryRumour(n / 3);
             }
             if (n % 3 == 2)

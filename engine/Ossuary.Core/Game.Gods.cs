@@ -35,6 +35,7 @@ namespace Ossuary.Core
         {
             UiState.AltarX = x; UiState.AltarY = y; UiState.AltarConfirm = false;
             UiRequests.Altar = true;
+            ShowHint("altar");
         }
 
         public GodDef AltarGod() => Map == null ? null : Gods.AtAltar(Map.Number, UiState.AltarX, UiState.AltarY);
@@ -172,6 +173,7 @@ namespace Ossuary.Core
             AddRep(Houses.Cult, god.Id == "nhal" || god.Id == "mourne" ? 3 : 2, null);
             if (god.Id == "aurel") AddRep(Houses.Temple, -2, null);
             Say(gain < 0 ? $"You lay {corpse.Name} on the altar. {god.Name} turns away." : $"{corpse.Name} burns on the altar. {god.Name} accepts it.", gain < 0 ? MessageKind.Warn : MessageKind.Info);
+            HintDone("sacrifice");
             EndPlayerTurn();
         }
 

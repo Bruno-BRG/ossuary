@@ -11,7 +11,9 @@ export function applyFx(frame: Frame, step: readonly number[] | undefined): Fram
   for (let i = 0; i + 3 < step.length; i += 4) {
     const cell = step[i]!;
     if (cell < 0 || cell >= glyphs.length) continue;
-    glyphs[cell] = step[i + 1]!;
+    // Glyph 0 keeps the cell's own glyph and only tints it: an effect crossing a creature does not hide it.
+    const glyph = step[i + 1]!;
+    if (glyph !== 0) glyphs[cell] = glyph;
     fg[cell] = step[i + 2]!;
     if (step[i + 3]! >= 0) bg[cell] = step[i + 3]!;
     bold[cell] = true;

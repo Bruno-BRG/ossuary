@@ -110,6 +110,7 @@ namespace Ossuary.Tests
             Test("quest victory", WinTests.Run);
             Test("tracked features (docs/todo.md)", FeatureTests.Run);
             Test("first-time hints (docs/superpowers/specs/2026-10-14-tutorials-design.md)", TutorialTests.Run);
+            Test("named survivors (docs/roadmap/v24-survivors.md)", SurvivorTests.Run);
             Test("magic, round two (docs/roadmap/magic.md)", MagicTests.Run);
             Test("spells, items and animations (docs/design/spells-and-items.md)", ArsenalTests.Run);
             Test("language: nothing half-translated (docs/tech/languages.md)", LocTests.Run);

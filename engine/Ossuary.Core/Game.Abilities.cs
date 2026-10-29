@@ -18,6 +18,7 @@ namespace Ossuary.Core
             if (ab == null || !Player.Abilities.Contains(id)) { Say("You have no such ability."); return false; }
             if (Map == null) { Say("There is nowhere to use that."); return false; }
             if (Player.Asleep || Player.Stunned) { Say("You cannot focus."); return false; }
+            if (Player.FearTurns > 0) { Say("You are too afraid to focus."); return false; }
             if (Player.Vigor < ab.Cost) { Say($"{ab.Name} needs {ab.Cost} Vigor (you have {Player.Vigor}).", MessageKind.Warn); return false; }
             if (ab.Target == AbilityTarget.Self) return UseAbility(id, Player.X, Player.Y);
 

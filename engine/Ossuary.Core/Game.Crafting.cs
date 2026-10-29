@@ -235,6 +235,8 @@ namespace Ossuary.Core
                 else Say($"You make {made.Name}.", MessageKind.Good);
                 if (made.Title != null) NameMasterwork(made);
                 QuestCheck();   // a commission's product is in the pack now (Game.Jobs.cs)
+                HintDone("craft");
+                ShowHint("crafting");
             }
             if (Mode == GameMode.Dungeon || Mode == GameMode.TownMap) EndPlayerTurn();
             else if (Mode == GameMode.Overworld) World?.AdvanceTime(1);

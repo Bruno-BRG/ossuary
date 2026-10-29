@@ -5,6 +5,27 @@
 As versões do Ossuary são numeradas só com **um número** (Versão 11, Versão 12…), como no *Project Zomboid*. Nos manifestos (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) e no nome do instalador a versão aparece como `0.N.0`. O **salvamento** (`SaveData.Version`) usa o mesmo número: mudou regra, sobe o número, saves antigos deixam de carregar.
 
+## Versão 24 — Os que vivem
+
+### Sobreviventes
+- **Um monstro que vive ganha um nome.** Uma criatura que troca um golpe com você e continua de pé quando você deixa o nível ganha um nome e um primeiro título pelo que aconteceu: *Morde-Heróis* se tirou seu sangue, *o Astuto* se fugiu, *o Intacto* se sobreviveu ferido, *o Paciente* caso contrário. No máximo dois ganham nome por saída.
+- **Ele se lembra e cresce.** Encontrar um sobrevivente de novo rende outro título, e sobreviver a você uma segunda vez vale um nível (até cinco acima do que nasceu). A memória dele é a da jornada: `Game.Survivors`.
+- **Níveis guardam seus monstros.** Um nível ao qual você volta não está mais vazio: quem ficou de pé continua lá, ferimentos e tudo, chefes inclusive. Companheiros e invocações não são guardados; eles viajam com você como antes.
+- **Eles voltam.** Os moradores falam de um sobrevivente vivo, do título mais novo e do nível que ele domina. Ele pode descer atrás de você, ou esperar na estrada para acertar as contas. Matar um é um feito pesado, nomeado na lenda, no epílogo e no necrotério.
+- **Um olhar mais próximo.** O comando de olhar agora descreve porte, idade, humor, equipamento e material junto dos ferimentos e das partes faltando, a partir de um hash estável da criatura, nunca do fluxo aleatório da simulação.
+
+### Versão 22, encerrada
+- **Todo efeito secundário chega a você.** Lentidão, fraqueza, sangramento, medo, sono e enraizamento fazem o que dizem: lentidão corta pela metade o ganho de energia, fraqueza tira dois de cada golpe, sangramento custa sangue a cada turno, medo impede ataques e conjurações, sono tira turnos, enraizamento prende seus pés. Só Encanto não tem lado do herói.
+- **Nada fica escondido por um efeito.** Um feitiço que cruza uma casa ocupada por você ou por um monstro mantém o glifo e apenas o tinge.
+- **Esc é o único atalho.** Qualquer outra tecla espera a animação em vez de cortá-la.
+- **O Magister Pálido tem música própria** em vez da faixa genérica de chefe.
+
+### Dicas iniciais
+- **Mais seis cartões, cada um uma vez por instalação**: criação (`Shift+J`), conjuração (`Shift+Z`), chegar a uma vila (fecha ao conversar), coleta (fecha ao criar), um altar (fecha ao rezar) e aceitar um trabalho (`F7`).
+
+### Salvamentos
+- O formato do salvamento vai para **24**: saves da Versão 23 não carregam.
+
 ## Versão 23 — Vilas e pessoas
 
 ### Vilas e pessoas

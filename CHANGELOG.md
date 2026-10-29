@@ -5,6 +5,27 @@
 Ossuary versions are a **single number** (Version 11, Version 12…), as in *Project Zomboid*. In the manifests (`package.json`, `Cargo.toml`,
 `tauri.conf.json`) and in the installer name the version appears as `0.N.0`. The **save format** (`SaveData.Version`) uses the same number: change a rule, bump it, old saves stop loading.
 
+## Version 24 — The ones that live
+
+### Survivors
+- **A monster that lives takes a name.** A creature that trades a blow with you and is still standing when you leave the level earns a name and a first title from what happened: *Biter of Heroes* if it drew your blood, *the Sly* if it fled, *the Unbroken* if it survived wounded, *the Patient* otherwise. At most two are named per departure.
+- **It remembers and grows.** Meeting a survivor again earns another title, and outliving you a second time is worth a level (up to five over what it was born as). Its memory is the run's: `Game.Survivors`.
+- **Levels keep their monsters.** A level you come back to is no longer empty: whoever was left standing is still there, wounds and all, bosses included. Companions and summons are not stored; they travel with you as before.
+- **They come back.** Townspeople speak of a living survivor, its newest title and the level it holds. It may follow you down, or wait for you on the road to settle it. Killing one is a heavy deed, named in the legend, the epilogue and the morgue.
+- **A closer look.** The look command now describes build, age, mood, gear and material alongside the wounds and missing parts, from a stable hash of the creature, never the simulation's random stream.
+
+### Version 22, closed
+- **Every rider reaches you.** Slow, weaken, bleed, fear, sleep and root now do what they say: slow halves your energy gain, weaken takes two from every blow, bleed costs blood each turn, fear stops attacks and casts, sleep takes turns, root holds your feet. Only Charm has no hero side.
+- **Nothing is hidden by an effect.** A spell that crosses a cell holding you or a monster keeps that glyph and only tints it.
+- **Escape is the only skip.** Any other key waits for a running animation instead of cutting it short.
+- **The Sallow Magister has its own music** instead of the generic boss track.
+
+### First hints
+- **Six more cards, each once per install**: crafting (`Shift+J`), casting (`Shift+Z`), arriving in a town (closed by talking), gathering (closed by crafting), an altar (closed by praying) and taking a job (`F7`).
+
+### Saves
+- The save format moves to **24**: Version 23 saves do not load.
+
 ## Version 23 — Towns and people
 
 ### Towns and people

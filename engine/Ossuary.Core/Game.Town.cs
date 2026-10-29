@@ -47,6 +47,7 @@ namespace Ossuary.Core
             TownMap = town.Map;
             Mode = GameMode.TownMap;
             Player.InsideDungeon = false;
+            ShowHint("town");
             ShowTownFloor(0);
             Player.X = Town.EntryX;
             Player.Y = Town.EntryY;
@@ -165,6 +166,7 @@ namespace Ossuary.Core
             if (m == null || !m.Townsperson) return;
             if (m.DownUntilDay > Today) { Say($"{m.Name} is out cold.", MessageKind.Neutral); return; }
             MetPerson(m);
+            HintDone("talk");
             if (m.Home != null && m.Home.Keeper == m) { OpenCounter(m.Home, m); return; }
             if (m.Role == TownRole.Pet) { Say(TownText.LineFor(m, _talkCount++), MessageKind.Neutral); EndPlayerTurn(); return; }
             // Everyone else opens a conversation box and stays put until it ends (no turn passes while you talk).

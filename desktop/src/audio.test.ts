@@ -113,6 +113,7 @@ describe('music', () => {
     expect(trackFor({ onTitle: false, intro: false, mode: 'Dungeon', scene: 'combat' })).toBe('combat');
     expect(trackFor({ onTitle: false, intro: false, mode: 'Dungeon', scene: 'boss-gaoler' })).toBe('boss');
     expect(trackFor({ onTitle: false, intro: false, mode: 'Dungeon', scene: 'boss-stone-warden' })).toBe('boss-warden');
+    expect(trackFor({ onTitle: false, intro: false, mode: 'Dungeon', scene: 'boss-sallow-magister' })).toBe('boss-sallow-magister');
     expect(trackFor({ onTitle: false, intro: false, mode: 'Dungeon', scene: 'boss-rat-king' })).toBe('boss');
     expect(trackFor({ onTitle: false, intro: false, mode: 'TownMap', scene: 'tavern' })).toBe('tavern');
     expect(trackFor({ onTitle: false, intro: false, mode: 'TownMap', scene: 'town-night' })).toBe('town-night');
