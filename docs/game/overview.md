@@ -1,7 +1,7 @@
 # Overview — Ossuary
 
 The current runtime is a Tauri 2 desktop app: a Rust shell, a bitmap Canvas terminal and an independent
-C# simulation. See [`desktop.md`](../tech/desktop.md). The game is at **Version 11**.
+C# simulation. See [`desktop.md`](../tech/desktop.md). The game is at **Version 24**.
 
 A terminal roguelike: a glyph grid, turns, permadeath, and generation that is reproducible from a seed.
 

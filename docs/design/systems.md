@@ -696,7 +696,7 @@ Plan in `living-world.md` and `main-quest.md`.
 - **Ten first-time hints** (`Tutorials.All`): `dungeon` (the first turn underground; closed by auto-explore), `wounded` (closed by
   binding a wound), `levelup` (a perk waiting after level 1; closed by taking one), `shop` (after a purchase; closed by examining an
   item), and since Version 24 `crafting` (Shift+J), `casting` (Shift+Z), `town` (closed by talking), `gathering`, `altar` (closed by
-  praying) and `jobs` (F7). Esc closes any card. The altar card is raised as the altar opens, so it draws once the panel closes.
+  sacrificing a corpse) and `jobs` (F7). Esc closes any card. The altar card is raised as the altar opens, so it draws once the panel closes.
 - `Game.ShowHint(id)` opens a card when tutorials are on, the hint is not yet in `SeenHints` and no card is open; it records the id
   in `SeenHints` and `NewlySeen`. `Game.HintDone(event)` closes the card when its own action happens.
 - Hints are raised on the hero's turns (`EndPlayerTurn`) and by the actions themselves, never while a level is generated, so the

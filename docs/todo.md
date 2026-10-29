@@ -233,7 +233,7 @@ One line per feature, newest first inside each topic. Details: the [changelog](.
 - 2026-10-02 · **PC-speaker effects** named by the Core (`Game.Sound.cs`).
 
 **Tutorials**
-- 2026-10-29 · **The six remaining hints**: crafting (Shift+J), casting (Shift+Z), towns (closed by talking), gathering, altars (closed by praying) and jobs (F7), each with its Portuguese (`Game.Tutorial.cs`, `Loc.Tutorial.cs`, `TutorialTests.cs`).
+- 2026-10-29 · **The six remaining hints**: crafting (Shift+J), casting (Shift+Z), towns (closed by talking), gathering, altars (closed by sacrificing a corpse) and jobs (F7), each with its Portuguese (`Game.Tutorial.cs`, `Loc.Tutorial.cs`, `TutorialTests.cs`).
 - 2026-10-14 · **Seen once per install**: the shown hints live in `tutorials.json` beside the achievements, read at start and written as they appear (`Game.Tutorial.cs`, `SaveStore.cs`, `Session.cs`).
 - 2026-10-14 · **Skip them**: *Tutorials* on/off and *Reset tutorials* in F2, and a first-run question ("Have you played before?") on the first new game (`Ui.cs`, `Session.cs`, `Panel.FirstRun`).
 - 2026-10-14 · **UI as data**: the hint is a card the Core draws over the map, English with Portuguese in `Loc` (`Ui.cs`, `Loc.Tutorial.cs`).

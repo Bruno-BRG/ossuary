@@ -8,20 +8,21 @@ Ossuary versions are a **single number** (Version 11, Version 12…), as in *Pro
 ## Version 24 — The ones that live
 
 ### Survivors
-- **A monster that lives takes a name.** A creature that trades a blow with you and is still standing when you leave the level earns a name and a first title from what happened: *Biter of Heroes* if it drew your blood, *the Sly* if it fled, *the Unbroken* if it survived wounded, *the Patient* otherwise. At most two are named per departure.
+- **A monster that lives takes a name.** A creature that meets you and is still standing when you leave the level earns a name and a first title from what happened: *Biter of Heroes* if it drew your blood, *the Sly* if it fled, *the Unbroken* if it survived wounded, *the Patient* otherwise. At most two are named per departure.
 - **It remembers and grows.** Meeting a survivor again earns another title, and outliving you a second time is worth a level (up to five over what it was born as). Its memory is the run's: `Game.Survivors`.
 - **Levels keep their monsters.** A level you come back to is no longer empty: whoever was left standing is still there, wounds and all, bosses included. Companions and summons are not stored; they travel with you as before.
-- **They come back.** Townspeople speak of a living survivor, its newest title and the level it holds. It may follow you down, or wait for you on the road to settle it. Killing one is a heavy deed, named in the legend, the epilogue and the morgue.
-- **A closer look.** The look command now describes build, age, mood, gear and material alongside the wounds and missing parts, from a stable hash of the creature, never the simulation's random stream.
+- **They come back.** Townspeople speak of a living survivor, its newest title and the level it holds. It may follow you down, or wait for you on the road to settle it — flee that ambush and it draws blood as you go. Killing one is a heavy deed, named in the legend and the epilogue; the morgue lists every survivor you met, marked *slain* or *still down there*.
+- **A closer look.** The look command now describes the creature's build and mood and the weapon it grips, alongside the wounds and missing parts, from a stable hash of the creature, never the simulation's random stream.
 
 ### Version 22, closed
-- **Every rider reaches you.** Slow, weaken, bleed, fear, sleep and root now do what they say: slow halves your energy gain, weaken takes two from every blow, bleed costs blood each turn, fear stops attacks and casts, sleep takes turns, root holds your feet. Only Charm has no hero side.
+- **Every rider reaches you.** Slow, weaken, bleed, fear, sleep and root now do what they say: slow halves your energy gain, weaken takes two from every blow, bleed costs blood each turn, fear stops attacks, casts and abilities, sleep takes turns and refuses attacks until a blow wakes you, root holds your feet. Only Charm has no hero side.
+- **The casters carry them.** Dark acolytes now also choose *hemorrhage*, *chill touch* and *grave hands*; sorcerers add *nightmare* and *deep slumber*; and the Sallow Magister's second phase adds *chill touch* and *deep slumber*. Every rider a monster can put on you has a caster that knows it.
 - **Nothing is hidden by an effect.** A spell that crosses a cell holding you or a monster keeps that glyph and only tints it.
 - **Escape is the only skip.** Any other key waits for a running animation instead of cutting it short.
 - **The Sallow Magister has its own music** instead of the generic boss track.
 
 ### First hints
-- **Six more cards, each once per install**: crafting (`Shift+J`), casting (`Shift+Z`), arriving in a town (closed by talking), gathering (closed by crafting), an altar (closed by praying) and taking a job (`F7`).
+- **Six more cards, each once per install**: crafting (`Shift+J`), casting (`Shift+Z`), arriving in a town (closed by talking), gathering (closed by crafting), an altar (closed by sacrificing a corpse) and taking a job (`F7`).
 
 ### Saves
 - The save format moves to **24**: Version 23 saves do not load.

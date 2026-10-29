@@ -4,7 +4,7 @@ about: Something broke or behaved strangely
 labels: bug
 ---
 
-**Game version** (e.g. Version 11):
+**Game version** (e.g. Version 24):
 
 **Seed** (shown at the start of the journal and in the menu):
 
