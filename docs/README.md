@@ -10,6 +10,7 @@ lives in the code. Real captures are in [`shots/`](shots/).
   ideas (wounds, materials, crafting, history, named enemies), tutorials and the economy
 - [`roadmap/alpha.md`](roadmap/alpha.md) — state of the playable alpha (historical snapshot)
 - [`roadmap/magic.md`](roadmap/magic.md) — design and plan of Version 22, *Spells that answer back* (casting monsters, ice and arcing lightning, hits on arrival, element sounds)
+- [`roadmap/v24-survivors.md`](roadmap/v24-survivors.md) — design and plan of Version 24, *The ones that live* (named survivors, their return, the detailed look, and the close of Version 22)
 - [`../CHANGELOG.md`](../CHANGELOG.md) — what changed in each version; [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — how to contribute
 
 ## The game (`game/`)

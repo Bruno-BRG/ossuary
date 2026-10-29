@@ -55,8 +55,9 @@ main.ts        ─▶ createFxPlayer          plays ~45 ms per step; Escape skip
   Effects without a projectile (cones, beams, novas, chains, traps) still resolve at once. Several projectiles in one frame share the first arrival.
 - **Sound follows the same timing**: each spell's cast cue is its element (`Game.SpellCue`, fourteen cues in `audio.ts`). It plays with the
   launch; the outcome cues (hits, kills, hurts) are held until `FxHit`. **Escape** skips a running animation: last frame, held sounds, the key is swallowed.
-- **Known limits**: the drawing covers the cell's glyph (monsters and the hero are hidden for an instant). A new key cuts a running animation.
-  Summons appear before their own animation. The message log of a frame also waits for its arrival, which is intended.
+- **Escape is the only way past it** (Version 24): any other key waits for the animation instead of cutting it short, and an effect that
+  crosses a cell holding the hero or a monster keeps that glyph and only tints it, so nothing is hidden. Summons appear before their
+  own animation. The message log of a frame also waits for its arrival, which is intended.
 
 ## Monsters that cast (Version 22)
 

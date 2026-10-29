@@ -54,6 +54,9 @@ namespace Ossuary.Core.Entities
         public int BlindTurns;
         public int HallucinationTurns;
         public int PoisonResist;
+        /// <summary>Riders that used to be damage only (Version 24): slow halves the energy gain, weaken takes from every blow, bleed
+        /// bleeds each turn, fear forbids attacks, root forbids walking.</summary>
+        public int SlowTurns, WeakenTurns, BleedTurns, BleedDmg, FearTurns, RootTurns;
         /// <summary>Burning (fire damage each turn), and soaked (cold and lightning hurt more, fire cannot catch).</summary>
         public int BurnTurns, WetTurns;
         public int SleepResist;
@@ -84,8 +87,11 @@ namespace Ossuary.Core.Entities
         /// <summary>The bare name, without an article: callers write "the {TheName}" themselves. Use <see cref="Obj"/>/<see cref="Subj"/> for whole phrases.</summary>
         public string TheName => IsPlayer ? Name : (Name.StartsWith("the ", StringComparison.Ordinal) ? Name.Substring(4) : Name);
 
-        /// <summary>Named people (townsfolk) take no article.</summary>
-        bool TakesArticle => !IsPlayer && !(this is Monster tm && tm.Townsperson);
+        /// <summary>Named people (townsfolk and survivors) take no article.</summary>
+        bool TakesArticle => !IsNamed;
+
+        /// <summary>Named survivors take no article either: "Grak", not "the Grak".</summary>
+        public bool IsNamed => IsPlayer || (this is Monster nm && (nm.Townsperson || nm.SurvivorId != null));
 
         /// <summary>This actor as the object of a sentence: "you", "the jackal", "Dagny".</summary>
         public string Obj => IsPlayer ? "you" : TakesArticle ? "the " + TheName : TheName;

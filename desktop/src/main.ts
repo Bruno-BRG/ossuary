@@ -31,7 +31,7 @@ let introWait = 0;
 let introActive = false;
 let lastStored = '';
 let fxFrame: Frame | null = null;
-// Spell animations play over the frame that carries them; whatever draws next (a key, a resize) cuts them short.
+// Spell animations play over the frame that carries them; Escape skips one, and other keys wait for it (a resize may still cut it).
 const fxPlayer = createFxPlayer(f => renderer.draw(f, size(), devicePixelRatio), () => renderer.draw(frame, size(), devicePixelRatio));
 const calmMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -230,6 +230,8 @@ window.addEventListener('keydown', async event => {
   }
   // Escape ends a running animation at once: its last frame is drawn and the sounds it held are heard. The key stops there.
   if (event.code === 'Escape' && fxPlayer.playing) { event.preventDefault(); fxPlayer.skip(); return; }
+  // Any other key waits for the animation: it would otherwise cut it short by asking the engine for the next frame.
+  if (fxPlayer.playing) { event.preventDefault(); return; }
   // Single outstanding action; holding a key never creates an unbounded turn queue. Autorepeat is sent flagged,
   // and the engine honours it only for calm walking (no hostile in view, nothing underfoot, no damage).
   if (event.code === 'Tab' || event.code.startsWith('Control') || event.code.startsWith('Shift')) return;

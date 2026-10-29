@@ -67,6 +67,8 @@ namespace Ossuary.Core
         public void AttackEncounter()
         {
             if (!ActiveEncounter || EncounterMonster == null) return;
+            if (Player.Asleep || Player.Stunned) { Say("You cannot do that now."); return; }
+            if (Player.FearTurns > 0) { Say("You are too afraid to raise a hand."); return; }
             var m = EncounterMonster;
 
             bool crit;
@@ -77,6 +79,12 @@ namespace Ossuary.Core
 
             if (res.Killed)
             {
+                if (m.SurvivorId != null)
+                {
+                    Dungeon.RemoveFromRosters(m.SurvivorId);
+                    SurvivorSlain(m);
+                    RecordDeed(Deed.Killed, m.Name, 3);
+                }
                 foreach (var it in m.Inventory)
                 {
                     if (it.Def.Kind == ItemKind.Gold) Player.Gold += it.Quantity;
@@ -85,7 +93,7 @@ namespace Ossuary.Core
                 Player.Kills++;
                 bool leveled = Player.AddXp(m.XpKill);
                 Player.GainSkill(Skill.Combat, 3);
-                Say($"You have killed the {m.TheName}. ({m.XpKill} experience)", MessageKind.Kill);
+                Say($"You have killed {m.Obj}. ({m.XpKill} experience)", MessageKind.Kill);
                 if (leveled) AnnounceLevelUp();
                 ActiveEncounter = false;
                 EncounterMonster = null;

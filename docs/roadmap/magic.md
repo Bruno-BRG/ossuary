@@ -13,6 +13,9 @@ Once shipped, the system is described in [`design/spells-and-items.md`](../desig
 | Damage with the projectile | The hit (damage, death, log, HP) lands when the first projectile arrives, not when the animation starts. |
 | Per-element sound and a skip key | Each element has its own cast cue. Escape skips a running animation. |
 
+**Closed in Version 24:** the riders that were damage-only (slow, weaken, bleed, fear, sleep, root) now reach the hero
+(`MonsterSpells.ReachesHero`), only Escape skips an animation, and an effect no longer hides the cell it crosses.
+
 ## 1. Monsters that cast
 
 ### Who casts

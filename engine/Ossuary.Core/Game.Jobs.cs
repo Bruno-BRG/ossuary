@@ -94,7 +94,9 @@ namespace Ossuary.Core
         public bool AcceptJob(JobOffer o)
         {
             if (ActiveJobs().Count >= MaxContracts) { Tell("You are already carrying as many jobs as you can finish.", MessageKind.Warn); return false; }
-            return StartQuest(BuildJob(o));
+            bool started = StartQuest(BuildJob(o));
+            if (started) ShowHint("jobs");
+            return started;
         }
 
         /// <summary>

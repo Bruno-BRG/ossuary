@@ -22,6 +22,13 @@ describe('spell animation overlay', () => {
     expect(f.glyphs).toEqual([65, 66, 67, 68]);
     expect(f.bg).toEqual([10, 20, 30, 40]);
   });
+  it('glyph 0 keeps the cell\'s own glyph and only tints it, so a creature under the effect stays visible', () => {
+    const f = base();
+    const g = applyFx(f, [1, 0, 0xff0000, -1]);
+    expect(g.glyphs).toEqual([65, 66, 67, 68]);
+    expect(g.fg[1]).toBe(0xff0000);
+    expect(g.bold[1]).toBe(true);
+  });
   it('ignores cells outside the frame and a trailing partial quadruple', () => {
     const f = base();
     const g = applyFx(f, [-1, 1, 1, 1, 99, 1, 1, 1, 2, 7]);

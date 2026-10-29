@@ -31,7 +31,7 @@ namespace Ossuary.Tests
                 Test("lightning on a wet creature arcs to the next wet one", WetArcs);
                 Test("a projectile's effect lands at its arrival step", ImpactAtArrival);
                 Test("every element has its own cast sound", ElementCues);
-                Test("the save format is version 23", SaveVersion);
+                Test("the save format is version 24", SaveVersion);
             }
             finally { Loc.Current = old; }
             Console.WriteLine($"  magic: {_pass} passed, {_fail} failed");
@@ -151,7 +151,7 @@ namespace Ossuary.Tests
             {
                 var sp = Spells.Find(id);
                 Assert(sp != null, id + " is a spell");
-                Assert(sp.Dice > 0, id + " deals its damage from data, so a monster can cast it");
+                Assert(sp.Dice > 0 || MonsterSpells.ReachesHero(sp.Rider), id + " rolls dice or carries a rider the hero feels");
                 Assert(sp.Hops == 0 && sp.Hits == 0 && sp.Special == null, id + " is a plain recipe, not a hand-coded spell");
                 var shape = sp.Shape;
                 Assert(shape == Shape.Single || shape == Shape.Ball || shape == Shape.Cone || shape == Shape.Line || shape == Shape.Nova,
@@ -275,7 +275,7 @@ namespace Ossuary.Tests
 
         static void SaveVersion()
         {
-            Assert(new SaveData().Version == 23, "a save made now is format 23");
+            Assert(new SaveData().Version == 24, "a save made now is format 24");
         }
     }
 }

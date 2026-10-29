@@ -25,14 +25,14 @@ How a system works lives in [`design/systems.md`](design/systems.md); what shipp
 | [Economy and market](#economy-and-market) | glut, caravans you meet on the road, haggling, traders' memory, counter, tolls, town smiths' work | done; new ideas go in the topic |
 | [Towns and people](#towns-and-people) | personas, dialogue, quests, guild jobs, crime, rumours, essential people and their apprentices | done; new ideas go in the topic |
 | [World and history](#world-and-history) | overworld, seven branches, the chronicle with houses and kings, legends, blood and traces, engravings, rooms, tombs, raids | done; new ideas go in the topic |
-| [Creatures](#creatures) | factions, bosses, branch natives | named survivors, ecology |
+| [Creatures](#creatures) | factions, bosses, branch natives, named survivors who return and grow, detailed look | ecology |
 | [The hero](#the-hero) | corruption, modes, achievements, bones | thoughts and mood |
-| [Tutorials](#tutorials) | four first-time hints, the install's memory, F2 switch and reset, first-run question | the hints for crafting, magic, towns, gathering, altars and jobs |
+| [Tutorials](#tutorials) | ten first-time hints, the install's memory, F2 switch and reset, first-run question | done; new ideas go in the topic |
 | [Interface and controls](#interface-and-controls) | auto-explore, travel, rebinding, travel marks | done; new ideas go in the topic |
-| [Audio](#audio) | 18 tracks, 15 stingers, effects | the missing boss tracks |
+| [Audio](#audio) | 19 tracks, 15 stingers, effects, the Magister's own boss track | the Rat King's and Drowned King's boss tracks |
 | [Technical and quality](#technical-and-quality) | headless suites, soak, balance bot | a language gate worth reading |
 
-**Next up**: the rest of the tutorials, then named survivors and mood, then creatures' ecology.
+**Next up**: creatures' ecology, then the hero's thoughts and mood, then the Sallow Magister's balance from real play.
 
 ---
 
@@ -72,10 +72,9 @@ Nothing open: every item is in *Done*.
 
 ## Creatures
 
-- [ ] **Named survivors**: a monster that survives the hero gets a name, remembers, levels up and earns titles ("Grak, Biter of Heroes").
-- [ ] **They come back**: as rumours, road ambushes, rivals deeper down; killing one is a deed with its own epilogue line.
+Plan and rationale in [`roadmap/v24-survivors.md`](roadmap/v24-survivors.md).
+
 - [ ] **Ecology**: lairs, sleep, hunting and eating corpses, factions fighting without the hero.
-- [ ] **Detailed look**: build, scars, missing parts, gear and its material, mood and age ("a lean kobold with a notched ear, gripping a chipped bronze spear").
 
 ## The hero
 
@@ -87,10 +86,7 @@ Nothing open: every item is in *Done*.
 
 The game is big: each system should explain itself once, the first time, and never again.
 
-- [~] **First-time hints** (`Game.Tutorial.cs`): a short card over the map the first time the hero crafts, casts, reaches a town, gathers,
-  finds an altar or takes a job; it names the key and closes when that action is done. *has* four hints (entering a dungeon, a wound,
-  a level-up, a purchase) on the install's memory, the F2 switch and the first-run question; *left* the hints for crafting, casting,
-  towns, gathering, altars and jobs.
+Nothing open: every item is in *Done*.
 
 ## Interface and controls
 
@@ -128,6 +124,8 @@ One line per feature, newest first inside each topic. Details: the [changelog](.
 - 2026-10-02 · **Found traps and disarming**: search and passive perception reveal traps, `Shift+A` disarms (`Game.Traps.cs`).
 
 **Magic**
+- 2026-10-29 · **Every rider reaches the hero**: slow, weaken, bleed, fear, sleep and root are real hero statuses, so no monster spell is damage-only; only Charm has no hero side (`MonsterSpells.cs`, `Game.Casters.cs`, `Game.cs`, `Combat/Combat.cs`, `Commands.cs`).
+- 2026-10-29 · **The animation stops hiding and skipping**: an effect crossing a creature keeps its glyph and only tints it, and only Escape skips a running animation (`Session.cs`, `fx.ts`, `main.ts`).
 - 2026-10-08 · **Casting monsters**: orc shamans, dark acolytes and sorcerers cast real recipe spells at the hero in sight, animated from their own cell; the Sallow Magister (The Dungeons, depth 7) casts in both phases (`Game.Casters.cs`, `Magic/MonsterSpells.cs`, `Game.Bosses.cs`).
 - 2026-10-08 · **Ice and arcing lightning**: lightning runs along connected ice and arcs from one wet creature to the next (`Game.Surfaces.cs`).
 - 2026-10-08 · **Hits on arrival**: a bolt's damage, death, log and map change when it lands; the previous frame holds until then (`Fx.cs`, `Session.cs`, `fx.ts`, `main.ts`).
@@ -208,6 +206,9 @@ One line per feature, newest first inside each topic. Details: the [changelog](.
 - 2026-10-02 · **Ruins and catacombs** level styles.
 
 **Creatures**
+- 2026-10-29 · **Detailed look**: build, age, mood, gear and material, plus the existing wounds and missing parts, from a stable uid hash (`Game.Survivors.cs`, `Game.Targeting.cs`).
+- 2026-10-29 · **They come back**: a survivor is spoken of in town, may follow the hero down or wait in ambush on the road, and killing one is a weight-3 deed with lines in the legend, the epilogue and the morgue (`Game.Survivors.cs`, `Game.Rumours.cs`, `Game.Events.cs`, `Game.Legends.cs`, `Morgue.cs`).
+- 2026-10-29 · **Named survivors**: a monster that trades a blow with the hero and lives takes a name, titles and a memory, grows when it outlives the hero again, and stays on its level because levels now keep their monsters (`Game.Survivors.cs`, `Dungeon.cs`, `Game.cs`).
 - 2026-10-02 · **Bosses with mechanics**, one per branch (`Game.Bosses.cs`).
 - 2026-10-02 · **Branch natives with habits** (`Game.Traits.cs`).
 - 2026-10-02 · **Monster factions** that fight each other (`Game.Factions.cs`).
@@ -225,12 +226,14 @@ One line per feature, newest first inside each topic. Details: the [changelog](.
 - 2026-10-02 · **Animated water and square tiles** (`anim.ts`).
 
 **Audio**
+- 2026-10-29 · **The Magister's own track**: `boss-sallow-magister` no longer falls back to the generic boss music (`audio.ts`).
 - 2026-10-04 · **Danger warning and a typed intro**: the *Danger Spotted* stinger, letter clicks.
 - 2026-10-04 · **Stingers and the whole soundtrack**: 15 stingers, 18 tracks that follow the moment (`stingers.ts`, `audio.ts`).
 - 2026-10-03 · **Synthesised music**, Web Audio only.
 - 2026-10-02 · **PC-speaker effects** named by the Core (`Game.Sound.cs`).
 
 **Tutorials**
+- 2026-10-29 · **The six remaining hints**: crafting (Shift+J), casting (Shift+Z), towns (closed by talking), gathering, altars (closed by sacrificing a corpse) and jobs (F7), each with its Portuguese (`Game.Tutorial.cs`, `Loc.Tutorial.cs`, `TutorialTests.cs`).
 - 2026-10-14 · **Seen once per install**: the shown hints live in `tutorials.json` beside the achievements, read at start and written as they appear (`Game.Tutorial.cs`, `SaveStore.cs`, `Session.cs`).
 - 2026-10-14 · **Skip them**: *Tutorials* on/off and *Reset tutorials* in F2, and a first-run question ("Have you played before?") on the first new game (`Ui.cs`, `Session.cs`, `Panel.FirstRun`).
 - 2026-10-14 · **UI as data**: the hint is a card the Core draws over the map, English with Portuguese in `Loc` (`Ui.cs`, `Loc.Tutorial.cs`).

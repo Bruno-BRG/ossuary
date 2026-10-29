@@ -55,6 +55,7 @@ namespace Ossuary.Core
             if (!small) Receive("raw hide", 1 + (TradeRank("leatherworker") >= 2 ? 1 : 0));
             GainTrade("cook", 2);
             if (!small) GainTrade("leatherworker", 2);
+            ShowHint("gathering");
             Map.Version++;
             EndPlayerTurn();
         }
@@ -109,6 +110,7 @@ namespace Ossuary.Core
             if (got.Count == 0) Say("You spend two hours searching and find nothing of use.", MessageKind.Info);
             else Say("You spend two hours gathering.", MessageKind.Neutral);
             foreach (var (name, n) in got) Receive(name, n);
+            if (got.Count > 0) ShowHint("gathering");
             GainTrade("forager", got.Count > 0 ? 2 : 1);
             if (ore) GainTrade("miner", 3);
             CheckOverworldEncounter();

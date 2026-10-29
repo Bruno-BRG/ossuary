@@ -38,7 +38,9 @@ namespace Ossuary.Core
         void CastAtHero(Monster m, SpellDef sp)
         {
             var p = Player;
-            Say($"The {m.TheName} casts {sp.Name}!", MessageKind.Info);
+            m.Encountered = true;
+            m.SurvivorHurtHero = true;
+            Say($"{m.Subj} casts {sp.Name}!", MessageKind.Info);
             Cue(SpellCue(sp.Elem));
             PlaySpellFx(sp, m.X, m.Y, p.X, p.Y);
             if (sp.Dice > 0)
@@ -80,6 +82,31 @@ namespace Ossuary.Core
                     break;
                 case Rider.Poison:
                     PoisonPlayer(Rng.Roll(1, 4, m.Level / 4));
+                    break;
+                case Rider.Slow:
+                    p.SlowTurns = Math.Max(p.SlowTurns, turns);
+                    Say("Your limbs grow heavy and slow.", MessageKind.Bad);
+                    break;
+                case Rider.Weaken:
+                    p.WeakenTurns = Math.Max(p.WeakenTurns, turns);
+                    Say("Your strength drains away.", MessageKind.Bad);
+                    break;
+                case Rider.Bleed:
+                    p.BleedTurns = Math.Max(p.BleedTurns, turns);
+                    p.BleedDmg = Math.Max(p.BleedDmg, Math.Max(1, turns / 6));   // a weak bleed never softens a strong one
+                    Say("You are bleeding.", MessageKind.Bad);
+                    break;
+                case Rider.Fear:
+                    p.FearTurns = Math.Max(p.FearTurns, turns);
+                    Say("A cold terror takes hold of you.", MessageKind.Bad);
+                    break;
+                case Rider.Sleep:
+                    p.Asleep = true; p.SleepTurns = Math.Max(p.SleepTurns, turns);
+                    Say("You cannot keep your eyes open.", MessageKind.Bad);
+                    break;
+                case Rider.Root:
+                    p.RootTurns = Math.Max(p.RootTurns, turns);
+                    Say("The ground holds your feet fast.", MessageKind.Bad);
                     break;
             }
         }

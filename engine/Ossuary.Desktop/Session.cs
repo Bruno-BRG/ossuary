@@ -808,7 +808,9 @@ namespace Ossuary.Desktop
                     int sx = ui.MapOx + (c.X - ui.CameraX) * sq, sy = ui.MapOy + (c.Y - ui.CameraY);
                     if (sx < ui.MapOx || sy < ui.MapOy || sx + sq > ui.MapOx + ui.MapViewW || sy >= ui.MapOy + ui.MapViewH) continue;
                     int fg = Pack(theme.Remap(c.Fg, false)), bg = c.HasBg ? Pack(theme.Remap(c.Bg, true)) : -1;
-                    q.Add(sy * cols + sx); q.Add(c.Glyph); q.Add(fg); q.Add(bg);
+                    // A cell that holds the hero or a monster keeps its glyph (0) and is only tinted, so the effect never hides them.
+                    int glyph = Game.Map != null && ((Game.Player.X == c.X && Game.Player.Y == c.Y) || Game.MonsterAt(c.X, c.Y) != null) ? 0 : c.Glyph;
+                    q.Add(sy * cols + sx); q.Add(glyph); q.Add(fg); q.Add(bg);
                     if (sq == 2) { q.Add(sy * cols + sx + 1); q.Add("─░▒".IndexOf(c.Glyph) >= 0 ? c.Glyph : ' '); q.Add(fg); q.Add(bg); }
                 }
                 result[i] = q.ToArray();

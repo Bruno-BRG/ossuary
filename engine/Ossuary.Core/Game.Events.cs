@@ -24,9 +24,15 @@ namespace Ossuary.Core
         /// <summary>Chance, per step on the road, that something other than a monster is waiting.</summary>
         const int EventChancePct = 7;
 
+        /// <summary>Road events passed since the run began. The world clock does not advance every step, so the ambush rolls need
+        /// something that does; it is part of the replay, like every other counter.</summary>
+        int _roadStep;
+
         void MaybeRaiseEvent()
         {
             if (ActiveEncounter || CurrentEvent != null || !Rng.Chance(EventChancePct)) return;
+            _roadStep++;
+            if (TrySurvivorAmbush()) return;
             var region = World.RegionAt(World.PlayerX, World.PlayerY);
             int roll = Rng.Range(0, 10);
             switch (roll)
@@ -42,6 +48,19 @@ namespace Ossuary.Core
                 case 4: OpenEvent("toll", "A toll", $"Three men with a rope across the road. \"The road is not free,\" says the one with the nicest coat. (Danger here: {region.Danger}.)"); break;
                 default: OpenEvent("corpse", "A body by the road", "A traveller, a few days dead. The crows have not finished. The purse is still on the belt."); break;
             }
+        }
+
+        /// <summary>A survivor that has followed the hero out of the dungeon waits at the bend of the road. Deterministic per turn.</summary>
+        Survivor _ambush;
+        bool TrySurvivorAmbush()
+        {
+            var alive = Survivors.FindAll(s => !s.Slain);
+            if (alive.Count == 0) return false;
+            if (Rumours.Hash(Rng.Seed, "road-ambush", _roadStep) % 100 >= 35) return false;
+            _ambush = alive[(int)(Rumours.Hash(Rng.Seed, "road-ambush-pick", _roadStep) % (uint)alive.Count)];
+            OpenEvent("hunter", TownText.L("Something that remembers", "Algo que se lembra"),
+                $"A shape waits at the bend of the road, and it knows your walk. {_ambush.Name} has come up out of {_ambush.Branch} for you.");
+            return true;
         }
 
         public void OpenEvent(string id, string title, string text)
@@ -97,6 +116,10 @@ namespace Ossuary.Core
                 case "delver":
                     Row("heal", TownText.L("Give them a healing potion", "Dar uma poção de cura"), 0, HasItemNamed("potion of healing"));
                     Row("rob", TownText.L("Take their pack", "Tomar a mochila"));
+                    break;
+                case "hunter":
+                    Row("fight", TownText.L("Stand and fight", "Ficar e lutar"));
+                    Row("flee", TownText.L("Run for it", "Correr"));
                     break;
             }
             Row("leave", "Move on");
@@ -224,6 +247,33 @@ namespace Ossuary.Core
                     if (p.God == "aurel") AddPiety(3, null);
                     Tell("It takes an hour and a borrowed spade. You say the words you remember.", MessageKind.Good);
                     break;
+                case "hunter:fight":
+                    {
+                        // It was waiting on its level; if the rosters lost it, it is rebuilt from what the run remembers.
+                        // Look, do not take: a fled ambush must leave the survivor on its level.
+                        var m = _ambush != null ? Dungeon.FindInRosters(_ambush.Id, out _) : null;
+                        if (m == null && _ambush != null)
+                        {
+                            var def = Bestiary.Find(_ambush.Species);
+                            m = new Monster(def, Rng) { SurvivorId = _ambush.Id, Name = _ambush.Name };
+                            m.Level = _ambush.Level;
+                            m.MaxHP = Math.Max(m.MaxHP, def.HP + (_ambush.Level - def.Level) * 2);
+                            m.HP = m.MaxHP;
+                        }
+                        if (m == null) { Tell("Whatever it was, it is gone.", MessageKind.Info); break; }
+                        m.SurvivorTitles.Clear();
+                        if (_ambush != null) m.SurvivorTitles.AddRange(_ambush.Titles);
+                        BeginRoadFight(m, "It has followed you this far");
+                        done = true;
+                        break;
+                    }
+                case "hunter:flee":
+                    {
+                        int d = Rng.Range(2, 6);
+                        p.HP = Math.Max(1, p.HP - d); HurtBy("a survivor on the road");
+                        Tell($"You run. Something catches your shoulder as you go. (-{d})", MessageKind.Bad);
+                        break;
+                    }
                 default: break;
             }
             CurrentEvent = null;
@@ -247,7 +297,8 @@ namespace Ossuary.Core
         void BeginRoadFight(Monster m, string why)
         {
             EncounterMonster = m; EncounterX = World.PlayerX; EncounterY = World.PlayerY; ActiveEncounter = true;
-            Say($"{why}. A {m.Name} blocks your path!", MessageKind.Bad);
+            string who = m.SurvivorId != null ? m.Name : "A " + m.Name;
+            Say($"{why}. {who} blocks your path!", MessageKind.Bad);
             Say($"Fight it (Enter or K), or flee (R or <). It is {m.ThreatLabel()}.", MessageKind.Warn);
             Danger();
         }

@@ -147,10 +147,10 @@ namespace Ossuary.Core
                 Player.HP -= dmg;
                 HurtBy(Article(m));
                 Splatter(Player, dmg);
-                Say($"The {m.Name} shoots: the {what} hits you for {dmg} damage.", MessageKind.Combat);
+                Say($"{m.Subj} shoots: the {what} hits you for {dmg} damage.", MessageKind.Combat);
                 CheckDeath();
             }
-            else Say($"The {m.Name} shoots: the {what} misses you.", MessageKind.Combat);
+            else Say($"{m.Subj} shoots: the {what} misses you.", MessageKind.Combat);
             // The piece lands where the hero stands, unless it snapped: it is the hero's to pick up.
             if (Rng.Range(0, 100) >= Ammo.BreakChance(ammo.Def, hit))
                 GroundItems.Add(Map.Number, toX, toY, new Item(ammo.Def, Rng, NextUid()) { Identified = true, Material = ammo.Material, Quantity = 1 });

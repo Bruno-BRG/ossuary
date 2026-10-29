@@ -60,7 +60,7 @@ namespace Ossuary.Core
                 case "R": return DoRemoveRing();
                 case "r": return DoRead();
                 case "z": return DoZap();
-                case "Z": _g.PushSpells(); return true;
+                case "Z": _g.HintDone("spells"); _g.PushSpells(); return true;
                 case "V": _g.UiRequests.Abilities = true; return true;
                 case "C": _g.UiRequests.Advance = true; return true;
                 case "e": return DoEat();
@@ -75,7 +75,7 @@ namespace Ossuary.Core
                 case "order": return _g.OrderCompanions();
                 case "craft": return DoCraft();
                 case "gather": _g.Gather(); return true;
-                case "recipes": _g.PushChoice(Game.RecipePrompt, _g.RecipeBook()); return true;
+                case "recipes": _g.HintDone("recipes"); _g.PushChoice(Game.RecipePrompt, _g.RecipeBook()); return true;
                 case "train": return DoTrain();
                 case "drink": return DoDrinkFountain();
                 case "x": _g.PushTargeting(TargetingMode.Inspect); return true;
@@ -100,7 +100,7 @@ namespace Ossuary.Core
                 case "m": _g.ToggleMinimap(); return true;
                 case "c": _g.PushCharacter(); return true;
                 case "D2": _g.PushDiscoveries(); return true;
-                case "journal": _g.PushJournal(); return true;
+                case "journal": _g.HintDone("journal"); _g.PushJournal(); return true;
                 case "legends": _g.PushLegends(); return true;
                 case "track": _g.FollowTrail(); return true;
                 case "engrave": _g.BeginCarve(); return true;
@@ -232,6 +232,7 @@ namespace Ossuary.Core
             _g.FacingX = dx; _g.FacingY = dy;
             if (p.Asleep) { _g.Say("You are asleep."); return true; }
             if (p.Stunned) { _g.Say("You are stunned."); return true; }
+            if (p.RootTurns > 0) { _g.Say("The ground holds your feet fast."); return true; }
 
             if (p.Confused && _g.Rng.Chance(50))
             {

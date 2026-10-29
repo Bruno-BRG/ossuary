@@ -213,6 +213,8 @@ namespace Ossuary.Core
             foreach (var d in Ledger) if (d.Kind == Deed.Killed && !bossNames.Contains(d.Subject) && lines.Count < 6)
                     lines.Add(Both($"killed {d.Subject}", $"matou {Loc.PtOf(d.Subject)}"));
             foreach (string w in Player.Works) lines.Add(Both($"made {w}", $"fez {Loc.PtOf(w)}"));
+            foreach (var s in Survivors)
+                lines.Add(s.Slain ? Both($"brought down {s.Name}", $"derrubou {s.Name}") : Both($"was remembered by {s.Name}", $"foi lembrado por {s.Name}"));
             foreach (string r in RaidChronicle) if (r.StartsWith(Player.CharName + " beat off")) lines.Add(r.TrimEnd('.'));
             var relics = new List<Items.Item>();
             if (Player.Wielded != null && Player.Wielded.IsRelic) relics.Add(Player.Wielded);

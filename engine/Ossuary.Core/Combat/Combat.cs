@@ -87,6 +87,7 @@ namespace Ossuary.Core
             var bmods = player.BuffMods; var amods = player.AccessoryMods;
             toHit += wmods.ToHit + bmods.ToHit + amods.ToHit + player.GodMeleeHit;
             int dmgBonus = player.PerkRank("weapon-master") + wmods.Dmg + bmods.Dmg + amods.Dmg + player.GodMeleeDmg, dice = 1, sides = 4;
+            if (player.WeakenTurns > 0) dmgBonus -= 2;
 
             if (player.Wielded != null)
             {
@@ -140,6 +141,7 @@ namespace Ossuary.Core
             if (roll < threshold) return new AttackResult { Message = $"The missile misses {target.Obj}." };
             if (roll >= 19) critical = true;
 
+            if (player.WeakenTurns > 0) dmgBonus -= 2;
             int dmg = Math.Max(1, rng.Roll(dice, sides, dmgBonus)) * dmgMult;
             if (critical) dmg *= 2;
             // A silver head sears the dead as a silver blade does.

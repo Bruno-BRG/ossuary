@@ -220,6 +220,7 @@ namespace Ossuary.Core
             if (m.WetTurns > 0 && (type == DamageType.Cold || type == DamageType.Lightning)) dmg = dmg * 3 / 2;
             m.HP -= dmg;
             m.Asleep = false;
+            if (!m.Ally) m.Encountered = true;   // a spell that wounds it is a meeting, like a blow
             if (m.HP <= 0)
             {
                 Say($"{verb} the {m.TheName} for {dmg}, and it dies.", MessageKind.Kill);

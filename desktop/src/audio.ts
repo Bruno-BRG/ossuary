@@ -81,7 +81,7 @@ export interface Ev { v: Voice; b: number; d: number; m?: number; g?: number }
 export interface Track { bpm: number; beats: number; bars: number; bar(i: number): Ev[] }
 export type TrackName =
   | 'title' | 'intro' | 'road' | 'road-night' | 'town' | 'town-night' | 'tavern' | 'shop' | 'temple'
-  | 'dungeon' | 'mines' | 'warrens' | 'sunken' | 'spire' | 'annex' | 'combat' | 'boss' | 'boss-warden';
+  | 'dungeon' | 'mines' | 'warrens' | 'sunken' | 'spire' | 'annex' | 'combat' | 'boss' | 'boss-warden' | 'boss-sallow-magister';
 
 const hz = (m: number) => 440 * Math.pow(2, (m - 69) / 12);
 
@@ -403,9 +403,24 @@ const bossWarden: Track = {
   },
 };
 
+/** The Sallow Magister: colder and more arcane than the stone warden, a bell figure over a low pad and a rising run. */
+const bossMagister: Track = {
+  bpm: 84, beats: 4, bars: 4,
+  bar(i) {
+    const out: Ev[] = [{ v: 'pad', m: 27, b: 0, d: 4.4, g: 0.5 }, ...hit('tick', [1, 3], 0.45)];
+    if (i === 0) out.push(...motifIn(51, 1, 4, 1.1, 'bell'));
+    if (i === 1) out.push({ v: 'tri', m: 39, b: 0, d: 2, g: 1 }, { v: 'tri', m: 46, b: 2, d: 2, g: 0.9 });
+    if (i === 2) out.push({ v: 'pulse', m: 58, b: 0, d: 0.5, g: 0.8 }, { v: 'pulse', m: 61, b: 0.5, d: 0.5, g: 0.8 },
+      { v: 'pulse', m: 63, b: 1, d: 1, g: 0.9 }, ...motifIn(51, 2, 2, 0.9, 'bell'));
+    if (i === 3) return [{ v: 'thud', b: 0, d: 0.3, g: 1.6 }, { v: 'bell', m: 39, b: 0, d: 4, g: 0.6 }, { v: 'pad', m: 27, b: 0, d: 4, g: 0.7 }];
+    return out;
+  },
+};
+
 export const tracks: Readonly<Record<TrackName, Track>> = {
   title, intro, road, 'road-night': roadNight, town, 'town-night': townNight, tavern, shop, temple,
   dungeon, mines, warrens, sunken, spire, annex, combat, boss, 'boss-warden': bossWarden,
+  'boss-sallow-magister': bossMagister,
 };
 
 export interface SoundScene { onTitle: boolean; intro: boolean; mode: string; scene?: string }
@@ -413,7 +428,7 @@ export interface SoundScene { onTitle: boolean; intro: boolean; mode: string; sc
 const sceneTracks: Readonly<Record<string, TrackName>> = {
   combat: 'combat', tavern: 'tavern', shop: 'shop', temple: 'temple', 'town-night': 'town-night', 'road-night': 'road-night',
   town: 'town', road: 'road', mines: 'mines', warrens: 'warrens', sunken: 'sunken', spire: 'spire', annex: 'annex', dungeon: 'dungeon',
-  'boss-stone-warden': 'boss-warden',
+  'boss-stone-warden': 'boss-warden', 'boss-sallow-magister': 'boss-sallow-magister',
 };
 
 /** Which music suits what is on screen; null is silence (the hero is dead, or the run is over). */

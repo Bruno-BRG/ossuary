@@ -6,6 +6,9 @@ namespace Ossuary.Core.Magic
     /// <summary>
     /// The spells monsters cast (see Game.Casters.cs), as data. A pool holds recipe spells only: their damage is numbers, their shape and riders
     /// are data, so a monster can aim them at the hero. The hand-coded spells in Game.Magic.Effects.cs assume the hero is the caster.
+    /// Every rider that reaches the hero is carried by at least one pool (Version 24), so no status is dead content.
+    /// A pool spell either rolls dice or carries a rider the hero feels. Shapes are Single, Ball, Cone, Line and Nova;
+    /// an area spell is aimed at the hero and its effect lands on them, because the caster's turn has one target.
     /// </summary>
     public static class MonsterSpells
     {
@@ -19,12 +22,12 @@ namespace Ossuary.Core.Magic
         static readonly Dictionary<string, string[]> Creatures = new Dictionary<string, string[]>
         {
             ["orc shaman"] = new[] { "ember-dart", "frostbite", "stone-shard" },
-            ["dark acolyte"] = new[] { "bone-shard", "wither", "soul-bolt", "rotting-burst" },
-            ["sorcerer"] = new[] { "arc-flash", "searing-orb", "thunderstrike", "static-field" },
+            ["dark acolyte"] = new[] { "bone-shard", "wither", "soul-bolt", "rotting-burst", "hemorrhage", "chill-touch", "grave-hands" },
+            ["sorcerer"] = new[] { "arc-flash", "searing-orb", "thunderstrike", "static-field", "nightmare", "deep-slumber" },
         };
 
         static readonly string[] MagisterFirst = { "searing-orb", "thunderstrike", "arc-flash" };
-        static readonly string[] MagisterAngry = { "ice-comet", "static-field" };
+        static readonly string[] MagisterAngry = { "ice-comet", "static-field", "chill-touch", "deep-slumber" };
 
         /// <summary>The pool of a creature, by its bestiary name; null when it casts nothing.</summary>
         public static string[] ForCreature(string name) => name != null && Creatures.TryGetValue(name, out var pool) ? pool : null;
@@ -47,8 +50,9 @@ namespace Ossuary.Core.Magic
             foreach (string id in MagisterAngry) if (seen.Add(id)) yield return id;
         }
 
-        /// <summary>The riders a monster's spell can put on the hero. The others are damage only: the hero has no status for them.</summary>
-        public static bool ReachesHero(Rider r) => r == Rider.None || r == Rider.Burn || r == Rider.Confuse || r == Rider.Blind || r == Rider.Stun || r == Rider.Poison;
+        /// <summary>Every rider a monster's spell can put on the hero since Version 24. Only Charm has no hero status: it turns
+        /// creatures, and there is nothing on the hero's side to turn.</summary>
+        public static bool ReachesHero(Rider r) => r != Rider.Charm;
 
         /// <summary>How far from the caster a spell reaches the hero: a nova by its radius, everything else by its range.</summary>
         public static int Reach(SpellDef sp) => sp.Shape == Shape.Nova ? sp.Radius : sp.Range;

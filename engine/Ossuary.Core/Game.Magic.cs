@@ -168,6 +168,7 @@ namespace Ossuary.Core
         {
             var spell = Spells.Find(id);
             var p = Player;
+            if (p.FearTurns > 0 && !proc) { Say("You are too afraid to call it up."); return false; }
             bool free = source != null;
             if (spell == null || (!free && !Knows(id)) || Map == null) return false;
             if (!free && p.Mp < spell.Cost) { Say("You do not have the mana."); return false; }
@@ -217,6 +218,7 @@ namespace Ossuary.Core
             p.GainSkill(Skill.Magic, free ? 1 : spell.Level >= 2 ? 2 : 1);
             if (target != null && !target.IsDead && !target.Ally) { target.Alert = 1; target.Dormant = false; }
             Map.Version++;
+            if (!proc) ShowHint("casting");
             if (!proc) EndPlayerTurn();
             return true;
         }

@@ -93,6 +93,14 @@ namespace Ossuary.Tests
             new Commands(g).Execute("examine");
             Assert(g.UiState.Hint == null, "examining an item closes the shop card");
 
+            foreach (var (id, done) in new[] { ("crafting", "recipes"), ("casting", "spells"), ("town", "talk"),
+                                               ("gathering", "craft"), ("altar", "sacrifice"), ("jobs", "journal") })
+            {
+                g.ShowHint(id);
+                g.HintDone(done);
+                Assert(g.UiState.Hint == null, id + " closes on " + done);
+            }
+
             g.ShowHint("wounded");
             var band = g.Player.Inventory.Find(i => i.Def.Name == "bandage");
             g.Player.Wounds.Add(new Wound { Part = "torso", Kind = PartKind.Torso, Severity = 2, Worst = 2, Edged = true, Bleed = 5, HealIn = 250 });
@@ -122,6 +130,7 @@ namespace Ossuary.Tests
         {
             var g = new Game(1008) { TutorialsOn = true, SeenHints = new HashSet<string>() };
             g.EnterTown("Ravensgate");
+            g.HintDone("talk");   // the town card opens on arrival; one card at a time
             g.OpenShop(g.Town.Shops[0]);
             var shop = g.CurrentShop;
             var item = shop.Stock.Find(i => i.Def.Kind != ItemKind.Gold);

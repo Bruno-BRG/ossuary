@@ -5,6 +5,8 @@ Where each one lives (everything under `engine/Ossuary.Core/`):
 ## Dungeon (`Dungeon.cs`, `Gen/`, `GameMap.cs`, `Tile.cs`)
 
 - 5 branches, ~54 levels in total (the `AllBranchDepths` test guarantees it).
+- **Levels keep their monsters** (Version 24): `Dungeon.StashRoster`/`TakeRoster` keep who was left standing, wounds included, keyed by
+  `GameMap.Number`, so a revisited level is not empty and a boss you fled stays until it falls. Companions are excluded and re-placed.
 - Styles: Rooms, Cave, Maze, Barracks, Warrens, Fort, **Ruins** (collapsed rooms), **Catacombs** (grid crypts); vaults and caches in `Gen/Vaults.cs` (`DungeonGen` +
   `LevelBuilder.Populate` for monsters/loot). Every level: 1 up stair + 1
   down, everything reachable (tests per style, 12 seeds each).
@@ -39,7 +41,14 @@ Where each one lives (everything under `engine/Ossuary.Core/`):
 - `Battles.PlayerMelee` / `Battles.MeleeAttack`: hit, damage, crit, death.
   A kill gives XP (`AddXp`), Combat skill, drops gold/inventory and sometimes a corpse.
 - Status: sleep, stun, confusion, blindness (FOV=1), hallucination, poison,
-  amulet of strangulation.
+  amulet of strangulation; since Version 24 also slow (the monsters act again every other turn), weaken (−2 damage), bleed (HP each turn),
+  fear (no attacks or casts), sleep and root (no walking). A monster's spell carries them all except Charm.
+- **Named survivors** (`Game.Survivors.cs`): a monster that traded a blow with the hero and was left alive is promoted when the
+  hero leaves the level — at most two per departure, by level/HP/uid. It takes a name from its uid (a hash, never the RNG), a first
+  title from what happened (*Biter of Heroes*, *the Sly*, *the Unbroken*, *the Patient*), and is remembered in `Game.Survivors`.
+  Meeting it again gives another title and, from the second survival, a level (cap: base + 5). It is spoken of in town
+  (`SurvivorRumour`), may follow the hero down (`SurvivorFollows`) or wait on the road (`hunter` event), and killing one is a
+  weight-3 deed with a line in the legend, the epilogue and the morgue.
 
 ## Bodies and wounds (`Combat/Body.cs`, `Game.Wounds.cs`, `Loc.Body.cs`)
 
@@ -684,9 +693,10 @@ Plan in `living-world.md` and `main-quest.md`.
 
 ## Tutorials (`Game.Tutorial.cs`, `Ui.cs`, `Session.cs`, `SaveStore.cs`)
 
-- **Four first-time hints** (`Tutorials.All`): `dungeon` (the first turn underground; closed by auto-explore), `wounded` (closed by
+- **Ten first-time hints** (`Tutorials.All`): `dungeon` (the first turn underground; closed by auto-explore), `wounded` (closed by
   binding a wound), `levelup` (a perk waiting after level 1; closed by taking one), `shop` (after a purchase; closed by examining an
-  item). Esc closes any card.
+  item), and since Version 24 `crafting` (Shift+J), `casting` (Shift+Z), `town` (closed by talking), `gathering`, `altar` (closed by
+  sacrificing a corpse) and `jobs` (F7). Esc closes any card. The altar card is raised as the altar opens, so it draws once the panel closes.
 - `Game.ShowHint(id)` opens a card when tutorials are on, the hint is not yet in `SeenHints` and no card is open; it records the id
   in `SeenHints` and `NewlySeen`. `Game.HintDone(event)` closes the card when its own action happens.
 - Hints are raised on the hero's turns (`EndPlayerTurn`) and by the actions themselves, never while a level is generated, so the

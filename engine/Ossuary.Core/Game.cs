@@ -72,6 +72,7 @@ namespace Ossuary.Core
         {
             Rng = new Rng(seed);
             Items.Appearances.Seed = seed;
+            GroundItems.ResetUid();   // uids are part of the replay (survivor names and follow rolls hash them)
             Dungeon = new Dungeon(Rng);
             Player = new Player(Rng, roleId, raceId) { Name = "you", CharName = Heroes.CleanName(charName) };
             World = OverworldGen.Generate(96, 60, seed ^ 0xA5A5A5A5UL);
@@ -122,6 +123,7 @@ namespace Ossuary.Core
 
         public void DescendTo(string branchName, int depth)
         {
+            StashLevel();   // who stays behind on the level we are leaving
             Branch = branchName;
             Depth = depth;
             Player.CurrentBranch = branchName;
@@ -133,7 +135,15 @@ namespace Ossuary.Core
             Map = map;
             Monsters.Clear();
             if (spawns != null)
+            {
                 for (int i = 0; i < spawns.Count; i++) Monsters.Add(spawns[i].Monster);
+            }
+            else
+            {
+                // A level you come back to keeps its monsters, wounds included. Before Version 24 it came back empty.
+                var kept = Dungeon.TakeRoster(map.Number);
+                if (kept != null) Monsters.AddRange(kept);
+            }
 
             Map.ClearVisibility();
             Player.X = sx;
@@ -201,6 +211,7 @@ namespace Ossuary.Core
             }
             Say("You descend the staircase.", MessageKind.Narrative); Cue("stairs");
             DescendTo(Branch, Depth + 1);
+            SurvivorFollows();
             return true;
         }
 
@@ -220,9 +231,18 @@ namespace Ossuary.Core
             return true;
         }
 
+        /// <summary>Keeps the current dungeon level's monsters for the next visit, and lets the ones that met the hero remember it.</summary>
+        void StashLevel()
+        {
+            if (Mode != GameMode.Dungeon || Map == null) return;
+            PromoteSurvivors();
+            Dungeon.StashRoster(Map.Number, Monsters);
+        }
+
         public void LeaveToOverworld()
         {
             if (CheckVictory()) return; // surfacing with the amulet wins the run
+            StashLevel();
             Mode = GameMode.Overworld;
             Player.InsideDungeon = false;
             Map = null;
@@ -436,6 +456,8 @@ namespace Ossuary.Core
         public bool Attack(Monster target)
         {
             if (target == null) return false;
+            if (Player.FearTurns > 0) { Say("You are too afraid to raise a hand."); return false; }
+            if (Player.Asleep || Player.Stunned) { Say("You cannot do that now."); return false; }
             MakeNoise(3);
             if (target.Townsperson)
             {
@@ -453,6 +475,7 @@ namespace Ossuary.Core
             }
             bool crit;
             bool unaware = target.Asleep || target.Alert == 0 || target.FearTurns > 0 || target.Confused;
+            target.Encountered = true;
             var res = Battles.PlayerMelee(Player, target, Rng, out crit, 1, -Bodies.AimPenalty(Player.Aim));
             if (res.Hit) { target.Asleep = false; Splatter(target, res.Damage); }
             if (res.Killed) { _killSneak = unaware; _killType = DamageType.Physical; }
@@ -481,7 +504,9 @@ namespace Ossuary.Core
             if (m.Def.Trait != null) TraitOnDeath(m);
             QuestKill(m);
             CellarCleared(m);
-            if (m.BossId != null || m.Unique) RecordDeed(Deed.Killed, m.Name, m.BossId != null ? 3 : 2);
+            if (m.SurvivorId != null) SurvivorSlain(m);
+            if (m.BossId != null || m.Unique || m.SurvivorId != null)
+                RecordDeed(Deed.Killed, m.Name, m.BossId != null || m.SurvivorId != null ? 3 : 2);
             Stain(m.X, m.Y, BloodOf(m), m.Name);
             RaiderKilled(m);
             RelicsRemember(m);
@@ -490,7 +515,7 @@ namespace Ossuary.Core
             Player.Kills++;
             bool leveled = Player.AddXp(m.XpKill);
             Player.GainSkill(Skill.Combat, 2);
-            Say($"You have killed the {m.TheName}. ({m.XpKill} experience)", MessageKind.Kill);
+            Say($"You have killed {m.Obj}. ({m.XpKill} experience)", MessageKind.Kill);
             if (leveled) AnnounceLevelUp();
 
             for (int i = 0; i < m.Inventory.Count; i++)
@@ -554,8 +579,10 @@ namespace Ossuary.Core
             {
                 // A limping hero gives the monsters an extra move every fourth turn; a crawling one, every other turn.
                 int limp = Bodies.Limp(Player);
-                if (limp > 0 && Turn % (limp == 1 ? 4 : 2) == 0) RunMonsters();
+                if (limp > 0 && Turn % (limp == 1 ? 4 : 2) == 0 && StillFighting()) RunMonsters();
             }
+            // Slowed by a spell: the world gets a move the hero does not.
+            if (Player.SlowTurns > 0 && (Turn & 1) == 0 && StillFighting()) RunMonsters();
             UpdateFov();
             NoteThreat();
             CheckDeath();
@@ -615,7 +642,25 @@ namespace Ossuary.Core
 
         void DecrementStatus()
         {
-            if (Player.SleepTurns > 0) Player.SleepTurns--;
+            if (Player.SleepTurns > 0 && --Player.SleepTurns == 0 && Player.Asleep)
+            {
+                Player.Asleep = false;
+                Say("You wake.", MessageKind.Good);
+            }
+            if (Player.SlowTurns > 0) Player.SlowTurns--;
+            if (Player.WeakenTurns > 0) Player.WeakenTurns--;
+            if (Player.FearTurns > 0 && --Player.FearTurns == 0) Say("The terror lets go of you.", MessageKind.Good);
+            if (Player.RootTurns > 0 && --Player.RootTurns == 0) Say("You can move again.", MessageKind.Good);
+            if (Player.BleedTurns > 0)
+            {
+                Player.BleedTurns--;
+                Player.HP -= Math.Max(1, Player.BleedDmg);
+                HurtBy("bleeding");
+                Say(Player.BleedTurns > 0 ? "You are bleeding." : "The bleeding stops.", Player.BleedTurns > 0 ? MessageKind.Bad : MessageKind.Good);
+                CheckDeath();
+                if (Player.BleedTurns == 0) Player.BleedDmg = 0;
+                if (Player.HP <= 0) return;   // the rest of the turn belongs to nobody
+            }
             if (Player.Buffs.Count > 0)
                 foreach (string id in new List<string>(Player.Buffs.Keys))
                 {
@@ -629,7 +674,7 @@ namespace Ossuary.Core
                 foreach (var kv in Player.Buffs)
                 {
                     var bd = SpellBuffs.Find(kv.Key);
-                    if (bd != null && bd.Regen > 0 && Player.HP < Player.MaxHP) Player.HP = Math.Min(Player.MaxHP, Player.HP + bd.Regen);
+                    if (bd != null && bd.Regen > 0 && Player.HP > 0 && Player.HP < Player.MaxHP) Player.HP = Math.Min(Player.MaxHP, Player.HP + bd.Regen);
                 }
             if (Player.StunTurns > 0) Player.StunTurns--;
             if (Player.ConfusionTurns > 0)
@@ -663,6 +708,9 @@ namespace Ossuary.Core
             }
             CursedAmuletTick();
         }
+
+        /// <summary>The hero is alive and a turn can still be resolved: the extra monster runs must not touch a corpse.</summary>
+        bool StillFighting() => Player.HP > 0 && (Mode == GameMode.Dungeon || Mode == GameMode.TownMap);
 
         void RunMonsters()
         {
@@ -729,7 +777,11 @@ namespace Ossuary.Core
                 }
                 HurtBy(Article(m));
                 var res = Battles.MeleeAttack(m, Player, Rng);
-                if (res.Hit) Splatter(Player, res.Damage);
+                if (res.Hit)
+                {
+                    m.Encountered = true; m.SurvivorHurtHero = true; Splatter(Player, res.Damage);
+                    if (Player.Asleep) { Player.SleepTurns = 0; Player.Asleep = false; Say("You wake with a start.", MessageKind.Warn); }
+                }
                 Say(res.Message, res.Killed ? MessageKind.Death : MessageKind.Combat);
                 if (Bodies.Wounding(res.Kind)) WoundFrom(Player, res, Bodies.EdgedAttack(res.Kind), false);
                 ArmourTakesBlow(res);

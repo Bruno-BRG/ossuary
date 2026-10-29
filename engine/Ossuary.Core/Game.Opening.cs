@@ -48,6 +48,7 @@ namespace Ossuary.Core
             World.Day = 1; World.Hour = 8;
             World.Discover(8);
 
+            StashLevel();   // the level-1 monsters the constructor placed stay behind for the first descent
             Mode = GameMode.Overworld;
             Player.InsideDungeon = false;
             Map = null; Town = null;

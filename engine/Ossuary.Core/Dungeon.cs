@@ -48,6 +48,9 @@ namespace Ossuary.Core
         public readonly List<Branch> Branches = new List<Branch>();
         readonly Dictionary<string, GameMap> _levels = new Dictionary<string, GameMap>();
         readonly Dictionary<string, int[]> _levelEntrances = new Dictionary<string, int[]>();
+        /// <summary>Who was left standing on each level when the hero walked away, keyed by <see cref="GameMap.Number"/>.
+        /// Without it a revisited level would be empty, and a survivor would have nowhere to come back to.</summary>
+        readonly Dictionary<int, List<Monster>> _roster = new Dictionary<int, List<Monster>>();
         public Rng Rng;
         public int Width = 79;
         public int Height = 25;
@@ -171,6 +174,55 @@ namespace Ossuary.Core
             _levels[k] = map;
             _levelEntrances[k] = new[] { sx, sy };
             return map;
+        }
+
+        /// <summary>Keeps the level's own monsters (not the hero's companions or summons, not the dead) for the next visit.</summary>
+        public void StashRoster(int mapNumber, IEnumerable<Monster> monsters)
+        {
+            var kept = new List<Monster>();
+            foreach (var m in monsters)
+            {
+                if (m.IsDead || m.Companion || m.Ally) continue;
+                kept.Add(m);
+            }
+            if (kept.Count > 0) _roster[mapNumber] = kept;
+            else _roster.Remove(mapNumber);
+        }
+
+        /// <summary>What was left on a level when it was last visited, or null when it has never been left alive.</summary>
+        public List<Monster> TakeRoster(int mapNumber)
+        {
+            if (!_roster.TryGetValue(mapNumber, out var kept)) return null;
+            kept.RemoveAll(m => m.IsDead);
+            return new List<Monster>(kept);
+        }
+
+        /// <summary>Finds a monster on whichever level still holds it, without taking it (a road ambush may be fled).</summary>
+        public Monster FindInRosters(string survivorId, out int mapNumber)
+        {
+            foreach (var kv in _roster)
+            {
+                var m = kv.Value.Find(x => x.SurvivorId == survivorId);
+                if (m == null) continue;
+                mapNumber = kv.Key;
+                return m;
+            }
+            mapNumber = 0;
+            return null;
+        }
+
+        /// <summary>Takes a monster off whichever level still holds it (a survivor that follows the hero down).</summary>
+        public Monster TakeFromRosters(string survivorId, out int mapNumber)
+        {
+            var m = FindInRosters(survivorId, out mapNumber);
+            if (m != null && _roster.TryGetValue(mapNumber, out var kept)) kept.Remove(m);
+            return m;
+        }
+
+        /// <summary>Forgets a monster on every level roster (a survivor killed on the road).</summary>
+        public void RemoveFromRosters(string survivorId)
+        {
+            foreach (var kept in _roster.Values) kept.RemoveAll(m => m.SurvivorId == survivorId);
         }
 
         public void Remember(string branch, int depth, int x, int y)
